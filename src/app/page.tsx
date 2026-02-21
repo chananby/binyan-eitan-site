@@ -5,10 +5,10 @@ import { motion } from "framer-motion";
 
 export default function Home() {
   const projects = [
-    { id: 1, title: "Penthouse, Ramat Eskkol", image: "/פנטהאוז רמת אשכול ירושלים/ramat-eshkol.jpg.jpg" },
-    { id: 2, title: "Floor Extension, Bayit Vegan", image: "/הרחבת קומה - בית וגן ירושלים/bayit-vegan.jpg.jpg" },
-    { id: 3, title: "Amshinov Project", image: "/אמשינוב - ירושלים/amshinov.jpg.jpg" },
-    { id: 4, title: "Concrete Sawing & Extension, Ohel Avshalom", image: "/אוהל אבשלום - ניסור והרחבה - ירושלים/ohel-avshalom.jpg.jpg" },
+    { id: 1, title: "Penthouse, Ramat Eshkol", image: "/פנטהאוז רמת אשכול ירושלים/ramat-eshkol.jpg" },
+    { id: 2, title: "Floor Extension, Bayit Vegan", image: "/הרחבת קומה - בית וגן ירושלים/bayit-vegan.jpg" },
+    { id: 3, title: "Amshinov Project", image: "/אמשינוב - ירושלים/amshinov.jpg" },
+    { id: 4, title: "Concrete Sawing & Extension, Ohel Avshalom", image: "/אוהל אבשלום - ניסור והרחבה - ירושלים/ohel-avshalom.jpg" },
   ];
 
   const fadeInUp = {
