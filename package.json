@@ -12,6 +12,7 @@
     "react": "latest",
     "react-dom": "latest",
     "next": "latest"
+    "framer-motion": "^11.0.0",
   },
   "devDependencies": {
     "typescript": "latest",
