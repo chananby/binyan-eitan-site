@@ -5,165 +5,160 @@ import { motion } from "framer-motion";
 
 export default function Home() {
   const projects = [
-    { id: 1, title: "Penthouse, Ramat Eshkol", image: "/פנטהאוז רמת אשכול ירושלים/ramat-eshkol.jpg" },
-    { id: 2, title: "Floor Extension, Bayit Vegan", image: "/הרחבת קומה - בית וגן ירושלים/bayit-vegan.jpg" },
-    { id: 3, title: "Amshinov Project", image: "/אמשינוב - ירושלים/amshinov.jpg" },
-    { id: 4, title: "Concrete Sawing & Extension, Ohel Avshalom", image: "/אוהל אבשלום - ניסור והרחבה - ירושלים/ohel-avshalom.jpg" },
+    { id: 1, title: "Penthouse, Ramat Eshkol", tag: "Luxury Living", image: "/פנטהאוז רמת אשכול ירושלים/ramat-eshkol.jpg.jpg" },
+    { id: 2, title: "Floor Extension, Bayit Vegan", tag: "Premium Engineering", image: "/הרחבת קומה - בית וגן ירושלים/bayit-vegan.jpg.jpg" },
+    { id: 3, title: "Amshinov Project", tag: "Modern Design", image: "/אמשינוב - ירושלים/amshinov.jpg.jpg" },
+    { id: 4, title: "Ohel Avshalom", tag: "Complex Extension", image: "/אוהל אבשלום - ניסור והרחבה - ירושלים/ohel-avshalom.jpg.jpg" },
   ];
 
-  const fadeInUp = {
-    initial: { opacity: 0, y: 30 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true },
-    transition: { duration: 0.8, ease: "easeOut" }
-  };
-
   return (
-    <main className="min-h-screen bg-white text-slate-800 font-sans" dir="ltr">
+    <main className="min-h-screen bg-white text-[#1a1a1a] selection:bg-amber-200" dir="ltr">
       
-      {/* Navbar */}
-      <nav className="fixed top-0 w-full px-6 py-4 flex justify-between items-center z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100">
-        <div className="relative w-32 h-10 md:w-44 md:h-14">
+      {/* Premium Navbar */}
+      <nav className="fixed top-0 w-full px-8 py-6 flex justify-between items-center z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
+        <div className="relative w-40 h-12">
           <Image src="/logo.jpg" alt="Binyan Eitan" fill className="object-contain" priority />
         </div>
-        <div className="hidden md:flex gap-10 text-sm font-bold tracking-widest uppercase text-slate-600">
-          <a href="#home" className="hover:text-amber-600 transition-colors">Home</a>
-          <a href="#projects" className="hover:text-amber-600 transition-colors">Portfolio</a>
-          <a href="#contact" className="hover:text-amber-600 transition-colors">Contact</a>
+        <div className="hidden lg:flex gap-12 text-[11px] font-bold tracking-[0.2em] uppercase text-gray-500">
+          <a href="#home" className="hover:text-amber-600 transition-all">Home</a>
+          <a href="#projects" className="hover:text-amber-600 transition-all">Portfolio</a>
+          <a href="#contact" className="hover:text-amber-600 transition-all">Inquiry</a>
         </div>
+        <a href="tel:0585008447" className="hidden md:block border border-black px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all">
+          Call Now
+        </a>
       </nav>
 
-      {/* Hero Section */}
-      <section id="home" className="relative pt-48 pb-32 px-6 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full opacity-5 pointer-events-none">
-           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-        </div>
-        
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1 }}
-          className="max-w-4xl mx-auto text-center relative z-10"
-        >
-          <h1 className="text-6xl md:text-8xl font-black mb-8 leading-tight text-slate-900 tracking-tighter">
-            BUILDING <span className="text-amber-600">EXCELLENCE</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-light">
-            Luxury construction and complex engineering in the heart of Jerusalem. 
-            We turn architectural visions into solid reality.
-          </p>
+      {/* Hero Section - High End */}
+      <section id="home" className="relative min-h-screen flex items-center justify-center px-6 pt-20">
+        <div className="max-w-6xl w-full">
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-12"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="text-center"
           >
-            <a href="#projects" className="bg-slate-900 text-white px-10 py-4 rounded-full font-bold hover:bg-amber-600 transition-all shadow-xl">
-              View Our Work
-            </a>
+            <span className="text-amber-600 font-bold tracking-[0.4em] uppercase text-[12px] mb-6 block">Est. Jerusalem</span>
+            <h1 className="text-[12vw] lg:text-[100px] font-black leading-[0.9] tracking-tighter mb-10">
+              BINYAN <span className="text-gray-300 italic font-light">EITAN</span>
+            </h1>
+            <p className="text-lg md:text-xl text-gray-500 max-w-xl mx-auto font-light leading-relaxed mb-12">
+              Crafting architectural landmarks with precision and uncompromising standards. 
+              The pinnacle of luxury construction in Israel.
+            </p>
+            <div className="flex flex-col md:flex-row gap-6 justify-center">
+              <a href="#projects" className="bg-black text-white px-12 py-5 text-xs font-bold uppercase tracking-widest hover:bg-amber-600 transition-all shadow-2xl">
+                Explore Portfolio
+              </a>
+            </div>
           </motion.div>
-        </motion.div>
+        </div>
       </section>
 
-      {/* Projects Grid */}
-      <section id="projects" className="max-w-7xl mx-auto px-6 py-24">
-        <motion.h2 
-          {...fadeInUp}
-          className="text-4xl font-black mb-16 text-center text-slate-900 uppercase tracking-widest"
-        >
-          Featured <span className="text-amber-600 underline decoration-4 underline-offset-8">Projects</span>
-        </motion.h2>
+      {/* Portfolio - Large Scale */}
+      <section id="projects" className="py-32 bg-[#fcfcfc]">
+        <div className="max-w-[1600px] mx-auto px-6">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+            <h2 className="text-5xl font-black tracking-tighter italic">Featured<br/><span className="text-amber-600 not-italic">Works</span></h2>
+            <p className="max-w-xs text-gray-400 text-sm font-light">Each project is a testament to our commitment to excellence and engineering precision.</p>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {projects.map((project, index) => (
-            <motion.div 
-              key={project.id}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.2, duration: 0.8 }}
-              className="group relative h-[500px] rounded-3xl overflow-hidden shadow-2xl bg-slate-200"
-            >
-              <Image
-                src={project.image}
-                alt={project.title}
-                fill
-                className="object-cover transition-transform duration-1000 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-500"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+            {projects.map((project, index) => (
+              <motion.div 
+                key={project.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 1, delay: index * 0.1 }}
+                className="group relative h-[70vh] cursor-none"
+              >
+                <div className="absolute inset-0 overflow-hidden rounded-sm">
+                  <Image
+                    src={encodeURI(project.image)}
+                    alt={project.title}
+                    fill
+                    className="object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all duration-500"></div>
+                </div>
+                
+                <div className="absolute top-10 right-10">
+                  <span className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-4 py-1 text-[10px] font-bold uppercase tracking-widest">
+                    {project.tag}
+                  </span>
+                </div>
+
+                <div className="absolute bottom-12 left-12">
+                  <h3 className="text-4xl font-bold text-white mb-4 tracking-tighter">{project.title}</h3>
+                  <div className="w-0 group-hover:w-24 h-[2px] bg-amber-500 transition-all duration-700"></div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section - "The Inquiry" */}
+      <section id="contact" className="py-32 px-6 bg-black text-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
+            <div>
+              <h2 className="text-6xl font-black tracking-tighter mb-8">START YOUR<br/><span className="text-amber-600">JOURNEY</span></h2>
+              <p className="text-gray-400 font-light mb-12">Discuss your upcoming project with our expert team.</p>
               
-              <div className="absolute bottom-0 left-0 p-10">
-                <p className="text-amber-500 font-bold uppercase tracking-widest mb-2 text-sm">Jerusalem, IL</p>
-                <h3 className="text-3xl font-bold text-white tracking-tight">{project.title}</h3>
+              <div className="space-y-8">
+                <div>
+                  <span className="text-[10px] uppercase tracking-[0.3em] text-gray-500 block mb-2">Office</span>
+                  <p className="text-xl">Jerusalem, Israel</p>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase tracking-[0.3em] text-gray-500 block mb-2">Direct Line</span>
+                  <a href="tel:0585008447" className="text-xl hover:text-amber-500">058.500.8447</a>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase tracking-[0.3em] text-gray-500 block mb-2">Email</span>
+                  <a href="mailto:office@binyaneitan.com" className="text-xl hover:text-amber-500">office@binyaneitan.com</a>
+                </div>
               </div>
+            </div>
+
+            {/* The Professional Form */}
+            <motion.div 
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              className="bg-[#111] p-12 border border-white/5"
+            >
+              <form className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <input type="text" placeholder="FULL NAME" className="bg-transparent border-b border-white/20 py-4 focus:border-amber-600 outline-none text-xs tracking-widest w-full" />
+                  <input type="tel" placeholder="PHONE NUMBER" className="bg-transparent border-b border-white/20 py-4 focus:border-amber-600 outline-none text-xs tracking-widest w-full" />
+                </div>
+                <input type="email" placeholder="EMAIL ADDRESS" className="bg-transparent border-b border-white/20 py-4 focus:border-amber-600 outline-none text-xs tracking-widest w-full" />
+                <textarea placeholder="PROJECT DETAILS" rows={4} className="bg-transparent border-b border-white/20 py-4 focus:border-amber-600 outline-none text-xs tracking-widest w-full"></textarea>
+                <button className="w-full bg-white text-black py-5 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-amber-600 hover:text-white transition-all">
+                  Send Inquiry
+                </button>
+              </form>
             </motion.div>
-          ))}
+          </div>
         </div>
       </section>
 
-      {/* Stats/Trust Section */}
-      <section className="bg-slate-900 py-24 text-white">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-16">
-           {[
-             { title: "Uncompromising Quality", desc: "Premium materials and elite architectural finishes." },
-             { title: "Precision Engineering", desc: "Complex extensions and sawing with laser accuracy." },
-             { title: "Full Transparency", desc: "Peace of mind from initial planning to handover." }
-           ].map((item, i) => (
-             <motion.div 
-               key={i}
-               whileHover={{ y: -10 }}
-               className="border-l-2 border-amber-600 pl-8"
-             >
-               <h4 className="text-2xl font-bold mb-4">{item.title}</h4>
-               <p className="text-slate-400 leading-relaxed">{item.desc}</p>
-             </motion.div>
-           ))}
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer id="contact" className="bg-white py-20 border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div>
-             <div className="relative w-40 h-16 mb-6">
-                <Image src="/logo.jpg" alt="Binyan Eitan" fill className="object-contain" />
-             </div>
-             <p className="text-slate-500 leading-relaxed">
-               Building the future of Jerusalem with integrity, innovation, and unmatched craftsmanship.
-             </p>
+      {/* Footer - Final Polish */}
+      <footer className="py-12 px-6 border-t border-gray-100 text-center">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="relative w-32 h-10 grayscale opacity-50">
+            <Image src="/logo.jpg" alt="Binyan Eitan" fill className="object-contain" />
           </div>
-          
-          <div className="space-y-4">
-             <h4 className="text-lg font-black uppercase tracking-widest text-slate-900">Contact Details</h4>
-             <div className="text-slate-600 space-y-2">
-                <p className="flex items-center gap-2">📍 Jerusalem, Israel</p>
-                <p className="flex items-center gap-2">📱 <a href="tel:0585008447" className="hover:text-amber-600 font-bold">058-500-8447</a></p>
-                <p className="flex items-center gap-2">📞 <a href="tel:025000447" className="hover:text-amber-600">02-500-0447</a></p>
-                <p className="flex items-center gap-2">✉️ <a href="mailto:office@binyaneitan.com" className="hover:text-amber-600">office@binyaneitan.com</a></p>
-             </div>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400">
+            © {new Date().getFullYear()} Binyan Eitan. Jerusalem Luxury Construction.
+          </p>
+          <div className="flex gap-6">
+            <a href="https://wa.me/972585008447" className="text-[10px] font-bold uppercase tracking-widest hover:text-amber-600 transition-all">WhatsApp</a>
           </div>
-
-          <div className="space-y-4">
-             <h4 className="text-lg font-black uppercase tracking-widest text-slate-900">Follow Our Progress</h4>
-             <div className="flex gap-4">
-                <a href="https://wa.me/972585008447" className="bg-green-500 text-white px-6 py-2 rounded-full font-bold hover:bg-green-600 transition-all text-sm">WhatsApp Chat</a>
-             </div>
-          </div>
-        </div>
-        <div className="text-center mt-20 text-slate-400 text-xs tracking-widest uppercase">
-          © {new Date().getFullYear()} Binyan Eitan | Luxury Construction Jerusalem
         </div>
       </footer>
-
-      {/* Floating Action Button */}
-      <motion.a
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        href="https://wa.me/972585008447" 
-        className="fixed bottom-10 right-10 bg-green-500 text-white p-5 rounded-full shadow-2xl z-50 flex items-center justify-center hover:bg-green-600"
-      >
-        <svg viewBox="0 0 24 24" className="w-8 h-8 fill-current"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824z"></path></svg>
-      </motion.a>
     </main>
   );
 }
