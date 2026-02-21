@@ -1,4 +1,16 @@
 import Image from "next/image";
+import { Metadata } from "next";
+
+// הגדרות SEO וכרטיסיית ווטסאפ (מה שגוגל ורשתות חברתיות רואות)
+export const metadata: Metadata = {
+  title: "Binyan Eitan | Luxury Construction in Jerusalem",
+  description: "Binyan Eitan specializes in premium construction, complex extensions, and luxury projects in Jerusalem. Uncompromising quality and peace of mind.",
+  openGraph: {
+    title: "Binyan Eitan - Premium Construction",
+    description: "Building the new standard of Jerusalem. Discover our featured projects.",
+    images: ["/פנטהאוז רמת אשכול ירושלים/ramat-eshkol.jpg.jpg"], // התמונה שתופיע כששולחים לינק בווטסאפ
+  },
+};
 
 export default function Home() {
   const projects = [
@@ -11,9 +23,9 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-800 font-sans" dir="ltr">
       
-      {/* אזור עליון - תפריט ולוגו */}
-      <header className="absolute top-0 w-full p-6 flex justify-center md:justify-start items-center z-10 bg-white/80 backdrop-blur-sm shadow-sm">
-        <div className="relative w-40 h-16 md:w-56 md:h-20">
+      {/* תפריט ניווט עליון - Navbar */}
+      <nav className="fixed top-0 w-full px-6 py-4 flex justify-between items-center z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-100">
+        <div className="relative w-32 h-12 md:w-48 md:h-16">
           <Image 
             src="/logo.jpg" 
             alt="Binyan Eitan Logo" 
@@ -22,10 +34,15 @@ export default function Home() {
             priority
           />
         </div>
-      </header>
+        <div className="hidden md:flex gap-8 text-slate-700 font-medium">
+          <a href="#home" className="hover:text-amber-600 transition-colors">Home</a>
+          <a href="#projects" className="hover:text-amber-600 transition-colors">Projects</a>
+          <a href="#contact" className="hover:text-amber-600 transition-colors">Contact</a>
+        </div>
+      </nav>
 
       {/* מסך הפתיחה - Hero Section */}
-      <section className="relative pt-36 pb-20 px-6 text-center bg-white shadow-sm mt-16 md:mt-0">
+      <section id="home" className="relative pt-40 pb-20 px-6 text-center bg-white shadow-sm">
         <h1 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight text-slate-900 mt-8">
           A New Standard of <span className="text-amber-600">Construction in Jerusalem</span>
         </h1>
@@ -35,7 +52,7 @@ export default function Home() {
       </section>
 
       {/* גלריית הפרויקטים */}
-      <section className="max-w-7xl mx-auto px-6 py-16">
+      <section id="projects" className="max-w-7xl mx-auto px-6 py-16">
         <h2 className="text-3xl font-bold mb-12 text-center text-slate-900 border-b-2 border-amber-500 inline-block pb-2">
           Our Featured Projects
         </h2>
@@ -77,9 +94,46 @@ export default function Home() {
         </div>
       </section>
 
-      {/* כפתור ווטסאפ צף */}
+      {/* פוטר תחתון מעודכן - Footer */}
+      <footer id="contact" className="bg-slate-900 text-slate-300 py-12 mt-10 border-t-4 border-amber-500">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div>
+            <div className="relative w-32 h-12 mb-6 bg-white rounded p-2">
+              <Image src="/logo.jpg" alt="Binyan Eitan" fill className="object-contain" />
+            </div>
+            <p className="text-sm leading-relaxed text-slate-400">
+              Binyan Eitan is dedicated to excellence in luxury construction, innovative design, and bringing your architectural vision to life in Jerusalem.
+            </p>
+          </div>
+          
+          <div>
+            <h4 className="text-white font-bold mb-6 text-lg tracking-wide">Contact Information</h4>
+            <div className="space-y-3 text-slate-400">
+              <p>📍 Jerusalem, Israel</p>
+              <p>📱 Mobile: <a href="tel:0585008447" className="hover:text-amber-500">058-500-8447</a></p>
+              <p>📞 Office: <a href="tel:025000447" className="hover:text-amber-500">02-500-0447</a></p>
+              <p>✉️ Email: <a href="mailto:office@binyaneitan.com" className="hover:text-amber-500">office@binyaneitan.com</a></p>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="text-white font-bold mb-6 text-lg tracking-wide">Quick Links</h4>
+            <div className="space-y-3">
+              <p><a href="#home" className="hover:text-amber-500 transition-colors">Home</a></p>
+              <p><a href="#projects" className="hover:text-amber-500 transition-colors">Our Projects</a></p>
+              <p><a href="https://wa.me/972585008447" target="_blank" rel="noopener noreferrer" className="hover:text-green-400 transition-colors">WhatsApp Us</a></p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="text-center mt-12 pt-8 border-t border-slate-700/50 text-sm text-slate-500">
+          © {new Date().getFullYear()} Binyan Eitan. All rights reserved.
+        </div>
+      </footer>
+
+      {/* כפתור ווטסאפ צף מעודכן */}
       <a
-        href="https://wa.me/972500000000" 
+        href="https://wa.me/972585008447" 
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-8 right-8 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transition-colors z-50 flex items-center justify-center animate-bounce"
