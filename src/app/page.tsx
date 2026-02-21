@@ -1,125 +1,82 @@
-"use client";
-
-import React from 'react';
+import Image from "next/image";
 
 export default function Home() {
   const projects = [
-    {
-      title: "Ramat Eshkol Luxury Penthouse",
-      description: "Complete structural renovation and luxury interior finish.",
-      image: "/ramat-eshkol.jpg"
-    },
-    {
-      title: "Bayit VeGan Residential Expansion",
-      description: "Adding luxury living spaces to an existing residential landmark.",
-      image: "/bayit-vegan.jpg"
-    },
-    {
-      title: "Amshinov Jerusalem Landmark",
-      description: "Preservation and structural revitalization of iconic architecture.",
-      image: "/amshinov.jpg"
-    },
-    {
-      title: "Ohel Avshalom Structural Revitalization",
-      description: "Reinforcement and modernization of historic foundations.",
-      image: "/ohel-avshalom.jpg"
-    }
+    { id: 1, title: "Penthouse, Ramat Eshkol", image: "/ramat-eshkol.jpg" },
+    { id: 2, title: "Floor Extension, Bayit Vegan", image: "/bayit-vegan.jpg" },
+    { id: 3, title: "Amshinov Project", image: "/amshinov.jpg" },
+    { id: 4, title: "Concrete Sawing & Extension, Ohel Avshalom", image: "/ohel-avshalom.jpg" },
   ];
 
   return (
-    <main style={{ backgroundColor: "#ffffff", color: "#0f1f3d", fontFamily: 'serif' }} className="min-h-screen relative">
-      
-      {/* Floating WhatsApp Button (Main Work Mobile) */}
-      <a 
-        href="https://wa.me/972585008447?text=Hello, I'm interested in a project with Binyan Eitan."
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-[100] bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center"
-        title="Chat on WhatsApp"
-      >
-        <svg width="30" height="30" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412s-1.239 6.164-3.485 8.412c-2.246 2.248-5.23 3.488-8.414 3.488-2.015 0-3.993-.511-5.741-1.482l-6.75 1.77zM6.54 17.527l.393.232c1.438.853 3.1 1.304 4.807 1.305 5.077 0 9.208-4.131 9.21-9.21.001-2.462-.958-4.776-2.702-6.521-1.743-1.745-4.059-2.706-6.521-2.706-5.078 0-9.21 4.132-9.212 9.211 0 1.761.503 3.481 1.455 4.977l.254.398-1.07 3.906 4.028-1.057z"/>
-        </svg>
-      </a>
-
-      {/* Header / Navbar */}
-      <nav className="p-6 flex justify-between items-center border-b border-gray-100 sticky top-0 bg-white z-50">
-        <div className="text-2xl font-bold tracking-tighter">BINYAN <span style={{ color: "#b8955a" }}>EITAN</span></div>
-        <div className="hidden md:flex gap-8 text-sm uppercase tracking-widest font-sans">
-          <a href="#about" className="hover:text-[#b8955a] transition-colors">About</a>
-          <a href="#projects" className="hover:text-[#b8955a] transition-colors">Projects</a>
-          <a href="#contact" className="hover:text-[#b8955a] transition-colors">Contact</a>
-        </div>
-      </nav>
-
+    <main className="min-h-screen bg-slate-50 text-slate-800 font-sans" dir="ltr">
       {/* Hero Section */}
-      <section className="py-24 px-6 text-center bg-[#0f1f3d] text-white">
-        <h1 className="text-5xl md:text-7xl font-light mb-6 tracking-tight">
-          Solid Foundations.<br />
-          <span style={{ color: "#b8955a" }}>Uncompromised Integrity.</span>
+      <section className="relative pt-28 pb-20 px-6 text-center bg-white shadow-sm">
+        <h1 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight text-slate-900">
+          A New Standard of <span className="text-amber-600">Construction in Jerusalem</span>
         </h1>
-        <p className="text-xl max-w-2xl mx-auto opacity-80 font-sans italic">
-          Crafting Jerusalems finest residences with a 100% conflict-free record for over 25 years.
+        <p className="text-xl md:text-2xl max-w-2xl mx-auto text-slate-600 mb-10 leading-relaxed">
+          Binyan Eitan specializes in luxury construction, complex extensions, and unique projects, ensuring uncompromising quality, full transparency, and peace of mind for our clients.
         </p>
       </section>
 
-      {/* Projects Gallery */}
-      <section id="projects" className="py-20 bg-gray-50 px-6">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl text-center mb-16 italic font-light tracking-widest uppercase">Featured Projects</h2>
-          <div className="grid md:grid-cols-2 gap-10">
-            {projects.map((project, index) => (
-              <div key={index} className="group bg-white overflow-hidden border border-gray-200 shadow-sm hover:shadow-xl transition-all">
-                <div className="aspect-video relative overflow-hidden bg-gray-200">
-                  <img 
-                    src={project.image} 
-                    alt={project.title}
-                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
-                    onError={(e) => { e.currentTarget.src = "https://via.placeholder.com/800x450?text=Project+Photo"; }}
-                  />
-                </div>
-                <div className="p-8">
-                  <h3 className="text-xl font-bold mb-2 tracking-tight">{project.title}</h3>
-                  <p className="opacity-70 font-sans text-sm">{project.description}</p>
-                </div>
+      {/* Portfolio Gallery */}
+      <section className="max-w-7xl mx-auto px-6 py-16">
+        <h2 className="text-3xl font-bold mb-12 text-center text-slate-900 border-b-2 border-amber-500 inline-block pb-2">
+          Our Featured Projects
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
+          {projects.map((project) => (
+            <div key={project.id} className="group relative h-80 md:h-[400px] rounded-2xl overflow-hidden shadow-lg cursor-pointer bg-white">
+              <Image
+                src={project.image}
+                alt={project.title}
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              {/* Subtle gradient overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100"></div>
+              
+              {/* Overlay Text */}
+              <div className="absolute bottom-0 left-0 right-0 p-8 transform translate-y-2 transition-transform duration-300 group-hover:translate-y-0 text-left">
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">{project.title}</h3>
+                <div className="h-1 w-12 bg-amber-500 rounded mt-3"></div>
               </div>
-            ))}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Trust & Features Section */}
+      <section className="bg-white py-16 mt-8 border-t border-slate-200 shadow-inner">
+        <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
+          <div className="p-6">
+            <h4 className="text-2xl font-bold text-slate-900 mb-3 text-amber-600">Uncompromising Quality</h4>
+            <p className="text-slate-600 text-lg">Using the finest materials and delivering premium-grade architectural finishes.</p>
+          </div>
+          <div className="p-6">
+            <h4 className="text-2xl font-bold text-slate-900 mb-3 text-amber-600">On-Time Delivery</h4>
+            <p className="text-slate-600 text-lg">Meticulous project management ensuring timely handover, with zero excuses.</p>
+          </div>
+          <div className="p-6">
+            <h4 className="text-2xl font-bold text-slate-900 mb-3 text-amber-600">Peace of Mind</h4>
+            <p className="text-slate-600 text-lg">Close guidance and personal attention from day one until you receive the keys.</p>
           </div>
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="py-20 px-6 text-center max-w-4xl mx-auto">
-        <h2 className="text-4xl mb-4 font-light italic">Connect With Us</h2>
-        <p className="mb-12 opacity-70 uppercase tracking-widest text-sm">Choose your preferred point of contact</p>
-        
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Office */}
-          <div className="border border-gray-200 p-8 hover:border-[#b8955a] transition-colors">
-            <h3 className="text-[#b8955a] uppercase text-xs tracking-widest mb-4">The Office</h3>
-            <p className="mb-6 font-bold">02-500-0447</p>
-            <a href="tel:025000447" className="text-xs uppercase border-b border-black pb-1 hover:opacity-50">Call Now</a>
-          </div>
-
-          {/* Work Mobile */}
-          <div className="border border-[#0f1f3d] bg-[#0f1f3d] text-white p-8 scale-105 shadow-xl">
-            <h3 className="text-[#b8955a] uppercase text-xs tracking-widest mb-4">Direct Inquiries</h3>
-            <p className="mb-6 font-bold text-xl">058-500-8447</p>
-            <a href="https://wa.me/972585008447" className="inline-block bg-[#b8955a] text-white px-6 py-2 text-[10px] uppercase tracking-tighter">WhatsApp Us</a>
-          </div>
-
-          {/* Moti */}
-          <div className="border border-gray-200 p-8 hover:border-[#b8955a] transition-colors">
-            <h3 className="text-[#b8955a] uppercase text-xs tracking-widest mb-4">Moti (Owner)</h3>
-            <p className="mb-6 font-bold">054-200-0456</p>
-            <a href="https://wa.me/972542000456" className="text-xs uppercase border-b border-black pb-1 hover:opacity-50">Private Chat</a>
-          </div>
-        </div>
-      </section>
-
-      <footer className="py-10 border-t border-gray-100 text-center opacity-50 text-xs tracking-widest uppercase">
-        © 2026 Binyan Eitan. Jerusalem, Israel.
-      </footer>
+      {/* Floating WhatsApp Button */}
+      <a
+        href="https://wa.me/972500000000" 
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-8 right-8 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transition-colors z-50 flex items-center justify-center animate-bounce"
+        aria-label="Send WhatsApp message"
+      >
+        <svg viewBox="0 0 24 24" className="w-10 h-10 fill-current">
+          <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824z"></path>
+        </svg>
+      </a>
     </main>
   );
 }
