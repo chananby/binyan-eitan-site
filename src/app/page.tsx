@@ -2,17 +2,31 @@ import Image from "next/image";
 
 export default function Home() {
   const projects = [
-    { id: 1, title: "Penthouse, Ramat Eshkol", image: "/ramat-eshkol.jpg" },
-    { id: 2, title: "Floor Extension, Bayit Vegan", image: "/bayit-vegan.jpg" },
-    { id: 3, title: "Amshinov Project", image: "/amshinov.jpg" },
-    { id: 4, title: "Concrete Sawing & Extension, Ohel Avshalom", image: "/ohel-avshalom.jpg" },
+    { id: 1, title: "Penthouse, Ramat Eshkol", image: "/פנטהאוז רמת אשכול ירושלים/ramat-eshkol.jpg.jpg" },
+    { id: 2, title: "Floor Extension, Bayit Vegan", image: "/הרחבת קומה - בית וגן ירושלים/bayit-vegan.jpg.jpg" },
+    { id: 3, title: "Amshinov Project", image: "/אמשינוב - ירושלים/amshinov.jpg.jpg" },
+    { id: 4, title: "Concrete Sawing & Extension, Ohel Avshalom", image: "/אוהל אבשלום - ניסור והרחבה - ירושלים/ohel-avshalom.jpg.jpg" },
   ];
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-800 font-sans" dir="ltr">
-      {/* Hero Section */}
-      <section className="relative pt-28 pb-20 px-6 text-center bg-white shadow-sm">
-        <h1 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight text-slate-900">
+      
+      {/* אזור עליון - תפריט ולוגו */}
+      <header className="absolute top-0 w-full p-6 flex justify-center md:justify-start items-center z-10 bg-white/80 backdrop-blur-sm shadow-sm">
+        <div className="relative w-40 h-16 md:w-56 md:h-20">
+          <Image 
+            src="/logo.jpg" 
+            alt="Binyan Eitan Logo" 
+            fill 
+            className="object-contain"
+            priority
+          />
+        </div>
+      </header>
+
+      {/* מסך הפתיחה - Hero Section */}
+      <section className="relative pt-36 pb-20 px-6 text-center bg-white shadow-sm mt-16 md:mt-0">
+        <h1 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight text-slate-900 mt-8">
           A New Standard of <span className="text-amber-600">Construction in Jerusalem</span>
         </h1>
         <p className="text-xl md:text-2xl max-w-2xl mx-auto text-slate-600 mb-10 leading-relaxed">
@@ -20,24 +34,22 @@ export default function Home() {
         </p>
       </section>
 
-      {/* Portfolio Gallery */}
+      {/* גלריית הפרויקטים */}
       <section className="max-w-7xl mx-auto px-6 py-16">
         <h2 className="text-3xl font-bold mb-12 text-center text-slate-900 border-b-2 border-amber-500 inline-block pb-2">
           Our Featured Projects
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
           {projects.map((project) => (
-            <div key={project.id} className="group relative h-80 md:h-[400px] rounded-2xl overflow-hidden shadow-lg cursor-pointer bg-white">
+            <div key={project.id} className="group relative h-80 md:h-[400px] rounded-2xl overflow-hidden shadow-lg bg-white border border-slate-100">
               <Image
                 src={project.image}
                 alt={project.title}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              {/* Subtle gradient overlay for text readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100"></div>
               
-              {/* Overlay Text */}
               <div className="absolute bottom-0 left-0 right-0 p-8 transform translate-y-2 transition-transform duration-300 group-hover:translate-y-0 text-left">
                 <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">{project.title}</h3>
                 <div className="h-1 w-12 bg-amber-500 rounded mt-3"></div>
@@ -47,7 +59,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Trust & Features Section */}
+      {/* אזור האמון - למה אנחנו */}
       <section className="bg-white py-16 mt-8 border-t border-slate-200 shadow-inner">
         <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
           <div className="p-6">
@@ -65,7 +77,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Floating WhatsApp Button */}
+      {/* כפתור ווטסאפ צף */}
       <a
         href="https://wa.me/972500000000" 
         target="_blank"
