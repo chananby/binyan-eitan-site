@@ -59,7 +59,7 @@ export default function Home() {
           <span style={{ color: "#b8955a" }}>Uncompromised Integrity.</span>
         </h1>
         <p className="text-xl max-w-2xl mx-auto opacity-80 font-sans italic">
-          Crafting Jerusalem's finest residences with a 100% conflict-free record for over 25 years.
+          Crafting Jerusalems finest residences with a 100% conflict-free record for over 25 years.
         </p>
       </section>
 
