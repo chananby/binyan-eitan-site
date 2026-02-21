@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <rect width="120" height="120" rx="24" fill="#1e293b"/>
+  
+  <path d="M20 40 L60 20 L100 40 L100 48 L60 28 L20 48 Z" fill="#d97706"/>
+  
+  <text x="60" y="95" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="4">BE</text>
+</svg>
