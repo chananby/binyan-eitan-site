@@ -9,20 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "react": "latest",
-    "react-dom": "latest",
-    "next": "latest"
     "framer-motion": "^11.0.0",
+    "next": "14.2.3",
+    "react": "^18",
+    "react-dom": "^18"
   },
   "devDependencies": {
-    "typescript": "latest",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "postcss": "^8.4.31",
+    "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "autoprefixer": "^10.4.14",
-    "eslint": "latest",
-    "eslint-config-next": "latest"
+    "typescript": "^5"
   }
 }
