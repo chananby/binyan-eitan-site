@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Mottion, useScroll, useTransform, useInView, AnimatePresence } from "framer-Mottion";
+import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 /* ─────────────────────────────────────────────
@@ -157,9 +157,9 @@ function Section({ children, className = "", id, style }: { children: React.Reac
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   return (
-    <Mottion.section ref={ref} id={id} initial="hidden" animate={inView ? "visible" : "hidden"} className={className} style={style}>
+    <motion.section ref={ref} id={id} initial="hidden" animate={inView ? "visible" : "hidden"} className={className} style={style}>
       {children}
-    </Mottion.section>
+    </motion.section>
   );
 }
 
@@ -191,12 +191,12 @@ function Lightbox({ project, onClose }: { project: (typeof PROJECTS)[0]; onClose
   };
 
   return (
-    <Mottion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex flex-col" style={{ backgroundColor: "rgba(250,250,248,0.95)", backdropFilter: "blur(20px)" }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex flex-col" style={{ backgroundColor: "rgba(250,250,248,0.95)", backdropFilter: "blur(20px)" }}>
       <div className="flex items-center justify-between px-6 md:px-12 h-20 flex-shrink-0 relative z-10">
-        <Mottion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <h3 className="font-playfair text-lg md:text-xl" style={{ color: C.text }}>{project.title}</h3>
           <p className="text-[11px] tracking-[0.15em] uppercase font-light" style={{ color: C.textLight }}>{project.subtitle}</p>
-        </Mottion.div>
+        </motion.div>
         <div className="flex items-center gap-6">
           <span className="text-[13px] tabular-nums tracking-wide font-light" style={{ color: C.textMuted }}>
             <span style={{ color: C.text }} className="font-medium">{current + 1}</span> / {total}
@@ -209,11 +209,11 @@ function Lightbox({ project, onClose }: { project: (typeof PROJECTS)[0]; onClose
 
       <div className="flex-1 relative flex items-center justify-center overflow-hidden px-4 md:px-24 pb-6">
         <AnimatePresence initial={false} custom={direction} mode="popLayout">
-          <Mottion.div key={current} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" className="absolute inset-4 md:inset-x-24 md:inset-y-4 flex items-center justify-center">
+          <motion.div key={current} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" className="absolute inset-4 md:inset-x-24 md:inset-y-4 flex items-center justify-center">
             <div className="relative w-full h-full max-w-6xl max-h-[80vh] mx-auto">
               <Image src={project.images[current]} alt="" fill className="object-contain drop-shadow-2xl" sizes="(max-width: 768px) 95vw, 80vw" priority={current < 2} />
             </div>
-          </Mottion.div>
+          </motion.div>
         </AnimatePresence>
         <button onClick={() => go(-1)} className="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 items-center justify-center rounded-full border bg-white/80 transition-all z-10 hover:bg-black hover:text-white" style={{ borderColor: C.border }}>
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11 3L5 9L11 15" /></svg>
@@ -232,7 +232,7 @@ function Lightbox({ project, onClose }: { project: (typeof PROJECTS)[0]; onClose
           ))}
         </div>
       </div>
-    </Mottion.div>
+    </motion.div>
   );
 }
 
@@ -258,7 +258,7 @@ function Navbar() {
   ];
 
   return (
-    <Mottion.header initial={{ y: -100 }} animate={{ y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }} className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "bg-white/90 backdrop-blur-md shadow-[0_1px_0_rgba(0,0,0,0.04)]" : "bg-transparent"}`}>
+    <motion.header initial={{ y: -100 }} animate={{ y: 0 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }} className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "bg-white/90 backdrop-blur-md shadow-[0_1px_0_rgba(0,0,0,0.04)]" : "bg-transparent"}`}>
       <nav className="max-w-[1440px] mx-auto px-8 md:px-16 flex items-center justify-between h-20 md:h-24">
         <a href="#" className="relative z-50 flex items-center gap-4 group">
           <Image src="/logo.jpg" alt="Binyan Eitan Logo" width={40} height={40} className="rounded-sm object-contain" />
@@ -283,16 +283,16 @@ function Navbar() {
 
       <AnimatePresence>
         {menuOpen && (
-          <Mottion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ backgroundColor: C.text }} className="fixed inset-0 z-40 flex flex-col justify-center items-center gap-8">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ backgroundColor: C.text }} className="fixed inset-0 z-40 flex flex-col justify-center items-center gap-8">
             {links.map((l, i) => (
-              <Mottion.a key={l.href} href={l.href} onClick={() => setMenuOpen(false)} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.08 }} className="font-playfair text-3xl text-white/80 hover:text-amber-300 transition-colors">
+              <motion.a key={l.href} href={l.href} onClick={() => setMenuOpen(false)} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.08 }} className="font-playfair text-3xl text-white/80 hover:text-amber-300 transition-colors">
                 {l.label}
-              </Mottion.a>
+              </motion.a>
             ))}
-          </Mottion.div>
+          </motion.div>
         )}
       </AnimatePresence>
-    </Mottion.header>
+    </motion.header>
   );
 }
 
@@ -308,25 +308,25 @@ function Hero() {
 
   return (
     <div ref={ref} className="relative min-h-screen overflow-hidden" style={{ backgroundColor: C.bgWarm }}>
-      <Mottion.div style={{ y }} className="absolute top-0 right-0 bottom-0 w-full md:w-[55%]">
+      <motion.div style={{ y }} className="absolute top-0 right-0 bottom-0 w-full md:w-[55%]">
         <Image src="/ramat-eshkol.jpg" alt="Luxury construction by Binyan Eitan" fill priority className="object-cover" sizes="(max-width: 768px) 100vw, 55vw" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#f9f8f5] via-[#f9f8f5]/80 to-transparent md:from-[#f9f8f5] md:via-[#f9f8f5]/60 md:to-transparent" />
-      </Mottion.div>
+      </motion.div>
 
-      <Mottion.div style={{ opacity }} className="relative z-10 min-h-screen flex flex-col justify-end pb-24 md:pb-32 px-8 md:px-16 max-w-[1440px] mx-auto">
-        <Mottion.div variants={fadeIn} initial="hidden" animate="visible" custom={0} className="mb-8">
+      <motion.div style={{ opacity }} className="relative z-10 min-h-screen flex flex-col justify-end pb-24 md:pb-32 px-8 md:px-16 max-w-[1440px] mx-auto">
+        <motion.div variants={fadeIn} initial="hidden" animate="visible" custom={0} className="mb-8">
           <span className="text-[11px] md:text-[12px] tracking-[0.45em] uppercase font-light" style={{ color: C.amber }}>Jerusalem&apos;s Premier Construction Studio</span>
-        </Mottion.div>
+        </motion.div>
 
-        <Mottion.h1 variants={fadeUp} initial="hidden" animate="visible" custom={1} className="font-playfair text-[clamp(2.8rem,7vw,7rem)] leading-[0.92] tracking-tight max-w-3xl" style={{ color: C.text }}>
+        <motion.h1 variants={fadeUp} initial="hidden" animate="visible" custom={1} className="font-playfair text-[clamp(2.8rem,7vw,7rem)] leading-[0.92] tracking-tight max-w-3xl" style={{ color: C.text }}>
           Where Vision<br />Meets <span className="italic" style={{ color: C.amber }}>Precision</span>
-        </Mottion.h1>
+        </motion.h1>
 
-        <Mottion.p variants={fadeUp} initial="hidden" animate="visible" custom={2} className="mt-8 md:mt-10 text-base md:text-[17px] max-w-lg leading-[1.75] font-light" style={{ color: C.textMuted }}>
+        <motion.p variants={fadeUp} initial="hidden" animate="visible" custom={2} className="mt-8 md:mt-10 text-base md:text-[17px] max-w-lg leading-[1.75] font-light" style={{ color: C.textMuted }}>
           High-end residential construction, complex structural engineering, and meticulous project management — setting a new standard of excellence in Jerusalem.
-        </Mottion.p>
+        </motion.p>
 
-        <Mottion.div variants={fadeUp} initial="hidden" animate="visible" custom={3} className="mt-12 flex flex-wrap gap-5">
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3} className="mt-12 flex flex-wrap gap-5">
           <a href="#portfolio" className="group inline-flex items-center gap-3 px-9 py-4 text-white text-[12px] tracking-[0.18em] uppercase font-medium transition-all duration-300" style={{ backgroundColor: C.text }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = C.amber)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = C.text)}>
             View Our Work
             <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M5 12h14M12 5l7 7-7 7" /></svg>
@@ -334,9 +334,9 @@ function Hero() {
           <a href="#contact" className="inline-flex items-center gap-3 px-9 py-4 text-[12px] tracking-[0.18em] uppercase font-light transition-all duration-300" style={{ border: `1px solid ${C.border}`, color: C.textMuted }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = C.amber; e.currentTarget.style.color = C.amber; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.textMuted; }}>
             Start Your Project
           </a>
-        </Mottion.div>
+        </motion.div>
 
-        <Mottion.div variants={fadeUp} initial="hidden" animate="visible" custom={4} className="mt-20 pt-10 flex flex-wrap gap-14 md:gap-24" style={{ borderTop: `1px solid ${C.border}` }}>
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4} className="mt-20 pt-10 flex flex-wrap gap-14 md:gap-24" style={{ borderTop: `1px solid ${C.border}` }}>
           {[
             { value: "15+", label: "Years Experience" },
             { value: "200+", label: "Projects Delivered" },
@@ -347,13 +347,13 @@ function Hero() {
               <div className="text-[10px] tracking-[0.22em] uppercase mt-1.5" style={{ color: C.textLight }}>{stat.label}</div>
             </div>
           ))}
-        </Mottion.div>
-      </Mottion.div>
+        </motion.div>
+      </motion.div>
 
-      <Mottion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.2, duration: 1 }} className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.2, duration: 1 }} className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
         <span className="text-[10px] tracking-[0.3em] uppercase" style={{ color: C.textFaint }}>Scroll</span>
-        <Mottion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }} className="w-px h-8" style={{ background: `linear-gradient(to bottom, ${C.amber}, transparent)` }} />
-      </Mottion.div>
+        <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }} className="w-px h-8" style={{ background: `linear-gradient(to bottom, ${C.amber}, transparent)` }} />
+      </motion.div>
     </div>
   );
 }
@@ -367,16 +367,16 @@ function Expertise() {
     <Section id="expertise" className="py-32 md:py-48" style={{ backgroundColor: C.bg }}>
       <div className="max-w-[1440px] mx-auto px-8 md:px-16">
         <div className="max-w-2xl mb-24 md:mb-32">
-          <Mottion.span variants={fadeIn} className="text-[11px] tracking-[0.45em] uppercase block mb-5" style={{ color: C.amber }}>What We Do</Mottion.span>
-          <Mottion.h2 variants={fadeUp} custom={1} className="font-playfair text-4xl md:text-[3.5rem] lg:text-6xl leading-[1.05] tracking-tight" style={{ color: C.text }}>
+          <motion.span variants={fadeIn} className="text-[11px] tracking-[0.45em] uppercase block mb-5" style={{ color: C.amber }}>What We Do</motion.span>
+          <motion.h2 variants={fadeUp} custom={1} className="font-playfair text-4xl md:text-[3.5rem] lg:text-6xl leading-[1.05] tracking-tight" style={{ color: C.text }}>
             Expertise Built on<br /><span className="italic" style={{ color: C.amber }}>Decades</span> of Craft
-          </Mottion.h2>
-          <Mottion.div variants={fadeUp} custom={2} className="mt-5 w-16 h-px" style={{ backgroundColor: C.amber }} />
+          </motion.h2>
+          <motion.div variants={fadeUp} custom={2} className="mt-5 w-16 h-px" style={{ backgroundColor: C.amber }} />
         </div>
 
         <div className="grid md:grid-cols-3 gap-0">
           {EXPERTISE.map((item, i) => (
-            <Mottion.div key={item.number} variants={fadeUp} custom={i} className="group relative p-10 md:p-14 transition-colors duration-500" style={{ borderRight: i < 2 ? `1px solid ${C.border}` : "none" }}>
+            <motion.div key={item.number} variants={fadeUp} custom={i} className="group relative p-10 md:p-14 transition-colors duration-500" style={{ borderRight: i < 2 ? `1px solid ${C.border}` : "none" }}>
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundColor: C.amberFaint }} />
               <div className="relative">
                 <div style={{ color: C.textFaint }} className="mb-10">{item.icon}</div>
@@ -385,7 +385,7 @@ function Expertise() {
                 <p className="text-[14px] leading-[1.8] font-light" style={{ color: C.textMuted }}>{item.description}</p>
                 <div className="mt-10 h-px w-0 group-hover:w-14 transition-all duration-500" style={{ backgroundColor: C.amber }} />
               </div>
-            </Mottion.div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -402,22 +402,22 @@ function Process() {
     <Section id="process" className="py-32 md:py-48 relative overflow-hidden" style={{ backgroundColor: C.bgAlt }}>
       <div className="max-w-[1440px] mx-auto px-8 md:px-16 relative">
         <div className="text-center max-w-2xl mx-auto mb-24 md:mb-32">
-          <Mottion.span variants={fadeIn} className="text-[11px] tracking-[0.45em] uppercase block mb-5" style={{ color: C.amber }}>How We Work</Mottion.span>
-          <Mottion.h2 variants={fadeUp} custom={1} className="font-playfair text-4xl md:text-[3.5rem] lg:text-6xl leading-[1.05] tracking-tight" style={{ color: C.text }}>
+          <motion.span variants={fadeIn} className="text-[11px] tracking-[0.45em] uppercase block mb-5" style={{ color: C.amber }}>How We Work</motion.span>
+          <motion.h2 variants={fadeUp} custom={1} className="font-playfair text-4xl md:text-[3.5rem] lg:text-6xl leading-[1.05] tracking-tight" style={{ color: C.text }}>
             The Eitan <span className="italic" style={{ color: C.amber }}>Process</span>
-          </Mottion.h2>
-          <Mottion.p variants={fadeUp} custom={2} className="mt-8 text-[15px] leading-[1.8] font-light max-w-lg mx-auto" style={{ color: C.textMuted }}>
+          </motion.h2>
+          <motion.p variants={fadeUp} custom={2} className="mt-8 text-[15px] leading-[1.8] font-light max-w-lg mx-auto" style={{ color: C.textMuted }}>
             A proven methodology refined over hundreds of projects. Four phases. One unwavering commitment to excellence.
-          </Mottion.p>
+          </motion.p>
         </div>
 
         <div className="relative max-w-4xl mx-auto">
-          <Mottion.div variants={lineGrow} className="hidden md:block absolute left-1/2 -translate-x-px top-0 bottom-0 w-px" style={{ background: `linear-gradient(to bottom, ${C.border}, ${C.amber}40, ${C.border})` }} />
+          <motion.div variants={lineGrow} className="hidden md:block absolute left-1/2 -translate-x-px top-0 bottom-0 w-px" style={{ background: `linear-gradient(to bottom, ${C.border}, ${C.amber}40, ${C.border})` }} />
           <div className="space-y-20 md:space-y-0">
             {PROCESS_STEPS.map((step, i) => {
               const isLeft = i % 2 === 0;
               return (
-                <Mottion.div key={step.step} variants={fadeUp} custom={i} className={`md:flex items-start ${isLeft ? "" : "md:flex-row-reverse"} md:pb-24`}>
+                <motion.div key={step.step} variants={fadeUp} custom={i} className={`md:flex items-start ${isLeft ? "" : "md:flex-row-reverse"} md:pb-24`}>
                   <div className={`md:w-[calc(50%-2rem)] ${isLeft ? "md:pr-0 md:text-right" : "md:pl-0"}`}>
                     <span className="font-playfair text-[5rem] md:text-[6rem] leading-none block" style={{ color: "rgba(0,0,0,0.025)" }}>{step.step}</span>
                     <h3 className="font-playfair text-2xl md:text-[1.75rem] -mt-10 md:-mt-12 mb-5" style={{ color: C.text }}>{step.title}</h3>
@@ -427,7 +427,7 @@ function Process() {
                     <div className="relative"><div className="w-2.5 h-2.5 rotate-45" style={{ backgroundColor: C.amber }} /></div>
                   </div>
                   <div className="md:w-[calc(50%-2rem)]" />
-                </Mottion.div>
+                </motion.div>
               );
             })}
           </div>
@@ -447,35 +447,35 @@ function Visionary() {
         <div className="flex flex-col md:flex-row gap-16 md:gap-24 items-center">
           
           {/* Image Column */}
-          <Mottion.div variants={fadeIn} className="w-full md:w-5/12 aspect-[3/4] relative rounded-sm overflow-hidden" style={{ border: `1px solid ${C.border}` }}>
+          <motion.div variants={fadeIn} className="w-full md:w-5/12 aspect-[3/4] relative rounded-sm overflow-hidden" style={{ border: `1px solid ${C.border}` }}>
             {/* TEMPORARY IMAGE: Change '/ramat-eshkol.jpg' to '/Motti-profile.jpg' when ready */}
             <Image src="/ramat-eshkol.jpg" alt="Motti Eitan" fill className="object-cover" sizes="(max-width: 768px) 100vw, 40vw" />
             <div className="absolute inset-0 border-[10px] border-white/20 z-10 pointer-events-none" />
-          </Mottion.div>
+          </motion.div>
 
           {/* Text Column */}
           <div className="w-full md:w-7/12">
-            <Mottion.span variants={fadeIn} className="text-[11px] tracking-[0.45em] uppercase block mb-5" style={{ color: C.amber }}>The Visionary</Mottion.span>
-            <Mottion.h2 variants={fadeUp} custom={1} className="font-playfair text-4xl md:text-5xl lg:text-6xl leading-[1.05] tracking-tight mb-4" style={{ color: C.text }}>
+            <motion.span variants={fadeIn} className="text-[11px] tracking-[0.45em] uppercase block mb-5" style={{ color: C.amber }}>The Visionary</motion.span>
+            <motion.h2 variants={fadeUp} custom={1} className="font-playfair text-4xl md:text-5xl lg:text-6xl leading-[1.05] tracking-tight mb-4" style={{ color: C.text }}>
               Motti Eitan
-            </Mottion.h2>
-            <Mottion.div variants={fadeUp} custom={2} className="text-[13px] tracking-[0.2em] uppercase mb-10" style={{ color: C.textLight }}>
+            </motion.h2>
+            <motion.div variants={fadeUp} custom={2} className="text-[13px] tracking-[0.2em] uppercase mb-10" style={{ color: C.textLight }}>
               Founder &amp; Owner
-            </Mottion.div>
+            </motion.div>
             
-            <Mottion.div variants={fadeUp} custom={3} className="space-y-6 text-[15px] leading-[1.8] font-light" style={{ color: C.textMuted }}>
+            <motion.div variants={fadeUp} custom={3} className="space-y-6 text-[15px] leading-[1.8] font-light" style={{ color: C.textMuted }}>
               <p>
                 With over 25 years of hands-on leadership in Jerusalem&apos;s elite construction sector, Motti Eitan brings an unparalleled depth of expertise to every project. Specializing in complex structural engineering, advanced waterproofing systems, and premium residential extensions, Motti has built a reputation where precision is non-negotiable.
               </p>
               <p>
                 For Motti, a successful build goes far beyond flawless execution—it is rooted in absolute reliability, total transparency, and a commitment to the client&apos;s peace of mind. Under his direct oversight, Binyan Eitan doesn&apos;t just build magnificent spaces; we build enduring trust, backed by a legacy of highly satisfied clients.
               </p>
-            </Mottion.div>
+            </motion.div>
 
-            <Mottion.div variants={fadeUp} custom={4} className="mt-12 pt-8" style={{ borderTop: `1px solid ${C.border}` }}>
+            <motion.div variants={fadeUp} custom={4} className="mt-12 pt-8" style={{ borderTop: `1px solid ${C.border}` }}>
                <div className="font-playfair text-3xl" style={{ color: C.text }}>25+</div>
                <div className="text-[10px] tracking-[0.2em] uppercase mt-1" style={{ color: C.textLight }}>Years of Excellence</div>
-            </Mottion.div>
+            </motion.div>
           </div>
 
         </div>
@@ -494,7 +494,7 @@ function PortfolioCard({ project, index, onOpen }: { project: (typeof PROJECTS)[
   const [hovered, setHovered] = useState(false);
 
   return (
-    <Mottion.div
+    <motion.div
       ref={ref}
       initial={{ opacity: 0, y: 50 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -504,9 +504,9 @@ function PortfolioCard({ project, index, onOpen }: { project: (typeof PROJECTS)[
       onClick={onOpen}
       className={`relative overflow-hidden cursor-pointer group ${index === 0 ? "md:col-span-2 md:row-span-2 aspect-[4/3] md:aspect-auto" : "aspect-[4/3]"}`}
     >
-      <Mottion.div animate={{ scale: hovered ? 1.04 : 1 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className="absolute inset-0">
+      <motion.div animate={{ scale: hovered ? 1.04 : 1 }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} className="absolute inset-0">
         <Image src={project.image} alt={project.title} fill className="object-cover" sizes={index === 0 ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 100vw, 33vw"} />
-      </Mottion.div>
+      </motion.div>
 
       <div className="absolute inset-0 transition-all duration-500" style={{ background: hovered ? "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 50%, transparent 100%)" : "linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%)" }} />
 
@@ -521,7 +521,7 @@ function PortfolioCard({ project, index, onOpen }: { project: (typeof PROJECTS)[
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 p-7 md:p-10">
-        <Mottion.div animate={{ y: hovered ? 0 : 6, opacity: hovered ? 1 : 0.85 }} transition={{ duration: 0.4 }}>
+        <motion.div animate={{ y: hovered ? 0 : 6, opacity: hovered ? 1 : 0.85 }} transition={{ duration: 0.4 }}>
           <div className="flex items-end justify-between gap-4">
             <div>
               <h3 className="font-playfair text-white text-xl md:text-2xl lg:text-3xl mb-1.5">{project.title}</h3>
@@ -532,14 +532,14 @@ function PortfolioCard({ project, index, onOpen }: { project: (typeof PROJECTS)[
               <span className="text-white/40 text-[11px] tracking-wider block">{project.area}</span>
             </div>
           </div>
-        </Mottion.div>
-        <Mottion.div initial={{ scaleX: 0 }} animate={{ scaleX: hovered ? 1 : 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mt-5 h-px origin-left" style={{ backgroundColor: C.amber }} />
-        <Mottion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : 8 }} transition={{ duration: 0.3, delay: hovered ? 0.1 : 0 }} className="mt-4 flex items-center gap-2">
+        </motion.div>
+        <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: hovered ? 1 : 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="mt-5 h-px origin-left" style={{ backgroundColor: C.amber }} />
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: hovered ? 1 : 0, y: hovered ? 0 : 8 }} transition={{ duration: 0.3, delay: hovered ? 0.1 : 0 }} className="mt-4 flex items-center gap-2">
           <span className="text-[11px] tracking-[0.2em] uppercase text-white/70">View Gallery</span>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="1.5" className="opacity-70"><path d="M3 8h10M9 4l4 4-4 4" /></svg>
-        </Mottion.div>
+        </motion.div>
       </div>
-    </Mottion.div>
+    </motion.div>
   );
 }
 
@@ -552,14 +552,14 @@ function Portfolio() {
         <div className="max-w-[1440px] mx-auto px-8 md:px-16">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-20 md:mb-24">
             <div>
-              <Mottion.span variants={fadeIn} className="text-[11px] tracking-[0.45em] uppercase block mb-5" style={{ color: C.amber }}>Selected Projects</Mottion.span>
-              <Mottion.h2 variants={fadeUp} custom={1} className="font-playfair text-4xl md:text-[3.5rem] lg:text-6xl leading-[1.05] tracking-tight" style={{ color: C.text }}>
+              <motion.span variants={fadeIn} className="text-[11px] tracking-[0.45em] uppercase block mb-5" style={{ color: C.amber }}>Selected Projects</motion.span>
+              <motion.h2 variants={fadeUp} custom={1} className="font-playfair text-4xl md:text-[3.5rem] lg:text-6xl leading-[1.05] tracking-tight" style={{ color: C.text }}>
                 Crafted with<br /><span className="italic" style={{ color: C.amber }}>Intention</span>
-              </Mottion.h2>
+              </motion.h2>
             </div>
-            <Mottion.p variants={fadeUp} custom={2} className="text-[14px] max-w-md leading-[1.8] font-light md:text-right" style={{ color: C.textMuted }}>
+            <motion.p variants={fadeUp} custom={2} className="text-[14px] max-w-md leading-[1.8] font-light md:text-right" style={{ color: C.textMuted }}>
               Each project reflects our commitment to transforming spaces with precision engineering and uncompromising quality.
-            </Mottion.p>
+            </motion.p>
           </div>
           <div className="grid md:grid-cols-3 gap-3 md:gap-4">
             {PROJECTS.map((project, i) => (
@@ -624,15 +624,15 @@ function Contact() {
       <div className="max-w-[1440px] mx-auto px-8 md:px-16 relative">
         <div className="grid md:grid-cols-2 gap-20 md:gap-32">
           <div>
-            <Mottion.span variants={fadeIn} className="text-[11px] tracking-[0.45em] uppercase block mb-5" style={{ color: C.amber }}>Get in Touch</Mottion.span>
-            <Mottion.h2 variants={fadeUp} custom={1} className="font-playfair text-4xl md:text-5xl lg:text-6xl leading-[1.05] tracking-tight mb-10" style={{ color: C.text }}>
+            <motion.span variants={fadeIn} className="text-[11px] tracking-[0.45em] uppercase block mb-5" style={{ color: C.amber }}>Get in Touch</motion.span>
+            <motion.h2 variants={fadeUp} custom={1} className="font-playfair text-4xl md:text-5xl lg:text-6xl leading-[1.05] tracking-tight mb-10" style={{ color: C.text }}>
               Let&apos;s Build<br />Something <span className="italic" style={{ color: C.amber }}>Extraordinary</span>
-            </Mottion.h2>
-            <Mottion.p variants={fadeUp} custom={2} className="text-[15px] leading-[1.8] font-light mb-16 max-w-md" style={{ color: C.textMuted }}>
+            </motion.h2>
+            <motion.p variants={fadeUp} custom={2} className="text-[15px] leading-[1.8] font-light mb-16 max-w-md" style={{ color: C.textMuted }}>
               Ready to transform your space? Whether you&apos;re planning a luxury build, a complex extension, or a complete renovation — we&apos;d love to hear about your vision.
-            </Mottion.p>
+            </motion.p>
 
-            <Mottion.div variants={fadeUp} custom={3} className="space-y-7">
+            <motion.div variants={fadeUp} custom={3} className="space-y-7">
               <div className="flex items-center gap-5">
                 <div className="w-11 h-11 flex items-center justify-center" style={{ border: `1px solid ${C.border}` }}>
                   <svg className="w-[18px] h-[18px]" style={{ color: C.amber }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.4}><path d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
@@ -664,10 +664,10 @@ function Contact() {
                 </div>
                 <span className="text-[14px]" style={{ color: C.text }}>Jerusalem, Israel</span>
               </div>
-            </Mottion.div>
+            </motion.div>
           </div>
 
-          <Mottion.div variants={fadeUp} custom={2}>
+          <motion.div variants={fadeUp} custom={2}>
             {!submitted ? (
               <form onSubmit={handleSubmit} className="space-y-0">
                 <div className="mb-10"><span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: C.textLight }}>Project Inquiry</span></div>
@@ -712,15 +712,15 @@ function Contact() {
                 <p className="text-[11px] text-center font-light pt-5" style={{ color: C.textFaint }}>Your inquiry will be sent securely to our office.</p>
               </form>
             ) : (
-              <Mottion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center h-full text-center py-24">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center h-full text-center py-24">
                 <div className="w-16 h-16 flex items-center justify-center mb-8 rotate-45" style={{ border: `1px solid ${C.amber}` }}>
                   <svg className="w-6 h-6 -rotate-45" style={{ color: C.amber }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                 </div>
                 <h3 className="font-playfair text-2xl mb-3" style={{ color: C.text }}>Message Sent</h3>
                 <p className="text-[14px] font-light" style={{ color: C.textMuted }}>Thank you. We&apos;ll be in touch shortly.</p>
-              </Mottion.div>
+              </motion.div>
             )}
-          </Mottion.div>
+          </motion.div>
         </div>
       </div>
     </Section>
@@ -764,9 +764,9 @@ function WhatsAppFloat() {
   return (
     <AnimatePresence>
       {visible && (
-        <Mottion.a href="https://wa.me/972585008447" target="_blank" rel="noopener noreferrer" initial={{ opacity: 0, scale: 0.8, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.8, y: 20 }} whileHover={{ scale: 1.1 }} className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/20">
+        <motion.a href="https://wa.me/972585008447" target="_blank" rel="noopener noreferrer" initial={{ opacity: 0, scale: 0.8, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.8, y: 20 }} whileHover={{ scale: 1.1 }} className="fixed bottom-8 right-8 z-50 w-14 h-14 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/20">
           <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
-        </Mottion.a>
+        </motion.a>
       )}
     </AnimatePresence>
   );
