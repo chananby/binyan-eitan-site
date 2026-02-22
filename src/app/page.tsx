@@ -239,7 +239,6 @@ function Lightbox({ project, onClose }: { project: (typeof PROJECTS)[0]; onClose
 /* ─────────────────────────────────────────────
    NAVBAR
    ───────────────────────────────────────────── */
-
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -268,13 +267,21 @@ function Navbar() {
           </div>
         </a>
 
-        <div className="hidden md:flex items-center gap-12">
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center gap-8">
           {links.map((l) => (
             <a key={l.href} href={l.href} className="text-[12px] tracking-[0.2em] uppercase transition-colors duration-300" style={{ color: C.textMuted }} onMouseEnter={(e) => (e.currentTarget.style.color = C.amber)} onMouseLeave={(e) => (e.currentTarget.style.color = C.textMuted)}>{l.label}</a>
           ))}
-          <a href="#contact" className="ml-4 px-7 py-2.5 text-[11px] tracking-[0.2em] uppercase transition-all duration-300" style={{ border: `1px solid ${C.amber}`, color: C.amber }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.amber; e.currentTarget.style.color = "#fff"; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = C.amber; }}>Get in Touch</a>
+          
+          <div className="flex items-center gap-4 ml-4 pl-8 border-l border-black/5">
+            {/* כפתור שפה */}
+            <a href="/he" className="text-[11px] font-medium px-2 py-1 hover:text-[#c5a35d] transition-colors" style={{ color: C.text }}>HE</a>
+            
+            <a href="#contact" className="px-7 py-2.5 text-[11px] tracking-[0.2em] uppercase transition-all duration-300" style={{ border: `1px solid ${C.amber}`, color: C.amber }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = C.amber; e.currentTarget.style.color = "#fff"; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = C.amber; }}>Get in Touch</a>
+          </div>
         </div>
 
+        {/* Mobile Toggle */}
         <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden relative z-50 w-8 h-8 flex flex-col justify-center items-center gap-1.5" aria-label="Toggle menu">
           <span className="block w-6 h-px transition-all duration-300" style={{ backgroundColor: menuOpen ? "#fff" : C.text, transform: menuOpen ? "rotate(45deg) translateY(3.5px)" : "none" }} />
           <span className="block w-6 h-px transition-all duration-300" style={{ backgroundColor: menuOpen ? "#fff" : C.text, transform: menuOpen ? "rotate(-45deg) translateY(-3.5px)" : "none" }} />
@@ -289,6 +296,8 @@ function Navbar() {
                 {l.label}
               </motion.a>
             ))}
+            {/* שפה במובייל */}
+            <motion.a href="/he" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="text-amber-400 text-sm tracking-widest mt-4 uppercase border border-amber-400/30 px-6 py-2">Hebrew Version</motion.a>
           </motion.div>
         )}
       </AnimatePresence>
