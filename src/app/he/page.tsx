@@ -198,17 +198,20 @@ function Contact() {
   return (
     <section id="contact" className="py-24 md:py-32 bg-[#1a1a1a] text-white font-sans" dir="rtl">
       <div className="max-w-[1440px] mx-auto px-6 md:px-16 grid md:grid-cols-2 gap-16 items-center">
-        <div>
+        <div className="text-right">
           <span className="text-[11px] tracking-[0.45em] uppercase block mb-6 text-[#c5a35d]">בואו נדבר</span>
           <h2 className="font-playfair text-4xl md:text-7xl mb-8 leading-tight text-white">מתחילים <br />שיפוץ?</h2>
-          <div className="space-y-4 text-base md:text-lg"><p>058-500-8447</p><p className="text-xs text-[#555]">office@binyaneitan.com</p></div>
+          <div className="space-y-4 text-base md:text-lg text-right">
+            <p>058-500-8447</p>
+            <p className="text-xs text-[#555]">office@binyaneitan.com</p>
+          </div>
         </div>
         <div className="bg-white p-8 md:p-16 text-black shadow-2xl">
           {!submitted ? (
             <form onSubmit={handleSubmit} className="space-y-6">
-              <input type="text" name="name" placeholder="שם מלא" required className="w-full border-b border-black/10 py-3 outline-none focus:border-[#c5a35d] transition-all bg-transparent" />
-              <input type="tel" name="phone" placeholder="טלפון" required className="w-full border-b border-black/10 py-3 outline-none focus:border-[#c5a35d] transition-all bg-transparent" />
-              <textarea name="message" placeholder="ספרו לנו על הפרויקט..." rows={3} className="w-full border-b border-black/10 py-3 outline-none focus:border-[#c5a35d] transition-all resize-none bg-transparent"></textarea>
+              <input type="text" name="name" placeholder="שם מלא" required className="w-full border-b border-black/10 py-3 outline-none focus:border-[#c5a35d] transition-all bg-transparent text-right" />
+              <input type="tel" name="phone" placeholder="טלפון" required className="w-full border-b border-black/10 py-3 outline-none focus:border-[#c5a35d] transition-all bg-transparent text-right" />
+              <textarea name="message" placeholder="ספרו לנו על הפרויקט..." rows={3} className="w-full border-b border-black/10 py-3 outline-none focus:border-[#c5a35d] transition-all resize-none bg-transparent text-right"></textarea>
               <button type="submit" className="w-full bg-[#1a1a1a] text-white py-5 text-[11px] tracking-[0.2em] uppercase hover:bg-[#c5a35d] transition-all">שלח פנייה</button>
             </form>
           ) : (
