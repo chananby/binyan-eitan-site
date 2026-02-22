@@ -39,7 +39,7 @@ function Navbar() {
     <motion.header initial={{ y: -100 }} animate={{ y: 0 }} className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${scrolled ? "bg-white/90 backdrop-blur-md shadow-sm" : "bg-transparent"}`}>
       <nav className="max-w-[1440px] mx-auto px-6 md:px-16 flex items-center justify-between h-20 md:h-24 font-sans">
         <a href="#" className="flex items-center gap-4">
-          <Image src="/logo.jpg" alt="Binyan Eitan Logo" width={35} height={35} className="rounded-sm" />
+          <Image src="/logo.jpg" alt="Logo" width={35} height={35} className="rounded-sm" />
           <div className="flex flex-col">
             <span className="font-playfair text-lg leading-tight">BINYAN EITAN</span>
             <span className="text-[9px] tracking-[0.2em] uppercase text-[#c5a35d]">Renovations & Engineering</span>
@@ -84,7 +84,7 @@ function Hero() {
               Luxury Renovations <br className="hidden md:block" /> <span className="italic font-light text-[#888888]">In Jerusalem</span>
             </h1>
             <p className="text-[16px] md:text-[19px] leading-relaxed max-w-xl font-light mb-10 text-[#666666]">
-              High-end home remodeling and complex engineering for private estates and historical landmarks. Native-level communication for international clients.
+              Premier home remodeling for international homeowners. We combine high-end Israeli craftsmanship with global service standards.
             </p>
             <a href="#portfolio" className="text-[11px] md:text-[12px] tracking-[0.2em] uppercase border-b border-black pb-2 hover:border-[#c5a35d] transition-all font-bold">Explore Our Work</a>
           </motion.div>
@@ -97,20 +97,68 @@ function Hero() {
   );
 }
 
+function GlobalService() {
+  const services = [
+    {
+      title: "Remote Management",
+      desc: "Stay updated from anywhere in the world with daily reports and video walkthroughs via WhatsApp & Zoom.",
+      icon: (
+        <svg className="w-8 h-8 mb-4 text-[#c5a35d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    },
+    {
+      title: "International Standards",
+      desc: "Engineering and finishes that meet global luxury expectations, ensuring your Jerusalem home feels world-class.",
+      icon: (
+        <svg className="w-8 h-8 mb-4 text-[#c5a35d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+        </svg>
+      )
+    },
+    {
+      title: "Engineering Peace of Mind",
+      desc: "We handle all local permits, bureaucracy, and structural engineering, providing a stress-free experience from afar.",
+      icon: (
+        <svg className="w-8 h-8 mb-4 text-[#c5a35d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      )
+    }
+  ];
+
+  return (
+    <section className="py-24 bg-white border-b border-black/5 font-sans">
+      <div className="max-w-[1440px] mx-auto px-8 md:px-16">
+        <div className="grid md:grid-cols-3 gap-16">
+          {services.map((s, i) => (
+            <div key={i}>
+              {s.icon}
+              <h3 className="font-playfair text-xl mb-3 text-[#1a1a1a]">{s.title}</h3>
+              <p className="text-sm font-light text-[#666] leading-relaxed">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function TrustSection() {
   return (
-    <div className="py-20 bg-white border-y border-black/5 font-sans">
+    <div className="py-20 bg-[#f9f7f2] font-sans">
       <div className="max-w-[1440px] mx-auto px-8 md:px-16">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-12 grayscale opacity-60">
-          <div className="text-center md:text-left">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-12 grayscale opacity-60 text-center md:text-left">
+          <div>
             <span className="text-[10px] tracking-widest uppercase block mb-2 text-[#c5a35d]">Institutional Trust</span>
             <div className="font-playfair text-lg md:text-xl">Western Wall Heritage Foundation</div>
           </div>
-          <div className="text-center">
+          <div>
             <span className="text-[10px] tracking-widest uppercase block mb-2 text-[#c5a35d]">Collaborations</span>
             <div className="font-playfair text-lg md:text-xl">Leading Architecture Firms</div>
           </div>
-          <div className="text-center md:text-right">
+          <div>
             <span className="text-[10px] tracking-widest uppercase block mb-2 text-[#c5a35d]">Track Record</span>
             <div className="font-playfair text-lg md:text-xl">200+ Private Luxury Clients</div>
           </div>
@@ -122,7 +170,7 @@ function TrustSection() {
 
 function Visionary() {
   return (
-    <section id="visionary" className="py-24 md:py-48 bg-[#fcfaf7]">
+    <section id="visionary" className="py-24 md:py-48 bg-white">
       <div className="max-w-[1440px] mx-auto px-6 md:px-16 flex flex-col md:flex-row gap-16 items-center">
         <div className="w-full md:w-5/12 aspect-[3/4] relative overflow-hidden rounded-sm shadow-2xl">
           <Image src="/ramat-eshkol.jpg" alt="Moti Eitan - Jerusalem Renovation Expert" fill className="object-cover" />
@@ -143,7 +191,7 @@ function Visionary() {
 function Portfolio() {
   const [activeProject, setActiveProject] = useState<any>(null);
   return (
-    <section id="portfolio" className="py-24 md:py-32 bg-white font-sans">
+    <section id="portfolio" className="py-24 md:py-32 bg-[#f9f7f2] font-sans">
       <div className="max-w-[1440px] mx-auto px-6 md:px-16">
         <div className="mb-20">
           <span className="text-[11px] tracking-[0.4em] uppercase block mb-4 text-[#c5a35d]">Renovation Showcase</span>
@@ -152,7 +200,7 @@ function Portfolio() {
         <div className="grid md:grid-cols-3 gap-12">
           {PROJECTS.map((p, i) => (
             <div key={i} className="group cursor-pointer" onClick={() => setActiveProject(p)}>
-              <div className="aspect-[4/5] relative overflow-hidden mb-6 bg-[#f9f7f2]">
+              <div className="aspect-[4/5] relative overflow-hidden mb-6 bg-white">
                 <Image src={p.image} alt={p.title} fill className="object-cover md:grayscale group-hover:grayscale-0 transition-all duration-700" />
               </div>
               <h3 className="font-playfair text-2xl mb-1">{p.title}</h3>
@@ -207,7 +255,7 @@ function Contact() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <input type="text" name="name" placeholder="Full Name" required className="w-full border-b border-black/10 py-4 outline-none focus:border-[#c5a35d] transition-all bg-transparent" />
               <input type="tel" name="phone" placeholder="Phone (Include Area Code)" required className="w-full border-b border-black/10 py-4 outline-none focus:border-[#c5a35d] transition-all bg-transparent" />
-              <textarea name="message" placeholder="Describe your project (Villa, Apartment, Area)..." rows={3} className="w-full border-b border-black/10 py-4 outline-none focus:border-[#c5a35d] transition-all resize-none bg-transparent"></textarea>
+              <textarea name="message" placeholder="Describe your project..." rows={3} className="w-full border-b border-black/10 py-4 outline-none focus:border-[#c5a35d] transition-all resize-none bg-transparent"></textarea>
               <button type="submit" className="w-full bg-[#1a1a1a] text-white py-5 text-[11px] tracking-[0.2em] uppercase hover:bg-[#c5a35d] transition-all">Request Consultation</button>
             </form>
           ) : (
@@ -224,19 +272,14 @@ export default function Home() {
     <main className="bg-white">
       <Navbar />
       <Hero />
+      <GlobalService />
       <TrustSection />
-      <div className="py-24 bg-white border-b border-black/5 font-sans">
-        <div className="max-w-[1440px] mx-auto px-8 md:px-16 grid grid-cols-2 md:grid-cols-4 gap-12">
-          {["Planning", "Sourcing", "Execution", "Delivery"].map((p, i) => (
-            <div key={i}><span className="text-[10px] text-[#c5a35d] mb-2 block uppercase tracking-widest">Step 0{i+1}</span><h4 className="font-playfair text-lg mb-2">{p}</h4><p className="text-xs font-light text-[#888888] leading-relaxed">Full accountability for overseas homeowners.</p></div>
-          ))}
-        </div>
-      </div>
       <Visionary />
       <Portfolio />
       <Contact />
-      <a href="https://wa.me/972585008447" target="_blank" className="fixed bottom-6 right-6 z-[90] w-12 h-12 bg-[#25D366] rounded-full flex items-center justify-center text-white shadow-2xl"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
-      <footer className="py-12 bg-[#1a1a1a] text-center"><p className="text-[9px] tracking-[0.4em] uppercase text-[#555]">© 2026 BINYAN EITAN. ALL RIGHTS RESERVED.</p></footer>
+      <footer className="py-12 bg-[#1a1a1a] text-center border-t border-white/5">
+        <p className="text-[9px] tracking-[0.4em] uppercase text-[#555]">© 2026 BINYAN EITAN. ALL RIGHTS RESERVED.</p>
+      </footer>
     </main>
   );
 }
