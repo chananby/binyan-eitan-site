@@ -18,27 +18,9 @@ const C = {
 };
 
 const PROJECTS = [
-  {
-    title: "רמת אשכול",
-    subtitle: "טרנספורמציה מלאה של וילה ירושלמית",
-    image: "/ramat-eshkol.jpg",
-    images: ["/ramat-eshkol.jpg", ...Array.from({ length: 10 }, (_, i) => `/ramat-eshkol-penthouse-${i + 1}.jpg`)],
-    category: "בנייה פרטית",
-  },
-  {
-    title: "בית וגן",
-    subtitle: "תוספות בנייה וגמרים הנדסיים מורכבים",
-    image: "/bayit-vegan.jpg",
-    images: ["/bayit-vegan.jpg", ...Array.from({ length: 19 }, (_, i) => `/bayit-vegan-${i + 1}.jpg`)],
-    category: "מגורי יוקרה",
-  },
-  {
-    title: "אמשינוב",
-    subtitle: "שימור ושיפוץ מבנה היסטורי ומוסדי",
-    image: "/amshinov.jpg",
-    images: ["/amshinov.jpg", ...Array.from({ length: 23 }, (_, i) => `/amshinov-${i + 1}.jpg`)],
-    category: "שימור ומוסדות",
-  },
+  { title: "רמת אשכול", subtitle: "טרנספורמציה מלאה של וילה ירושלמית", image: "/ramat-eshkol.jpg", images: ["/ramat-eshkol.jpg", ...Array.from({ length: 10 }, (_, i) => `/ramat-eshkol-penthouse-${i + 1}.jpg`)], category: "בנייה פרטית" },
+  { title: "בית וגן", subtitle: "תוספות בנייה וגמרים הנדסיים מורכבים", image: "/bayit-vegan.jpg", images: ["/bayit-vegan.jpg", ...Array.from({ length: 19 }, (_, i) => `/bayit-vegan-${i + 1}.jpg`)], category: "מגורי יוקרה" },
+  { title: "אמשינוב", subtitle: "שימור ושיפוץ מבנה היסטורי ומוסדי", image: "/amshinov.jpg", images: ["/amshinov.jpg", ...Array.from({ length: 23 }, (_, i) => `/amshinov-${i + 1}.jpg`)], category: "שימור ומוסדות" },
 ];
 
 const PROCESS = [
@@ -55,13 +37,13 @@ const PROCESS = [
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <nav className="fixed top-0 left-0 w-full z-[100] bg-white/90 backdrop-blur-md border-b border-black/5" dir="rtl">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-16 h-20 flex items-center justify-between font-sans">
+    <nav className="fixed top-0 left-0 w-full z-[100] bg-white/90 backdrop-blur-md border-b border-black/5 font-sans" dir="rtl">
+      <div className="max-w-[1440px] mx-auto px-6 md:px-16 h-20 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Image src="/logo.jpg" alt="Binyan Eitan" width={32} height={32} className="rounded-sm" />
           <div className="flex flex-col">
-            <span className="font-playfair text-base md:text-lg tracking-tight leading-none">BINYAN EITAN</span>
-            <span className="text-[7px] md:text-[8px] tracking-[0.2em] uppercase mt-1 text-[#c5a35d]">Engineering & Construction</span>
+            <span className="font-playfair text-base md:text-lg tracking-tight leading-none text-[#1a1a1a]">BINYAN EITAN</span>
+            <span className="text-[7px] md:text-[8px] tracking-[0.2em] uppercase mt-1 text-[#c5a35d]">בנייה, שיפוצים והנדסה</span>
           </div>
         </div>
         <div className="hidden md:flex items-center gap-10">
@@ -97,12 +79,12 @@ function Hero() {
       <div className="max-w-[1440px] mx-auto px-6 md:px-16 w-full grid md:grid-cols-12 gap-8 md:gap-12 items-center">
         <div className="col-span-12 md:col-span-7 z-20 text-right font-sans">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-            <span className="text-[10px] md:text-[11px] tracking-[0.3em] uppercase block mb-4 md:mb-6 text-[#c5a35d] font-semibold">מאז 1999 • ירושלים</span>
+            <span className="text-[10px] md:text-[11px] tracking-[0.3em] uppercase block mb-4 md:mb-6 text-[#c5a35d] font-semibold">מאז 1999 • מומחי שיפוץ ובנייה</span>
             <h1 className="font-playfair text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[1.1] tracking-tighter mb-6 md:mb-8 text-[#1a1a1a]">
               בונים מורשת <br className="hidden md:block" /> <span className="italic font-light">בדיוק הנדסי</span>
             </h1>
             <p className="text-[15px] md:text-[19px] leading-relaxed max-w-2xl font-light mb-8 md:mb-10 text-[#4a4a4a]">
-              מהאתרים הרגישים ביותר בירושלים ועד לבתי היוקרה המורכבים ביותר. 
+              מהאתרים הרגישים ביותר בירושלים ועד לשיפוצי יוקרה מורכבים. 
               <span className="block mt-3 md:mt-4 font-normal text-[#1a1a1a]">
                 גוף מבצע עבור הקרן למורשת הכותל ומאות לקוחות פרטיים.
               </span>
@@ -111,23 +93,33 @@ function Hero() {
           </motion.div>
         </div>
         <div className="col-span-12 md:col-span-5 relative aspect-[16/10] md:aspect-auto md:h-[70vh] overflow-hidden rounded-sm shadow-xl z-10">
-          <Image src="/ramat-eshkol.jpg" alt="Binyan Eitan" fill className="object-cover" priority />
+          <Image src="/ramat-eshkol.jpg" alt="בנין איתן - שיפוצי יוקרה בירושלים" fill className="object-cover" priority />
         </div>
       </div>
     </section>
   );
 }
 
-function AuthoritySection() {
+function TrustSection() {
   return (
-    <section className="py-16 md:py-24 bg-white border-b border-black/5 font-sans" dir="rtl">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center md:text-right">
-        <div><div className="font-playfair text-3xl md:text-4xl mb-1">25+</div><div className="text-[9px] uppercase tracking-widest text-[#c5a35d]">שנות מומחיות</div></div>
-        <div><div className="font-playfair text-3xl md:text-4xl mb-1">100+</div><div className="text-[9px] uppercase tracking-widest text-[#c5a35d]">פרויקטי יוקרה</div></div>
-        <div><div className="font-playfair text-3xl md:text-4xl mb-1">מוסדות</div><div className="text-[9px] uppercase tracking-widest text-[#c5a35d]">גוף מבצע מאושר</div></div>
-        <div><div className="font-playfair text-3xl md:text-4xl mb-1 italic">אמינות</div><div className="text-[9px] uppercase tracking-widest text-[#c5a35d]">שקיפות מלאה</div></div>
+    <div className="py-20 bg-white border-y border-black/5 font-sans" dir="rtl">
+      <div className="max-w-[1440px] mx-auto px-8 md:px-16">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-12 grayscale opacity-70">
+          <div className="text-center md:text-right">
+            <span className="text-[10px] tracking-widest uppercase block mb-2 text-[#c5a35d]">אמון מוסדי</span>
+            <div className="font-playfair text-lg md:text-xl">הקרן למורשת הכותל</div>
+          </div>
+          <div className="text-center">
+            <span className="text-[10px] tracking-widest uppercase block mb-2 text-[#c5a35d]">שיתופי פעולה</span>
+            <div className="font-playfair text-lg md:text-xl">משרדי אדריכלים מובילים</div>
+          </div>
+          <div className="text-center md:text-left">
+            <span className="text-[10px] tracking-widest uppercase block mb-2 text-[#c5a35d]">ניסיון מוכח</span>
+            <div className="font-playfair text-lg md:text-xl">מאות לקוחות פרטיים</div>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -143,7 +135,7 @@ function Visionary() {
           <h2 className="font-playfair text-4xl md:text-6xl mb-6 text-[#1a1a1a]">מוטי איתן</h2>
           <div className="text-[13px] tracking-[0.2em] uppercase mb-10 text-[#666666]">מייסד ובעלים</div>
           <div className="space-y-6 text-[17px] leading-relaxed font-light text-[#888888]">
-            <p>עם למעלה מ-25 שנות ניסיון בהובלת פרויקטים מורכבים במגזר היוקרה בירושלים, מוטי איתן מביא עמו מומחיות הנדסית נדירה ועין בלתי מתפשרת לאיכות.</p>
+            <p>עם למעלה מ-25 שנות ניסיון בהובלת שיפוצי יוקרה ופרויקטים מורכבים בירושלים, מוטי איתן מביא עמו מומחיות הנדסית נדירה ועין בלתי מתפשרת לאיכות.</p>
             <p>בניית אמון היא היסוד החשוב ביותר בכל פרויקט. הליווי האישי והשקיפות המלאה הם המצפן שלנו.</p>
           </div>
         </div>
@@ -203,7 +195,7 @@ function Contact() {
       <div className="max-w-[1440px] mx-auto px-6 md:px-16 grid md:grid-cols-2 gap-16 items-center">
         <div>
           <span className="text-[11px] tracking-[0.45em] uppercase block mb-6 text-[#c5a35d]">בואו נדבר</span>
-          <h2 className="font-playfair text-4xl md:text-7xl mb-8 leading-tight text-white">מתחילים בנייה?</h2>
+          <h2 className="font-playfair text-4xl md:text-7xl mb-8 leading-tight text-white">מתחילים <br />שיפוץ?</h2>
           <div className="space-y-4 text-base md:text-lg"><p>058-500-8447</p><p className="text-xs text-[#555]">office@binyaneitan.com</p></div>
         </div>
         <div className="bg-white p-8 md:p-16 text-black shadow-2xl">
@@ -215,7 +207,7 @@ function Contact() {
               <button type="submit" className="w-full bg-[#1a1a1a] text-white py-5 text-[11px] tracking-[0.2em] uppercase hover:bg-[#c5a35d] transition-all">שלח פנייה</button>
             </form>
           ) : (
-            <div className="text-center py-10"><h3 className="font-playfair text-2xl mb-4 text-black">תודה רבה</h3></div>
+            <div className="text-center py-10"><h3 className="font-playfair text-2xl mb-4 text-black">תודה רבה</h3><p>נחזור אליכם בהקדם.</p></div>
           )}
         </div>
       </div>
@@ -228,7 +220,6 @@ export default function HebrewPage() {
     <main className="bg-white min-h-screen selection:bg-[#c5a35d] selection:text-white">
       <Navbar />
       <Hero />
-      <AuthoritySection />
       <div className="py-24 bg-white border-b border-black/5 font-sans" dir="rtl">
         <div className="max-w-[1440px] mx-auto px-8 md:px-16 grid grid-cols-2 md:grid-cols-4 gap-12 text-right">
           {PROCESS.map((p, i) => (
@@ -236,6 +227,7 @@ export default function HebrewPage() {
           ))}
         </div>
       </div>
+      <TrustSection />
       <Visionary />
       <Portfolio />
       <Contact />
