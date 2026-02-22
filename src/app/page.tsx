@@ -536,12 +536,38 @@ function Portfolio() {
 function Contact() {
   const [formState, setFormState] = useState({ name: "", email: "", phone: "", projectType: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const text = encodeURIComponent(`Hello Binyan Eitan,\n\nName: ${formState.name}\nEmail: ${formState.email}\nPhone: ${formState.phone}\nProject: ${formState.projectType}\n\n${formState.message}`);
-    window.open(`https://wa.me/972585008447?text=${text}`, "_blank");
-    setSubmitted(true);
+    setIsSubmitting(true);
+
+    const formData = new FormData();
+    formData.append("access_key", "4f934f99-bd06-4f7d-b552-7355cd127598");
+    formData.append("subject", "New Lead from Binyan Eitan Website");
+    formData.append("name", formState.name);
+    formData.append("email", formState.email);
+    formData.append("phone", formState.phone);
+    formData.append("projectType", formState.projectType);
+    formData.append("message", formState.message);
+
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubmitted(true);
+      } else {
+        alert("Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputBase = "w-full bg-transparent py-4 text-[14px] placeholder:font-light focus:outline-none transition-colors duration-300 font-light";
@@ -566,6 +592,8 @@ function Contact() {
                 </div>
                 <div>
                   <a href="tel:058-500-8447" className="text-[14px] transition-colors duration-300 hover:text-amber-600" style={{ color: C.text }}>058-500-8447</a>
+                  <span style={{ color: C.textFaint }} className="mx-2.5">|</span>
+                  <a href="tel:02-500-0447" className="text-[14px] transition-colors duration-300 hover:text-amber-600" style={{ color: C.text }}>02-500-0447</a>
                 </div>
               </div>
 
@@ -574,6 +602,13 @@ function Contact() {
                   <svg className="w-[18px] h-[18px]" style={{ color: C.amber }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.4}><path d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
                 </div>
                 <a href="mailto:office@binyaneitan.com" className="text-[14px] transition-colors duration-300 hover:text-amber-600" style={{ color: C.text }}>office@binyaneitan.com</a>
+              </div>
+
+              <div className="flex items-center gap-5">
+                <div className="w-11 h-11 flex items-center justify-center" style={{ border: `1px solid ${C.border}` }}>
+                  <svg className="w-[18px] h-[18px]" style={{ color: C.amber }} viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
+                </div>
+                <a href="https://wa.me/972585008447" target="_blank" rel="noopener noreferrer" className="text-[14px] transition-colors duration-300 hover:text-amber-600" style={{ color: C.text }}>WhatsApp Direct</a>
               </div>
 
               <div className="flex items-center gap-5">
@@ -590,40 +625,49 @@ function Contact() {
               <form onSubmit={handleSubmit} className="space-y-0">
                 <div className="mb-10"><span className="text-[11px] tracking-[0.3em] uppercase" style={{ color: C.textLight }}>Project Inquiry</span></div>
                 <div style={{ borderBottom: `1px solid ${C.border}` }}>
+                  <label htmlFor="name" className="sr-only">Full Name</label>
                   <input id="name" type="text" placeholder="Full Name" required value={formState.name} onChange={(e) => setFormState({ ...formState, name: e.target.value })} className={inputBase} style={{ color: C.text }} />
                 </div>
                 <div className="grid grid-cols-2 gap-0">
                   <div style={{ borderBottom: `1px solid ${C.border}`, borderRight: `1px solid ${C.border}` }}>
+                    <label htmlFor="email" className="sr-only">Email</label>
                     <input id="email" type="email" placeholder="Email" required value={formState.email} onChange={(e) => setFormState({ ...formState, email: e.target.value })} className={inputBase} style={{ color: C.text }} />
                   </div>
                   <div style={{ borderBottom: `1px solid ${C.border}` }}>
+                    <label htmlFor="phone" className="sr-only">Phone</label>
                     <input id="phone" type="tel" placeholder="Phone" value={formState.phone} onChange={(e) => setFormState({ ...formState, phone: e.target.value })} className={`${inputBase} pl-4`} style={{ color: C.text }} />
                   </div>
                 </div>
                 <div style={{ borderBottom: `1px solid ${C.border}` }}>
+                  <label htmlFor="projectType" className="sr-only">Project Type</label>
                   <select id="projectType" value={formState.projectType} onChange={(e) => setFormState({ ...formState, projectType: e.target.value })} className={`${inputBase} appearance-none cursor-pointer`} style={{ color: formState.projectType ? C.text : C.textFaint }}>
                     <option value="" disabled>Select Project Type</option>
                     <option value="new-construction">New Construction</option>
                     <option value="renovation">Full Renovation</option>
                     <option value="extension">Floor Extension</option>
                     <option value="luxury-interior">Luxury Interior</option>
+                    <option value="engineering">Engineering Consultation</option>
                     <option value="other">Other</option>
                   </select>
                 </div>
                 <div style={{ borderBottom: `1px solid ${C.border}` }}>
-                  <textarea id="message" rows={4} placeholder="Tell us about your vision..." value={formState.message} onChange={(e) => setFormState({ ...formState, message: e.target.value })} className={`${inputBase} resize-none`} style={{ color: C.text }} />
+                  <label htmlFor="message" className="sr-only">Message</label>
+                  <textarea id="message" rows={4} placeholder="Tell us about your vision..." required value={formState.message} onChange={(e) => setFormState({ ...formState, message: e.target.value })} className={`${inputBase} resize-none`} style={{ color: C.text }} />
                 </div>
                 <div className="pt-10">
-                  <button type="submit" className="w-full py-5 text-white text-[12px] tracking-[0.2em] uppercase font-medium transition-all duration-300 flex items-center justify-center gap-3" style={{ backgroundColor: C.text }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = C.amber)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = C.text)}>
-                    Send via WhatsApp
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
+                  <button type="submit" disabled={isSubmitting} className="w-full py-5 text-white text-[12px] tracking-[0.2em] uppercase font-medium transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed" style={{ backgroundColor: C.text }} onMouseEnter={(e) => { if(!isSubmitting) e.currentTarget.style.backgroundColor = C.amber }} onMouseLeave={(e) => { if(!isSubmitting) e.currentTarget.style.backgroundColor = C.text }}>
+                    {isSubmitting ? "Sending..." : "Send Message"}
+                    {!isSubmitting && (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    )}
                   </button>
                 </div>
+                <p className="text-[11px] text-center font-light pt-5" style={{ color: C.textFaint }}>Your inquiry will be sent securely to our office.</p>
               </form>
             ) : (
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center h-full text-center py-24">
                 <div className="w-16 h-16 flex items-center justify-center mb-8 rotate-45" style={{ border: `1px solid ${C.amber}` }}>
-                  <svg className="w-6 h-6 -rotate-45" style={{ color: C.amber }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M5 13l4 4L19 7" /></svg>
+                  <svg className="w-6 h-6 -rotate-45" style={{ color: C.amber }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                 </div>
                 <h3 className="font-playfair text-2xl mb-3" style={{ color: C.text }}>Message Sent</h3>
                 <p className="text-[14px] font-light" style={{ color: C.textMuted }}>Thank you. We&apos;ll be in touch shortly.</p>
@@ -635,7 +679,6 @@ function Contact() {
     </Section>
   );
 }
-
 /* ─────────────────────────────────────────────
    FOOTER
    ───────────────────────────────────────────── */
