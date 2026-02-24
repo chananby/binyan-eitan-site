@@ -196,7 +196,7 @@ export default function Hero() {
             style={{ y: imageY }}
           >
             <Image
-              src="/luxury-interior-finish-transformation.jpg"
+              src="/luxury-interior.jpg"
               alt={imageAlt}
               fill
               className="object-cover"
