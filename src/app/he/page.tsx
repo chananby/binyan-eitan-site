@@ -7,13 +7,13 @@ import Pillars from "../components/Pillars";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "בניין איתן | בנייה יוקרתית והנדסת מבנים",
-  description: "כל פרויקט הוא עדות למצוינות הנדסית ולאומנות ללא פשרות. הנדסה, תכנון וביצוע תחת קורת גג אחת.",
+  title: "בניין איתן | הנדסה היא הבסיס. השקט שלכם הוא התוצאה.",
+  description: "בבניין איתן אנחנו מאמינים שבית נמדד קודם כל במה שלא רואים. הנדסה, תכנון וביצוע תחת קורת גג אחת.",
 };
 
 export default function HebrewHome() {
   return (
-    <main className="relative">
+    <main className="relative" dir="rtl">
       <Navbar />
       <Hero />
 
@@ -21,8 +21,9 @@ export default function HebrewHome() {
         <div className="rule-thin" />
       </div>
 
-<section id="about" className="relative bg-bone py-28 md:py-36">
-      <div className="mx-auto grid max-w-[1400px] grid-cols-4 gap-x-4 px-6 md:grid-cols-12 md:gap-x-6 lg:px-12">
+      {/* Philosophy Section */}
+      <section id="about" className="relative bg-bone py-28 md:py-36">
+        <div className="mx-auto grid max-w-[1400px] grid-cols-4 gap-x-4 px-6 md:grid-cols-12 md:gap-x-6 lg:px-12">
           <div className="col-span-4 mb-10 md:col-span-3 md:col-start-1 md:mb-0">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
@@ -31,12 +32,10 @@ export default function HebrewHome() {
           </div>
           <div className="col-span-4 md:col-span-6 md:col-start-4">
             <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
-              כל פרויקט הוא עדות למצוינות הנדסית ולאומנות ללא פשרות.
+              הנדסה היא הבסיס. השקט שלכם הוא התוצאה.
             </h2>
             <p className="mt-6 font-body text-base leading-relaxed font-light text-charcoal/55 md:mt-8 md:text-lg">
-              בבנין איתן, אנו מאמינים שבנייה יוקרתית מתחילה בהבנה עמוקה של
-              חזון הלקוח ומסתיימת בביצוע מדויק עד לפרט האחרון. כל קו, כל חומר,
-              כל חיבור — משקפים את המחויבות שלנו לשלמות.
+              בבניין איתן, אנחנו מאמינים שבית נמדד קודם כל במה שלא רואים – בתשתיות, בדיוק הקונסטרוקטיבי ובתכנון הנדסי ללא פשרות. אנחנו כאן כדי להפוך את החזון האדריכלי למציאות יציבה, בטוחה ומדויקת, תוך ליווי אישי וניהול מוקפד של כל שלב בדרך.
             </p>
           </div>
           <div className="col-span-4 mt-10 flex items-end justify-end md:col-span-2 md:col-start-11 md:mt-0">
@@ -57,8 +56,9 @@ export default function HebrewHome() {
       </div>
       <Pillars />
 
+      {/* Expertise Section (Projects) */}
       <section id="projects" className="relative bg-charcoal py-28 text-bone md:py-36">
-        <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+        <div className="mx-auto max-w-[1400px] px-6 lg:px-12 text-start">
           <div className="mb-16 md:mb-24">
             <p className="overline-label !text-warm-gray">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
@@ -88,9 +88,9 @@ export default function HebrewHome() {
             ].map((service) => (
               <div
                 key={service.num}
-                className="group bg-charcoal p-8 transition-colors duration-500 hover:bg-charcoal-light md:p-12"
+                className="group bg-charcoal p-8 transition-colors duration-500 hover:bg-charcoal-light md:p-12 text-start"
               >
-                <span className="font-heading text-5xl font-bold text-accent/20 transition-colors duration-500 group-hover:text-accent/40">
+                <span className="font-heading text-5xl font-bold text-accent/20 transition-colors duration-500 group-hover:text-accent/40 block">
                   {service.num}
                 </span>
                 <h3 className="mt-6 font-heading text-xl font-bold text-bone md:text-2xl">
@@ -106,9 +106,6 @@ export default function HebrewHome() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════
-          CONTACT & FOOTER
-          ═══════════════════════════════════════════════ */}
       <ContactForm />
       <Footer />
     </main>
