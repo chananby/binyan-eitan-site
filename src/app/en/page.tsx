@@ -1,3 +1,5 @@
+import ContactForm from "../components/ContactForm";
+import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import TechnicalAnatomy from "../components/TechnicalAnatomy";
@@ -8,6 +10,7 @@ export const metadata: Metadata = {
   title: "Binyan Eitan | Luxury Construction & Engineering",
   description: "Every project is a testament to engineering excellence and uncompromising craftsmanship.",
 };
+
 export default function EnglishHome() {
   return (
     <main className="relative">
@@ -105,45 +108,11 @@ export default function EnglishHome() {
         </div>
       </section>
 
-      <section className="bg-bone py-20 md:py-28" id="contact">
-        <div className="mx-auto max-w-[1400px] px-6 text-center lg:px-12">
-          <p className="overline-label mx-auto">
-            <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
-            Let&apos;s Build Together
-            <span className="ms-3 inline-block h-px w-6 bg-accent align-middle" />
-          </p>
-          <h2 className="mx-auto mt-6 max-w-3xl font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
-            Ready to start your next project?
-          </h2>
-          <a
-            href="mailto:info@binyan-eitan.co.il"
-            className="group mt-10 inline-flex items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent"
-          >
-            Get in Touch
-            <ArrowDownRightIcon />
-          </a>
-        </div>
-      </section>
+      {/* ═══════════════════════════════════════════════
+          CONTACT & FOOTER
+          ═══════════════════════════════════════════════ */}
+      <ContactForm />
+      <Footer />
     </main>
-  );
-}
-
-function ArrowDownRightIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="transition-transform duration-500 group-hover:translate-y-0.5"
-    >
-      <path d="M7 7 17 17" />
-      <path d="M7 17h10V7" />
-    </svg>
   );
 }
