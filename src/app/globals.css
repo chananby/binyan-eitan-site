@@ -14,8 +14,8 @@
   --color-glass: rgba(250, 249, 246, 0.72);
   --color-glass-border: rgba(26, 26, 26, 0.06);
 
-  --font-heading: "Playfair Display", "Georgia", serif;
-  --font-body: "Montserrat", "Helvetica Neue", sans-serif;
+  --font-heading: "Assistant", sans-serif;
+  --font-body: var(--font-heading);
 
   --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -31,14 +31,28 @@
   }
   body {
     font-family: var(--font-body);
+    font-weight: 400;
     background-color: var(--color-bone);
     color: var(--color-charcoal);
     overflow-x: hidden;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 800;
   }
   ::selection {
     background-color: var(--color-accent);
     color: var(--color-bone);
   }
+}
+
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4,
+[dir="rtl"] h5,
+[dir="rtl"] h6 {
+  letter-spacing: normal;
 }
 
 ::-webkit-scrollbar { width: 6px; }

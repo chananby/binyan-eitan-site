@@ -8,10 +8,10 @@ module.exports = {
     extend: {
       fontFamily: {
         // חיבור ישיר לפונטים שהוגדרו ב-layout כדי להבטיח מראה נקי ואחיד
-        heading: ['var(--font-heading)', 'Georgia', 'serif'],
-        body: ['var(--font-body)', 'Helvetica Neue', 'sans-serif'],
-        serif: ['var(--font-heading)', 'Georgia', 'serif'],
-        sans: ['var(--font-body)', 'Helvetica Neue', 'sans-serif'],
+        heading: ['var(--font-heading)', 'sans-serif'],
+        body: ['var(--font-body)', 'sans-serif'],
+        serif: ['var(--font-heading)', 'sans-serif'],
+        sans: ['var(--font-body)', 'sans-serif'],
       },
       colors: {
         // פלטת הצבעים המלאה של "בניין איתן"
