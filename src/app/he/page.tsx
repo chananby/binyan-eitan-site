@@ -5,6 +5,7 @@ import Hero from "../components/Hero";
 import TechnicalAnatomy from "../components/TechnicalAnatomy";
 import Pillars from "../components/Pillars";
 import PortfolioGallery from "../components/PortfolioGallery";
+import EngineeringExcellence from "../components/EngineeringExcellence";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -114,6 +115,7 @@ export default function HebrewHome() {
       </section>
 
       <PortfolioGallery />
+      <EngineeringExcellence />
 
       <ContactForm />
       <Footer />

@@ -1,97 +1,157 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { useLang } from "./LangContext";
 
-const copy = {
-  en: {
-    overline: "Selected Work",
-    title: "Portfolio",
-    items: [
-      { num: "01", title: "Jerusalem Villa", category: "Luxury Construction", src: "/portfolio/project-01.jpg" },
-      { num: "02", title: "Penthouse Suite", category: "Structural Engineering", src: "/portfolio/project-02.jpg" },
-      { num: "03", title: "Garden Terrace", category: "Premium Renovation", src: "/portfolio/project-03.jpg" },
-      { num: "04", title: "Hillside Residence", category: "Luxury Construction", src: "/portfolio/project-04.jpg" },
-      { num: "05", title: "Urban Complex", category: "Project Management", src: "/portfolio/project-05.jpg" },
-      { num: "06", title: "Heritage Restoration", category: "Structural Engineering", src: "/portfolio/project-06.jpg" },
-    ],
-    close: "Close",
-    prev: "Previous",
-    next: "Next",
-    placeholder: "Image coming soon",
-  },
-  he: {
-    overline: "עבודות נבחרות",
-    title: "תיק עבודות",
-    items: [
-      { num: "01", title: "וילה ירושלמית", category: "בניית וילות פרימיום", src: "/portfolio/project-01.jpg" },
-      { num: "02", title: "פנטהאוז", category: "הנדסת קונסטרוקציה", src: "/portfolio/project-02.jpg" },
-      { num: "03", title: "גן טרס", category: "שיפוץ פרימיום", src: "/portfolio/project-03.jpg" },
-      { num: "04", title: "בית הר", category: "בניית וילות פרימיום", src: "/portfolio/project-04.jpg" },
-      { num: "05", title: "מתחם עירוני", category: "ניהול פרויקטים", src: "/portfolio/project-05.jpg" },
-      { num: "06", title: "שימור מורשת", category: "הנדסת קונסטרוקציה", src: "/portfolio/project-06.jpg" },
-    ],
-    close: "סגור",
-    prev: "קודם",
-    next: "הבא",
-    placeholder: "תמונה בקרוב",
-  },
-} as const;
+// ── Project data ──────────────────────────────────────────────────────────────
 
-// Subtle stone/neutral gradients for placeholders
-const placeholderStyles = [
-  { bg: "from-stone-200 via-stone-300 to-stone-400", grid: "20px 20px" },
-  { bg: "from-zinc-200 via-zinc-300 to-zinc-400", grid: "32px 32px" },
-  { bg: "from-neutral-200 via-stone-300 to-neutral-400", grid: "24px 24px" },
-  { bg: "from-slate-200 via-slate-300 to-zinc-300", grid: "16px 16px" },
-  { bg: "from-gray-200 via-stone-200 to-gray-300", grid: "28px 28px" },
-  { bg: "from-stone-300 via-neutral-200 to-stone-300", grid: "20px 20px" },
+const PROJECTS = [
+  {
+    num: "01",
+    en: { title: "Amshinov Residence", category: "Luxury Construction" },
+    he: { title: "מגורי אמשינוב", category: "בניית יוקרה" },
+    cover: "/amshinov-1.jpg",
+    series: [
+      "/amshinov-1.jpg",
+      "/amshinov-01.jpg",
+      "/amshinov-2.jpg",
+      "/amshinov-3.jpg",
+      "/amshinov-4.jpg",
+      "/amshinov-5.jpg",
+      "/amshinov-6.jpg",
+      "/amshinov-7.jpg",
+      "/amshinov-8.jpg",
+      "/amshinov-9.jpg",
+      "/amshinov-10.jpg",
+      "/amshinov-11.jpg",
+      "/amshinov-12.jpg",
+      "/amshinov-13.jpg",
+      "/amshinov-14.jpg",
+      "/amshinov-15.jpg",
+      "/amshinov-16.jpg",
+      "/amshinov-17.jpg",
+      "/amshinov-18.jpg",
+      "/amshinov-19.jpg",
+      "/amshinov-20.jpg",
+      "/amshinov-21.jpg",
+      "/amshinov-22.jpg",
+      "/amshinov-23.jpg",
+    ],
+  },
+  {
+    num: "02",
+    en: { title: "Bayit Vegan Estate", category: "Premium Renovation" },
+    he: { title: "אחוזת בית וגן", category: "שיפוץ פרימיום" },
+    cover: "/bayit-vegan.jpg",
+    series: [
+      "/bayit-vegan-1.jpg",
+      "/bayit-vegan-2.jpg",
+      "/bayit-vegan-3.jpg",
+      "/bayit-vegan-4.jpg",
+      "/bayit-vegan-5.jpg",
+      "/bayit-vegan-6.jpg",
+      "/bayit-vegan-7.jpg",
+      "/bayit-vegan-8.jpg",
+      "/bayit-vegan-9.jpg",
+      "/bayit-vegan-10.jpg",
+      "/bayit-vegan-11.jpg",
+      "/bayit-vegan-12.jpg",
+      "/bayit-vegan-13.jpg",
+      "/bayit-vegan-14.jpg",
+      "/bayit-vegan-15.jpg",
+      "/bayit-vegan-16.jpg",
+      "/bayit-vegan-17.jpg",
+      "/bayit-vegan-18.jpg",
+      "/bayit-vegan-19.jpg",
+    ],
+  },
+  {
+    num: "03",
+    en: { title: "Ohel Avshalom Project", category: "Structural Engineering" },
+    he: { title: "פרויקט אוהל אבשלום", category: "הנדסת קונסטרוקציה" },
+    cover: "/ohel-avshalom.jpg",
+    series: [
+      "/ohel-avshalom-1.jpg",
+      "/ohel-avshalom-2.jpg",
+      "/ohel-avshalom-3.jpg",
+      "/ohel-avshalom-4.jpg",
+      "/ohel-avshalom-5.jpg",
+      "/ohel-avshalom-6.jpg",
+      "/ohel-avshalom-7.jpg",
+      "/ohel-avshalom-8.jpg",
+      "/ohel-avshalom-9.jpg",
+      "/ohel-avshalom-10.jpg",
+      "/ohel-avshalom-11.jpg",
+      "/ohel-avshalom-12.jpg",
+      "/ohel-avshalom-13.jpg",
+      "/ohel-avshalom-14.jpg",
+      "/ohel-avshalom-15.jpg",
+    ],
+  },
+  {
+    num: "04",
+    en: { title: "Ramat Eshkol Penthouse", category: "Luxury Construction" },
+    he: { title: "פנטהאוז רמת אשכול", category: "בניית יוקרה" },
+    cover: "/ramat-eshkol.jpg",
+    series: [
+      "/ramat-eshkol-penthouse-1.jpg",
+      "/ramat-eshkol-penthouse-2.jpg",
+      "/ramat-eshkol-penthouse-3.jpg",
+      "/ramat-eshkol-penthouse-4.jpg",
+      "/ramat-eshkol-penthouse-5.jpg",
+      "/ramat-eshkol-penthouse-6.jpg",
+      "/ramat-eshkol-penthouse-7.jpg",
+      "/ramat-eshkol-penthouse-8.jpg",
+      "/ramat-eshkol-penthouse-9.jpg",
+    ],
+  },
 ];
+
+const UI = {
+  en: { overline: "Selected Work", title: "Portfolio", close: "Close", prev: "Previous", next: "Next" },
+  he: { overline: "עבודות נבחרות", title: "תיק עבודות", close: "סגור", prev: "קודם", next: "הבא" },
+} as const;
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-function PlaceholderImage({ index, className = "" }: { index: number; className?: string }) {
-  const style = placeholderStyles[index % placeholderStyles.length];
-  return (
-    <div className={`absolute inset-0 bg-gradient-to-br ${style.bg} ${className}`}>
-      {/* Architectural grid texture — purely decorative */}
-      <div
-        className="absolute inset-0 opacity-[0.07]"
-        aria-hidden="true"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(0,0,0,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,1) 1px, transparent 1px)",
-          backgroundSize: style.grid,
-        }}
-      />
-    </div>
-  );
-}
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function PortfolioGallery() {
   const { lang } = useLang();
-  const { overline, title, items, close, prev, next, placeholder } = copy[lang];
+  const l = lang as "en" | "he";
+  const ui = UI[l];
 
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [activeProject, setActiveProject] = useState<number | null>(null);
+  const [activeImage, setActiveImage] = useState(0);
 
-  const openLightbox = useCallback((index: number) => setActiveIndex(index), []);
-  const closeLightbox = useCallback(() => setActiveIndex(null), []);
+  const project = activeProject !== null ? PROJECTS[activeProject] : null;
+  const series = project?.series ?? [];
+  const totalImages = series.length;
+
+  const openLightbox = useCallback((projIndex: number) => {
+    setActiveProject(projIndex);
+    setActiveImage(0);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    setActiveProject(null);
+    setActiveImage(0);
+  }, []);
 
   const goPrev = useCallback(() => {
-    if (activeIndex === null) return;
-    setActiveIndex((activeIndex - 1 + items.length) % items.length);
-  }, [activeIndex, items.length]);
+    setActiveImage((i) => (i - 1 + totalImages) % totalImages);
+  }, [totalImages]);
 
   const goNext = useCallback(() => {
-    if (activeIndex === null) return;
-    setActiveIndex((activeIndex + 1) % items.length);
-  }, [activeIndex, items.length]);
+    setActiveImage((i) => (i + 1) % totalImages);
+  }, [totalImages]);
 
   // Keyboard navigation
   useEffect(() => {
-    if (activeIndex === null) return;
+    if (activeProject === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeLightbox();
       if (e.key === "ArrowLeft") lang === "he" ? goNext() : goPrev();
@@ -99,176 +159,187 @@ export default function PortfolioGallery() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeIndex, closeLightbox, goPrev, goNext, lang]);
+  }, [activeProject, closeLightbox, goPrev, goNext, lang]);
 
   // Lock scroll when lightbox is open
   useEffect(() => {
-    document.body.style.overflow = activeIndex !== null ? "hidden" : "";
+    document.body.style.overflow = activeProject !== null ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
-  }, [activeIndex]);
+  }, [activeProject]);
 
   return (
     <>
+      {/* ── Gallery Section ── */}
       <section id="portfolio" className="bg-bone py-36 md:py-48">
         <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+
           {/* Header */}
           <div className="mb-16 md:mb-20 text-start">
             <p className="overline-label mb-6">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
-              {overline}
+              {ui.overline}
             </p>
             <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl max-w-xl">
-              {title}
+              {ui.title}
             </h2>
           </div>
 
-          {/* Responsive Gallery Grid */}
+          {/* 3-column grid */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item, index) => (
-              <motion.button
-                key={item.num}
-                onClick={() => openLightbox(index)}
-                className="group relative aspect-[4/3] w-full overflow-hidden cursor-pointer block focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.65, delay: index * 0.07, ease }}
-                aria-label={`${item.title} — ${item.category}`}
-              >
-                {/* Placeholder image */}
-                <PlaceholderImage index={index} className="transition-transform duration-700 group-hover:scale-105" />
-
-                {/* Watermark number — very low opacity */}
-                <span
-                  className="absolute bottom-3 end-4 font-heading text-[7rem] font-bold text-charcoal/[0.06] select-none leading-none pointer-events-none"
-                  aria-hidden="true"
+            {PROJECTS.map((proj, index) => {
+              const { title, category } = proj[l];
+              return (
+                <motion.button
+                  key={proj.num}
+                  onClick={() => openLightbox(index)}
+                  className="group relative aspect-[4/5] w-full overflow-hidden cursor-pointer block focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.65, delay: index * 0.1, ease }}
+                  aria-label={`${title} — ${category}`}
                 >
-                  {item.num}
-                </span>
+                  {/* Cover image */}
+                  <Image
+                    src={proj.cover}
+                    alt={title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    priority={index < 3}
+                  />
 
-                {/* Category chip — always visible */}
-                <div className="absolute start-0 top-0 m-4">
-                  <span className="font-body text-[0.6rem] font-semibold tracking-[0.2em] uppercase text-charcoal/60 bg-white/75 backdrop-blur-sm px-2.5 py-1.5">
-                    {item.category}
+                  {/* Category chip */}
+                  <div className="absolute start-0 top-0 m-4 z-10">
+                    <span className="font-body text-[0.6rem] font-semibold tracking-[0.2em] uppercase text-charcoal/60 bg-white/75 backdrop-blur-sm px-2.5 py-1.5">
+                      {category}
+                    </span>
+                  </div>
+
+                  {/* Watermark number */}
+                  <span
+                    className="absolute bottom-3 end-4 font-heading text-[7rem] font-bold text-white/[0.08] select-none leading-none pointer-events-none z-10"
+                    aria-hidden="true"
+                  >
+                    {proj.num}
                   </span>
-                </div>
 
-                {/* Dark overlay on hover */}
-                <div className="absolute inset-0 bg-charcoal/0 transition-colors duration-500 group-hover:bg-charcoal/50" />
+                  {/* Dark overlay on hover */}
+                  <div className="absolute inset-0 bg-charcoal/0 transition-colors duration-500 group-hover:bg-charcoal/55 z-10" />
 
-                {/* Info overlay — slides up on hover */}
-                <div className="absolute inset-x-0 bottom-0 translate-y-full p-6 transition-transform duration-500 ease-[var(--ease-expo)] group-hover:translate-y-0">
-                  <p className="font-body text-[0.65rem] font-semibold tracking-[0.2em] uppercase text-accent mb-1.5">
-                    {item.category}
-                  </p>
-                  <h3 className="font-heading text-lg font-bold text-bone leading-snug">
-                    {item.title}
-                  </h3>
-                </div>
+                  {/* Info overlay — slides up on hover */}
+                  <div className="absolute inset-x-0 bottom-0 translate-y-full p-6 transition-transform duration-500 ease-[var(--ease-expo)] group-hover:translate-y-0 z-20">
+                    <p className="font-body text-[0.65rem] font-semibold tracking-[0.2em] uppercase text-accent mb-1.5">
+                      {category}
+                    </p>
+                    <h3 className="font-heading text-lg font-bold text-bone leading-snug">
+                      {title}
+                    </h3>
+                  </div>
 
-                {/* Corner accent line — decorative */}
-                <div className="absolute start-0 bottom-0 h-px w-0 bg-accent transition-all duration-700 ease-[var(--ease-expo)] group-hover:w-full" />
-              </motion.button>
-            ))}
+                  {/* Bottom accent line */}
+                  <div className="absolute start-0 bottom-0 h-px w-0 bg-accent transition-all duration-700 ease-[var(--ease-expo)] group-hover:w-full z-20" />
+                </motion.button>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* ── Lightbox ── */}
       <AnimatePresence>
-        {activeIndex !== null && (
+        {activeProject !== null && project && (
           <motion.div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95"
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             onClick={closeLightbox}
           >
-            {/* Main image container */}
+            {/* Prev button */}
+            <button
+              onClick={(e) => { e.stopPropagation(); lang === "he" ? goNext() : goPrev(); }}
+              className="absolute start-4 top-1/2 -translate-y-1/2 z-10 grid size-12 place-items-center text-white/40 hover:text-white transition-colors duration-300"
+              aria-label={ui.prev}
+            >
+              <ChevronLeft size={30} />
+            </button>
+
+            {/* Next button */}
+            <button
+              onClick={(e) => { e.stopPropagation(); lang === "he" ? goPrev() : goNext(); }}
+              className="absolute end-4 top-1/2 -translate-y-1/2 z-10 grid size-12 place-items-center text-white/40 hover:text-white transition-colors duration-300"
+              aria-label={ui.next}
+            >
+              <ChevronRight size={30} />
+            </button>
+
+            {/* Image container — swipeable */}
             <motion.div
-              className="relative w-full max-w-5xl mx-16 aspect-[4/3]"
-              initial={{ scale: 0.92, opacity: 0 }}
+              className="relative"
+              style={{ width: "min(88vw, 620px)", height: "min(78vh, 826px)" }}
+              initial={{ scale: 0.94, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.92, opacity: 0 }}
-              transition={{ duration: 0.4, ease }}
+              exit={{ scale: 0.94, opacity: 0 }}
+              transition={{ duration: 0.35, ease }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.12}
+              onDragEnd={(_: unknown, info: PanInfo) => {
+                if (info.offset.x < -60) lang === "he" ? goPrev() : goNext();
+                if (info.offset.x > 60) lang === "he" ? goNext() : goPrev();
+              }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Placeholder */}
-              <PlaceholderImage index={activeIndex} />
+              {/* Crossfade image on change */}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={series[activeImage]}
+                  className="absolute inset-0"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  <Image
+                    src={series[activeImage]}
+                    alt={`${project[l].title} — ${activeImage + 1}`}
+                    fill
+                    sizes="(max-width: 620px) 88vw, 620px"
+                    className="object-contain"
+                    priority
+                  />
+                </motion.div>
+              </AnimatePresence>
 
-              {/* Watermark number */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
-                <span className="font-heading font-bold text-white/[0.04] select-none leading-none" style={{ fontSize: "clamp(8rem, 22vw, 22rem)" }}>
-                  {items[activeIndex].num}
-                </span>
-              </div>
-
-              {/* Placeholder label */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="text-center">
-                  <p className="font-body text-xs font-semibold tracking-[0.3em] uppercase text-white/20">
-                    {placeholder}
-                  </p>
-                </div>
-              </div>
-
-              {/* Caption bar */}
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-8 text-start">
+              {/* Caption */}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-6 py-8 text-start pointer-events-none z-10">
                 <p className="font-body text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-accent mb-2">
-                  {items[activeIndex].category}
+                  {project[l].category}
                 </p>
-                <h3 className="font-heading text-2xl md:text-3xl font-bold text-white">
-                  {items[activeIndex].title}
+                <h3 className="font-heading text-xl md:text-2xl font-bold text-white">
+                  {project[l].title}
                 </h3>
               </div>
 
-              {/* Border accent */}
-              <div className="absolute inset-0 border border-white/[0.06] pointer-events-none" />
+              {/* Frame border */}
+              <div className="absolute inset-0 border border-white/[0.06] pointer-events-none z-10" />
             </motion.div>
+
+            {/* Counter */}
+            <p className="mt-5 font-body text-xs text-white/40 tracking-[0.15em] tabular-nums select-none pointer-events-none">
+              {activeImage + 1} / {totalImages}
+            </p>
 
             {/* Close button */}
             <button
               onClick={closeLightbox}
               className="absolute top-5 end-5 grid size-11 place-items-center border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition-colors duration-300"
-              aria-label={close}
+              aria-label={ui.close}
             >
               <X size={20} />
             </button>
-
-            {/* Prev button */}
-            <button
-              onClick={(e) => { e.stopPropagation(); goPrev(); }}
-              className="absolute start-4 top-1/2 -translate-y-1/2 grid size-12 place-items-center text-white/40 hover:text-white transition-colors duration-300"
-              aria-label={prev}
-            >
-              {lang === "he" ? <ChevronRight size={30} /> : <ChevronLeft size={30} />}
-            </button>
-
-            {/* Next button */}
-            <button
-              onClick={(e) => { e.stopPropagation(); goNext(); }}
-              className="absolute end-4 top-1/2 -translate-y-1/2 grid size-12 place-items-center text-white/40 hover:text-white transition-colors duration-300"
-              aria-label={next}
-            >
-              {lang === "he" ? <ChevronLeft size={30} /> : <ChevronRight size={30} />}
-            </button>
-
-            {/* Counter */}
-            <div className="absolute bottom-5 inset-x-0 flex justify-center">
-              <div className="flex items-center gap-2">
-                {items.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={(e) => { e.stopPropagation(); setActiveIndex(i); }}
-                    className={`h-px transition-all duration-300 ${
-                      i === activeIndex ? "w-8 bg-accent" : "w-4 bg-white/20 hover:bg-white/40"
-                    }`}
-                    aria-label={`Go to image ${i + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>

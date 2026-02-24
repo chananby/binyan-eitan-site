@@ -11,7 +11,7 @@ const nav = {
   he: {
     links: [
       { label: "תיק עבודות", href: "/he#portfolio" },
-      { label: "המשרד", href: "/he#about" },
+      { label: "המשרד", href: "/he/about" },
       { label: "פנייה", href: "/he#contact" },
     ],
     switchLabel: "EN",
@@ -20,7 +20,7 @@ const nav = {
   en: {
     links: [
       { label: "Portfolio", href: "/en#portfolio" },
-      { label: "The Firm", href: "/en#about" },
+      { label: "The Firm", href: "/en/about" },
       { label: "Inquiry", href: "/en#contact" },
     ],
     switchLabel: "עב",
