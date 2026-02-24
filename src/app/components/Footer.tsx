@@ -139,9 +139,28 @@ export default function Footer() {
 
         </div>
 
-        <div className="mt-20 pt-8 border-t border-bone/10 text-start">
-          <p className="font-body text-xs tracking-wider text-bone/40 uppercase">
+        <div className="mt-20 pt-8 border-t border-bone/10 text-start space-y-3">
+          {/* Legal nav */}
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            <Link href={`/${lang}/legal`} className="font-body text-[0.6rem] tracking-[0.15em] uppercase text-bone/35 hover:text-accent transition-colors">
+              {lang === "he" ? "תנאי שימוש" : "Terms of Use"}
+            </Link>
+            <span className="text-bone/15" aria-hidden="true">·</span>
+            <Link href={`/${lang}/legal`} className="font-body text-[0.6rem] tracking-[0.15em] uppercase text-bone/35 hover:text-accent transition-colors">
+              {lang === "he" ? "מדיניות פרטיות" : "Privacy Policy"}
+            </Link>
+            <span className="text-bone/15" aria-hidden="true">·</span>
+            <Link href={`/${lang}/legal`} className="font-body text-[0.6rem] tracking-[0.15em] uppercase text-bone/35 hover:text-accent transition-colors">
+              {lang === "he" ? "הצהרת נגישות" : "Accessibility Statement"}
+            </Link>
+          </div>
+          {/* Copyright + disclaimer */}
+          <p className="font-body text-[0.6rem] tracking-wider text-bone/25">
             &copy; {new Date().getFullYear()} {content.rights}
+            {" · "}
+            {lang === "he"
+              ? "כל התמונות באתר הן לצרכי המחשה בלבד."
+              : "All images are for illustration purposes only."}
           </p>
         </div>
       </div>

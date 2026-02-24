@@ -60,6 +60,17 @@
 ::-webkit-scrollbar-thumb { background: var(--color-warm-gray); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
 
+/* ── Accessibility: High Contrast mode ── */
+html.hc body {
+  filter: contrast(1.6) saturate(0.7);
+}
+
+/* ── Accessibility: Enhanced focus ring ── */
+html.focus-ring *:focus-visible {
+  outline: 3px solid #C9A96E !important;
+  outline-offset: 4px !important;
+}
+
 @layer utilities {
   .glass {
     background: var(--color-glass);

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Assistant } from "next/font/google";
 import "./globals.css";
+import AccessibilityMenu from "./components/AccessibilityMenu";
 
 const assistant = Assistant({
   subsets: ["latin", "hebrew"],
@@ -23,6 +24,7 @@ export default function RootLayout({
     <html suppressHydrationWarning className={assistant.variable}>
       <body className="bg-bone text-charcoal antialiased overflow-x-hidden selection:bg-accent selection:text-bone">
         {children}
+        <AccessibilityMenu />
       </body>
     </html>
   );
