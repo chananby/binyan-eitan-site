@@ -22,7 +22,7 @@ export default function EnglishHome() {
       </div>
 
       {/* Philosophy Section */}
-      <section id="about" className="relative bg-bone py-28 md:py-36">
+      <section id="about" className="relative bg-bone py-36 md:py-48">
         <div className="mx-auto grid max-w-[1400px] grid-cols-4 gap-x-4 px-6 md:grid-cols-12 md:gap-x-6 lg:px-12">
           <div className="col-span-4 mb-10 md:col-span-3 md:col-start-1 md:mb-0">
             <p className="overline-label">
@@ -39,7 +39,7 @@ export default function EnglishHome() {
             </p>
           </div>
           <div className="col-span-4 mt-10 flex items-end justify-end md:col-span-2 md:col-start-11 md:mt-0">
-            <span className="font-heading text-8xl font-bold text-charcoal/[0.04] md:text-9xl">
+            <span className="font-heading text-8xl font-bold text-warm-gray/20 md:text-9xl">
               01
             </span>
           </div>
@@ -57,7 +57,7 @@ export default function EnglishHome() {
       <Pillars />
 
       {/* Expertise Section (Projects) */}
-      <section id="projects" className="relative bg-charcoal py-28 text-bone md:py-36">
+      <section id="projects" className="relative bg-charcoal py-36 text-bone md:py-48">
         <div className="mx-auto max-w-[1400px] px-6 lg:px-12 text-start">
           <div className="mb-16 md:mb-24">
             <p className="overline-label !text-warm-gray">

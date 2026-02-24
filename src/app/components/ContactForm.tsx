@@ -6,7 +6,7 @@ import { useLang } from "./LangContext";
 const copy = {
   he: {
     overline: "יצירת קשר",
-    title: "בואו נדבר על הפרויקט הבא שלכם.",
+    title: "מתחילים לבנות את החזון שלכם. צרו קשר לייעוץ ראשוני.",
     name: "שם מלא",
     phone: "טלפון",
     email: "אימייל",
@@ -32,7 +32,7 @@ export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
 
   return (
-    <section className="bg-bone-dark py-24 md:py-36" id="contact">
+    <section className="bg-bone-dark py-32 md:py-44" id="contact">
       <div className="max-w-[800px] mx-auto px-6 lg:px-12">
         <div className="text-center mb-16 md:mb-24">
           <p className="overline-label mx-auto mb-6">
@@ -69,8 +69,8 @@ export default function ContactForm() {
               <textarea id="message" rows={4} required className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer resize-none transition-colors" placeholder=" "></textarea>
               <label htmlFor="message" className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none">{content.message}</label>
             </div>
-            <div className="text-center pt-8">
-              <button type="submit" className="bg-charcoal text-bone px-12 py-5 font-body text-sm font-semibold tracking-[0.2em] uppercase transition-all duration-500 hover:bg-accent hover:shadow-lg hover:shadow-accent/20">
+            <div className="pt-8">
+              <button type="submit" className="w-full block bg-charcoal text-bone py-5 font-body text-sm font-semibold tracking-[0.2em] uppercase transition-colors duration-300 hover:bg-charcoal-light">
                 {content.submit}
               </button>
             </div>

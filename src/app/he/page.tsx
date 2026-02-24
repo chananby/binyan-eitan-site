@@ -22,26 +22,27 @@ export default function HebrewHome() {
       </div>
 
       {/* Philosophy Section */}
-      <section id="about" className="relative bg-bone py-28 md:py-36">
+      <section id="about" className="relative bg-bone py-36 md:py-48">
         <div className="mx-auto grid max-w-[1400px] grid-cols-4 gap-x-4 px-6 md:grid-cols-12 md:gap-x-6 lg:px-12">
-          <div className="col-span-4 mb-10 md:col-span-3 md:col-start-1 md:mb-0">
+          {/* Ghost number — physical LEFT (trailing end in RTL) */}
+          <div className="col-span-4 mt-10 flex items-end justify-start md:col-span-2 md:col-start-1 md:row-start-1 md:mt-0">
+            <span className="font-heading text-8xl font-bold text-warm-gray/20 md:text-9xl">
+              01
+            </span>
+          </div>
+          <div className="col-span-4 mb-10 md:col-span-3 md:col-start-3 md:mb-0">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
               הפילוסופיה שלנו
             </p>
           </div>
-          <div className="col-span-4 md:col-span-6 md:col-start-4">
+          <div className="col-span-4 md:col-span-7 md:col-start-6">
             <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
-              הנדסה היא הבסיס. השקט שלכם הוא התוצאה.
+              מקצועיות ואיכות הם הבסיס. השקט הנפשי שלכם הוא המטרה.
             </h2>
             <p className="mt-6 font-body text-base leading-relaxed font-light text-charcoal/55 md:mt-8 md:text-lg">
-              בבניין איתן, אנחנו מאמינים שבית נמדד קודם כל במה שלא רואים – בתשתיות, בדיוק הקונסטרוקטיבי ובתכנון הנדסי ללא פשרות. אנחנו כאן כדי להפוך את החזון האדריכלי למציאות יציבה, בטוחה ומדויקת, תוך ליווי אישי וניהול מוקפד של כל שלב בדרך.
+              בבנין איתן, אנו יוצקים לתוך כל פרויקט תכנון קונסטרוקטיבי קפדני וניהול אישי מקיף, כדי להפוך חזון אדריכלי למציאות בטוחה ומדויקת.
             </p>
-          </div>
-          <div className="col-span-4 mt-10 flex items-end justify-end md:col-span-2 md:col-start-11 md:mt-0">
-            <span className="font-heading text-8xl font-bold text-charcoal/[0.04] md:text-9xl">
-              01
-            </span>
           </div>
         </div>
       </section>
@@ -57,7 +58,7 @@ export default function HebrewHome() {
       <Pillars />
 
       {/* Expertise Section (Projects) */}
-      <section id="projects" className="relative bg-charcoal py-28 text-bone md:py-36">
+      <section id="projects" className="relative bg-charcoal py-36 text-bone md:py-48">
         <div className="mx-auto max-w-[1400px] px-6 lg:px-12 text-start">
           <div className="mb-16 md:mb-24">
             <p className="overline-label !text-warm-gray">
@@ -72,13 +73,13 @@ export default function HebrewHome() {
             {[
               {
                 num: "01",
-                title: "הנדסת מבנים ושלד",
-                desc: "תכנון וביצוע קונסטרוקטיבי מתקדם לפרויקטים מורכבים. יציקות מדוייקות, ביסוס איתן ופתרונות הנדסיים חכמים שמאפשרים אדריכלות נועזת וחסרת פשרות.",
+                title: "הנדסת קונסטרוקציה ושלד",
+                desc: "ביצוע מורכב ומדויק המהווה את עמוד השדרה של הפרויקט.",
               },
               {
                 num: "02",
-                title: "בניית וילות יוקרה",
-                desc: "ניהול וביצוע פרויקטי פרימיום משלב היסודות ועד מפתח. עבודה עם חומרי גמר ברמה העולמית הגבוהה ביותר, הקפדה פנאטית על פרטים ופיקוח צמוד בכל רגע נתון.",
+                title: "בניית וילות פרימיום",
+                desc: "ליווי הנדסי וביצועי מקצה לקצה לבתי מגורים בעיצוב אדריכלי מורכב.",
               },
               {
                 num: "03",

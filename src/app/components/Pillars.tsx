@@ -21,8 +21,8 @@ const pillars: Pillar[] = [
     icon: Shield,
     he: {
       title: "אמינות",
-      summary: "המילה שלנו היא הבטחה הנדסית.",
-      body: "בבנייה, אמון הוא הנכס היקר ביותר. אנחנו פועלים בשקיפות מלאה, בלי 'הפתעות' ובלי תירוצים, מתוך מחויבות מוחלטת לתוצאה וללקוח.",
+      summary: "מחויבות מוחלטת לשקיפות מלאה ולסטנדרטים מחמירים.",
+      body: "מחויבות מוחלטת לשקיפות מלאה ולסטנדרטים מחמירים.",
     },
     en: {
       title: "Reliability",
@@ -36,8 +36,8 @@ const pillars: Pillar[] = [
     icon: Crosshair,
     he: {
       title: "דיוק הנדסי",
-      summary: "שולטים בפרטים הקטנים ביותר.",
-      body: "אנחנו לא מעגלים פינות. כל חיבור, כל יציקה וכל גימור מבוצעים בסטנדרט הגבוה ביותר, תוך הקפדה על תכנון מוקדם וביצוע ללא פשרות בשטח.",
+      summary: "תכנון וביצוע ברזולוציה הגבוהה ביותר, ללא עיגולי פינות.",
+      body: "תכנון וביצוע ברזולוציה הגבוהה ביותר, ללא עיגולי פינות.",
     },
     en: {
       title: "Engineering Precision",
@@ -51,8 +51,8 @@ const pillars: Pillar[] = [
     icon: Clock,
     he: {
       title: "עמידה בזמנים",
-      summary: "ניהול זמן הוא עניין של כבוד.",
-      body: "הזמן שלכם יקר לנו. ניהול הפרויקט נעשה בלוחות זמנים ריאליים ומוקפדים, מתוך הבנה שדיוק בזמן הוא חלק בלתי נפרד מאיכות העבודה.",
+      summary: "ניהול פרויקטים דינמי ומקצועי המבטיח מסירה בזמן.",
+      body: "ניהול פרויקטים דינמי ומקצועי המבטיח מסירה בזמן, ללא פשרות על האיכות.",
     },
     en: {
       title: "Timeline Integrity",
@@ -99,7 +99,7 @@ export default function Pillars() {
   const [openId, setOpenId] = useState<string>(pillars[0].id);
 
   return (
-    <section className="relative bg-bone-dark py-28 md:py-36 text-start">
+    <section className="relative bg-bone-dark py-36 md:py-48 text-start">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
         {/* ── Section header ── */}
         <div className="mb-16 grid grid-cols-4 gap-x-4 md:mb-24 md:grid-cols-12 md:gap-x-6">
@@ -127,7 +127,7 @@ export default function Pillars() {
             <AnimatePresence mode="wait">
               <motion.span
                 key={openId}
-                className="font-heading text-[10rem] leading-none font-bold text-charcoal/[0.04]"
+                className="font-heading text-[10rem] leading-none font-bold text-warm-gray/20"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
