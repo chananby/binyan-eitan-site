@@ -1,11 +1,11 @@
 "use client";
- 
+
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Crosshair, Clock, Users } from "lucide-react";
 import { useLang } from "./LangContext";
- 
-/* ── Pillar data ── */
+
+/* ── Pillar data (הטקסטים המדויקים שלנו) ── */
 interface Pillar {
   id: string;
   num: string;
@@ -13,7 +13,7 @@ interface Pillar {
   he: { title: string; summary: string; body: string };
   en: { title: string; summary: string; body: string };
 }
- 
+
 const pillars: Pillar[] = [
   {
     id: "reliability",
@@ -21,13 +21,13 @@ const pillars: Pillar[] = [
     icon: Shield,
     he: {
       title: "אמינות",
-      summary: "מילה שלנו היא החוזה החזק ביותר.",
-      body: "אנחנו לא מבטיחים מה שאנחנו לא יכולים לספק. כל התחייבות שאנחנו נותנים מגובה בניסיון של עשרות שנים, בצוות קבוע ומיומן ובמוניטין שנבנה פרויקט אחר פרויקט. כשבנין איתן אומרים — זה קורה.",
+      summary: "המילה שלנו היא הבטחה הנדסית.",
+      body: "בבנייה, אמון הוא הנכס היקר ביותר. אנחנו פועלים בשקיפות מלאה, בלי 'הפתעות' ובלי תירוצים, מתוך מחויבות מוחלטת לתוצאה וללקוח.",
     },
     en: {
       title: "Reliability",
-      summary: "Our word is the strongest contract.",
-      body: "We never promise what we can't deliver. Every commitment is backed by decades of experience, a permanent skilled team, and a reputation built project after project. When Binyan Eitan says it — it happens.",
+      summary: "Our word is an engineering promise.",
+      body: "In construction, trust is the most valuable asset. We operate with full transparency, no 'surprises,' and no excuses, out of total commitment to the result and the client.",
     },
   },
   {
@@ -35,14 +35,14 @@ const pillars: Pillar[] = [
     num: "02",
     icon: Crosshair,
     he: {
-      title: "דיוק",
-      summary: "השטן נמצא בפרטים — ואנחנו שולטים בכל פרט.",
-      body: "מהתכנון ההנדסי הראשוני ועד לגימור הסופי, כל מילימטר חשוב. אנחנו עובדים עם סטנדרטים של דיוק שמאפיינים הנדסה ברמה הגבוהה ביותר — בלי קיצורי דרך, בלי פשרות.",
+      title: "דיוק הנדסי",
+      summary: "שולטים בפרטים הקטנים ביותר.",
+      body: "אנחנו לא מעגלים פינות. כל חיבור, כל יציקה וכל גימור מבוצעים בסטנדרט הגבוה ביותר, תוך הקפדה על תכנון מוקדם וביצוע ללא פשרות בשטח.",
     },
     en: {
-      title: "Precision",
-      summary: "The devil is in the details — and we master every one.",
-      body: "From initial engineering design to final finish, every millimeter counts. We work to precision standards that define the highest level of engineering — no shortcuts, no compromises.",
+      title: "Engineering Precision",
+      summary: "Mastering the smallest details.",
+      body: "We don't cut corners. Every joint, pour, and finish is executed to the highest standard, ensuring meticulous pre-planning and uncompromising on-site execution.",
     },
   },
   {
@@ -50,14 +50,14 @@ const pillars: Pillar[] = [
     num: "03",
     icon: Clock,
     he: {
-      title: "לוחות זמנים",
-      summary: "הזמן שלכם שווה לא פחות מהאיכות שלנו.",
-      body: "ניהול לוחות זמנים הוא לא רק עניין של יעילות — זו שאלה של כבוד. אנחנו מתכננים כל שלב מראש, מנהלים תלויות בצורה חכמה ומתחייבים למועדים שנקבעו. איחורים הם לא חלק מהתרבות שלנו.",
+      title: "עמידה בזמנים",
+      summary: "ניהול זמן הוא עניין של כבוד.",
+      body: "הזמן שלכם יקר לנו. ניהול הפרויקט נעשה בלוחות זמנים ריאליים ומוקפדים, מתוך הבנה שדיוק בזמן הוא חלק בלתי נפרד מאיכות העבודה.",
     },
     en: {
       title: "Timeline Integrity",
-      summary: "Your time is worth no less than our quality.",
-      body: "Timeline management isn't just about efficiency — it's about respect. We plan every phase in advance, manage dependencies intelligently, and commit to agreed-upon deadlines. Delays are not part of our culture.",
+      summary: "Time management is a matter of respect.",
+      body: "Your time is valuable. Project management is conducted according to realistic and strict schedules, understanding that punctuality is an inseparable part of quality.",
     },
   },
   {
@@ -66,43 +66,42 @@ const pillars: Pillar[] = [
     icon: Users,
     he: {
       title: "שותפות",
-      summary: "אנחנו לא קבלנים — אנחנו שותפים לדרך.",
-      body: "מהרגע הראשון ועד למסירת המפתח, אתם חלק מהתהליך. שקיפות מלאה, תקשורת רציפה, והקשבה אמיתית לצרכים שלכם. אנחנו מאמינים שהפרויקטים הטובים ביותר נבנים יחד.",
+      summary: "אתכם לאורך כל הדרך.",
+      body: "אנחנו לא רק הקבלן שלכם, אנחנו השותפים שלכם למסע. שקיפות, תקשורת רציפה והקשבה לצרכים שלכם הם הבסיס לכל פרויקט מוצלח.",
     },
     en: {
-      title: "Client Partnership",
-      summary: "We're not contractors — we're partners on the journey.",
-      body: "From day one to key handover, you're part of the process. Full transparency, continuous communication, and genuine attention to your needs. We believe the best projects are built together.",
+      title: "Partnership",
+      summary: "With you all the way.",
+      body: "We are not just your contractor; we are your partners on the journey. Transparency, continuous communication, and listening to your needs are the foundation of every successful project.",
     },
   },
 ];
- 
+
 const copy = {
   he: {
-    overline: "עמודי התווך",
+    overline: "סטנדרט של מצוינות",
     heading: "הערכים שמנחים\nכל פרויקט.",
   },
   en: {
-    overline: "Pillars of Trust",
+    overline: "Standard of Excellence",
     heading: "The Values That\nGuide Every Project.",
   },
 } as const;
- 
+
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
- 
+
 /* ═════════════════════════════════════════════════════════
-   PILLARS OF TRUST SECTION
-   Accordion-reveal with architectural numbering
+   PILLARS OF TRUST SECTION (הגרסה העשירה והמלאה)
    ═════════════════════════════════════════════════════════ */
 export default function Pillars() {
   const { lang } = useLang();
   const { overline, heading } = copy[lang];
   const [openId, setOpenId] = useState<string>(pillars[0].id);
- 
+
   return (
-    <section className="relative bg-bone-dark py-28 md:py-36">
+    <section className="relative bg-bone-dark py-28 md:py-36 text-start">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
-        {/* ── Section header — 12-col editorial layout ── */}
+        {/* ── Section header ── */}
         <div className="mb-16 grid grid-cols-4 gap-x-4 md:mb-24 md:grid-cols-12 md:gap-x-6">
           <div className="col-span-4 md:col-span-3 md:col-start-1">
             <p className="overline-label">
@@ -120,10 +119,10 @@ export default function Pillars() {
             </h2>
           </div>
         </div>
- 
+
         {/* ── Accordion grid ── */}
         <div className="grid grid-cols-4 gap-x-4 md:grid-cols-12 md:gap-x-6">
-          {/* Ghosted number — trailing side */}
+          {/* Ghosted number — המספר הענק והשקוף שמתחלף באנימציה */}
           <div className="hidden items-start justify-end md:col-span-2 md:col-start-11 md:flex">
             <AnimatePresence mode="wait">
               <motion.span
@@ -138,20 +137,20 @@ export default function Pillars() {
               </motion.span>
             </AnimatePresence>
           </div>
- 
+
           {/* Accordion items */}
           <div className="col-span-4 md:col-span-8 md:col-start-1 md:row-start-1">
             {pillars.map((pillar) => {
               const isOpen = openId === pillar.id;
               const content = pillar[lang];
               const Icon = pillar.icon;
- 
+
               return (
                 <div key={pillar.id} className="border-b border-charcoal/[0.07] last:border-b-0">
                   {/* ── Accordion trigger ── */}
                   <button
                     onClick={() => setOpenId(isOpen ? "" : pillar.id)}
-                    className="group flex w-full items-center gap-5 py-7 text-start md:gap-8 md:py-9"
+                    className="group flex w-full items-center gap-5 py-7 text-start md:gap-8 md:py-9 focus:outline-none"
                     aria-expanded={isOpen}
                   >
                     {/* Number */}
@@ -162,7 +161,7 @@ export default function Pillars() {
                     >
                       {pillar.num}
                     </span>
- 
+
                     {/* Icon */}
                     <span
                       className={`flex size-10 shrink-0 items-center justify-center rounded-full border transition-all duration-500 md:size-12 ${
@@ -173,7 +172,7 @@ export default function Pillars() {
                     >
                       <Icon size={18} strokeWidth={1.5} />
                     </span>
- 
+
                     {/* Title + summary */}
                     <div className="min-w-0 flex-1">
                       <h3
@@ -187,27 +186,20 @@ export default function Pillars() {
                         {content.summary}
                       </p>
                     </div>
- 
-                    {/* Expand indicator */}
+
+                    {/* Expand indicator (החץ שזז) */}
                     <motion.span
                       className="ms-auto shrink-0 text-charcoal/25"
                       animate={{ rotate: isOpen ? 45 : 0 }}
                       transition={{ duration: 0.4, ease }}
                     >
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      >
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <line x1="10" y1="4" x2="10" y2="16" />
                         <line x1="4" y1="10" x2="16" y2="10" />
                       </svg>
                     </motion.span>
                   </button>
- 
+
                   {/* ── Accordion panel ── */}
                   <AnimatePresence initial={false}>
                     {isOpen && (
@@ -224,12 +216,12 @@ export default function Pillars() {
                           <p className="mb-3 font-body text-sm font-medium text-charcoal/70 md:hidden">
                             {content.summary}
                           </p>
- 
+
                           <p className="max-w-2xl font-body text-base leading-relaxed font-light text-charcoal/55 md:text-lg">
                             {content.body}
                           </p>
- 
-                          {/* Accent bar */}
+
+                          {/* Accent bar (הפס המוזהב שנפתח) */}
                           <motion.div
                             className="mt-6 h-px bg-accent/30"
                             initial={{ width: 0 }}
