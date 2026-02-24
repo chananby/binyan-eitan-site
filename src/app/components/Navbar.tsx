@@ -135,11 +135,11 @@ export default function Navbar() {
       {/* ── Mobile Fullscreen Overlay ── */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
+         <motion.div
             className="fixed inset-0 z-50 flex flex-col items-start justify-center bg-bone px-8 md:hidden"
-            initial={{ clipPath: "circle(0% at calc(100% - 44px) 36px)" }}
-            animate={{ clipPath: "circle(150% at calc(100% - 44px) 36px)" }}
-            exit={{ clipPath: "circle(0% at calc(100% - 44px) 36px)" }}
+            initial={{ clipPath: lang === 'he' ? "circle(0% at 44px 36px)" : "circle(0% at calc(100% - 44px) 36px)" }}
+            animate={{ clipPath: lang === 'he' ? "circle(150% at 44px 36px)" : "circle(150% at calc(100% - 44px) 36px)" }}
+            exit={{ clipPath: lang === 'he' ? "circle(0% at 44px 36px)" : "circle(0% at calc(100% - 44px) 36px)" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
             <ul className="flex flex-col gap-8">
