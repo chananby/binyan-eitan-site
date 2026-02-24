@@ -21,8 +21,8 @@ export default function HebrewHome() {
         <div className="rule-thin" />
       </div>
 
-      <section className="relative bg-bone py-28 md:py-36">
-        <div className="mx-auto grid max-w-[1400px] grid-cols-4 gap-x-4 px-6 md:grid-cols-12 md:gap-x-6 lg:px-12">
+<section id="about" className="relative bg-bone py-28 md:py-36">
+      <div className="mx-auto grid max-w-[1400px] grid-cols-4 gap-x-4 px-6 md:grid-cols-12 md:gap-x-6 lg:px-12">
           <div className="col-span-4 mb-10 md:col-span-3 md:col-start-1 md:mb-0">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
@@ -57,7 +57,7 @@ export default function HebrewHome() {
       </div>
       <Pillars />
 
-      <section className="relative bg-charcoal py-28 text-bone md:py-36">
+      <section id="projects" className="relative bg-charcoal py-28 text-bone md:py-36">
         <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
           <div className="mb-16 md:mb-24">
             <p className="overline-label !text-warm-gray">
