@@ -7,13 +7,13 @@ import Pillars from "../components/Pillars";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Binyan Eitan | Luxury Construction & Engineering",
-  description: "Every project is a testament to engineering excellence and uncompromising craftsmanship.",
+  title: "Binyan Eitan | Engineering is the Foundation. Peace of Mind is the Result.",
+  description: "We believe a luxury home is defined by what lies beneath the surface. Engineering, design, and execution under one roof.",
 };
 
 export default function EnglishHome() {
   return (
-    <main className="relative">
+    <main className="relative" dir="ltr">
       <Navbar />
       <Hero />
 
@@ -21,7 +21,8 @@ export default function EnglishHome() {
         <div className="rule-thin" />
       </div>
 
-      <section className="relative bg-bone py-28 md:py-36">
+      {/* Philosophy Section */}
+      <section id="about" className="relative bg-bone py-28 md:py-36">
         <div className="mx-auto grid max-w-[1400px] grid-cols-4 gap-x-4 px-6 md:grid-cols-12 md:gap-x-6 lg:px-12">
           <div className="col-span-4 mb-10 md:col-span-3 md:col-start-1 md:mb-0">
             <p className="overline-label">
@@ -29,16 +30,12 @@ export default function EnglishHome() {
               Our Philosophy
             </p>
           </div>
-          <div className="col-span-4 md:col-span-6 md:col-start-4">
+          <div className="col-span-4 md:col-span-6 md:col-start-4 text-start">
             <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
-              Every project is a testament to engineering excellence and
-              uncompromising craftsmanship.
+              Engineering is the Foundation. Peace of Mind is the Result.
             </h2>
             <p className="mt-6 font-body text-base leading-relaxed font-light text-charcoal/55 md:mt-8 md:text-lg">
-              At Binyan Eitan, we believe luxury construction begins with a deep
-              understanding of the client&apos;s vision and ends with execution
-              precise to the last detail. Every line, every material, every joint
-              — reflects our commitment to perfection.
+              At Binyan Eitan, we believe a luxury home is defined by what lies beneath the surface—infrastructure, structural integrity, and uncompromising engineering. We turn architectural vision into a solid, secure reality through meticulous management and professional excellence.
             </p>
           </div>
           <div className="col-span-4 mt-10 flex items-end justify-end md:col-span-2 md:col-start-11 md:mt-0">
@@ -59,8 +56,9 @@ export default function EnglishHome() {
       </div>
       <Pillars />
 
-      <section className="relative bg-charcoal py-28 text-bone md:py-36">
-        <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+      {/* Expertise Section (Projects) */}
+      <section id="projects" className="relative bg-charcoal py-28 text-bone md:py-36">
+        <div className="mx-auto max-w-[1400px] px-6 lg:px-12 text-start">
           <div className="mb-16 md:mb-24">
             <p className="overline-label !text-warm-gray">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
@@ -90,9 +88,9 @@ export default function EnglishHome() {
             ].map((service) => (
               <div
                 key={service.num}
-                className="group bg-charcoal p-8 transition-colors duration-500 hover:bg-charcoal-light md:p-12"
+                className="group bg-charcoal p-8 transition-colors duration-500 hover:bg-charcoal-light md:p-12 text-start"
               >
-                <span className="font-heading text-5xl font-bold text-accent/20 transition-colors duration-500 group-hover:text-accent/40">
+                <span className="font-heading text-5xl font-bold text-accent/20 transition-colors duration-500 group-hover:text-accent/40 block">
                   {service.num}
                 </span>
                 <h3 className="mt-6 font-heading text-xl font-bold text-bone md:text-2xl">
@@ -108,9 +106,6 @@ export default function EnglishHome() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════
-          CONTACT & FOOTER
-          ═══════════════════════════════════════════════ */}
       <ContactForm />
       <Footer />
     </main>
