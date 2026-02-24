@@ -137,15 +137,6 @@ export default function Pillars() {
                     className="group flex w-full items-center gap-5 py-7 text-start md:gap-8 md:py-9 focus:outline-none"
                     aria-expanded={isOpen}
                   >
-                    {/* Number */}
-                    <span
-                      className={`shrink-0 font-heading text-2xl font-bold transition-colors duration-500 md:text-3xl ${
-                        isOpen ? "text-accent" : "text-charcoal/15 group-hover:text-charcoal/30"
-                      }`}
-                    >
-                      {pillar.num}
-                    </span>
-
                     {/* Icon */}
                     <span
                       className={`flex size-10 shrink-0 items-center justify-center rounded-full border transition-all duration-500 md:size-12 ${
@@ -195,7 +186,7 @@ export default function Pillars() {
                         transition={{ duration: 0.5, ease }}
                         className="overflow-hidden"
                       >
-                        <div className="pb-9 ps-[4.25rem] md:ps-[7.5rem]">
+                        <div className="pb-9 ps-[3.5rem] md:ps-[4.5rem]">
                           {/* Summary — visible on mobile */}
                           <p className="mb-3 font-body text-sm font-medium text-charcoal/70 md:hidden">
                             {content.summary}

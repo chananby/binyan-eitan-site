@@ -26,12 +26,6 @@ export default function HebrewHome() {
       {/* היסודות שלנו Section */}
       <section id="about" className="relative bg-bone py-36 md:py-48">
         <div className="mx-auto grid max-w-[1400px] grid-cols-4 gap-x-4 px-6 md:grid-cols-12 md:gap-x-6 lg:px-12">
-          {/* Ghost number — physical LEFT (trailing end in RTL) */}
-          <div className="col-span-4 mt-10 flex items-end justify-start md:col-span-2 md:col-start-1 md:row-start-1 md:mt-0">
-            <span className="font-heading text-8xl font-bold text-warm-gray/20 md:text-9xl" aria-hidden="true">
-              01
-            </span>
-          </div>
           <div className="col-span-4 mb-10 md:col-span-3 md:col-start-3 md:mb-0">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
@@ -98,10 +92,7 @@ export default function HebrewHome() {
                 key={service.num}
                 className="group bg-charcoal p-8 transition-colors duration-500 hover:bg-charcoal-light md:p-12 text-start"
               >
-                <span className="font-heading text-5xl font-bold text-accent/20 transition-colors duration-500 group-hover:text-accent/40 block" aria-hidden="true">
-                  {service.num}
-                </span>
-                <h3 className="mt-6 font-heading text-xl font-bold text-bone md:text-2xl">
+                <h3 className="font-heading text-xl font-bold text-bone md:text-2xl">
                   {service.title}
                 </h3>
                 <p className="mt-4 font-body text-sm leading-relaxed font-light text-bone/50">
