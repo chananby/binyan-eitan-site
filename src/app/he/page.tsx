@@ -2,7 +2,12 @@ import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import TechnicalAnatomy from "../components/TechnicalAnatomy";
 import Pillars from "../components/Pillars";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "בניין איתן | בנייה יוקרתית והנדסת מבנים",
+  description: "כל פרויקט הוא עדות למצוינות הנדסית ולאומנות ללא פשרות. הנדסה, תכנון וביצוע תחת קורת גג אחת.",
+};
 export default function HebrewHome() {
   return (
     <main className="relative">
