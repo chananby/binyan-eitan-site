@@ -2,7 +2,12 @@ import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import TechnicalAnatomy from "../components/TechnicalAnatomy";
 import Pillars from "../components/Pillars";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Binyan Eitan | Luxury Construction & Engineering",
+  description: "Every project is a testament to engineering excellence and uncompromising craftsmanship.",
+};
 export default function EnglishHome() {
   return (
     <main className="relative">
