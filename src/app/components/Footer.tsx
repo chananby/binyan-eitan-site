@@ -75,7 +75,7 @@ export default function Footer() {
             <h4 className="font-body text-xs font-semibold tracking-[0.2em] uppercase text-warm-gray mb-6">{content.nav}</h4>
             <ul className="space-y-4 font-body text-sm text-bone/70">
               <li><Link href={`/${lang}#portfolio`} className="hover:text-accent transition-colors block">{content.portfolio}</Link></li>
-              <li><Link href={`/${lang}#about`} className="hover:text-accent transition-colors block">{content.about}</Link></li>
+              <li><Link href={`/${lang}/about`} className="hover:text-accent transition-colors block">{content.about}</Link></li>
               <li><Link href={`/${lang}#contact`} className="hover:text-accent transition-colors block">{content.contact}</Link></li>
             </ul>
           </div>

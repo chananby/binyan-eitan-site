@@ -40,7 +40,7 @@ export default function ContactForm() {
             {content.overline}
             <span className="ms-3 inline-block h-px w-6 bg-accent align-middle" />
           </p>
-          <h2 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-charcoal">
+          <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold leading-snug text-charcoal">
             {content.title}
           </h2>
         </div>
