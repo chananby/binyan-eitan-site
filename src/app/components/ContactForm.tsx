@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { CheckCircle } from "lucide-react";
 import { useLang } from "./LangContext";
+
+const FORMSPREE_URL = "https://formspree.io/f/office@binyaneitan.com";
 
 const copy = {
   he: {
@@ -12,7 +15,10 @@ const copy = {
     email: "אימייל",
     message: "ספרו לנו על הפרויקט...",
     submit: "שליחת הודעה",
-    success: "הודעתך התקבלה בהצלחה. ניצור קשר בהקדם.",
+    sending: "שולח...",
+    success: "תודה, פנייתך התקבלה",
+    successSub: "ניצור קשר בהקדם.",
+    error: "שגיאה בשליחה. אנא נסו שוב.",
   },
   en: {
     overline: "Get in Touch",
@@ -22,14 +28,34 @@ const copy = {
     email: "Email Address",
     message: "Tell us about your project...",
     submit: "Send Message",
-    success: "Your message has been received.",
-  }
+    sending: "Sending...",
+    success: "Thank you, your message has been sent",
+    successSub: "We'll be in touch shortly.",
+    error: "Submission failed. Please try again.",
+  },
 } as const;
+
+type Status = "idle" | "sending" | "success" | "error";
 
 export default function ContactForm() {
   const { lang } = useLang();
   const content = copy[lang];
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<Status>("idle");
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setStatus("sending");
+    try {
+      const res = await fetch(FORMSPREE_URL, {
+        method: "POST",
+        body: new FormData(e.currentTarget),
+        headers: { Accept: "application/json" },
+      });
+      setStatus(res.ok ? "success" : "error");
+    } catch {
+      setStatus("error");
+    }
+  }
 
   return (
     <section className="bg-bone-dark py-32 md:py-44" id="contact">
@@ -45,33 +71,96 @@ export default function ContactForm() {
           </h2>
         </div>
 
-        {submitted ? (
-          <div className="text-center py-12 border border-accent/20 bg-accent/[0.02]">
-            <p className="font-body text-lg text-charcoal">{content.success}</p>
+        {status === "success" ? (
+          <div className="flex flex-col items-center gap-5 py-16 border border-accent/20 bg-accent/[0.02] text-center">
+            <CheckCircle size={40} strokeWidth={1.5} className="text-accent" />
+            <div>
+              <p className="font-heading text-xl font-bold text-charcoal">{content.success}</p>
+              <p className="mt-2 font-body text-sm text-charcoal/50">{content.successSub}</p>
+            </div>
           </div>
         ) : (
-          <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} className="space-y-12">
+          <form onSubmit={handleSubmit} className="space-y-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-10">
               <div className="relative">
-                <input type="text" id="name" required className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer transition-colors" placeholder=" " />
-                <label htmlFor="name" className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none">{content.name}</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  required
+                  className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer transition-colors"
+                  placeholder=" "
+                />
+                <label
+                  htmlFor="name"
+                  className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
+                >
+                  {content.name}
+                </label>
               </div>
               <div className="relative">
-                <input type="tel" id="phone" required className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer transition-colors" placeholder=" " />
-                <label htmlFor="phone" className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none">{content.phone}</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  required
+                  className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer transition-colors"
+                  placeholder=" "
+                />
+                <label
+                  htmlFor="phone"
+                  className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
+                >
+                  {content.phone}
+                </label>
               </div>
             </div>
+
             <div className="relative">
-              <input type="email" id="email" required className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer transition-colors" placeholder=" " />
-              <label htmlFor="email" className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none">{content.email}</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer transition-colors"
+                placeholder=" "
+              />
+              <label
+                htmlFor="email"
+                className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
+              >
+                {content.email}
+              </label>
             </div>
+
             <div className="relative">
-              <textarea id="message" rows={4} required className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer resize-none transition-colors" placeholder=" "></textarea>
-              <label htmlFor="message" className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none">{content.message}</label>
+              <textarea
+                id="message"
+                name="message"
+                rows={4}
+                required
+                className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer resize-none transition-colors"
+                placeholder=" "
+              />
+              <label
+                htmlFor="message"
+                className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
+              >
+                {content.message}
+              </label>
             </div>
+
+            {status === "error" && (
+              <p className="font-body text-sm text-red-500 text-center">{content.error}</p>
+            )}
+
             <div className="pt-8">
-              <button type="submit" className="w-full block bg-charcoal text-bone py-5 font-body text-sm font-semibold tracking-[0.2em] uppercase transition-colors duration-300 hover:bg-charcoal-light">
-                {content.submit}
+              <button
+                type="submit"
+                disabled={status === "sending"}
+                className="w-full block bg-charcoal text-bone py-5 font-body text-sm font-semibold tracking-[0.2em] uppercase transition-colors duration-300 hover:bg-charcoal-light disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {status === "sending" ? content.sending : content.submit}
               </button>
             </div>
           </form>

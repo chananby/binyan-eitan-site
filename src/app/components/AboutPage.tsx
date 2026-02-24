@@ -330,13 +330,7 @@ export default function AboutPage() {
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.6, delay: i * 0.08, ease }}
               >
-                <span
-                  className="font-heading text-5xl font-bold text-accent/20 transition-colors duration-500 group-hover:text-accent/40 block"
-                  aria-hidden="true"
-                >
-                  {item.num}
-                </span>
-                <h3 className="mt-6 font-heading text-xl font-bold text-charcoal transition-colors duration-500 group-hover:text-bone md:text-2xl whitespace-pre-line">
+                <h3 className="font-heading text-xl font-bold text-charcoal transition-colors duration-500 group-hover:text-bone md:text-2xl whitespace-pre-line">
                   {item.title}
                 </h3>
                 <p className="mt-4 font-body text-sm font-light leading-relaxed text-charcoal/55 transition-colors duration-500 group-hover:text-bone/55">
