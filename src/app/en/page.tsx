@@ -68,22 +68,22 @@ export default function EnglishHome() {
               Engineering, Design & Execution — Under One Roof.
             </h2>
           </div>
-          <div className="grid grid-cols-1 gap-px bg-bone/[0.06] md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-px bg-bone/[0.06] md:grid-cols-3">
             {[
               {
                 num: "01",
                 title: "Structural Engineering",
-                desc: "Advanced structural design with an emphasis on innovation, safety and long-term resilience.",
+                desc: "Advanced structural design and execution for complex projects. Precise casting, solid foundations, and smart engineering solutions that enable bold, uncompromising architecture.",
               },
               {
                 num: "02",
                 title: "Luxury Construction",
-                desc: "Execution at the highest level with premium materials and unparalleled craftsmanship.",
+                desc: "Turnkey management and execution of premium projects. Working with world-class finishing materials, fanatical attention to detail, and close supervision at every moment.",
               },
               {
                 num: "03",
-                title: "Renovations & Upgrades",
-                desc: "Transforming existing structures while preserving original character and elevating the standard.",
+                title: "Premium Renovations",
+                desc: "Complete transformation of existing properties. Structural reinforcement, upgrading advanced technological systems, and adapting the structure to contemporary luxury living standards.",
               },
             ].map((service) => (
               <div
