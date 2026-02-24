@@ -1,5 +1,7 @@
-import Navbar from "../components/Navbar";
-import Hero from "../components/Hero";
+import Navbar from '../components/Navbar';
+import Hero from '../components/Hero';
+import TechnicalAnatomy from '../components/TechnicalAnatomy';
+import Pillars from '../components/Pillars';
  
 export default function HebrewHome() {
   return (
