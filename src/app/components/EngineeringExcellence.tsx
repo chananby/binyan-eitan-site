@@ -10,19 +10,24 @@ import { useLang } from "./LangContext";
 
 const ITEMS = [
   {
+    src: "/advanced-bathroom-waterproofing-detail.jpg",
+    en: "Advanced Waterproofing",
+    he: "מערכות איטום מתקדמות",
+  },
+  {
     src: "/precision-tiling-with-laser-alignment.jpg",
-    en: "Precision Tiling",
-    he: "ריצוף בדיוק לייזר",
+    en: "Laser-Aligned Tiling",
+    he: "ריצוף מדויק בלייזר",
   },
   {
     src: "/structural-foundation-reinforcement.jpg",
-    en: "Foundation Reinforcement",
-    he: "חיזוק יסודות",
+    en: "Structural Reinforcement",
+    he: "חיזוק וביסוס יסודות",
   },
   {
-    src: "/advanced-bathroom-waterproofing-detail.jpg",
-    en: "Bathroom Waterproofing",
-    he: "איטום מקלחות",
+    src: "/luxury-electrical-infrastructure-precision.jpg",
+    en: "Advanced Electrical Infrastructure",
+    he: "תשתיות חשמל חכמות",
   },
   {
     src: "/expert-jerusalem-stone-facade-work.jpg",
@@ -30,51 +35,16 @@ const ITEMS = [
     he: "חיפוי אבן ירושלמית",
   },
   {
-    src: "/luxury-electrical-infrastructure-precision.jpg",
-    en: "Electrical Infrastructure",
-    he: "תשתית חשמל",
-  },
-  {
-    src: "/premium-marble-bathroom-detailing.jpg",
-    en: "Marble Detailing",
-    he: "גימורי שיש",
-  },
-  {
-    src: "/advanced-underfloor-heating-israel.jpg",
-    en: "Underfloor Heating",
-    he: "חימום תת-רצפתי",
-  },
-  {
-    src: "/interior-wall-framing-systems.jpg",
-    en: "Wall Framing Systems",
-    he: "מערכות גבס",
-  },
-  {
-    src: "/structural-remodeling-safety-standards.jpg",
-    en: "Structural Remodeling",
-    he: "שיפוץ שלד",
-  },
-  {
-    src: "/luxury-interior-finish-transformation.jpg",
-    en: "Interior Finish",
-    he: "גימורי פנים",
-  },
-  {
     src: "/professional-airless-painting-standards.jpg",
-    en: "Airless Painting",
-    he: "צביעה אירלס",
-  },
-  {
-    src: "/luxury-apartment-renovation-view.jpg",
-    en: "Apartment Renovation",
-    he: "שיפוץ דירה",
+    en: "Professional Airless Painting",
+    he: "צביעה מקצועית",
   },
 ];
 
 const UI = {
   en: {
     overline: "Behind the Work",
-    title: "Engineering Excellence",
+    title: "Technical Excellence",
     sub: "The fine details that define the difference.",
     close: "Close",
     prev: "Previous",
@@ -82,7 +52,7 @@ const UI = {
   },
   he: {
     overline: "מאחורי הקלעים",
-    title: "מצוינות הנדסית",
+    title: "מצוינות בביצוע",
     sub: "הפרטים הקטנים שמגדירים את ההבדל.",
     close: "סגור",
     prev: "קודם",
@@ -155,7 +125,7 @@ export default function EngineeringExcellence() {
               <motion.button
                 key={item.src}
                 onClick={() => setActiveIndex(index)}
-                className="group relative aspect-[3/4] w-full overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="group relative aspect-square w-full overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
