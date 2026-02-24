@@ -4,7 +4,7 @@ import "./globals.css";
 
 // טעינת פונט הכותרות - כולל תמיכה חובה בעברית ובמשקלים מרובים
 const playfair = Playfair_Display({
-  subsets: ["latin", "hebrew"],
+  subsets: ["latin"],
   variable: "--font-heading",
   display: "swap",
   weight: ["400", "500", "600", "700", "800", "900"],
@@ -12,7 +12,7 @@ const playfair = Playfair_Display({
 
 // טעינת פונט הטקסט הרץ - כולל תמיכה חובה בעברית
 const montserrat = Montserrat({
-  subsets: ["latin", "hebrew"],
+  subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
   weight: ["300", "400", "500", "600", "700"],
