@@ -1,14 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "tailwindcss";
- 
+
 /* ═══════════════════════════════════════════════════════════
    BINYAN EITAN — Global Design System
    Aesthetic: Architectural Digest × Manhattan Atelier
    ═══════════════════════════════════════════════════════════ */
- 
-@theme {
+
+:root {
   /* ── Color Palette ── */
   --color-bone: #FAF9F6;
   --color-bone-dark: #F0EDE8;
@@ -20,17 +19,17 @@
   --color-accent-dark: #A8893E;
   --color-glass: rgba(250, 249, 246, 0.72);
   --color-glass-border: rgba(26, 26, 26, 0.06);
- 
+
   /* ── Font Families ── */
   --font-heading: "Playfair Display", "Georgia", serif;
   --font-body: "Montserrat", "Helvetica Neue", sans-serif;
- 
-  /* ── Easing Curves ── */
+
+  /* ── Easing Curves (אנימציות יוקרתיות) ── */
   --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
 }
- 
+
 /* ══════════════════════════════════════
    Base Layer
    ══════════════════════════════════════ */
@@ -41,82 +40,83 @@
     scroll-behavior: smooth;
     text-rendering: optimizeLegibility;
   }
- 
+
   body {
     font-family: var(--font-body);
     background-color: var(--color-bone);
     color: var(--color-charcoal);
     overflow-x: hidden;
   }
- 
+
   ::selection {
     background-color: var(--color-accent);
     color: var(--color-bone);
   }
- 
-  /* Scrollbar — minimal, architectural */
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: var(--color-bone);
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-warm-gray);
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-accent);
-  }
 }
- 
+
+/* Scrollbar — minimal, architectural */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bone);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-warm-gray);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
 /* ══════════════════════════════════════
    Custom Utilities
    ══════════════════════════════════════ */
- 
-/* Glassmorphism — navbar on scroll */
-@utility glass {
-  background: var(--color-glass);
-  backdrop-filter: blur(24px) saturate(1.8);
-  -webkit-backdrop-filter: blur(24px) saturate(1.8);
-  border-bottom: 1px solid var(--color-glass-border);
-  box-shadow: 0 1px 3px rgba(26, 26, 26, 0.02);
-}
- 
-/* Architectural thin rule */
-@utility rule-thin {
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    var(--color-warm-gray-light),
-    transparent
-  );
-}
- 
-/* Editorial overline — thin tracked label */
-@utility overline-label {
-  font-family: var(--font-body);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--color-warm-gray);
-}
- 
-/* Accent underline for interactive elements */
-@utility accent-underline {
-  position: relative;
-}
- 
-/* Grid debug — visible column lines (dev only) */
-@utility grid-debug {
-  background-image: repeating-linear-gradient(
-    to right,
-    rgba(201, 169, 110, 0.06) 0px,
-    rgba(201, 169, 110, 0.06) 1px,
-    transparent 1px,
-    transparent calc(100% / 12)
-  );
-  background-size: 100% 100%;
+@layer utilities {
+  /* Glassmorphism — navbar on scroll */
+  .glass {
+    background: var(--color-glass);
+    backdrop-filter: blur(24px) saturate(1.8);
+    -webkit-backdrop-filter: blur(24px) saturate(1.8);
+    border-bottom: 1px solid var(--color-glass-border);
+    box-shadow: 0 1px 3px rgba(26, 26, 26, 0.02);
+  }
+
+  /* Architectural thin rule */
+  .rule-thin {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--color-warm-gray-light),
+      transparent
+    );
+  }
+
+  /* Editorial overline — thin tracked label */
+  .overline-label {
+    font-family: var(--font-body);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--color-warm-gray);
+  }
+
+  /* Accent underline for interactive elements */
+  .accent-underline {
+    position: relative;
+  }
+
+  /* Grid debug — visible column lines (dev only) */
+  .grid-debug {
+    background-image: repeating-linear-gradient(
+      to right,
+      rgba(201, 169, 110, 0.06) 0px,
+      rgba(201, 169, 110, 0.06) 1px,
+      transparent 1px,
+      transparent calc(100% / 12)
+    );
+    background-size: 100% 100%;
+  }
 }
