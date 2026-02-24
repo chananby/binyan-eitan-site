@@ -122,24 +122,8 @@ export default function Pillars() {
 
         {/* ── Accordion grid ── */}
         <div className="grid grid-cols-4 gap-x-4 md:grid-cols-12 md:gap-x-6">
-          {/* Ghosted number — המספר הענק והשקוף שמתחלף באנימציה */}
-          <div className="hidden items-start justify-end md:col-span-2 md:col-start-11 md:flex">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={openId}
-                className="font-heading text-[10rem] leading-none font-bold text-warm-gray/20"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5, ease }}
-              >
-                {pillars.find((p) => p.id === openId)?.num}
-              </motion.span>
-            </AnimatePresence>
-          </div>
-
           {/* Accordion items */}
-          <div className="col-span-4 md:col-span-8 md:col-start-1 md:row-start-1">
+          <div className="col-span-4 md:col-span-10 md:col-start-1">
             {pillars.map((pillar) => {
               const isOpen = openId === pillar.id;
               const content = pillar[lang];

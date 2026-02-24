@@ -148,16 +148,7 @@ export default function AboutPage() {
 
       {/* ── 1. HERO ────────────────────────────────────────────────────────── */}
       <section className="relative bg-charcoal overflow-hidden pt-44 pb-32 md:pt-56 md:pb-44">
-        {/* Watermark */}
-        <span
-          className="pointer-events-none absolute end-0 top-1/2 -translate-y-1/2 select-none font-heading font-bold text-white/[0.03] leading-none"
-          aria-hidden="true"
-          style={{ fontSize: "clamp(10rem, 28vw, 26rem)" }}
-        >
-          02
-        </span>
-
-        <div className="relative mx-auto max-w-[1400px] px-6 lg:px-12">
+          <div className="relative mx-auto max-w-[1400px] px-6 lg:px-12">
           <FadeUp delay={0.05}>
             <p className="overline-label !text-warm-gray mb-8">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />

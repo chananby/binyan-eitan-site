@@ -216,14 +216,6 @@ export default function PortfolioGallery() {
                     </span>
                   </div>
 
-                  {/* Watermark number */}
-                  <span
-                    className="absolute bottom-3 end-4 font-heading text-[7rem] font-bold text-white/[0.08] select-none leading-none pointer-events-none z-10"
-                    aria-hidden="true"
-                  >
-                    {proj.num}
-                  </span>
-
                   {/* Dark overlay on hover */}
                   <div className="absolute inset-0 bg-charcoal/0 transition-colors duration-500 group-hover:bg-charcoal/55 z-10" />
 
