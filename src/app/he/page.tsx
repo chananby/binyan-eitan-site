@@ -103,6 +103,7 @@ export default function HebrewHome() {
               </div>
             ))}
           </div>
+        </div>
       </section>
 
       <ContactForm />
