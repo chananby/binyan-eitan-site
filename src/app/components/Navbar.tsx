@@ -10,18 +10,18 @@ import { useLang } from "./LangContext";
 const nav = {
   he: {
     links: [
-      { label: "פרויקטים", href: "/he#projects" },
-      { label: "אודות", href: "/he#about" },
-      { label: "צור קשר", href: "/he#contact" },
+      { label: "תיק עבודות", href: "/he#portfolio" },
+      { label: "המשרד", href: "/he#about" },
+      { label: "פנייה", href: "/he#contact" },
     ],
     switchLabel: "EN",
     switchHref: "/en",
   },
   en: {
     links: [
-      { label: "Projects", href: "/en#projects" },
-      { label: "About", href: "/en#about" },
-      { label: "Contact", href: "/en#contact" },
+      { label: "Portfolio", href: "/en#portfolio" },
+      { label: "The Firm", href: "/en#about" },
+      { label: "Inquiry", href: "/en#contact" },
     ],
     switchLabel: "עב",
     switchHref: "/he",

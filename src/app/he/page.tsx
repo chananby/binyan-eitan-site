@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import TechnicalAnatomy from "../components/TechnicalAnatomy";
 import Pillars from "../components/Pillars";
+import PortfolioGallery from "../components/PortfolioGallery";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -21,24 +22,24 @@ export default function HebrewHome() {
         <div className="rule-thin" />
       </div>
 
-      {/* Philosophy Section */}
+      {/* היסודות שלנו Section */}
       <section id="about" className="relative bg-bone py-36 md:py-48">
         <div className="mx-auto grid max-w-[1400px] grid-cols-4 gap-x-4 px-6 md:grid-cols-12 md:gap-x-6 lg:px-12">
           {/* Ghost number — physical LEFT (trailing end in RTL) */}
           <div className="col-span-4 mt-10 flex items-end justify-start md:col-span-2 md:col-start-1 md:row-start-1 md:mt-0">
-            <span className="font-heading text-8xl font-bold text-warm-gray/20 md:text-9xl">
+            <span className="font-heading text-8xl font-bold text-warm-gray/20 md:text-9xl" aria-hidden="true">
               01
             </span>
           </div>
           <div className="col-span-4 mb-10 md:col-span-3 md:col-start-3 md:mb-0">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
-              הפילוסופיה שלנו
+              היסודות שלנו
             </p>
           </div>
           <div className="col-span-4 md:col-span-7 md:col-start-6">
             <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
-              מקצועיות ואיכות הם הבסיס. השקט הנפשי שלכם הוא המטרה.
+              איכות כסטנדרט. השקט הנפשי שלכם הוא המטרה.
             </h2>
             <p className="mt-6 font-body text-base leading-relaxed font-light text-charcoal/55 md:mt-8 md:text-lg">
               בבנין איתן, אנו יוצקים לתוך כל פרויקט תכנון קונסטרוקטיבי קפדני וניהול אישי מקיף, כדי להפוך חזון אדריכלי למציאות בטוחה ומדויקת.
@@ -57,8 +58,8 @@ export default function HebrewHome() {
       </div>
       <Pillars />
 
-      {/* Expertise Section (Projects) */}
-      <section id="projects" className="relative bg-charcoal py-36 text-bone md:py-48">
+      {/* Expertise Section */}
+      <section id="expertise" className="relative bg-charcoal py-36 text-bone md:py-48">
         <div className="mx-auto max-w-[1400px] px-6 lg:px-12 text-start">
           <div className="mb-16 md:mb-24">
             <p className="overline-label !text-warm-gray">
@@ -69,7 +70,7 @@ export default function HebrewHome() {
               הנדסה, תכנון וביצוע — תחת קורת גג אחת.
             </h2>
           </div>
-         <div className="grid grid-cols-1 gap-px bg-bone/[0.06] md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-px bg-bone/[0.06] md:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 num: "01",
@@ -86,12 +87,17 @@ export default function HebrewHome() {
                 title: "השבחה ושיפוץ פרימיום",
                 desc: "טרנספורמציה מוחלטת של נכסים קיימים. חיזוק מבני, שדרוג מערכות טכנולוגיות מתקדמות והתאמת המבנה לסטנדרט מגורים עכשווי ויוקרתי, תוך עמידה בתקני בטיחות מחמירים.",
               },
+              {
+                num: "04",
+                title: "ניהול ופיקוח הנדסי",
+                desc: "ניהול פרויקט מקצה לקצה ופיקוח הנדסי בשטח. כל שלב נבדק ומאושר לפי הסטנדרטים הגבוהים ביותר של איכות, בטיחות ודיוק טכני.",
+              },
             ].map((service) => (
               <div
                 key={service.num}
                 className="group bg-charcoal p-8 transition-colors duration-500 hover:bg-charcoal-light md:p-12 text-start"
               >
-                <span className="font-heading text-5xl font-bold text-accent/20 transition-colors duration-500 group-hover:text-accent/40 block">
+                <span className="font-heading text-5xl font-bold text-accent/20 transition-colors duration-500 group-hover:text-accent/40 block" aria-hidden="true">
                   {service.num}
                 </span>
                 <h3 className="mt-6 font-heading text-xl font-bold text-bone md:text-2xl">
@@ -106,6 +112,8 @@ export default function HebrewHome() {
           </div>
         </div>
       </section>
+
+      <PortfolioGallery />
 
       <ContactForm />
       <Footer />

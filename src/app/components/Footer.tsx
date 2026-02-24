@@ -7,22 +7,24 @@ import { useLang } from "./LangContext";
 const copy = {
   he: {
     desc: "הנדסה מעבר לפני השטח. ביצוע ללא פשרות בסטנדרט בנייה יוקרתית.",
+    g1Label: "קבלן רשום ג1",
     address: "ירושלים, ישראל",
-    contact: "יצירת קשר",
+    contact: "פנייה",
     nav: "ניווט",
-    projects: "פרויקטים",
-    about: "אודות",
+    portfolio: "תיק עבודות",
+    about: "המשרד",
     rights: "כל הזכויות שמורות לבניין איתן.",
-    email: "motyeitan10@gmail.com", // המייל המעודכן
-    phone: "052-328-1153" // הטלפון המעודכן
+    email: "motyeitan10@gmail.com",
+    phone: "052-328-1153"
   },
   en: {
     desc: "Engineering beyond the surface. Uncompromising execution in luxury construction.",
+    g1Label: "G1 Registered Contractor",
     address: "Jerusalem, Israel",
-    contact: "Contact Us",
+    contact: "Inquiry",
     nav: "Navigation",
-    projects: "Projects",
-    about: "About",
+    portfolio: "Portfolio",
+    about: "The Firm",
     rights: "All rights reserved to Binyan Eitan.",
     email: "motyeitan10@gmail.com",
     phone: "052-328-1153"
@@ -39,8 +41,17 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 text-start">
           
           <div className="md:col-span-5">
-            <div className="mb-8 opacity-90 brightness-0 invert">
+            <div className="mb-6 opacity-90 brightness-0 invert">
               <Image src="/logo.png" alt="Binyan Eitan" width={160} height={45} className="h-10 w-auto" />
+            </div>
+            {/* G1 Certification Label */}
+            <div className="mb-6">
+              <span className="inline-flex items-center gap-2 border border-accent/40 px-3 py-1.5">
+                <span className="h-1 w-1 rounded-full bg-accent" aria-hidden="true" />
+                <span className="font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-accent/90">
+                  {content.g1Label}
+                </span>
+              </span>
             </div>
             <p className="font-body text-bone/60 text-sm leading-relaxed max-w-sm">
               {content.desc}
@@ -63,7 +74,7 @@ export default function Footer() {
           <div className="md:col-span-3">
             <h4 className="font-body text-xs font-semibold tracking-[0.2em] uppercase text-warm-gray mb-6">{content.nav}</h4>
             <ul className="space-y-4 font-body text-sm text-bone/70">
-              <li><Link href={`/${lang}#projects`} className="hover:text-accent transition-colors block">{content.projects}</Link></li>
+              <li><Link href={`/${lang}#portfolio`} className="hover:text-accent transition-colors block">{content.portfolio}</Link></li>
               <li><Link href={`/${lang}#about`} className="hover:text-accent transition-colors block">{content.about}</Link></li>
               <li><Link href={`/${lang}#contact`} className="hover:text-accent transition-colors block">{content.contact}</Link></li>
             </ul>

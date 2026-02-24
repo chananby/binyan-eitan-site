@@ -11,19 +11,21 @@ const copy = {
   he: {
     overline: "בנין איתן",
     heading: "בונים עתיד.",
-    sub: "משלבים מומחיות של 25 שנה עם דיוק ואיכות ללא פשרות.",
-    cta: "גלה את הפרויקטים",
+    sub: "קבלן רשום ג1. 20 שנות דיוק טכני ובטיחות ללא פשרות.",
+    g1Label: "קבלן רשום ג1",
+    cta: "גלה את תיק העבודות",
     imageAlt: "גימור פנים יוקרתי",
-    stat1: { value: "25+", label: "שנות ניסיון" },
+    stat1: { value: "20+", label: "שנות ניסיון" },
     stat2: { value: "150+", label: "פרויקטים שהושלמו" },
   },
   en: {
     overline: "Binyan Eitan",
     heading: "Building\nLegacies,\nEngineering\nPrecision.",
-    sub: "Engineering & Luxury Construction — An Uncompromising Standard of Excellence",
-    cta: "Explore Projects",
+    sub: "G1 Registered Contractor. 20 years of technical precision and uncompromising safety.",
+    g1Label: "G1 Registered Contractor",
+    cta: "Explore Portfolio",
     imageAlt: "Luxury interior finish",
-    stat1: { value: "25+", label: "Years of Experience" },
+    stat1: { value: "20+", label: "Years of Experience" },
     stat2: { value: "150+", label: "Projects Completed" },
   },
 } as const;
@@ -62,7 +64,7 @@ const fadeScale = {
    ═════════════════════════════════════════════════════════ */
 export default function Hero() {
   const { lang } = useLang();
-  const { overline, heading, sub, cta, imageAlt, stat1, stat2 } = copy[lang];
+  const { overline, heading, sub, g1Label, cta, imageAlt, stat1, stat2 } = copy[lang];
   const Arrow = lang === "he" ? ArrowDownLeft : ArrowDownRight;
  
   const sectionRef = useRef<HTMLElement>(null);
@@ -131,9 +133,19 @@ export default function Hero() {
             {sub}
           </motion.p>
  
+          {/* ── G1 Certification Badge ── */}
+          <motion.div className="mt-6 md:mt-8" variants={fadeUp(0.2)}>
+            <span className="inline-flex items-center gap-2.5 border border-accent/50 bg-accent/[0.04] px-4 py-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+              <span className="font-body text-[0.65rem] font-semibold tracking-[0.22em] uppercase text-accent">
+                {g1Label}
+              </span>
+            </span>
+          </motion.div>
+
           {/* ── CTA ── */}
           <motion.a
-            href={`/${lang}#projects`}
+            href={`/${lang}#portfolio`}
             className="group mt-10 inline-flex w-fit items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent md:mt-14"
             variants={fadeUp(0.25)}
           >
