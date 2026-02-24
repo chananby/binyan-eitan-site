@@ -1,28 +1,37 @@
 import type { Metadata } from "next";
+import { Playfair_Display, Montserrat } from "next/font/google";
 import "./globals.css";
-
+ 
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-heading",
+  display: "swap",
+});
+ 
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
+ 
 export const metadata: Metadata = {
-  title: "Binyan Eitan | Luxury Construction & Engineering Jerusalem",
-  description: "Premier construction and engineering services in Jerusalem. Specializing in luxury residential, complex structural additions, and institutional projects since 1999. Approved contractor for the Western Wall Heritage Foundation.",
-  keywords: ["Construction Jerusalem", "Luxury Homes Jerusalem", "Engineering Israel", "Binyan Eitan", "Building Additions", "Western Wall Heritage Foundation contractor"],
-  openGraph: {
-    title: "Binyan Eitan | Excellence in Construction",
-    description: "Building Jerusalem's vision with engineering precision since 1999.",
-    images: [{ url: '/ramat-eshkol.jpg' }],
-  },
+  title: "Binyan Eitan — Engineering & Luxury Construction",
+  description:
+    "Premium engineering and luxury construction. Building legacies with precision.",
 };
-
+ 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="icon" href="/favicon.ico" />
-      </head>
-      <body>{children}</body>
+    <html
+      lang="en"
+      className={`${playfair.variable} ${montserrat.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="bg-bone text-charcoal">{children}</body>
     </html>
   );
 }
