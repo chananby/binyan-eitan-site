@@ -1,207 +1,153 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
-
-/* ─────────────────────────────────────────────
-   נתונים - סיפור הפרויקט
-   ───────────────────────────────────────────── */
-const PROJECTS = [
-  { 
-    id: "beit-shemesh",
-    title: "אחוזת נחל לכיש", 
-    location: "בית שמש",
-    category: "High-End Engineering",
-    mainImage: "/luxury-interior-finish-transformation.jpg", 
-    description: "בנייה מאפס ושיפוץ פרימיום המשלב הנדסת תשתיות מתקדמת עם סטנדרט גמר בינלאומי. הפרויקט דרש פתרונות איטום מורכבים וביצוע מערכות חימום וחשמל בסינרגיה מלאה.",
-    gallery: [
-      { url: "/luxury-electrical-infrastructure-precision.jpg", label: "תכנון וביצוע תשתיות חשמל" },
-      { url: "/advanced-underfloor-heating-israel.jpg", label: "מערכת חימום תת-רצפתי" },
-      { url: "/professional-airless-painting-standards.jpg", label: "גמר צבע בטכנולוגיית Airless" },
-      { url: "/premium-marble-bathroom-detailing.jpg", label: "עבודות שיש וחיבורי גידים" },
-      { url: "/expert-jerusalem-stone-facade-work.jpg", label: "חיפוי אבן ירושלמית" }
-    ]
-  }
-];
-
-export default function HebrewPage() {
-  const [activeProject, setActiveProject] = useState<any>(null);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
+import Navbar from "../components/Navbar";
+import Hero from "../components/Hero";
+ 
+export default function HebrewHome() {
   return (
-    <main className="bg-[#FAF9F6] min-h-screen font-sans text-[#1a1a1a] selection:bg-[#c5a35d] selection:text-white" dir="rtl">
-      
-      {/* --- ניווט יוקרתי --- */}
-      <nav className={`fixed top-0 w-full z-[100] transition-all duration-500 ${scrolled ? "bg-white/90 backdrop-blur-md py-4 shadow-sm" : "bg-transparent py-8"}`}>
-        <div className="max-w-[1440px] mx-auto px-6 md:px-16 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-black flex items-center justify-center rounded-sm">
-              <span className="text-white font-playfair text-xl">B</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-playfair text-xl tracking-tighter leading-none">BINYAN EITAN</span>
-              <span className="text-[8px] tracking-[0.3em] uppercase text-[#c5a35d] font-bold mt-1">Engineering Excellence</span>
-            </div>
+    <main className="relative">
+      <Navbar />
+      <Hero />
+ 
+      {/* ═══════════════════════════════════════════════
+          SECTION DIVIDER — Architectural rule
+          ═══════════════════════════════════════════════ */}
+      <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+        <div className="rule-thin" />
+      </div>
+ 
+      {/* ═══════════════════════════════════════════════
+          PHILOSOPHY TEASER — Editorial layout
+          Placeholder section that maintains the high-end
+          architectural feel below the fold
+          ═══════════════════════════════════════════════ */}
+      <section className="relative bg-bone py-28 md:py-36">
+        <div className="mx-auto grid max-w-[1400px] grid-cols-4 gap-x-4 px-6 md:grid-cols-12 md:gap-x-6 lg:px-12">
+          {/* Label — leading columns */}
+          <div className="col-span-4 mb-10 md:col-span-3 md:col-start-1 md:mb-0">
+            <p className="overline-label">
+              <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
+              הפילוסופיה שלנו
+            </p>
           </div>
-          <div className="hidden md:flex items-center gap-12 text-[10px] font-bold tracking-[0.2em] uppercase">
-            <a href="#projects" className="hover:text-[#c5a35d] transition-colors">פרויקטים</a>
-            <a href="#about" className="hover:text-[#c5a35d] transition-colors">הסטנדרט</a>
-            <a href="#contact" className="hover:text-[#c5a35d] transition-colors">צור קשר</a>
-            <a href="/" className="border border-black/10 px-4 py-1.5 rounded-full hover:bg-black hover:text-white transition-all">EN</a>
+ 
+          {/* Body — middle columns */}
+          <div className="col-span-4 md:col-span-6 md:col-start-4">
+            <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
+              כל פרויקט הוא עדות למצוינות הנדסית ולאומנות ללא פשרות.
+            </h2>
+            <p className="mt-6 font-body text-base leading-relaxed font-light text-charcoal/55 md:mt-8 md:text-lg">
+              בבנין איתן, אנו מאמינים שבנייה יוקרתית מתחילה בהבנה עמוקה של
+              חזון הלקוח ומסתיימת בביצוע מדויק עד לפרט האחרון. כל קו, כל חומר,
+              כל חיבור — משקפים את המחויבות שלנו לשלמות.
+            </p>
           </div>
-        </div>
-      </nav>
-
-      {/* --- Hero Section: הוכחת סמכות --- */}
-      <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-16 grid md:grid-cols-12 gap-4 items-center">
-          <div className="col-span-12 md:col-span-7 z-10">
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }}>
-              <span className="text-[#c5a35d] text-xs font-bold tracking-[0.4em] uppercase mb-8 block">Since 1999</span>
-              <h1 className="font-playfair text-6xl md:text-[120px] leading-[0.9] tracking-tighter mb-10">
-                בונים <br /> <span className="italic font-light">מורשת.</span>
-              </h1>
-              <div className="h-[1px] w-24 bg-[#c5a35d] mb-10"></div>
-              <p className="text-xl md:text-2xl font-light text-gray-500 max-w-xl leading-relaxed">
-                סטנדרט הנדסי בינלאומי בביצוע פרויקטים מורכבים, שיפוצי יוקרה ועבודות לשימור מורשת.
-              </p>
-            </motion.div>
-          </div>
-          <div className="col-span-12 md:col-span-5 relative">
-             <motion.div 
-               initial={{ scale: 1.1, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 1.5 }}
-               className="relative aspect-[4/5] md:h-[80vh] w-full"
-             >
-                <Image src="/luxury-interior-finish-transformation.jpg" alt="Binyan Eitan" fill className="object-cover grayscale hover:grayscale-0 transition-all duration-1000" />
-                <div className="absolute -bottom-10 -right-10 hidden md:block w-64 h-64 border-[20px] border-[#FAF9F6] z-20"></div>
-             </motion.div>
+ 
+          {/* Accent number — trailing column */}
+          <div className="col-span-4 mt-10 flex items-end justify-end md:col-span-2 md:col-start-11 md:mt-0">
+            <span className="font-heading text-8xl font-bold text-charcoal/[0.04] md:text-9xl">
+              01
+            </span>
           </div>
         </div>
       </section>
-
-      {/* --- סקשן הנדסה: מה שמפריד אותך מהשאר --- */}
-      <section id="about" className="py-40 bg-white">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-16">
-          <div className="grid md:grid-cols-3 gap-24">
-            <div className="space-y-6">
-              <span className="text-[10px] font-bold tracking-[0.3em] text-[#c5a35d] uppercase">01. Precision</span>
-              <h3 className="font-playfair text-3xl italic">דיוק הנדסי נסתר</h3>
-              <p className="text-gray-500 leading-relaxed font-light">האיכות שלנו מתחילה במקום בו העין אינה רואה – בתשתיות, באיטום ובדיוק המבני.</p>
-            </div>
-            <div className="space-y-6">
-              <span className="text-[10px] font-bold tracking-[0.3em] text-[#c5a35d] uppercase">02. Technology</span>
-              <h3 className="font-playfair text-3xl italic">טכנולוגיית ביצוע</h3>
-              <p className="text-gray-500 leading-relaxed font-light">שימוש במכשור לייזר מתקדם וצביעת Airless להשגת רמת גימור של מוזיאון.</p>
-            </div>
-            <div className="space-y-6">
-              <span className="text-[10px] font-bold tracking-[0.3em] text-[#c5a35d] uppercase">03. Heritage</span>
-              <h3 className="font-playfair text-3xl italic">שימור ומורשת</h3>
-              <p className="text-gray-500 leading-relaxed font-light">ניסיון עשיר מול הקרן למורשת הכותל בביצוע פרויקטים רגישים ובעלי חשיבות לאומית.</p>
-            </div>
+ 
+      {/* ═══════════════════════════════════════════════
+          SERVICES PREVIEW — Three-column tease
+          ═══════════════════════════════════════════════ */}
+      <section className="relative bg-charcoal py-28 text-bone md:py-36">
+        <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+          {/* Section header */}
+          <div className="mb-16 md:mb-24">
+            <p className="overline-label !text-warm-gray">
+              <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
+              תחומי מומחיות
+            </p>
+            <h2 className="mt-5 max-w-2xl font-heading text-3xl leading-snug font-bold text-bone md:text-4xl lg:text-5xl">
+              הנדסה, תכנון וביצוע — תחת קורת גג אחת.
+            </h2>
           </div>
-        </div>
-      </section>
-
-      {/* --- פורטפוליו: גריד אדריכלי --- */}
-      <section id="projects" className="py-40">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-16">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-32 gap-8">
-            <div className="max-w-2xl">
-              <span className="text-[#c5a35d] text-[10px] tracking-[0.5em] font-bold uppercase mb-6 block">Featured Work</span>
-              <h2 className="font-playfair text-5xl md:text-8xl leading-none">פרויקטים <br /> נבחרים.</h2>
-            </div>
-            <p className="text-gray-400 font-light italic text-xl">Building excellence since 1999</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-20">
-            {PROJECTS.map((project) => (
-              <div key={project.id} className="col-span-12 md:col-span-8 group cursor-pointer" onClick={() => setActiveProject(project)}>
-                <div className="relative aspect-[16/10] overflow-hidden bg-gray-200">
-                  <Image src={project.mainImage} alt={project.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-110" />
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-all"></div>
-                </div>
-                <div className="mt-8 flex justify-between items-start">
-                  <div>
-                    <h4 className="font-playfair text-4xl mb-2">{project.title}</h4>
-                    <span className="text-gray-400 text-sm tracking-widest uppercase">{project.location} • {project.category}</span>
-                  </div>
-                  <div className="w-12 h-12 border border-black/10 rounded-full flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
-                    <span className="text-xl">←</span>
-                  </div>
-                </div>
+ 
+          {/* 3-column grid */}
+          <div className="grid grid-cols-1 gap-px bg-bone/[0.06] md:grid-cols-3">
+            {[
+              {
+                num: "01",
+                title: "הנדסת מבנים",
+                desc: "תכנון קונסטרוקטיבי מתקדם עם דגש על חדשנות, בטיחות ועמידות לאורך זמן.",
+              },
+              {
+                num: "02",
+                title: "בנייה יוקרתית",
+                desc: "ביצוע ברמה הגבוהה ביותר עם חומרים משובחים ואומנות ייחודית.",
+              },
+              {
+                num: "03",
+                title: "שיפוצים ושדרוגים",
+                desc: "טרנספורמציה של מבנים קיימים תוך שימור האופי המקורי והעלאת הסטנדרט.",
+              },
+            ].map((service) => (
+              <div
+                key={service.num}
+                className="group bg-charcoal p-8 transition-colors duration-500 hover:bg-charcoal-light md:p-12"
+              >
+                <span className="font-heading text-5xl font-bold text-accent/20 transition-colors duration-500 group-hover:text-accent/40">
+                  {service.num}
+                </span>
+                <h3 className="mt-6 font-heading text-xl font-bold text-bone md:text-2xl">
+                  {service.title}
+                </h3>
+                <p className="mt-4 font-body text-sm leading-relaxed font-light text-bone/50">
+                  {service.desc}
+                </p>
+                <div className="mt-8 h-px w-12 bg-accent/30 transition-all duration-500 group-hover:w-20 group-hover:bg-accent" />
               </div>
             ))}
           </div>
         </div>
       </section>
-
-      {/* --- צור קשר: סיומת סולידית --- */}
-      <section id="contact" className="py-40 bg-[#1a1a1a] text-white">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-16 grid md:grid-cols-2 gap-32">
-          <div>
-            <h2 className="font-playfair text-6xl md:text-9xl mb-12 leading-none tracking-tighter">בואו נבנה <br /> <span className="italic text-[#c5a35d]">עתיד.</span></h2>
-            <div className="space-y-4 opacity-60 text-xl font-light">
-              <p>058-500-8447</p>
-              <p>OFFICE@BINYANEITAN.COM</p>
-            </div>
-          </div>
-          <div className="bg-[#242424] p-12 md:p-20 shadow-2xl">
-            <form className="space-y-12">
-              <div className="relative">
-                <input type="text" placeholder="שם מלא" className="w-full bg-transparent border-b border-white/10 py-4 focus:border-[#c5a35d] outline-none transition-all text-right" />
-              </div>
-              <div className="relative">
-                <input type="tel" placeholder="טלפון" className="w-full bg-transparent border-b border-white/10 py-4 focus:border-[#c5a35d] outline-none transition-all text-right" />
-              </div>
-              <textarea placeholder="ספרו לנו על הפרויקט שלכם" rows={4} className="w-full bg-transparent border-b border-white/10 py-4 focus:border-[#c5a35d] outline-none transition-all text-right resize-none"></textarea>
-              <button className="w-full bg-white text-black py-6 font-bold tracking-[0.3em] uppercase hover:bg-[#c5a35d] hover:text-white transition-all">שלח פנייה הנדסית</button>
-            </form>
-          </div>
+ 
+      {/* ═══════════════════════════════════════════════
+          FOOTER TEASER — Minimal closer
+          ═══════════════════════════════════════════════ */}
+      <section className="bg-bone py-20 md:py-28" id="contact">
+        <div className="mx-auto max-w-[1400px] px-6 text-center lg:px-12">
+          <p className="overline-label mx-auto">
+            <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
+            בואו נבנה יחד
+            <span className="ms-3 inline-block h-px w-6 bg-accent align-middle" />
+          </p>
+          <h2 className="mx-auto mt-6 max-w-3xl font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
+            מוכנים להתחיל את הפרויקט הבא שלכם?
+          </h2>
+          <a
+            href={`mailto:info@binyan-eitan.co.il`}
+            className="group mt-10 inline-flex items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent"
+          >
+            צרו קשר
+            <ArrowDownLeftIcon />
+          </a>
         </div>
       </section>
-
-      {/* --- Modal הפרויקט: חוויית פרימיום --- */}
-      <AnimatePresence>
-        {activeProject && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-white overflow-y-auto">
-            <div className="sticky top-0 bg-white/90 backdrop-blur-md p-8 flex justify-between items-center z-50 border-b border-black/5">
-               <button onClick={() => setActiveProject(null)} className="text-[10px] font-bold tracking-widest uppercase border-b border-black pb-1">חזרה [X]</button>
-               <span className="font-playfair text-xl">{activeProject.title}</span>
-            </div>
-            <div className="max-w-[1200px] mx-auto px-6 py-24 text-right">
-              <h2 className="font-playfair text-6xl md:text-[120px] mb-20 leading-[0.9]">{activeProject.title}</h2>
-              <div className="grid md:grid-cols-2 gap-20 mb-32 items-center">
-                <p className="text-2xl font-light text-gray-500 leading-relaxed italic border-r-4 border-[#c5a35d] pr-10">{activeProject.description}</p>
-                <div className="relative aspect-square bg-gray-100">
-                  <Image src={activeProject.mainImage} alt="Main" fill className="object-cover" />
-                </div>
-              </div>
-              <div className="space-y-40">
-                {activeProject.gallery.map((img: any, i: number) => (
-                  <div key={i} className={`relative flex flex-col ${i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"} gap-10 items-center`}>
-                    <div className="relative w-full md:w-2/3 aspect-[16/9] shadow-2xl overflow-hidden">
-                      <Image src={img.url} alt={img.label} fill className="object-cover" />
-                    </div>
-                    <div className="w-full md:w-1/3">
-                      <span className="text-[#c5a35d] font-bold text-[10px] tracking-widest uppercase mb-4 block">Detail {i+1}</span>
-                      <h4 className="font-playfair text-3xl mb-4 italic">{img.label}</h4>
-                      <p className="text-gray-400 font-light">ביצוע הנדסי מוקפד המבטיח עמידות לשנים קדימה.</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
     </main>
+  );
+}
+ 
+/* Small arrow component to avoid making the whole page a client component */
+function ArrowDownLeftIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="transition-transform duration-500 group-hover:translate-y-0.5"
+    >
+      <path d="M17 7 7 17" />
+      <path d="M17 17H7V7" />
+    </svg>
   );
 }
