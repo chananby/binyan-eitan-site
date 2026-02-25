@@ -56,6 +56,32 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     },
 
+    // ── Projects pages ────────────────────────────────────────
+    {
+      url: `${BASE_URL}/he/projects`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+      alternates: {
+        languages: {
+          he: `${BASE_URL}/he/projects`,
+          en: `${BASE_URL}/en/projects`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/projects`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+      alternates: {
+        languages: {
+          he: `${BASE_URL}/he/projects`,
+          en: `${BASE_URL}/en/projects`,
+        },
+      },
+    },
+
     // ── Expertise / Knowledge articles ────────────────────────
     {
       url: `${BASE_URL}/he/expertise`,
