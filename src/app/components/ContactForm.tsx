@@ -4,7 +4,11 @@ import { useState } from "react";
 import { CheckCircle } from "lucide-react";
 import { useLang } from "./LangContext";
 
-const FORMSPREE_URL = "https://formspree.io/f/office@binyaneitan.com";
+// Formspree legacy endpoint — works without an account.
+// To upgrade: create a form at formspree.io, then replace with:
+//   https://formspree.io/f/<YOUR_FORM_ID>
+// The email must be verified via the confirmation Formspree sends to office@binyaneitan.com.
+const FORMSPREE_URL = "https://formspree.io/office@binyaneitan.com";
 
 const copy = {
   he: {
@@ -51,8 +55,15 @@ export default function ContactForm() {
         body: new FormData(e.currentTarget),
         headers: { Accept: "application/json" },
       });
-      setStatus(res.ok ? "success" : "error");
-    } catch {
+      if (res.ok) {
+        setStatus("success");
+      } else {
+        const body = await res.json().catch(() => ({}));
+        console.error("[ContactForm] Formspree error", res.status, body);
+        setStatus("error");
+      }
+    } catch (err) {
+      console.error("[ContactForm] Network error", err);
       setStatus("error");
     }
   }
