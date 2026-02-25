@@ -1,18 +1,85 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from "next";
+
+const BASE_URL = "https://binyaneitan.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
+    // ── Home pages ────────────────────────────────────────────
     {
-      url: 'https://binyaneitan.com',
+      url: `${BASE_URL}/he`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 1,
+      changeFrequency: "weekly",
+      priority: 1.0,
+      alternates: {
+        languages: {
+          he: `${BASE_URL}/he`,
+          en: `${BASE_URL}/en`,
+        },
+      },
     },
     {
-      url: 'https://binyaneitan.com/he',
+      url: `${BASE_URL}/en`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
+      changeFrequency: "weekly",
+      priority: 1.0,
+      alternates: {
+        languages: {
+          he: `${BASE_URL}/he`,
+          en: `${BASE_URL}/en`,
+        },
+      },
+    },
+
+    // ── About pages ───────────────────────────────────────────
+    {
+      url: `${BASE_URL}/he/about`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
       priority: 0.8,
+      alternates: {
+        languages: {
+          he: `${BASE_URL}/he/about`,
+          en: `${BASE_URL}/en/about`,
+        },
+      },
     },
-  ]
+    {
+      url: `${BASE_URL}/en/about`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+      alternates: {
+        languages: {
+          he: `${BASE_URL}/he/about`,
+          en: `${BASE_URL}/en/about`,
+        },
+      },
+    },
+
+    // ── Expertise / Knowledge articles ────────────────────────
+    {
+      url: `${BASE_URL}/he/expertise`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+      alternates: {
+        languages: {
+          he: `${BASE_URL}/he/expertise`,
+          en: `${BASE_URL}/en/expertise`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/en/expertise`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+      alternates: {
+        languages: {
+          he: `${BASE_URL}/he/expertise`,
+          en: `${BASE_URL}/en/expertise`,
+        },
+      },
+    },
+  ];
 }
