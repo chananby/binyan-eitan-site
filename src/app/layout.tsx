@@ -11,6 +11,7 @@ const assistant = Assistant({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://binyaneitan.com"),
   title: "Binyan Eitan | Luxury Construction & Engineering",
   description: "Engineering beyond the surface. Binyan Eitan specializes in premium structural engineering and luxury construction.",
 };

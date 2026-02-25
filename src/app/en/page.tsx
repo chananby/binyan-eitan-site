@@ -9,8 +9,37 @@ import EngineeringExcellence from "../components/EngineeringExcellence";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Binyan Eitan | Engineering is the Foundation. Peace of Mind is the Result.",
-  description: "We believe a luxury home is defined by what lies beneath the surface. Engineering, design, and execution under one roof.",
+  title: "Binyan Eitan | Luxury Construction & Engineering Israel",
+  description: "G1 Registered Contractor. 20+ years of luxury construction, structural engineering and premium renovations across Israel. Jerusalem & Lod.",
+  keywords: [
+    "Construction Engineering Israel",
+    "G1 Registered Contractor",
+    "Luxury Construction Israel",
+    "Structural Engineering Jerusalem",
+    "Premium Renovations Israel",
+    "Binyan Eitan",
+    "בנייה פרטית וציבורית",
+    "קבלן רשום ג1",
+  ],
+  openGraph: {
+    title: "Binyan Eitan | Engineering Beyond the Surface",
+    description: "G1 Registered Contractor. 20+ years of luxury construction, structural engineering and premium renovations across Israel.",
+    url: "https://binyaneitan.com/en",
+    siteName: "Binyan Eitan",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Binyan Eitan — Luxury Construction & Engineering Israel" }],
+    locale: "en_IL",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Binyan Eitan | Luxury Construction & Engineering Israel",
+    description: "G1 Registered Contractor. 20+ years of luxury construction and structural engineering across Israel.",
+    images: ["/og-image.jpg"],
+  },
+  alternates: {
+    canonical: "https://binyaneitan.com/en",
+    languages: { he: "https://binyaneitan.com/he" },
+  },
 };
 
 export default function EnglishHome() {
@@ -19,13 +48,13 @@ export default function EnglishHome() {
       <Navbar />
       <Hero />
 
-      <div className="mx-auto max-w-7xl px-8">
+      <div className="mx-auto max-w-[1440px] px-8">
         <div className="rule-thin" />
       </div>
 
       {/* The Foundation Section */}
-      <section id="about" className="relative bg-bone py-36 md:py-48">
-        <div className="mx-auto grid max-w-7xl grid-cols-4 gap-x-4 px-8 md:grid-cols-12 md:gap-x-6">
+      <section id="about" className="relative bg-bone py-16 md:py-24">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-4 gap-x-4 px-8 md:grid-cols-12 md:gap-x-6">
           <div className="col-span-4 mb-10 md:col-span-3 md:col-start-1 md:mb-0">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
@@ -43,20 +72,20 @@ export default function EnglishHome() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-8">
+      <div className="mx-auto max-w-[1440px] px-8">
         <div className="rule-thin" />
       </div>
       <TechnicalAnatomy />
 
-      <div className="mx-auto max-w-7xl px-8">
+      <div className="mx-auto max-w-[1440px] px-8">
         <div className="rule-thin" />
       </div>
       <Pillars />
 
       {/* Expertise Section */}
-      <section id="expertise" className="relative bg-charcoal py-36 text-bone md:py-48">
-        <div className="mx-auto max-w-7xl px-8 text-start">
-          <div className="mb-16 md:mb-24">
+      <section id="expertise" className="relative bg-charcoal py-16 text-bone md:py-24">
+        <div className="mx-auto max-w-[1440px] px-8 text-start">
+          <div className="mb-10 md:mb-16">
             <p className="overline-label !text-warm-gray">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
               Areas of Expertise

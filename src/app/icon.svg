@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-  <rect width="120" height="120" rx="24" fill="#1e293b"/>
-  
-  <path d="M20 40 L60 20 L100 40 L100 48 L60 28 L20 48 Z" fill="#d97706"/>
-  
-  <text x="60" y="95" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="4">BE</text>
+  <rect width="120" height="120" rx="20" fill="#1A1A1A"/>
+  <!-- Roofline / gable mark in brand gold -->
+  <path d="M22 52 L60 26 L98 52 L98 58 L60 32 L22 58 Z" fill="#C9A96E"/>
+  <!-- "BE" logotype -->
+  <text x="60" y="94" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="bold" fill="#FAF9F6" text-anchor="middle" letter-spacing="5">BE</text>
 </svg>

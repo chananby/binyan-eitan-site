@@ -9,8 +9,37 @@ import EngineeringExcellence from "../components/EngineeringExcellence";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "בניין איתן | הנדסה היא הבסיס. השקט שלכם הוא התוצאה.",
-  description: "בבניין איתן אנחנו מאמינים שבית נמדד קודם כל במה שלא רואים. הנדסה, תכנון וביצוע תחת קורת גג אחת.",
+  title: "בניין איתן | קבלן רשום ג1 | הנדסה ובנייה יוקרתית בישראל",
+  description: "קבלן רשום ג1. מעל 20 שנות ניסיון בבנייה פרטית וציבורית, הנדסת קונסטרוקציה ושיפוץ פרימיום. ירושלים ולוד.",
+  keywords: [
+    "קבלן רשום ג1",
+    "בנייה פרטית וציבורית",
+    "הנדסת קונסטרוקציה",
+    "בנייה יוקרתית ישראל",
+    "Construction Engineering Israel",
+    "שיפוץ פרימיום ירושלים",
+    "בניין איתן",
+    "קבלן בנייה ירושלים",
+  ],
+  openGraph: {
+    title: "בניין איתן | הנדסה מעבר לפני השטח",
+    description: "קבלן רשום ג1. מעל 20 שנות ניסיון בבנייה פרטית וציבורית, הנדסת קונסטרוקציה ושיפוץ פרימיום בישראל.",
+    url: "https://binyaneitan.com/he",
+    siteName: "בניין איתן",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "בניין איתן — הנדסה ובנייה יוקרתית בישראל" }],
+    locale: "he_IL",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "בניין איתן | קבלן רשום ג1",
+    description: "קבלן רשום ג1. מעל 20 שנות ניסיון בבנייה פרטית וציבורית בישראל.",
+    images: ["/og-image.jpg"],
+  },
+  alternates: {
+    canonical: "https://binyaneitan.com/he",
+    languages: { en: "https://binyaneitan.com/en" },
+  },
 };
 
 export default function HebrewHome() {
@@ -19,13 +48,13 @@ export default function HebrewHome() {
       <Navbar />
       <Hero />
 
-      <div className="mx-auto max-w-7xl px-8">
+      <div className="mx-auto max-w-[1440px] px-8">
         <div className="rule-thin" />
       </div>
 
       {/* היסודות שלנו Section */}
-      <section id="about" className="relative bg-bone py-36 md:py-48">
-        <div className="mx-auto grid max-w-7xl grid-cols-4 gap-x-4 px-8 md:grid-cols-12 md:gap-x-6">
+      <section id="about" className="relative bg-bone py-16 md:py-24">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-4 gap-x-4 px-8 md:grid-cols-12 md:gap-x-6">
           <div className="col-span-4 mb-10 md:col-span-3 md:col-start-3 md:mb-0">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
@@ -43,20 +72,20 @@ export default function HebrewHome() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-8">
+      <div className="mx-auto max-w-[1440px] px-8">
         <div className="rule-thin" />
       </div>
       <TechnicalAnatomy />
 
-      <div className="mx-auto max-w-7xl px-8">
+      <div className="mx-auto max-w-[1440px] px-8">
         <div className="rule-thin" />
       </div>
       <Pillars />
 
       {/* Expertise Section */}
-      <section id="expertise" className="relative bg-charcoal py-36 text-bone md:py-48">
-        <div className="mx-auto max-w-7xl px-8 text-start">
-          <div className="mb-16 md:mb-24">
+      <section id="expertise" className="relative bg-charcoal py-16 text-bone md:py-24">
+        <div className="mx-auto max-w-[1440px] px-8 text-start">
+          <div className="mb-10 md:mb-16">
             <p className="overline-label !text-warm-gray">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
               תחומי מומחיות
