@@ -19,13 +19,13 @@ export default function HebrewHome() {
       <Navbar />
       <Hero />
 
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+      <div className="mx-auto max-w-7xl px-6">
         <div className="rule-thin" />
       </div>
 
       {/* היסודות שלנו Section */}
       <section id="about" className="relative bg-bone py-36 md:py-48">
-        <div className="mx-auto grid max-w-[1400px] grid-cols-4 gap-x-4 px-6 md:grid-cols-12 md:gap-x-6 lg:px-12">
+        <div className="mx-auto grid max-w-7xl grid-cols-4 gap-x-4 px-6 md:grid-cols-12 md:gap-x-6">
           <div className="col-span-4 mb-10 md:col-span-3 md:col-start-3 md:mb-0">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
@@ -43,19 +43,19 @@ export default function HebrewHome() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+      <div className="mx-auto max-w-7xl px-6">
         <div className="rule-thin" />
       </div>
       <TechnicalAnatomy />
 
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+      <div className="mx-auto max-w-7xl px-6">
         <div className="rule-thin" />
       </div>
       <Pillars />
 
       {/* Expertise Section */}
       <section id="expertise" className="relative bg-charcoal py-36 text-bone md:py-48">
-        <div className="mx-auto max-w-[1400px] px-6 lg:px-12 text-start">
+        <div className="mx-auto max-w-7xl px-6 text-start">
           <div className="mb-16 md:mb-24">
             <p className="overline-label !text-warm-gray">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
@@ -90,7 +90,7 @@ export default function HebrewHome() {
             ].map((service) => (
               <div
                 key={service.num}
-                className="group bg-charcoal p-8 transition-colors duration-500 hover:bg-charcoal-light md:p-12 text-start"
+                className="group flex flex-col bg-charcoal p-8 transition-colors duration-500 hover:bg-charcoal-light md:p-12 text-start"
               >
                 <h3 className="font-heading text-xl font-bold text-bone md:text-2xl">
                   {service.title}
@@ -98,7 +98,7 @@ export default function HebrewHome() {
                 <p className="mt-4 font-body text-sm leading-relaxed font-light text-bone/50">
                   {service.desc}
                 </p>
-                <div className="mt-8 h-px w-12 bg-accent/30 transition-all duration-500 group-hover:w-20 group-hover:bg-accent" />
+                <div className="mt-auto pt-8 h-px w-12 bg-accent/30 transition-all duration-500 group-hover:w-20 group-hover:bg-accent" />
               </div>
             ))}
           </div>

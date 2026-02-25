@@ -100,7 +100,7 @@ export default function Pillars() {
 
   return (
     <section className="relative bg-bone-dark py-36 md:py-48 text-start">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+      <div className="mx-auto max-w-7xl px-6">
         {/* ── Section header ── */}
         <div className="mb-16 grid grid-cols-4 gap-x-4 md:mb-24 md:grid-cols-12 md:gap-x-6">
           <div className="col-span-4 md:col-span-3 md:col-start-1">

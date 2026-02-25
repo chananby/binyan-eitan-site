@@ -13,7 +13,7 @@ const copy = {
     heading: "בונים עתיד.",
     sub: "קבלן רשום ג1. 20 שנות דיוק טכני ובטיחות ללא פשרות.",
     g1Label: "קבלן רשום ג1",
-    cta: "גלה את תיק העבודות",
+    cta: "לצפייה בפרויקטים",
     imageAlt: "גימור פנים יוקרתי",
     stat1: { value: "20+", label: "שנות ניסיון" },
     stat2: { value: "150+", label: "פרויקטים שהושלמו" },
@@ -94,7 +94,7 @@ export default function Hero() {
           Text: cols 1–6 | Image: cols 5–12 (overlaps col 5-6)
           ═══════════════════════════════════════════════ */}
       <motion.div
-        className="relative mx-auto grid min-h-svh max-w-[1400px] grid-cols-4 gap-x-4 px-6 pt-36 pb-24 md:grid-cols-12 md:gap-x-6 md:pt-44 md:pb-32 lg:px-12"
+        className="relative mx-auto grid min-h-svh max-w-7xl grid-cols-4 gap-x-4 px-6 pt-36 pb-24 md:grid-cols-12 md:gap-x-6 md:pt-44 md:pb-32"
         variants={stagger}
         initial="hidden"
         animate="visible"
@@ -115,7 +115,7 @@ export default function Hero() {
  
           {/* ── Main Heading ── */}
           <motion.h1
-            className="font-heading text-[clamp(3.25rem,8vw,8.5rem)] leading-[0.92] font-bold tracking-tight text-charcoal"
+            className="font-heading text-[clamp(2.75rem,5vw,6rem)] leading-[0.92] font-bold tracking-tight text-charcoal"
             variants={fadeUp(0.05)}
           >
             {heading.split("\n").map((line, i) => (

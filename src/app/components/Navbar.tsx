@@ -10,9 +10,9 @@ import { useLang } from "./LangContext";
 const nav = {
   he: {
     links: [
-      { label: "תיק עבודות", href: "/he#portfolio" },
-      { label: "המשרד", href: "/he/about" },
-      { label: "פנייה", href: "/he#contact" },
+      { label: "פרויקטים", href: "/he#portfolio" },
+      { label: "מי אנחנו", href: "/he/about" },
+      { label: "צור קשר", href: "/he#contact" },
     ],
     switchLabel: "EN",
     switchHref: "/en",
@@ -60,7 +60,7 @@ export default function Navbar() {
         animate={{ y: 0 }}
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       >
-        <nav className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5 lg:px-12">
+        <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           {/* Logo — leading side */}
           <Link href={`/${lang}`} className="relative z-10 shrink-0">
             <Image

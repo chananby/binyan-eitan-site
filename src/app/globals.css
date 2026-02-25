@@ -53,6 +53,7 @@
 [dir="rtl"] h5,
 [dir="rtl"] h6 {
   letter-spacing: normal;
+  font-weight: 700;
 }
 
 ::-webkit-scrollbar { width: 6px; }

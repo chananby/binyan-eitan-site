@@ -49,8 +49,8 @@ const hotspots: Hotspot[] = [
 const copy = {
   he: {
     overline: "אנטומיה טכנית",
-    heading: "הנדסה מעבר לפני השטח",
-    sub: "אנחנו בונים את מה שנסתר מהעין באותה רמת קפידה של הגימורים הגלויים. זה ההבדל בין בית שנראה טוב לבית שמחזיק מעמד לדורות.",
+    heading: "האיכות שמתחת לפני השטח",
+    sub: "אנו מקדישים לתהליכי הביצוע והשלד את אותה רמת דיוק שאנו מעניקים לגימורים הגלויים. כי בית איכותי נמדד בראש ובראשונה ביסודות שלו.",
   },
   en: {
     overline: "Technical Anatomy",
@@ -77,7 +77,7 @@ export default function TechnicalAnatomy() {
         <div className="absolute inset-y-0 end-[8.33%] w-px bg-charcoal/[0.03]" />
       </div>
 
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+      <div className="mx-auto max-w-7xl px-6">
         {/* ── Section header ── */}
         <div className="mb-16 grid grid-cols-4 gap-x-4 md:mb-24 md:grid-cols-12 md:gap-x-6">
           <div className="col-span-4 md:col-span-3 md:col-start-1">

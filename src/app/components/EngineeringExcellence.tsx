@@ -10,11 +10,6 @@ import { useLang } from "./LangContext";
 
 const ITEMS = [
   {
-    src: "/advanced-bathroom-waterproofing-detail.jpg",
-    en: "Advanced Waterproofing",
-    he: "מערכות איטום מתקדמות",
-  },
-  {
     src: "/precision-tiling-with-laser-alignment.jpg",
     en: "Laser-Aligned Tiling",
     he: "ריצוף מדויק בלייזר",
@@ -101,7 +96,7 @@ export default function EngineeringExcellence() {
   return (
     <>
       <section className="bg-charcoal py-28 md:py-40">
-        <div className="mx-auto max-w-[1400px] px-6 lg:px-12">
+        <div className="mx-auto max-w-7xl px-6">
 
           {/* Header */}
           <div className="mb-14 md:mb-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6 text-start">
@@ -119,8 +114,8 @@ export default function EngineeringExcellence() {
             </p>
           </div>
 
-          {/* 4-column grid of expertise images */}
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          {/* 3-column grid of expertise images */}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {ITEMS.map((item, index) => (
               <motion.button
                 key={item.src}
@@ -129,7 +124,7 @@ export default function EngineeringExcellence() {
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: (index % 4) * 0.07, ease }}
+                transition={{ duration: 0.5, delay: (index % 3) * 0.07, ease }}
                 aria-label={item[l]}
               >
                 {/* Photo */}
@@ -137,7 +132,7 @@ export default function EngineeringExcellence() {
                   src={item.src}
                   alt={item[l]}
                   fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
 

@@ -14,10 +14,10 @@ const copy = {
     desc: "הנדסה מעבר לפני השטח. ביצוע ללא פשרות בסטנדרט בנייה יוקרתית.",
     g1Label: "קבלן רשום ג1",
     address: "ירושלים / לוד, ישראל",
-    contactHeading: "פנייה",
+    contactHeading: "צור קשר",
     nav: "ניווט",
-    portfolio: "תיק עבודות",
-    about: "המשרד",
+    portfolio: "פרויקטים",
+    about: "מי אנחנו",
     rights: "כל הזכויות שמורות לבניין איתן.",
     email: "office@binyaneitan.com",
     officePhone: "02-5000447",
@@ -27,7 +27,7 @@ const copy = {
     whatsapp: WHATSAPP_HE,
     whatsappLabel: "WhatsApp",
     officeLabel: "משרד",
-    inquiry: "פנייה",
+    inquiry: "צור קשר",
   },
   en: {
     desc: "Engineering beyond the surface. Uncompromising execution in luxury construction.",
@@ -71,8 +71,8 @@ export default function Footer() {
 
   return (
     <footer className="bg-charcoal text-bone py-16 md:py-24 border-t border-charcoal-light">
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 text-start">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 text-start items-start">
 
           {/* Brand column */}
           <div className="md:col-span-5">
@@ -94,7 +94,7 @@ export default function Footer() {
           </div>
 
           {/* Contact column */}
-          <div className="md:col-span-3 md:col-start-7">
+          <div className="md:col-span-3 md:col-start-7 md:row-start-1">
             <h4 className="font-body text-xs font-semibold tracking-[0.2em] uppercase text-warm-gray mb-6">
               {content.contactHeading}
             </h4>
@@ -126,7 +126,7 @@ export default function Footer() {
           </div>
 
           {/* Nav column */}
-          <div className="md:col-span-3">
+          <div className="md:col-span-3 md:col-start-10 md:row-start-1">
             <h4 className="font-body text-xs font-semibold tracking-[0.2em] uppercase text-warm-gray mb-6">
               {content.nav}
             </h4>
