@@ -94,7 +94,7 @@ export default function Hero() {
           Text: cols 1–6 | Image: cols 5–12 (overlaps col 5-6)
           ═══════════════════════════════════════════════ */}
       <motion.div
-        className="relative mx-auto grid min-h-svh max-w-7xl grid-cols-4 gap-x-4 px-6 pt-36 pb-24 md:grid-cols-12 md:gap-x-6 md:pt-44 md:pb-32"
+        className="relative mx-auto grid min-h-svh max-w-7xl grid-cols-4 gap-x-4 px-8 pt-36 pb-24 md:grid-cols-12 md:gap-x-6 md:pt-44 md:pb-32"
         variants={stagger}
         initial="hidden"
         animate="visible"

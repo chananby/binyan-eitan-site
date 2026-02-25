@@ -91,7 +91,7 @@ export default function ContactForm() {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-12">
+          <form onSubmit={handleSubmit} method="post" className="space-y-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-10">
               <div className="relative">
                 <input

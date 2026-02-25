@@ -337,7 +337,7 @@ export default function LegalPage() {
 
       {/* ── Hero ── */}
       <section className="bg-charcoal pt-40 pb-20 md:pt-52 md:pb-28">
-        <div className="mx-auto max-w-7xl px-6">
+        <div className="mx-auto max-w-7xl px-8">
           <p className="overline-label !text-warm-gray mb-6">
             <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
             {l === "he" ? "מסמכים רשמיים" : "Official Documents"}
@@ -351,7 +351,7 @@ export default function LegalPage() {
 
       {/* ── Tab navigation ── */}
       <div className="sticky top-0 z-40 bg-bone-dark border-b border-charcoal/[0.06] shadow-sm">
-        <div className="mx-auto max-w-7xl px-6">
+        <div className="mx-auto max-w-7xl px-8">
           <div className="flex gap-0 overflow-x-auto" role="tablist">
             {tabList.map((t) => (
               <button

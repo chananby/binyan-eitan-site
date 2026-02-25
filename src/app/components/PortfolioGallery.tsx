@@ -171,7 +171,7 @@ export default function PortfolioGallery() {
     <>
       {/* ── Gallery Section ── */}
       <section id="portfolio" className="bg-bone py-36 md:py-48">
-        <div className="mx-auto max-w-7xl px-6">
+        <div className="mx-auto max-w-7xl px-8">
 
           {/* Header */}
           <div className="mb-16 md:mb-20 text-start">

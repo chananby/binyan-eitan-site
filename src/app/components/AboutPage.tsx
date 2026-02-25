@@ -148,7 +148,7 @@ export default function AboutPage() {
 
       {/* ── 1. HERO ────────────────────────────────────────────────────────── */}
       <section className="relative bg-charcoal overflow-hidden pt-44 pb-32 md:pt-56 md:pb-44">
-          <div className="relative mx-auto max-w-7xl px-6">
+          <div className="relative mx-auto max-w-7xl px-8">
           <FadeUp delay={0.05}>
             <p className="overline-label !text-warm-gray mb-8">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
@@ -209,7 +209,7 @@ export default function AboutPage() {
 
       {/* ── 2. FOUNDER STORY ────────────────────────────────────────────────── */}
       <section className="bg-bone py-36 md:py-48 overflow-hidden">
-        <div className="mx-auto max-w-7xl px-6">
+        <div className="mx-auto max-w-7xl px-8">
           <div className="grid grid-cols-1 gap-16 lg:grid-cols-12 lg:gap-10 items-center">
 
             {/* Text column */}
@@ -271,13 +271,13 @@ export default function AboutPage() {
       </section>
 
       {/* Rule */}
-      <div className="mx-auto max-w-7xl px-6">
+      <div className="mx-auto max-w-7xl px-8">
         <div className="rule-thin" />
       </div>
 
       {/* ── 3. PHILOSOPHY / STANDARD ────────────────────────────────────────── */}
       <section className="bg-charcoal py-28 md:py-40">
-        <div className="mx-auto max-w-7xl px-6">
+        <div className="mx-auto max-w-7xl px-8">
           <FadeUp>
             <p className="overline-label !text-warm-gray mb-10">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
@@ -305,7 +305,7 @@ export default function AboutPage() {
 
       {/* ── 4. EXPERTISE HIGHLIGHTS ─────────────────────────────────────────── */}
       <section className="bg-bone py-36 md:py-48">
-        <div className="mx-auto max-w-7xl px-6 text-start">
+        <div className="mx-auto max-w-7xl px-8 text-start">
           <div className="mb-16 md:mb-24">
             <FadeUp>
               <p className="overline-label mb-6">

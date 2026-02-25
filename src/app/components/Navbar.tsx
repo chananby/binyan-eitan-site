@@ -53,14 +53,14 @@ export default function Navbar() {
     <>
       {/* ── Desktop / Sticky Bar ── */}
       <motion.header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 border-b border-charcoal/[0.06] ${
           scrolled ? "glass" : "bg-transparent"
         }`}
         initial={{ y: -80 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       >
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+        <nav className="mx-auto flex max-w-7xl items-center justify-between px-8 py-5">
           {/* Logo — leading side */}
           <Link href={`/${lang}`} className="relative z-10 shrink-0">
             <Image

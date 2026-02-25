@@ -96,7 +96,7 @@ export default function EngineeringExcellence() {
   return (
     <>
       <section className="bg-charcoal py-28 md:py-40">
-        <div className="mx-auto max-w-7xl px-6">
+        <div className="mx-auto max-w-7xl px-8">
 
           {/* Header */}
           <div className="mb-14 md:mb-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6 text-start">
