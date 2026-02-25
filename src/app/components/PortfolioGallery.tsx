@@ -112,7 +112,7 @@ const PROJECTS = [
 
 const UI = {
   en: { overline: "Selected Work", title: "Portfolio", close: "Close", prev: "Previous", next: "Next" },
-  he: { overline: "עבודות נבחרות", title: "תיק עבודות", close: "סגור", prev: "קודם", next: "הבא" },
+  he: { overline: "", title: "עבודות נבחרות", close: "סגור", prev: "קודם", next: "הבא" },
 } as const;
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -170,22 +170,24 @@ export default function PortfolioGallery() {
   return (
     <>
       {/* ── Gallery Section ── */}
-      <section id="portfolio" className="bg-bone py-36 md:py-48">
-        <div className="mx-auto max-w-7xl px-8">
+      <section id="portfolio" className="bg-bone py-16 md:py-24">
+        <div className="mx-auto max-w-[1440px] px-8">
 
           {/* Header */}
-          <div className="mb-16 md:mb-20 text-start">
-            <p className="overline-label mb-6">
-              <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
-              {ui.overline}
-            </p>
-            <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl max-w-xl">
+          <div className="mb-10 md:mb-14 text-start">
+            {ui.overline && (
+              <p className="overline-label mb-6">
+                <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
+                {ui.overline}
+              </p>
+            )}
+            <h2 className="font-heading text-4xl leading-snug font-bold text-charcoal md:text-5xl lg:text-6xl xl:text-7xl max-w-xl">
               {ui.title}
             </h2>
           </div>
 
           {/* 3-column grid */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
             {PROJECTS.map((proj, index) => {
               const { title, category } = proj[l];
               return (

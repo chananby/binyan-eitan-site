@@ -69,9 +69,9 @@ export default function ContactForm() {
   }
 
   return (
-    <section className="bg-bone-dark py-32 md:py-44" id="contact">
+    <section className="bg-bone-dark py-16 md:py-20" id="contact">
       <div className="max-w-[800px] mx-auto px-6 lg:px-12">
-        <div className="text-center mb-16 md:mb-24">
+        <div className="text-center mb-10 md:mb-14">
           <p className="overline-label mx-auto mb-6">
             <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
             {content.overline}

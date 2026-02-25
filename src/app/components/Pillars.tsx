@@ -99,10 +99,10 @@ export default function Pillars() {
   const [openId, setOpenId] = useState<string>(pillars[0].id);
 
   return (
-    <section className="relative bg-bone-dark py-36 md:py-48 text-start">
-      <div className="mx-auto max-w-7xl px-8">
+    <section className="relative bg-bone-dark py-16 md:py-24 text-start">
+      <div className="mx-auto max-w-[1440px] px-8">
         {/* ── Section header ── */}
-        <div className="mb-16 grid grid-cols-4 gap-x-4 md:mb-24 md:grid-cols-12 md:gap-x-6">
+        <div className="mb-10 grid grid-cols-4 gap-x-4 md:mb-16 md:grid-cols-12 md:gap-x-6">
           <div className="col-span-4 md:col-span-3 md:col-start-1">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />

@@ -48,7 +48,7 @@ const hotspots: Hotspot[] = [
 
 const copy = {
   he: {
-    overline: "אנטומיה טכנית",
+    overline: "לב הבניין",
     heading: "האיכות שמתחת לפני השטח",
     sub: "אנו מקדישים לתהליכי הביצוע והשלד את אותה רמת דיוק שאנו מעניקים לגימורים הגלויים. כי בית איכותי נמדד בראש ובראשונה ביסודות שלו.",
   },
@@ -70,16 +70,16 @@ export default function TechnicalAnatomy() {
   const [active, setActive] = useState<string | null>(null);
 
   return (
-    <section className="relative bg-bone py-28 md:py-36 text-start">
+    <section className="relative bg-bone py-14 md:py-18 text-start">
       {/* ── Architectural grid lines ── */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="absolute inset-y-0 start-[8.33%] w-px bg-charcoal/[0.03]" />
         <div className="absolute inset-y-0 end-[8.33%] w-px bg-charcoal/[0.03]" />
       </div>
 
-      <div className="mx-auto max-w-7xl px-8">
+      <div className="mx-auto max-w-[1440px] px-8">
         {/* ── Section header ── */}
-        <div className="mb-16 grid grid-cols-4 gap-x-4 md:mb-24 md:grid-cols-12 md:gap-x-6">
+        <div className="mb-10 grid grid-cols-4 gap-x-4 md:mb-14 md:grid-cols-12 md:gap-x-6">
           <div className="col-span-4 md:col-span-3 md:col-start-1">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />

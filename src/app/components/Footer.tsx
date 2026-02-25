@@ -70,8 +70,8 @@ export default function Footer() {
   const content = copy[lang];
 
   return (
-    <footer className="bg-charcoal text-bone py-16 md:py-24 border-t border-charcoal-light">
-      <div className="max-w-7xl mx-auto px-8">
+    <footer className="bg-charcoal text-bone py-10 md:py-14 border-t border-charcoal-light">
+      <div className="max-w-[1440px] mx-auto px-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8 text-start items-start">
 
           {/* Brand column */}
@@ -100,13 +100,13 @@ export default function Footer() {
             </h4>
             <ul className="space-y-4 font-body text-sm text-bone/70">
               <li>{content.address}</li>
-              <li dir="ltr" className="text-start">
+              <li>
                 <a href={`tel:${content.officePhoneTel}`} className="hover:text-accent transition-colors block">
                   <span className="text-bone/40 text-xs me-2 uppercase tracking-wider">{content.officeLabel}</span>
-                  {content.officePhone}
+                  <bdi>{content.officePhone}</bdi>
                 </a>
               </li>
-              <li dir="ltr" className="text-start">
+              <li>
                 <a
                   href={content.whatsapp}
                   target="_blank"
@@ -114,7 +114,7 @@ export default function Footer() {
                   className="hover:text-accent transition-colors inline-flex items-center gap-2"
                 >
                   <WhatsAppIcon />
-                  {content.mobile}
+                  <bdi>{content.mobile}</bdi>
                 </a>
               </li>
               <li>

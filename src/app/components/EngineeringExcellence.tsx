@@ -95,11 +95,11 @@ export default function EngineeringExcellence() {
 
   return (
     <>
-      <section className="bg-charcoal py-28 md:py-40">
-        <div className="mx-auto max-w-7xl px-8">
+      <section className="bg-charcoal py-14 md:py-20">
+        <div className="mx-auto max-w-[1440px] px-8">
 
           {/* Header */}
-          <div className="mb-14 md:mb-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6 text-start">
+          <div className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end md:justify-between gap-6 text-start">
             <div>
               <p className="overline-label !text-warm-gray mb-5">
                 <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
@@ -115,7 +115,7 @@ export default function EngineeringExcellence() {
           </div>
 
           {/* 3-column grid of expertise images */}
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-1 sm:grid-cols-2 lg:grid-cols-3">
             {ITEMS.map((item, index) => (
               <motion.button
                 key={item.src}

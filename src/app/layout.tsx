@@ -22,15 +22,8 @@ export default function RootLayout({
 }) {
   return (
     <html suppressHydrationWarning className={assistant.variable}>
-      {/* Gutter background — visible only outside the content frame on wide screens */}
-      <body className="bg-[#E2DDD7] text-charcoal antialiased overflow-x-hidden selection:bg-accent selection:text-bone">
-        {/* ── Architectural frame ────────────────────────────────────────────────
-            Centres the site in a max-w-7xl box with subtle vertical border lines.
-            On screens ≤ 1280 px the frame is full-width (no gutter visible).
-        ──────────────────────────────────────────────────────────────────────── */}
-        <div className="mx-auto max-w-7xl bg-bone border-x border-[rgba(26,26,26,0.08)] min-h-screen">
-          {children}
-        </div>
+      <body className="bg-bone text-charcoal antialiased overflow-x-hidden selection:bg-accent selection:text-bone">
+        {children}
         <AccessibilityMenu />
       </body>
     </html>
