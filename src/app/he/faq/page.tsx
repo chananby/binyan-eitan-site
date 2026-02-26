@@ -5,12 +5,6 @@ import Footer from "../../components/Footer";
 import { motion } from "framer-motion";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "שאלות נפוצות | בניין איתן",
-  description: "שאלות נפוצות לגבי שירותי הבנייה שלנו.",
-  robots: "noindex, nofollow",
-};
-
 const faqs = [
   {
     q: "האם אתם מספקים דוחות יומיים?",

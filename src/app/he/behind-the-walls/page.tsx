@@ -4,12 +4,6 @@ import Footer from "../../components/Footer";
 import { motion } from "framer-motion";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "מאחורי הקירות | בניין איתן",
-  description: "לקוחות הפרויקט מקבלים הצצה לסטנדרטים שלנו בתכנון התשתיות ובדיוק ההנדסי.",
-  robots: "noindex, nofollow",
-};
-
 export default function BehindTheWallsHE() {
   return (
     <main className="relative bg-bone" dir="rtl">

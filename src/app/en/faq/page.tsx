@@ -5,12 +5,6 @@ import Footer from "../../components/Footer";
 import { motion } from "framer-motion";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "FAQ | Binyan Eitan",
-  description: "Frequently asked questions about our construction services.",
-  robots: "noindex, nofollow",
-};
-
 const faqs = [
   {
     q: "Do you provide daily reports?",

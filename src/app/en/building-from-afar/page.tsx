@@ -4,12 +4,6 @@ import Footer from "../../components/Footer";
 import { motion } from "framer-motion";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Building in Israel from Afar | Binyan Eitan",
-  description: "Managing projects across a 7-hour difference with daily reports and international material integration.",
-  robots: "noindex, nofollow",
-};
-
 export default function BuildingFromAfarEN() {
   return (
     <main className="relative bg-bone" dir="ltr">

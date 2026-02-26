@@ -3,13 +3,6 @@ import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Binyan Eitan - Engineering & Construction | Led by Moti Eitan",
-  description:
-    "Our new site is under construction, showcasing our complex engineering and luxury projects. In the meantime, we are available for any inquiries.",
-  robots: "noindex, nofollow",
-};
-
 export default function MaintenanceEnglish() {
   return (
     <motion.main

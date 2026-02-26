@@ -4,12 +4,6 @@ import Footer from "../../components/Footer";
 import { motion } from "framer-motion";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Behind the Walls | Binyan Eitan",
-  description: "An in-depth look at our engineering standards, infrastructure planning, and precision execution.",
-  robots: "noindex, nofollow",
-};
-
 export default function BehindTheWallsEN() {
   return (
     <main className="relative bg-bone" dir="ltr">

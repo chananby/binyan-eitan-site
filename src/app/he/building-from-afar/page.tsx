@@ -4,12 +4,6 @@ import Footer from "../../components/Footer";
 import { motion } from "framer-motion";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "בנייה בישראל מרחוק | בניין איתן",
-  description: "ניהול פרויקטים על פני הפרש זמן של 7 שעות, דוחות יומיים ושילוב חומרים בינלאומיים.",
-  robots: "noindex, nofollow",
-};
-
 export default function BuildingFromAfarHE() {
   return (
     <main className="relative bg-bone" dir="rtl">
