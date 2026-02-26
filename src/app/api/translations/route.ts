@@ -7,24 +7,14 @@ const KV_KEY = "site_translations";
 
 export async function GET() {
   try {
-    console.log(`[translations/GET] Fetching from KV key: "${KV_KEY}"`);
-    const stored = await kv.get<typeof defaultTranslations>(KV_KEY);
+    const stored = await kv.get(KV_KEY);
     
+    // אם המחסן ריק, נחזיר את ברירת המחדל
     if (!stored) {
-      console.log("[translations/GET] KV is empty, returning defaults from translations.json");
       return NextResponse.json(defaultTranslations);
     }
     
-    console.log("[translations/GET] Found data in KV, merging with defaults");
-    console.log("[translations/GET] Stored data sections:", Object.keys(stored).length);
-    
-    // Deep-merge: KV values override defaults, but empty strings fallback to defaults
-    const merged = deepMerge(defaultTranslations, stored);
-    
-    console.log("[translations/GET] Merged data has", Object.keys(merged).length, "sections");
-    console.log("[translations/GET] ✓ Returning merged data (empty KV values were replaced with defaults)");
-    
-    return NextResponse.json(merged);
+    return NextResponse.json(stored);
   } catch (err) {
     console.error("[translations/GET] Error:", err);
     return NextResponse.json(defaultTranslations);
@@ -34,60 +24,25 @@ export async function GET() {
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const merged = deepMerge(defaultTranslations, body);
-    await kv.set(KV_KEY, merged);
     
-    // Trigger revalidation
+    // שומרים את המידע ישירות למחסן בלי מיזוגים מסובכים שגורמים לקריסה
+    await kv.set(KV_KEY, body);
+    
+    // מרעננים את האתר כדי שהשינוי יופיע מיד
     try {
       revalidateTag("translations");
-    } catch {
-      // Revalidation may not be available in all environments
+    } catch (e) {
+      console.log("Revalidation tag not ready yet, skipping.");
     }
     
     return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("translations PUT failed", err);
-    return NextResponse.json({ error: "save failed" }, { status: 500 });
+  } catch (err: any) {
+    console.error("Save failed:", err.message);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
-function deepMerge(base: Record<string, any>, override: Record<string, any>): Record<string, any> {
-  const result: Record<string, any> = { ...base };
-  let skippedCount = 0;
-  const skippedSamples: string[] = [];
-  
-  for (const key of Object.keys(override)) {
-    const overrideValue = override[key];
-    const baseValue = base[key];
-    
-    // Skip empty strings, null, or undefined - they should not overwrite defaults
-    if (overrideValue === "" || overrideValue === null || overrideValue === undefined) {
-      skippedCount++;
-      if (skippedSamples.length < 5) {
-        skippedSamples.push(`${key} (KV empty, using default)`);
-      }
-      continue;
-    }
-    
-    // If both are objects (and not arrays), recurse into them
-    if (
-      overrideValue !== null &&
-      typeof overrideValue === "object" &&
-      !Array.isArray(overrideValue) &&
-      baseValue !== null &&
-      typeof baseValue === "object" &&
-      !Array.isArray(baseValue)
-    ) {
-      result[key] = deepMerge(baseValue, overrideValue);
-    } else {
-      // For non-object values, use the override (we already filtered out empty/null above)
-      result[key] = overrideValue;
-    }
-  }
-  
-  if (skippedCount > 0) {
-    console.log(`[deepMerge] Skipped ${skippedCount} empty/null values, samples:`, skippedSamples.join(", "));
-  }
-  
-  return result;
+// למקרה ש-Vercel חוסם בקשות PUT, אנחנו נאפשר גם POST כגיבוי
+export async function POST(req: Request) {
+  return PUT(req);
 }
