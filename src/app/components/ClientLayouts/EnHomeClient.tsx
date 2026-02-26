@@ -1,27 +1,13 @@
 "use client";
+
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
-import type { Metadata } from "next";
-import dynamic from "next/dynamic";
 
-export const metadata: Metadata = {
-  title: "בנין איתן - הנדסה ובנייה | בהובלת מוטי איתן",
-  description:
-    "אנו בונים עבורכם אתר חדש שיציג את הפרויקטים המורכבים והיוקרתיים שלנו. בינתיים, אנחנו כאן לכל שאלה הנדסית או תכנונית.",
-  robots: "noindex, nofollow",
-};
-
-const HeHomeClient = dynamic(() => import("../components/ClientLayouts/HeHomeClient"), { ssr: false });
-
-export default function MaintenanceHebrew() {
-  return <HeHomeClient />;
-}
-
-export default function MaintenanceHebrew() {
+export default function EnHomeClient() {
   return (
     <motion.main
       className="min-h-screen flex flex-col items-center justify-center bg-stone-100 text-charcoal p-4"
-      dir="rtl"
+      dir="ltr"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
@@ -32,7 +18,7 @@ export default function MaintenanceHebrew() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        בנין איתן - הנדסה ובנייה | בהובלת מוטי איתן
+        Binyan Eitan - Engineering &amp; Construction | Led by Moti Eitan
       </motion.h1>
 
       <motion.p
@@ -41,7 +27,7 @@ export default function MaintenanceHebrew() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.4 }}
       >
-        אנו בונים עבורכם אתר חדש שיציג את הפרויקטים המורכבים והיוקרתיים שלנו. בינתיים, אנחנו כאן לכל שאלה הנדסית או תכנונית.
+        Our new site is under construction, showcasing our complex engineering and luxury projects. In the meantime, we are available for any inquiries.
       </motion.p>
 
       <div className="flex flex-col sm:flex-row gap-4">
@@ -51,7 +37,7 @@ export default function MaintenanceHebrew() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          התקשרו אלינו: <span dir="ltr" className="inline-block">+972‑52‑500‑0447</span>
+          Call Us: <span dir="ltr" className="inline-block">+972‑52‑500‑0447</span>
         </motion.a>
 
         <motion.a
@@ -60,11 +46,9 @@ export default function MaintenanceHebrew() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <MessageCircle className="ml-2" /> WhatsApp
+          <MessageCircle className="mr-2" /> WhatsApp
         </motion.a>
       </div>
     </motion.main>
   );
 }
-
-

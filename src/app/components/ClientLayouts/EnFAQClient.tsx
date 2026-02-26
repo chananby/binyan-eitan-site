@@ -1,43 +1,28 @@
 "use client";
+
 import React from "react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { motion } from "framer-motion";
-import type { Metadata } from "next";
-import dynamic from "next/dynamic";
 
-export const metadata: Metadata = {
-  title: "FAQ | Binyan Eitan",
-  description: "Frequently asked questions about our construction services.",
-  robots: "noindex, nofollow",
-};
+export default function EnFAQClient() {
+  const faqs = [
+    {
+      q: "Do you provide daily reports?",
+      a: "Yes, we send detailed daily reports to keep you informed of progress.",
+    },
+    {
+      q: "Can we schedule video calls?",
+      a: "No video calls at this time; all communication is handled via report and phone.",
+    },
+    {
+      q: "Where do you operate?",
+      a: "We serve clients across all of Israel.",
+    },
+  ];
 
-const EnFAQClient = dynamic(() => import("../../components/ClientLayouts/EnFAQClient"), { ssr: false });
-
-export default function FAQEnglish() {
-  return <EnFAQClient />;
-}
-
-const faqs = [
-  {
-    q: "Do you provide daily reports?",
-    a: "Yes, we send detailed daily reports to keep you informed of progress.",
-  },
-  {
-    q: "Can we schedule video calls?",
-    a: "No video calls at this time; all communication is handled via report and phone.",
-  },
-  {
-    q: "Where do you operate?",
-    a: "We serve clients across all of Israel.",
-  },
-];
-
-export default function FAQEnglish() {
   const [openIndex, setOpenIndex] = React.useState<number | null>(null);
-
-  const toggle = (i: number) =>
-    setOpenIndex((prev) => (prev === i ? null : i));
+  const toggle = (i: number) => setOpenIndex((prev) => (prev === i ? null : i));
 
   return (
     <main className="relative" dir="ltr">
@@ -60,17 +45,12 @@ export default function FAQEnglish() {
                   className="w-full flex justify-between items-center py-4 text-start font-semibold text-charcoal"
                 >
                   {item.q}
-                  <span className="ml-2 transform transition-transform duration-200"
-                    style={{ rotate: openIndex === idx ? '180deg' : '0deg' }}>
+                  <span className="ml-2 transform transition-transform duration-200" style={{ rotate: openIndex === idx ? '180deg' : '0deg' }}>
                     ▼
                   </span>
                 </button>
                 {openIndex === idx && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="pb-4 text-charcoal/80"
-                  >
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="pb-4 text-charcoal/80">
                     {item.a}
                   </motion.div>
                 )}

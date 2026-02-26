@@ -1,23 +1,9 @@
 "use client";
+
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
-import type { Metadata } from "next";
-import dynamic from "next/dynamic";
 
-export const metadata: Metadata = {
-  title: "בנין איתן - הנדסה ובנייה | בהובלת מוטי איתן",
-  description:
-    "אנו בונים עבורכם אתר חדש שיציג את הפרויקטים המורכבים והיוקרתיים שלנו. בינתיים, אנחנו כאן לכל שאלה הנדסית או תכנונית.",
-  robots: "noindex, nofollow",
-};
-
-const HeHomeClient = dynamic(() => import("../components/ClientLayouts/HeHomeClient"), { ssr: false });
-
-export default function MaintenanceHebrew() {
-  return <HeHomeClient />;
-}
-
-export default function MaintenanceHebrew() {
+export default function HeHomeClient() {
   return (
     <motion.main
       className="min-h-screen flex flex-col items-center justify-center bg-stone-100 text-charcoal p-4"
@@ -66,5 +52,3 @@ export default function MaintenanceHebrew() {
     </motion.main>
   );
 }
-
-
