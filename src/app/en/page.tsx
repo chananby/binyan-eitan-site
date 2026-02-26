@@ -62,7 +62,8 @@ export default function MaintenanceEnglish() {
 /*
 Original page content preserved below for future restoration:
 
-(import ContactForm from "../components/ContactForm";
+(/*
+import ContactForm from "../components/ContactForm";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
@@ -71,15 +72,16 @@ import Pillars from "../components/Pillars";
 import PortfolioGallery from "../components/PortfolioGallery";
 import EngineeringExcellence from "../components/EngineeringExcellence";
 import SectionReveal from "../components/SectionReveal";
+import ProcessSection from "../components/ProcessSection";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Binyan Eitan | Luxury Construction & Engineering Israel",
   description: "G1 Registered Contractor. 20+ years of luxury construction, structural engineering and premium renovations across Israel. Jerusalem & Lod.",
-  keywords: [...],
-  openGraph: { ... },
-  twitter: { ... },
-  alternates: { ... },
+  keywords: ["Construction Engineering Israel", ...],
+  openGraph: { /* full og data */ },
+  twitter: { /* twitter data */ },
+  alternates: { canonical: "https://binyaneitan.com/en", languages: { he: "https://binyaneitan.com/he" } },
 };
 
 export default function EnglishHome() {
@@ -87,7 +89,21 @@ export default function EnglishHome() {
     <main className="relative" dir="ltr">
       <Navbar />
       <Hero />
-      ...
+
+      {/* process section added */}
+      <ProcessSection />
+
+      <div className="border-b border-warm-gray-light" />
+      <TechnicalAnatomy />
+      <div className="border-b border-warm-gray-light" />
+      <Pillars />
+
+      {/* expertise article and other deep links */}
+      <EngineeringExcellence />
+      <PortfolioGallery />
+      <SectionReveal />
+
+      <ContactForm />
       <Footer />
     </main>
   );

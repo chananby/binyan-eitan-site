@@ -13,6 +13,8 @@ const nav = {
     links: [
       // { label: "פרויקטים", href: "/he#portfolio" },
       // { label: "מי אנחנו", href: "/he/about" },
+      // { label: "מאחורי הקירות", href: "/he/behind-the-walls" },
+      // { label: "שאלות נפוצות", href: "/he/faq" },
       { label: "צור קשר", href: "/he#contact" },
     ],
     switchLabel: "EN",
@@ -20,8 +22,8 @@ const nav = {
   en: {
     links: [
       // { label: "Portfolio", href: "/en#portfolio" },
-      // { label: "The Firm", href: "/en/about" },
-      { label: "Inquiry", href: "/en#contact" },
+      // { label: "The Firm", href: "/en/about" },      // { label: "Behind the Walls", href: "/en/behind-the-walls" },
+      // { label: "FAQ", href: "/en/faq" },      { label: "Inquiry", href: "/en#contact" },
     ],
     switchLabel: "עב",
   },

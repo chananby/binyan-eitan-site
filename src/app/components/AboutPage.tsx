@@ -25,7 +25,7 @@ const copy = {
     founderOverline: "Our Founder",
     founderHeading: "A Legacy of\nHands-On Leadership.",
     founderBody:
-      "For two decades, Binyan Eitan has led complex and prestigious projects across Israel. Moti Eitan, founder and owner, brings over 20 years of experience across key roles: from entrepreneurship and supervision to project management and on-site execution.",
+      "For two decades, Binyan Eitan has led complex and prestigious projects across Israel. Moti Eitan, founder and owner, brings over 20 years of experience across key roles: from entrepreneurship and supervision to project management and on-site execution. He is a C1 registered contractor, ensuring every job carries the highest legal and safety guarantees.",
     founderName: "Moti Eitan",
     founderRole: "Founder & Owner, Binyan Eitan",
 
@@ -73,7 +73,7 @@ const copy = {
     founderOverline: "המייסד",
     founderHeading: "מנהיגות\nמהשטח.",
     founderBody:
-      'מזה שני עשורים שחברת "בנין איתן" מובילה פרויקטים מורכבים ויוקרתיים בישראל. מוטי איתן, מייסד ובעלים, מביא איתו ניסיון של מעל 20 שנה במגוון תפקידי מפתח: מיזמות ופיקוח ועד לניהול פרויקטים וביצוע בשטח.',
+      'מזה שני עשורים שחברת "בנין איתן" מובילה פרויקטים מורכבים ויוקרתיים בישראל. מוטי איתן, מייסד ובעלים, מביא ניסיון של מעל 20 שנה במגוון תפקידי מפתח: מיזמות, פיקוח, ניהול וביצוע בשטח. הוא קבלן רשום C1, מה שמבטיח אחריות ולגיטימציה מלאות לכל עבודה.',
     founderName: "מוטי איתן",
     founderRole: "מייסד ובעלים, בנין איתן",
 
