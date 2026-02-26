@@ -24,6 +24,45 @@ type SectionData = {
   he: Record<string, string>;
 };
 
+// Helper function to safely get value with fallback to defaults
+function getSafeValue(
+  translations: TranslationsData,
+  defaultTrans: TranslationsData,
+  section: SectionKey,
+  lang: "en" | "he",
+  key: string
+): string {
+  try {
+    const sectionData = translations?.[section];
+    if (!sectionData) {
+      console.log(`[getSafeValue] Section "${section}" missing in translations, using default`);
+      return (defaultTrans[section]?.[lang]?.[key] as string) ?? "";
+    }
+    
+    const langData = sectionData?.[lang];
+    if (!langData) {
+      console.log(`[getSafeValue] Language "${lang}" missing in section "${section}", using default`);
+      return (defaultTrans[section]?.[lang]?.[key] as string) ?? "";
+    }
+    
+    const value = langData?.[key];
+    
+    // If value is empty, use default
+    if (!value || value === "") {
+      const defaultValue = (defaultTrans[section]?.[lang]?.[key] as string) ?? "";
+      if (defaultValue) {
+        console.log(`[getSafeValue] Value empty for ${section}.${lang}.${key}, using default`);
+      }
+      return defaultValue;
+    }
+    
+    return value as string;
+  } catch (err) {
+    console.error(`[getSafeValue] Error getting ${section}.${lang}.${key}:`, err);
+    return (defaultTrans[section]?.[lang]?.[key] as string) ?? "";
+  }
+}
+
 export default function ContentEditorPage() {
   const [activeSection, setActiveSection] = useState<SectionKey>("hero");
   const [translations, setTranslations] = useState<TranslationsData>(defaultTranslations);
@@ -47,11 +86,22 @@ export default function ContentEditorPage() {
         console.log("[ContentEditor] Data type:", typeof data);
         console.log("[ContentEditor] Data keys:", data ? Object.keys(data) : "null/undefined");
         
-        if (data && typeof data === "object" && Object.keys(data).length > 0) {
-          console.log("[ContentEditor] Data is valid, setting translations");
-          setTranslations(data);
+        // Validate structure
+        if (data && typeof data === "object") {
+          const sectionKeys = Object.keys(data);
+          console.log("[ContentEditor] Sections in data:", sectionKeys);
+          
+          // Check if all expected sections are present
+          const hasSections = sectionKeys.length > 0;
+          if (hasSections) {
+            console.log("[ContentEditor] ✓ Data has sections, setting translations");
+            setTranslations(data);
+          } else {
+            console.warn("[ContentEditor] Data is empty, using defaults");
+            setTranslations(defaultTranslations);
+          }
         } else {
-          console.warn("[ContentEditor] Data is invalid or empty, using defaults");
+          console.warn("[ContentEditor] Data is invalid, using defaults");
           setTranslations(defaultTranslations);
         }
       } catch (err) {
@@ -119,13 +169,17 @@ export default function ContentEditorPage() {
   }, [translations, showToast]);
 
   const section = translations[activeSection] as SectionData;
+  
+  // Validate and log section structure
   const allKeys = section && section.en && section.he ? Array.from(
     new Set([...Object.keys(section.en ?? {}), ...Object.keys(section.he ?? {})])
   ) : [];
 
   // Debug logging for section and keys
   console.log(`[ContentEditor] Active section: "${activeSection}"`);
-  console.log("[ContentEditor] Section data:", section);
+  console.log("[ContentEditor] Section data exists:", !!section);
+  console.log("[ContentEditor] Section.en keys:", section?.en ? Object.keys(section.en).length : 0);
+  console.log("[ContentEditor] Section.he keys:", section?.he ? Object.keys(section.he).length : 0);
   console.log("[ContentEditor] All keys:", allKeys);
   console.log("[ContentEditor] Loading state:", loading);
 
@@ -196,6 +250,22 @@ export default function ContentEditorPage() {
                     ⚠️ No keys found. Section: {section ? "exists" : "missing"} | EN: {section?.en ? Object.keys(section.en).length : 0} keys | HE: {section?.he ? Object.keys(section.he).length : 0} keys
                   </p>
                 )}
+                {allKeys.length > 0 && (
+                  <div className="mt-2">
+                    <p className="mb-1">Sample Values (with Fallback):</p>
+                    {allKeys.slice(0, 2).map((k) => {
+                      const en = getSafeValue(translations, defaultTranslations, activeSection, "en", k);
+                      const he = getSafeValue(translations, defaultTranslations, activeSection, "he", k);
+                      const enDisplay = en ? `"${en.substring(0, 30)}..."` : "EMPTY";
+                      const heDisplay = he ? `"${he.substring(0, 30)}..."` : "EMPTY";
+                      return (
+                        <p key={k} className={en && he ? "text-green-600" : "text-red-600"}>
+                          {k}: EN={enDisplay} | HE={heDisplay}
+                        </p>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
               
               <div className="bg-white rounded border border-gray-200 overflow-hidden">
@@ -218,20 +288,9 @@ export default function ContentEditorPage() {
                       </tr>
                     ) : (
                       allKeys.map((key) => {
-                        const heVal = section.he?.[key] ?? "";
-                        const enVal = section.en?.[key] ?? "";
-                        
-                        // Log actual values being rendered
-                        if (!window.__loggedKeys) window.__loggedKeys = {};
-                        if (!window.__loggedKeys[activeSection]) {
-                          window.__loggedKeys[activeSection] = {};
-                          console.log(`[ContentEditor] === VALUES IN ${activeSection.toUpperCase()} ===`);
-                          allKeys.forEach(k => {
-                            const he = section.he?.[k] ?? "EMPTY";
-                            const en = section.en?.[k] ?? "EMPTY";
-                            console.log(`[ContentEditor]   "${k}": EN="${en.substring(0, 40)}${en.length > 40 ? "..." : ""}" | HE="${he.substring(0, 40)}${he.length > 40 ? "..." : ""}"`);
-                          });
-                        }
+                        // Use safe value getter with fallback to defaults
+                        const heVal = getSafeValue(translations, defaultTranslations, activeSection, "he", key);
+                        const enVal = getSafeValue(translations, defaultTranslations, activeSection, "en", key);
                         
                         const isLong = heVal.length > 60 || enVal.length > 60;
                         return (
