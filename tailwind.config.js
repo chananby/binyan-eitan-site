@@ -14,26 +14,26 @@ module.exports = {
         sans: ['var(--font-body)', 'sans-serif'],
       },
       colors: {
-        // פלטת הצבעים המלאה של "בניין איתן"
+        // Natural Luxury palette — Warm Stone × Deep Chocolate × Muted Bronze
         bone: {
-          DEFAULT: '#FAF9F6',
-          dark: '#F0EDE8',
+          DEFAULT: '#F3F2EE',
+          dark: '#E8E7E3',
         },
         charcoal: {
-          DEFAULT: '#1A1A1A',
-          light: '#2D2D2D',
+          DEFAULT: '#2D2926',
+          light: '#3D3733',
         },
         'warm-gray': {
-          DEFAULT: '#B8B2A8',
-          light: '#D4CFC7',
+          DEFAULT: '#B0ABA5',
+          light: '#D1CFCA',
         },
         accent: {
-          DEFAULT: '#C9A96E', // צבע זהב/פליז אדריכלי
-          dark: '#A8893E',
+          DEFAULT: '#8D775F', // Muted Bronze
+          dark: '#7A6451',
         },
         glass: {
-          DEFAULT: 'rgba(250, 249, 246, 0.72)',
-          border: 'rgba(26, 26, 26, 0.06)',
+          DEFAULT: 'rgba(243, 242, 238, 0.88)',
+          border: 'rgba(45, 41, 38, 0.06)',
         }
       },
       transitionTimingFunction: {

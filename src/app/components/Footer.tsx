@@ -28,6 +28,8 @@ const copy = {
     whatsappLabel: "WhatsApp",
     officeLabel: "משרד",
     inquiry: "צור קשר",
+    knowledge: "ידע מקצועי",
+    expertiseArticle: "אתגרים הנדסיים",
   },
   en: {
     desc: "Engineering beyond the surface. Uncompromising execution in luxury construction.",
@@ -47,6 +49,8 @@ const copy = {
     whatsappLabel: "WhatsApp",
     officeLabel: "Office",
     inquiry: "Inquiry",
+    knowledge: "Knowledge",
+    expertiseArticle: "Engineering Challenges",
   },
 } as const;
 
@@ -94,7 +98,7 @@ export default function Footer() {
           </div>
 
           {/* Contact column */}
-          <div className="md:col-span-3 md:col-start-7 md:row-start-1">
+          <div className="md:col-span-3 md:col-start-6 md:row-start-1">
             <h4 className="font-body text-xs font-semibold tracking-[0.2em] uppercase text-warm-gray mb-6">
               {content.contactHeading}
             </h4>
@@ -126,7 +130,7 @@ export default function Footer() {
           </div>
 
           {/* Nav column */}
-          <div className="md:col-span-3 md:col-start-10 md:row-start-1">
+          <div className="md:col-span-2 md:col-start-9 md:row-start-1">
             <h4 className="font-body text-xs font-semibold tracking-[0.2em] uppercase text-warm-gray mb-6">
               {content.nav}
             </h4>
@@ -134,6 +138,16 @@ export default function Footer() {
               <li><Link href={`/${lang}#portfolio`} className="hover:text-accent transition-colors block">{content.portfolio}</Link></li>
               <li><Link href={`/${lang}/about`} className="hover:text-accent transition-colors block">{content.about}</Link></li>
               <li><Link href={`/${lang}#contact`} className="hover:text-accent transition-colors block">{content.inquiry}</Link></li>
+            </ul>
+          </div>
+
+          {/* Knowledge column */}
+          <div className="md:col-span-2 md:col-start-11 md:row-start-1">
+            <h4 className="font-body text-xs font-semibold tracking-[0.2em] uppercase text-warm-gray mb-6">
+              {content.knowledge}
+            </h4>
+            <ul className="space-y-4 font-body text-sm text-bone/70">
+              <li><Link href={`/${lang}/expertise`} className="hover:text-accent transition-colors block">{content.expertiseArticle}</Link></li>
             </ul>
           </div>
 

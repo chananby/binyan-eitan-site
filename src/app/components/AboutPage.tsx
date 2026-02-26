@@ -208,7 +208,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── 2. FOUNDER STORY ────────────────────────────────────────────────── */}
-      <section className="bg-bone py-16 md:py-24 overflow-hidden">
+      <section className="bg-bone py-24 md:py-32 overflow-hidden">
         <div className="mx-auto max-w-[1440px] px-8">
           <div className="grid grid-cols-1 gap-16 lg:grid-cols-12 lg:gap-10 items-center">
 
@@ -256,7 +256,7 @@ export default function AboutPage() {
               transition={{ duration: 0.8, ease }}
             >
               <Image
-                src="/bayit-vegan.jpg"
+                src="/ramat-eshkol-penthouse-1.jpg"
                 alt={c.founderName}
                 fill
                 sizes="(max-width: 1024px) 100vw, 58vw"
@@ -271,12 +271,10 @@ export default function AboutPage() {
       </section>
 
       {/* Rule */}
-      <div className="mx-auto max-w-[1440px] px-8">
-        <div className="rule-thin" />
-      </div>
+      <div className="border-b border-warm-gray-light" />
 
       {/* ── 3. PHILOSOPHY / STANDARD ────────────────────────────────────────── */}
-      <section className="bg-charcoal py-14 md:py-20">
+      <section className="bg-charcoal py-24 md:py-32">
         <div className="mx-auto max-w-[1440px] px-8">
           <FadeUp>
             <p className="overline-label !text-warm-gray mb-10">
@@ -304,7 +302,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── 4. EXPERTISE HIGHLIGHTS ─────────────────────────────────────────── */}
-      <section className="bg-bone py-16 md:py-24">
+      <section className="bg-bone py-24 md:py-32">
         <div className="mx-auto max-w-[1440px] px-8 text-start">
           <div className="mb-10 md:mb-16">
             <FadeUp>

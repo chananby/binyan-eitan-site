@@ -6,6 +6,7 @@ import TechnicalAnatomy from "../components/TechnicalAnatomy";
 import Pillars from "../components/Pillars";
 import PortfolioGallery from "../components/PortfolioGallery";
 import EngineeringExcellence from "../components/EngineeringExcellence";
+import SectionReveal from "../components/SectionReveal";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -48,44 +49,38 @@ export default function HebrewHome() {
       <Navbar />
       <Hero />
 
-      <div className="mx-auto max-w-[1440px] px-8">
-        <div className="rule-thin" />
-      </div>
+      <div className="border-b border-warm-gray-light" />
 
       {/* היסודות שלנו Section */}
-      <section id="about" className="relative bg-bone py-16 md:py-24">
+      <section id="about" className="relative bg-bone py-24 md:py-32">
         <div className="mx-auto grid max-w-[1440px] grid-cols-4 gap-x-4 px-8 md:grid-cols-12 md:gap-x-6">
-          <div className="col-span-4 mb-10 md:col-span-3 md:col-start-3 md:mb-0">
+          <SectionReveal className="col-span-4 mb-10 md:col-span-3 md:col-start-3 md:mb-0">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
               היסודות שלנו
             </p>
-          </div>
-          <div className="col-span-4 md:col-span-7 md:col-start-6">
+          </SectionReveal>
+          <SectionReveal delay={0.1} className="col-span-4 md:col-span-7 md:col-start-6">
             <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
               איכות כסטנדרט. השקט הנפשי שלכם הוא המטרה.
             </h2>
             <p className="mt-6 font-body text-base leading-relaxed font-light text-charcoal/55 md:mt-8 md:text-lg">
               בבנין איתן, אנו יוצקים לתוך כל פרויקט תכנון קונסטרוקטיבי קפדני וניהול אישי מקיף, כדי להפוך חזון אדריכלי למציאות בטוחה ומדויקת.
             </p>
-          </div>
+          </SectionReveal>
         </div>
       </section>
 
-      <div className="mx-auto max-w-[1440px] px-8">
-        <div className="rule-thin" />
-      </div>
+      <div className="border-b border-warm-gray-light" />
       <TechnicalAnatomy />
 
-      <div className="mx-auto max-w-[1440px] px-8">
-        <div className="rule-thin" />
-      </div>
+      <div className="border-b border-warm-gray-light" />
       <Pillars />
 
       {/* Expertise Section */}
-      <section id="expertise" className="relative bg-charcoal py-16 text-bone md:py-24">
+      <section id="expertise" className="relative bg-charcoal py-24 text-bone md:py-32">
         <div className="mx-auto max-w-[1440px] px-8 text-start">
-          <div className="mb-10 md:mb-16">
+          <SectionReveal className="mb-10 md:mb-16">
             <p className="overline-label !text-warm-gray">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
               תחומי מומחיות
@@ -93,7 +88,7 @@ export default function HebrewHome() {
             <h2 className="mt-5 max-w-2xl font-heading text-3xl leading-snug font-bold text-bone md:text-4xl lg:text-5xl">
               הנדסה, תכנון וביצוע — תחת קורת גג אחת.
             </h2>
-          </div>
+          </SectionReveal>
           <div className="grid grid-cols-1 gap-px bg-bone/[0.06] md:grid-cols-2 lg:grid-cols-4">
             {[
               {

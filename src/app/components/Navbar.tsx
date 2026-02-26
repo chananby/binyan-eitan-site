@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Globe } from "lucide-react";
 import { useLang } from "./LangContext";
@@ -15,7 +16,6 @@ const nav = {
       { label: "צור קשר", href: "/he#contact" },
     ],
     switchLabel: "EN",
-    switchHref: "/en",
   },
   en: {
     links: [
@@ -24,13 +24,16 @@ const nav = {
       { label: "Inquiry", href: "/en#contact" },
     ],
     switchLabel: "עב",
-    switchHref: "/he",
   },
 } as const;
  
 export default function Navbar() {
   const { lang } = useLang();
-  const { links, switchLabel, switchHref } = nav[lang];
+  const { links, switchLabel } = nav[lang];
+  const pathname = usePathname();
+  // Swap the language prefix in the current path (e.g. /en/expertise → /he/expertise)
+  const otherLang = lang === "he" ? "en" : "he";
+  const switchHref = pathname.replace(new RegExp(`^/(he|en)`), `/${otherLang}`);
  
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);

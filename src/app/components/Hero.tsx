@@ -1,6 +1,7 @@
 "use client";
  
 import Image from "next/image";
+import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDownRight, ArrowDownLeft } from "lucide-react";
 import { useRef } from "react";
@@ -144,18 +145,19 @@ export default function Hero() {
           </motion.div>
 
           {/* ── CTA ── */}
-          <motion.a
-            href={`/${lang}#portfolio`}
-            className="group mt-10 inline-flex w-fit items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent md:mt-14"
-            variants={fadeUp(0.25)}
-          >
-            {cta}
-            <Arrow
-              size={18}
-              strokeWidth={2}
-              className="transition-transform duration-500 ease-[var(--ease-expo)] group-hover:translate-y-0.5"
-            />
-          </motion.a>
+          <motion.div className="mt-10 md:mt-14" variants={fadeUp(0.25)}>
+            <Link
+              href={`/${lang}#portfolio`}
+              className="group inline-flex w-fit items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent"
+            >
+              {cta}
+              <Arrow
+                size={18}
+                strokeWidth={2}
+                className="transition-transform duration-500 ease-[var(--ease-expo)] group-hover:translate-y-0.5"
+              />
+            </Link>
+          </motion.div>
  
           {/* ── Stats Row ── */}
           <motion.div

@@ -6,6 +6,7 @@ import TechnicalAnatomy from "../components/TechnicalAnatomy";
 import Pillars from "../components/Pillars";
 import PortfolioGallery from "../components/PortfolioGallery";
 import EngineeringExcellence from "../components/EngineeringExcellence";
+import SectionReveal from "../components/SectionReveal";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -48,44 +49,38 @@ export default function EnglishHome() {
       <Navbar />
       <Hero />
 
-      <div className="mx-auto max-w-[1440px] px-8">
-        <div className="rule-thin" />
-      </div>
+      <div className="border-b border-warm-gray-light" />
 
       {/* The Foundation Section */}
-      <section id="about" className="relative bg-bone py-16 md:py-24">
+      <section id="about" className="relative bg-bone py-24 md:py-32">
         <div className="mx-auto grid max-w-[1440px] grid-cols-4 gap-x-4 px-8 md:grid-cols-12 md:gap-x-6">
-          <div className="col-span-4 mb-10 md:col-span-3 md:col-start-1 md:mb-0">
+          <SectionReveal className="col-span-4 mb-10 md:col-span-3 md:col-start-1 md:mb-0">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
               The Foundation
             </p>
-          </div>
-          <div className="col-span-4 md:col-span-6 md:col-start-4 text-start">
+          </SectionReveal>
+          <SectionReveal delay={0.1} className="col-span-4 md:col-span-6 md:col-start-4 text-start">
             <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
               Quality as a Standard. Your Peace of Mind is the Goal.
             </h2>
             <p className="mt-6 font-body text-base leading-relaxed font-light text-charcoal/55 md:mt-8 md:text-lg">
               At Binyan Eitan, we believe a luxury home is defined by what lies beneath the surface—infrastructure, structural integrity, and uncompromising engineering. We turn architectural vision into a solid, secure reality through meticulous management and professional excellence.
             </p>
-          </div>
+          </SectionReveal>
         </div>
       </section>
 
-      <div className="mx-auto max-w-[1440px] px-8">
-        <div className="rule-thin" />
-      </div>
+      <div className="border-b border-warm-gray-light" />
       <TechnicalAnatomy />
 
-      <div className="mx-auto max-w-[1440px] px-8">
-        <div className="rule-thin" />
-      </div>
+      <div className="border-b border-warm-gray-light" />
       <Pillars />
 
       {/* Expertise Section */}
-      <section id="expertise" className="relative bg-charcoal py-16 text-bone md:py-24">
+      <section id="expertise" className="relative bg-charcoal py-24 text-bone md:py-32">
         <div className="mx-auto max-w-[1440px] px-8 text-start">
-          <div className="mb-10 md:mb-16">
+          <SectionReveal className="mb-10 md:mb-16">
             <p className="overline-label !text-warm-gray">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
               Areas of Expertise
@@ -93,7 +88,7 @@ export default function EnglishHome() {
             <h2 className="mt-5 max-w-2xl font-heading text-3xl leading-snug font-bold text-bone md:text-4xl lg:text-5xl">
               Engineering, Design & Execution — Under One Roof.
             </h2>
-          </div>
+          </SectionReveal>
           <div className="grid grid-cols-1 gap-px bg-bone/[0.06] md:grid-cols-2 lg:grid-cols-4">
             {[
               {

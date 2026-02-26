@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --color-bone: #FAF9F6;
-  --color-bone-dark: #F0EDE8;
-  --color-charcoal: #1A1A1A;
-  --color-charcoal-light: #2D2D2D;
-  --color-warm-gray: #B8B2A8;
-  --color-warm-gray-light: #D4CFC7;
-  --color-accent: #C9A96E;
-  --color-accent-dark: #A8893E;
-  --color-glass: rgba(250, 249, 246, 0.72);
-  --color-glass-border: rgba(26, 26, 26, 0.06);
+  --color-bone: #F3F2EE;
+  --color-bone-dark: #E8E7E3;
+  --color-charcoal: #2D2926;
+  --color-charcoal-light: #3D3733;
+  --color-warm-gray: #B0ABA5;
+  --color-warm-gray-light: #D1CFCA;
+  --color-accent: #8D775F;
+  --color-accent-dark: #7A6451;
+  --color-glass: rgba(243, 242, 238, 0.88);
+  --color-glass-border: rgba(45, 41, 38, 0.06);
 
   --font-heading: "Assistant", sans-serif;
   --font-body: var(--font-heading);
@@ -39,6 +39,7 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-weight: 700;
+    letter-spacing: 0.04em;
   }
   ::selection {
     background-color: var(--color-accent);
@@ -68,7 +69,7 @@ html.hc body {
 
 /* ── Accessibility: Enhanced focus ring ── */
 html.focus-ring *:focus-visible {
-  outline: 3px solid #C9A96E !important;
+  outline: 3px solid #8D775F !important;
   outline-offset: 4px !important;
 }
 

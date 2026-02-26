@@ -69,7 +69,7 @@ export default function ContactForm() {
   }
 
   return (
-    <section className="bg-bone-dark py-16 md:py-20" id="contact">
+    <section className="bg-bone-dark py-24 md:py-32" id="contact">
       <div className="max-w-[800px] mx-auto px-6 lg:px-12">
         <div className="text-center mb-10 md:mb-14">
           <p className="overline-label mx-auto mb-6">
@@ -169,7 +169,7 @@ export default function ContactForm() {
               <button
                 type="submit"
                 disabled={status === "sending"}
-                className="w-full block bg-charcoal text-bone py-5 font-body text-sm font-semibold tracking-[0.2em] uppercase transition-colors duration-300 hover:bg-charcoal-light disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full block bg-accent text-bone py-5 font-body text-sm font-semibold tracking-[0.2em] uppercase transition-colors duration-300 hover:bg-accent-dark disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status === "sending" ? content.sending : content.submit}
               </button>
