@@ -315,7 +315,8 @@ export default function ContentEditorPage() {
                               </div>
                               {isLong ? (
                                 <textarea
-                                  value={heVal}
+                                  key={`${activeSection}-${key}-he-ta`}
+                                  defaultValue={heVal}
                                   onChange={(e) => handleChange("he", key, e.target.value)}
                                   rows={3}
                                   className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm text-right focus:outline-none focus:border-[#8D775F] resize-y"
@@ -323,8 +324,9 @@ export default function ContentEditorPage() {
                                 />
                               ) : (
                                 <input
+                                  key={`${activeSection}-${key}-he-input`}
                                   type="text"
-                                  value={heVal}
+                                  defaultValue={heVal}
                                   onChange={(e) => handleChange("he", key, e.target.value)}
                                   className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm text-right focus:outline-none focus:border-[#8D775F]"
                                   dir="rtl"
@@ -338,15 +340,17 @@ export default function ContentEditorPage() {
                               </div>
                               {isLong ? (
                                 <textarea
-                                  value={enVal}
+                                  key={`${activeSection}-${key}-en-ta`}
+                                  defaultValue={enVal}
                                   onChange={(e) => handleChange("en", key, e.target.value)}
                                   rows={3}
                                   className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-[#8D775F] resize-y"
                                 />
                               ) : (
                                 <input
+                                  key={`${activeSection}-${key}-en-input`}
                                   type="text"
-                                  value={enVal}
+                                  defaultValue={enVal}
                                   onChange={(e) => handleChange("en", key, e.target.value)}
                                   className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-[#8D775F]"
                                 />
