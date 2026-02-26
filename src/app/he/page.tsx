@@ -3,13 +3,6 @@ import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "בנין איתן - הנדסה ובנייה | בהובלת מוטי איתן",
-  description:
-    "אנו בונים עבורכם אתר חדש שיציג את הפרויקטים המורכבים והיוקרתיים שלנו. בינתיים, אנחנו כאן לכל שאלה הנדסית או תכנונית.",
-  robots: "noindex, nofollow",
-};
-
 export default function MaintenanceHebrew() {
   return (
     <motion.main
