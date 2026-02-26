@@ -14,7 +14,7 @@ const copy = {
   he: {
     overline: "בנין איתן",
     heading: "הנדסה מורכבת,\nביצוע ללא פשרות.",
-    sub: "קבלן רשום ג1. 20 שנות דיוק טכני ובטיחות ללא פשרות.",
+    sub: "קבלן רשום ג1 (מס' 41805). 20 שנות דיוק טכני ובטיחות ללא פשרות.",
     g1Label: "קבלן רשום ג1",
     cta: "לצפייה בפרויקטים",
     imageAlt: "גימור פנים יוקרתי",
@@ -24,7 +24,7 @@ const copy = {
   en: {
     overline: "Binyan Eitan",
     heading: "Complex Engineering,\nUncompromising Execution.",
-    sub: "G1 Registered Contractor. 20 years of technical precision and uncompromising safety.",
+    sub: "G1 Registered Contractor (License #41805). 20 years of technical precision and uncompromising safety.",
     g1Label: "G1 Registered Contractor",
     cta: "Explore Portfolio",
     imageAlt: "Luxury interior finish",

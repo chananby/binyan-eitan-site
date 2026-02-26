@@ -15,6 +15,9 @@ const copy = {
   he: {
     desc: "הנדסה מעבר לפני השטח. ביצוע ללא פשרות בסטנדרט בנייה יוקרתית.",
     g1Label: "קבלן רשום ג1",
+    contractorName: "בניין איתן בע\"מ",
+    licenseNumber: "41805",
+    classification: "ג' 1 (C1) - ענף 100",
     address: "ירושלים / לוד, ישראל",
     contactHeading: "צור קשר",
     nav: "ניווט",
@@ -36,6 +39,9 @@ const copy = {
   en: {
     desc: "Engineering beyond the surface. Uncompromising execution in luxury construction.",
     g1Label: "G1 Registered Contractor",
+    contractorName: "Binyan Eitan Ltd.",
+    licenseNumber: "41805",
+    classification: "G1 (C1) - Branch 100",
     address: "Jerusalem / Lod, Israel",
     contactHeading: "Contact",
     nav: "Navigation",
@@ -93,6 +99,11 @@ export default function Footer() {
                   {content.g1Label}
                 </span>
               </span>
+              <div className="mt-2 text-[0.72rem] text-bone/70">
+                <div>{content.contractorName}</div>
+                <div>{lang === "he" ? `מס' רישיון: ${content.licenseNumber}` : `License #: ${content.licenseNumber}`}</div>
+                <div className="text-[0.65rem] text-bone/50">{content.classification}</div>
+              </div>
             </div>
             <p className="font-body text-bone/60 text-sm leading-relaxed max-w-sm">
               {content.desc}
