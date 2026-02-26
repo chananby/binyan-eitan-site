@@ -70,7 +70,7 @@ const projects = [
     title: "Amshinov Project",
     category: "Commercial Architecture",
     description:
-      "A landmark commercial development featuring innovative structural solutions and cutting-edge engineering.",
+      "A landmark commercial development featuring 100 tons of steel, a hydraulic opening roof, and cutting-edge engineering.",
     features: ["100 tons of steel", "Hydraulic opening roof", "24/7 execution monitoring"],
     image: "gradient-from-[#8D775F] to-[#A89B87]",
   },
@@ -79,7 +79,7 @@ const projects = [
     title: "Luxury Villa",
     category: "Residential",
     description:
-      "A premium residential estate showcasing sophisticated design, master craftsmanship, and timeless architectural elegance.",
+      "A premium international residential estate showcasing sophisticated design, master craftsmanship, material integration from abroad, and timeless architectural elegance.",
     features: ["Custom finishes", "Advanced smart systems", "Sustainable materials"],
     image: "gradient-from-[#B8A390] to-[#8D775F]",
   },

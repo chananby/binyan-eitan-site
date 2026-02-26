@@ -14,6 +14,7 @@ const nav = {
       // { label: "פרויקטים", href: "/he#portfolio" },
       // { label: "מי אנחנו", href: "/he/about" },
       // { label: "מאחורי הקירות", href: "/he/behind-the-walls" },
+      // { label: "בנייה מרחוק", href: "/he/building-from-afar" },
       // { label: "שאלות נפוצות", href: "/he/faq" },
       { label: "צור קשר", href: "/he#contact" },
     ],
@@ -23,6 +24,7 @@ const nav = {
     links: [
       // { label: "Portfolio", href: "/en#portfolio" },
       // { label: "The Firm", href: "/en/about" },      // { label: "Behind the Walls", href: "/en/behind-the-walls" },
+      // { label: "Building from Afar", href: "/en/building-from-afar" },
       // { label: "FAQ", href: "/en/faq" },      { label: "Inquiry", href: "/en#contact" },
     ],
     switchLabel: "עב",
