@@ -4,8 +4,11 @@ import type { NextRequest } from "next/server";
 export function middleware(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
 
-  // preview mode bypass
-  if (searchParams.get("preview") === "true") {
+  // preview mode bypass via query or cookie
+  const previewQuery = searchParams.get("preview") === "true";
+  const previewCookie = req.cookies.get("preview_mode")?.value === "true" ||
+    req.cookies.get("__prerender_bypass") != null;
+  if (previewQuery || previewCookie) {
     return NextResponse.next();
   }
 
@@ -13,7 +16,9 @@ export function middleware(req: NextRequest) {
   const redirectPattern = /^\/(en|he)\/(projects|about|expertise)(\/|$)/;
   if (redirectPattern.test(pathname)) {
     const locale = pathname.startsWith("/he") ? "/he" : "/en";
-    return NextResponse.redirect(new URL(locale, req.url));
+    const dest = req.nextUrl.clone();
+    dest.pathname = locale;
+    return NextResponse.redirect(dest);
   }
 
   return NextResponse.next();

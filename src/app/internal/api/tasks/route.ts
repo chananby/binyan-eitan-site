@@ -5,14 +5,23 @@ const KEY_PREFIX = "internal_tasks:";
 
 async function getTasks(company: string) {
   const key = KEY_PREFIX + company;
-  const raw = await kv.get(key);
-  if (!raw) return [];
-  return raw as any[];
+  try {
+    const raw = await kv.get(key);
+    if (!raw) return [];
+    return raw as any[];
+  } catch (err) {
+    console.error("KV GET failed", err);
+    return [];
+  }
 }
 
 async function setTasks(company: string, tasks: any[]) {
   const key = KEY_PREFIX + company;
-  await kv.set(key, tasks);
+  try {
+    await kv.set(key, tasks);
+  } catch (err) {
+    console.error("KV SET failed", err);
+  }
 }
 
 export async function GET(req: Request) {
