@@ -26,8 +26,10 @@ const content = {
   },
 } as const;
 
+type Lang = "en" | "he";
+
 export default function ProcessSection() {
-  const { lang } = useLang();
+  const { lang } = useLang() as { lang: Lang };
   const c = content[lang];
   const dir = lang === "he" ? "rtl" : "ltr";
 
@@ -56,7 +58,7 @@ export default function ProcessSection() {
           {/* connecting line */}
           <div className="absolute left-2 top-0 bottom-0 w-px bg-accent/30" />
 
-          {c.phases.map((phase, idx) => (
+          {c.phases.map((phase: { label: string; desc: string }, idx: number) => (
             <motion.div
               key={idx}
               className="group relative mb-12 pl-8"
