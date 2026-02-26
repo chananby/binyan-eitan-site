@@ -2,10 +2,19 @@
 
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
+import { useEffect } from "react";
 import { useTranslations } from "../TranslationsProvider";
 
-export default function HeHomeClient() {
+export default function HeHomeClient({ isPreview }: { isPreview?: boolean }) {
   const t = useTranslations("home", "he");
+  
+  useEffect(() => {
+    // Store preview mode in sessionStorage for consistency across navigation
+    if (isPreview) {
+      sessionStorage.setItem("preview_mode", "true");
+    }
+  }, [isPreview]);
+  
   return (
     <motion.main
       className="min-h-screen flex flex-col items-center justify-center bg-stone-100 text-charcoal p-4"

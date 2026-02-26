@@ -8,8 +8,22 @@ export function middleware(req: NextRequest) {
   const previewQuery = searchParams.get("preview") === "true";
   const previewCookie = req.cookies.get("preview_mode")?.value === "true" ||
     req.cookies.get("__prerender_bypass") != null;
+  
+  let response = NextResponse.next();
+  
+  // Set preview_mode cookie when preview=true is detected
+  if (previewQuery) {
+    response.cookies.set("preview_mode", "true", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60, // 24 hours
+    });
+    return response;
+  }
+  
   if (previewQuery || previewCookie) {
-    return NextResponse.next();
+    return response;
   }
 
   // redirect specific sections back to their respective home
@@ -21,7 +35,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(dest);
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

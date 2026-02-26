@@ -31,6 +31,9 @@ export async function PUT(req: Request) {
 function deepMerge(base: Record<string, any>, override: Record<string, any>): Record<string, any> {
   const result: Record<string, any> = { ...base };
   for (const key of Object.keys(override)) {
+    // Skip empty strings - they should not overwrite defaults
+    if (override[key] === "") continue;
+    
     if (
       override[key] !== null &&
       typeof override[key] === "object" &&

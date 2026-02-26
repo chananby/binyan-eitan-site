@@ -10,8 +10,14 @@ export const metadata: Metadata = {
 
 const EnHomeClient = dynamic(() => import("../components/ClientLayouts/EnHomeClient"), { ssr: false });
 
-export default function MaintenanceEnglish() {
-  return <EnHomeClient />;
+interface SearchParams {
+  preview?: string;
+}
+
+export default function MaintenanceEnglish({ searchParams }: { searchParams: SearchParams }) {
+  const isPreview = searchParams?.preview === "true";
+  
+  return <EnHomeClient isPreview={isPreview} />;
 }
 
 
