@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "The Firm | Binyan Eitan — Luxury Construction & Engineering Israel",
-  description: "For two decades, Binyan Eitan has led complex and prestigious projects across Israel. Meet Moti Eitan — 20+ years of structural engineering, supervision and hands-on project management.",
+  description: "For two decades, Binyan Eitan has led complex and prestigious projects across Israel. Meet Moti Eitan — a C1 registered contractor with 20+ years of structural engineering, supervision and hands-on project management.",
   keywords: [
     "Construction Engineering Israel",
     "G1 Registered Contractor",
