@@ -23,7 +23,7 @@ export default function BuildingFromAfarHE() {
           בנייה בישראל מרחוק
         </motion.h1>
         <motion.p
-          className="text-lg text-charcoal/80 mb-6"
+          className="text-lg text-charcoal/80 mb-10"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -31,31 +31,38 @@ export default function BuildingFromAfarHE() {
           עבודה על פני הפרש זמן של שבע שעות אינה אדישה. אנו מספקים דוחות יומיים,
           תקשורת ברורה ושקיפות מלאה ללקוחות באירופה ובאמריקה.
         </motion.p>
-        <motion.h2 className="text-2xl font-semibold text-charcoal mb-4">
-          דוחות יומיים ותקשורת
-        </motion.h2>
-        <motion.p
-          className="text-base text-charcoal/80 mb-6"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          צפו לעדכון מפורט כל 24 שעות, עם תמונות, סטטוס וכל החלטה נדרשת. אנו
-          מתאימים את לוח הזמנים שלנו כדי לשמור על לקוח בחזית במהלך שעות היום שלו.
-        </motion.p>
-        <motion.h2 className="text-2xl font-semibold text-charcoal mb-4">
-          שילוב חומרים בינלאומיים
-        </motion.h2>
-        <motion.p
-          className="text-base text-charcoal/80"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          אנו מתמחים בייבוא ובשילוב חומרים יוקרתיים מחו"ל — אבן, זכוכית, משקופים
-          ומערכות — ומתכללים לוגיסטיקה ועמידה בדרישות מקומיות כך שהחזון שלכם
-          מתבצע בצורה חלקה.
-        </motion.p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div>
+            <motion.h2 className="text-2xl font-semibold text-charcoal mb-4">
+              דוחות יומיים ותקשורת
+            </motion.h2>
+            <motion.p
+              className="text-base text-charcoal/80"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              צפו לעדכון מפורט כל 24 שעות, עם תמונות, סטטוס וכל החלטה נדרשת. אנו
+              מתאימים את לוח הזמנים שלנו כדי לשמור על לקוח בחזית במהלך שעות היום שלו.
+            </motion.p>
+          </div>
+          <div>
+            <motion.h2 className="text-2xl font-semibold text-charcoal mb-4">
+              שילוב חומרים בינלאומיים
+            </motion.h2>
+            <motion.p
+              className="text-base text-charcoal/80"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              אנו מתמחים בייבוא ובשילוב חומרים יוקרתיים מחו"ל — אבן, זכוכית, משקופים
+              ומערכות — ומתכללים לוגיסטיקה ועמידה בדרישות מקומיות כך שהחזון שלכם
+              מתבצע בצורה חלקה.
+            </motion.p>
+          </div>
+        </div>
       </section>
       <Footer />
     </main>

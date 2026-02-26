@@ -50,20 +50,30 @@ export default function ProcessSection() {
         >
           {c.title}
         </motion.h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+        {/* vertical timeline container */}
+        <div className="relative pl-8">
+          {/* connecting line */}
+          <div className="absolute left-2 top-0 bottom-0 w-px bg-accent/30" />
+
           {c.phases.map((phase, idx) => (
             <motion.div
               key={idx}
-              className="space-y-2"
+              className="group relative mb-12 pl-8"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + idx * 0.1 }}
               viewport={{ once: true }}
             >
-              <p className="font-body text-sm font-semibold uppercase text-accent">
+              {/* circle */}
+              <div className="absolute left-0 top-1">
+                <span className="block w-4 h-4 rounded-full bg-[#8D775F] transition-transform group-hover:scale-110" />
+              </div>
+
+              <p className="font-body text-sm font-semibold uppercase text-charcoal group-hover:text-accent">
                 {phase.label}
               </p>
-              <p className="font-body text-base text-charcoal/80">
+              <p className="mt-2 font-body text-base text-charcoal/80">
                 {phase.desc}
               </p>
             </motion.div>

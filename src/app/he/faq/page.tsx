@@ -25,6 +25,11 @@ const faqs = [
 ];
 
 export default function FAQHebrew() {
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
+
+  const toggle = (i: number) =>
+    setOpenIndex((prev) => (prev === i ? null : i));
+
   return (
     <main className="relative" dir="rtl">
       <Navbar />
@@ -38,18 +43,29 @@ export default function FAQHebrew() {
           >
             שאלות נפוצות
           </motion.h1>
-          <div className="space-y-6">
+          <div className="space-y-4">
             {faqs.map((item, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 + idx * 0.1 }}
-              >
-                <p className="font-semibold text-charcoal">{item.q}</p>
-                <p className="mt-2 text-charcoal/80">{item.a}</p>
-              </motion.div>
+              <div key={idx} className="border-b border-charcoal/20">
+                <button
+                  onClick={() => toggle(idx)}
+                  className="w-full flex justify-between items-center py-4 text-start font-semibold text-charcoal"
+                >
+                  {item.q}
+                  <span className="mr-2 transform transition-transform duration-200"
+                    style={{ rotate: openIndex === idx ? '180deg' : '0deg' }}>
+                    ▼
+                  </span>
+                </button>
+                {openIndex === idx && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="pb-4 text-charcoal/80"
+                  >
+                    {item.a}
+                  </motion.div>
+                )}
+              </div>
             ))}
           </div>
         </div>

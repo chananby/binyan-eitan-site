@@ -23,7 +23,7 @@ export default function BehindTheWallsHE() {
           מאחורי הקירות
         </motion.h1>
         <motion.p
-          className="text-lg text-charcoal/80 mb-6"
+          className="text-lg text-charcoal/80 mb-10"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -32,41 +32,46 @@ export default function BehindTheWallsHE() {
           הם חלק ממערכת מתוכננת ביעילות וביציבות.
         </motion.p>
 
-        <motion.h2 className="text-2xl font-semibold text-charcoal mb-4">
-          תשתיות וגיבוי
-        </motion.h2>
-        <motion.p
-          className="text-base text-charcoal/80 mb-6"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          אנו מתכננים מראש את כל מערכות החשמל, המים והמיזוג. אנו מציעים תכנון תשתיות
-          עם אפשרות לגיבוי, כך שמערכות קריטיות לא תיפגענה והשקט שלכם יישמר.
-        </motion.p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div>
+            <motion.h2 className="text-2xl font-semibold text-charcoal mb-4">
+              תשתיות וגיבוי
+            </motion.h2>
+            <motion.p
+              className="text-base text-charcoal/80 mb-6"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              אנו מתכננים מראש את כל מערכות החשמל, המים והמיזוג. אנו מציעים תכנון תשתיות
+              עם אפשרות לגיבוי, כך שמערכות קריטיות לא תיפגענה והשקט שלכם יישמר.
+            </motion.p>
 
-        <motion.h2 className="text-2xl font-semibold text-charcoal mb-4">
-          דיוק הנדסי מוחלט
-        </motion.h2>
-        <motion.p
-          className="text-base text-charcoal/80 mb-6"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          הצוותים שלנו עובדים בדיוק מילימטרי ועם סובלנות שניתן לסמוך עליה. רמת
-          הדיוק הזו הופכת עיצובים מורכבים למציאות ללא רבב.
-        </motion.p>
-
-        <motion.p
-          className="text-base text-charcoal/80"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          בין אם אתם בונים וילה יוקרתית או מבנה מסחרי, אנו מתחילים מהבלתי
-          נראה ובונים החוצה. זה מה שמאחורי הקירות באמת עבורנו.
-        </motion.p>
+            <motion.h2 className="text-2xl font-semibold text-charcoal mb-4">
+              דיוק הנדסי מוחלט
+            </motion.h2>
+            <motion.p
+              className="text-base text-charcoal/80"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              הצוותים שלנו עובדים בדיוק מילימטרי ועם סובלנות שניתן לסמוך עליה. רמת
+              הדיוק הזו הופכת עיצובים מורכבים למציאות ללא רבב.
+            </motion.p>
+          </div>
+          <div>
+            <motion.p
+              className="text-base text-charcoal/80"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              בין אם אתם בונים וילה יוקרתית או מבנה מסחרי, אנו מתחילים מהבלתי
+              נראה ובונים החוצה. זה מה שמאחורי הקירות באמת עבורנו.
+            </motion.p>
+          </div>
+        </div>
       </section>
       <Footer />
     </main>

@@ -23,7 +23,7 @@ export default function BehindTheWallsEN() {
           Behind the Walls
         </motion.h1>
         <motion.p
-          className="text-lg text-charcoal/80 mb-6"
+          className="text-lg text-charcoal/80 mb-10"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -33,44 +33,49 @@ export default function BehindTheWallsEN() {
           flexibility in mind.
         </motion.p>
 
-        <motion.h2 className="text-2xl font-semibold text-charcoal mb-4">
-          Infrastructure & Redundancy
-        </motion.h2>
-        <motion.p
-          className="text-base text-charcoal/80 mb-6"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          We plan all electrical, water, and HVAC infrastructure from day one. We offer
-          infrastructure planning with the option for redundancy so that critical
-          systems never go down, giving you peace of mind in any scenario.
-        </motion.p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div>
+            <motion.h2 className="text-2xl font-semibold text-charcoal mb-4">
+              Infrastructure &amp; Redundancy
+            </motion.h2>
+            <motion.p
+              className="text-base text-charcoal/80 mb-6"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              We plan all electrical, water, and HVAC infrastructure from day one. We offer
+              infrastructure planning with the option for redundancy so that critical
+              systems never go down, giving you peace of mind in any scenario.
+            </motion.p>
 
-        <motion.h2 className="text-2xl font-semibold text-charcoal mb-4">
-          Absolute Engineering Precision
-        </motion.h2>
-        <motion.p
-          className="text-base text-charcoal/80 mb-6"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          Our teams work with dimensions accurate to the millimeter and tolerances
-          you can rely on. This level of precision is what turns complex designs into
-          flawless reality.
-        </motion.p>
-
-        <motion.p
-          className="text-base text-charcoal/80"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          Whether you're building a luxury villa or a commercial structure, we start
-          with the unseen and build outward. That's what "behind the walls" really
-          means to us.
-        </motion.p>
+            <motion.h2 className="text-2xl font-semibold text-charcoal mb-4">
+              Absolute Engineering Precision
+            </motion.h2>
+            <motion.p
+              className="text-base text-charcoal/80"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              Our teams work with dimensions accurate to the millimeter and tolerances
+              you can rely on. This level of precision is what turns complex designs into
+              flawless reality.
+            </motion.p>
+          </div>
+          <div>
+            <motion.p
+              className="text-base text-charcoal/80"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              Whether you're building a luxury villa or a commercial structure, we start
+              with the unseen and build outward. That's what "behind the walls" really
+              means to us.
+            </motion.p>
+          </div>
+        </div>
       </section>
       <Footer />
     </main>
