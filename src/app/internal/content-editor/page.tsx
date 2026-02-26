@@ -36,16 +36,29 @@ export default function ContentEditorPage() {
   useEffect(() => {
     const loadTranslations = async () => {
       try {
+        console.log("[ContentEditor] Starting fetch from /api/translations...");
         const res = await fetch("/api/translations", { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to fetch");
+        console.log("[ContentEditor] Fetch response status:", res.status);
+        
+        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
+        
         const data = await res.json();
-        // Ensure data is valid, fallback to defaults if not
-        setTranslations(data && typeof data === "object" ? data : defaultTranslations);
+        console.log("[ContentEditor] Fetched Data:", data);
+        console.log("[ContentEditor] Data type:", typeof data);
+        console.log("[ContentEditor] Data keys:", data ? Object.keys(data) : "null/undefined");
+        
+        if (data && typeof data === "object" && Object.keys(data).length > 0) {
+          console.log("[ContentEditor] Data is valid, setting translations");
+          setTranslations(data);
+        } else {
+          console.warn("[ContentEditor] Data is invalid or empty, using defaults");
+          setTranslations(defaultTranslations);
+        }
       } catch (err) {
-        console.error("Failed to load translations:", err);
-        // Keep defaults if fetch fails
+        console.error("[ContentEditor] Error loading translations:", err);
         setTranslations(defaultTranslations);
       } finally {
+        console.log("[ContentEditor] Setting loading to false");
         setLoading(false);
       }
     };
@@ -106,9 +119,15 @@ export default function ContentEditorPage() {
   }, [translations, showToast]);
 
   const section = translations[activeSection] as SectionData;
-  const allKeys = section ? Array.from(
+  const allKeys = section && section.en && section.he ? Array.from(
     new Set([...Object.keys(section.en ?? {}), ...Object.keys(section.he ?? {})])
   ) : [];
+
+  // Debug logging for section and keys
+  console.log(`[ContentEditor] Active section: "${activeSection}"`);
+  console.log("[ContentEditor] Section data:", section);
+  console.log("[ContentEditor] All keys:", allKeys);
+  console.log("[ContentEditor] Loading state:", loading);
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -168,6 +187,17 @@ export default function ContentEditorPage() {
           ) : (
             <div className="max-w-5xl">
               <h2 className="text-base font-bold text-gray-800 mb-4 capitalize">{activeSection}</h2>
+              
+              {/* Debug Info */}
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+                <p><strong>Debug:</strong> Found {allKeys.length} keys in {activeSection}</p>
+                {allKeys.length === 0 && (
+                  <p className="mt-1 text-red-600">
+                    ⚠️ No keys found. Section: {section ? "exists" : "missing"} | EN: {section?.en ? Object.keys(section.en).length : 0} keys | HE: {section?.he ? Object.keys(section.he).length : 0} keys
+                  </p>
+                )}
+              </div>
+              
               <div className="bg-white rounded border border-gray-200 overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
