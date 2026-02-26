@@ -287,10 +287,20 @@ export default function ContentEditorPage() {
                         </td>
                       </tr>
                     ) : (
-                      allKeys.map((key) => {
+                      allKeys.map((key, idx) => {
                         // Use safe value getter with fallback to defaults
                         const heVal = getSafeValue(translations, defaultTranslations, activeSection, "he", key);
                         const enVal = getSafeValue(translations, defaultTranslations, activeSection, "en", key);
+                        
+                        // AGGRESSIVE DEBUG - log every single value being rendered
+                        if (idx === 0) {
+                          console.log(`[RENDER] First row of "${activeSection}"`);
+                          console.log(`[RENDER] Key: "${key}"`);
+                          console.log(`[RENDER] heVal: "${heVal}" (length: ${heVal.length}, type: ${typeof heVal})`);
+                          console.log(`[RENDER] enVal: "${enVal}" (length: ${enVal.length}, type: ${typeof enVal})`);
+                          console.log(`[RENDER] heVal isEmpty: ${!heVal || heVal === ""}`);
+                          console.log(`[RENDER] enVal isEmpty: ${!enVal || enVal === ""}`);
+                        }
                         
                         const isLong = heVal.length > 60 || enVal.length > 60;
                         return (
@@ -299,6 +309,10 @@ export default function ContentEditorPage() {
                               {key}
                             </td>
                             <td className="px-4 py-3 align-top" dir="rtl">
+                              {/* TEMP DEBUG: Show value as text to verify it's there */}
+                              <div className="text-xs text-green-600 mb-1 p-1 bg-green-50 rounded">
+                                Value: {heVal ? heVal.substring(0, 30) : "EMPTY"}
+                              </div>
                               {isLong ? (
                                 <textarea
                                   value={heVal}
@@ -318,6 +332,10 @@ export default function ContentEditorPage() {
                               )}
                             </td>
                             <td className="px-4 py-3 align-top">
+                              {/* TEMP DEBUG: Show value as text to verify it's there */}
+                              <div className="text-xs text-green-600 mb-1 p-1 bg-green-50 rounded">
+                                Value: {enVal ? enVal.substring(0, 30) : "EMPTY"}
+                              </div>
                               {isLong ? (
                                 <textarea
                                   value={enVal}
