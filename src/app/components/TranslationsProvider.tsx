@@ -13,10 +13,38 @@ export function TranslationsProvider({ children }: { children: React.ReactNode }
   const [translations, setTranslations] = useState<TranslationsData>(defaultTranslations);
 
   useEffect(() => {
-    fetch("/api/translations")
-      .then((r) => r.json())
-      .then((data) => setTranslations(data))
-      .catch(() => {});
+    const loadTranslations = async () => {
+      try {
+        const res = await fetch("/api/translations", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && typeof data === "object") {
+            setTranslations(data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load translations:", err);
+      }
+    };
+
+    loadTranslations();
+
+    // Refetch translations every 30 seconds to ensure we have the latest content
+    const interval = setInterval(loadTranslations, 30000);
+    
+    // Also refetch when page becomes visible (user returns from another tab)
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        loadTranslations();
+      }
+    };
+    
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, []);
 
   return (

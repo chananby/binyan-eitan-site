@@ -27,15 +27,29 @@ type SectionData = {
 export default function ContentEditorPage() {
   const [activeSection, setActiveSection] = useState<SectionKey>("hero");
   const [translations, setTranslations] = useState<TranslationsData>(defaultTranslations);
+  const [loading, setLoading] = useState(true);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
 
+  // Load translations on mount - ensure we get data from API
   useEffect(() => {
-    fetch("/api/translations")
-      .then((r) => r.json())
-      .then((data) => setTranslations(data))
-      .catch(() => {});
+    const loadTranslations = async () => {
+      try {
+        const res = await fetch("/api/translations", { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
+        // Ensure data is valid, fallback to defaults if not
+        setTranslations(data && typeof data === "object" ? data : defaultTranslations);
+      } catch (err) {
+        console.error("Failed to load translations:", err);
+        // Keep defaults if fetch fails
+        setTranslations(defaultTranslations);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadTranslations();
   }, []);
 
   const showToast = useCallback((msg: string, ok: boolean) => {
@@ -71,6 +85,16 @@ export default function ContentEditorPage() {
       if (res.ok) {
         setDirty(false);
         showToast("Saved successfully!", true);
+        
+        // Trigger revalidation of all pages that use translations
+        try {
+          await fetch("/api/revalidate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch {
+          console.log("Revalidation queued");
+        }
       } else {
         showToast("Save failed. Try again.", false);
       }
@@ -82,9 +106,9 @@ export default function ContentEditorPage() {
   }, [translations, showToast]);
 
   const section = translations[activeSection] as SectionData;
-  const allKeys = Array.from(
+  const allKeys = section ? Array.from(
     new Set([...Object.keys(section.en ?? {}), ...Object.keys(section.he ?? {})])
-  );
+  ) : [];
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -96,10 +120,10 @@ export default function ContentEditorPage() {
         </div>
         <button
           onClick={handleSave}
-          disabled={!dirty || saving}
+          disabled={!dirty || saving || loading}
           className="px-5 py-2 bg-[#8D775F] text-white text-sm font-semibold tracking-wide rounded disabled:opacity-40 hover:bg-[#7A6451] transition-colors"
         >
-          {saving ? "Saving…" : "Save Changes"}
+          {saving ? "Saving…" : loading ? "Loading..." : "Save Changes"}
         </button>
       </div>
 
@@ -134,72 +158,89 @@ export default function ContentEditorPage() {
 
         {/* Table */}
         <main className="flex-1 overflow-auto p-6">
-          <div className="max-w-5xl">
-            <h2 className="text-base font-bold text-gray-800 mb-4 capitalize">{activeSection}</h2>
-            <div className="bg-white rounded border border-gray-200 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600 w-44">Key</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600" dir="rtl">
-                      Hebrew
-                    </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">English</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {allKeys.map((key) => {
-                    const heVal = section.he?.[key] ?? "";
-                    const enVal = section.en?.[key] ?? "";
-                    const isLong = heVal.length > 60 || enVal.length > 60;
-                    return (
-                      <tr key={key} className="border-b border-gray-100 last:border-b-0">
-                        <td className="px-4 py-3 font-mono text-xs text-gray-400 align-top whitespace-nowrap">
-                          {key}
-                        </td>
-                        <td className="px-4 py-3 align-top" dir="rtl">
-                          {isLong ? (
-                            <textarea
-                              value={heVal}
-                              onChange={(e) => handleChange("he", key, e.target.value)}
-                              rows={3}
-                              className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm text-right focus:outline-none focus:border-[#8D775F] resize-y"
-                              dir="rtl"
-                            />
-                          ) : (
-                            <input
-                              type="text"
-                              value={heVal}
-                              onChange={(e) => handleChange("he", key, e.target.value)}
-                              className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm text-right focus:outline-none focus:border-[#8D775F]"
-                              dir="rtl"
-                            />
-                          )}
-                        </td>
-                        <td className="px-4 py-3 align-top">
-                          {isLong ? (
-                            <textarea
-                              value={enVal}
-                              onChange={(e) => handleChange("en", key, e.target.value)}
-                              rows={3}
-                              className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-[#8D775F] resize-y"
-                            />
-                          ) : (
-                            <input
-                              type="text"
-                              value={enVal}
-                              onChange={(e) => handleChange("en", key, e.target.value)}
-                              className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-[#8D775F]"
-                            />
-                          )}
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#8D775F] mb-4"></div>
+                <p className="text-gray-600">Loading content...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-5xl">
+              <h2 className="text-base font-bold text-gray-800 mb-4 capitalize">{activeSection}</h2>
+              <div className="bg-white rounded border border-gray-200 overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600 w-44">Key</th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600" dir="rtl">
+                        Hebrew
+                      </th>
+                      <th className="text-left px-4 py-3 font-semibold text-gray-600">English</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allKeys.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="px-4 py-8 text-center text-gray-500">
+                          No content found for this section
                         </td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    ) : (
+                      allKeys.map((key) => {
+                        const heVal = section.he?.[key] ?? "";
+                        const enVal = section.en?.[key] ?? "";
+                        const isLong = heVal.length > 60 || enVal.length > 60;
+                        return (
+                          <tr key={key} className="border-b border-gray-100 last:border-b-0">
+                            <td className="px-4 py-3 font-mono text-xs text-gray-400 align-top whitespace-nowrap">
+                              {key}
+                            </td>
+                            <td className="px-4 py-3 align-top" dir="rtl">
+                              {isLong ? (
+                                <textarea
+                                  value={heVal}
+                                  onChange={(e) => handleChange("he", key, e.target.value)}
+                                  rows={3}
+                                  className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm text-right focus:outline-none focus:border-[#8D775F] resize-y"
+                                  dir="rtl"
+                                />
+                              ) : (
+                                <input
+                                  type="text"
+                                  value={heVal}
+                                  onChange={(e) => handleChange("he", key, e.target.value)}
+                                  className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm text-right focus:outline-none focus:border-[#8D775F]"
+                                  dir="rtl"
+                                />
+                              )}
+                            </td>
+                            <td className="px-4 py-3 align-top">
+                              {isLong ? (
+                                <textarea
+                                  value={enVal}
+                                  onChange={(e) => handleChange("en", key, e.target.value)}
+                                  rows={3}
+                                  className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-[#8D775F] resize-y"
+                                />
+                              ) : (
+                                <input
+                                  type="text"
+                                  value={enVal}
+                                  onChange={(e) => handleChange("en", key, e.target.value)}
+                                  className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-[#8D775F]"
+                                />
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          )}
         </main>
       </div>
     </div>

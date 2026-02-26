@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { kv } from "@vercel/kv";
+import { revalidateTag } from "next/cache";
 import defaultTranslations from "@/src/lib/translations.json";
 
 const KV_KEY = "site_translations";
@@ -21,6 +22,14 @@ export async function PUT(req: Request) {
     const body = await req.json();
     const merged = deepMerge(defaultTranslations, body);
     await kv.set(KV_KEY, merged);
+    
+    // Trigger revalidation
+    try {
+      revalidateTag("translations");
+    } catch {
+      // Revalidation may not be available in all environments
+    }
+    
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("translations PUT failed", err);
