@@ -53,6 +53,8 @@ export async function PUT(req: Request) {
 
 function deepMerge(base: Record<string, any>, override: Record<string, any>): Record<string, any> {
   const result: Record<string, any> = { ...base };
+  let skippedCount = 0;
+  const skippedSamples: string[] = [];
   
   for (const key of Object.keys(override)) {
     const overrideValue = override[key];
@@ -60,7 +62,10 @@ function deepMerge(base: Record<string, any>, override: Record<string, any>): Re
     
     // Skip empty strings, null, or undefined - they should not overwrite defaults
     if (overrideValue === "" || overrideValue === null || overrideValue === undefined) {
-      console.log(`[deepMerge] Skipping empty/null value for key "${key}", keeping default`);
+      skippedCount++;
+      if (skippedSamples.length < 5) {
+        skippedSamples.push(`${key} (KV empty, using default)`);
+      }
       continue;
     }
     
@@ -78,6 +83,10 @@ function deepMerge(base: Record<string, any>, override: Record<string, any>): Re
       // For non-object values, use the override (we already filtered out empty/null above)
       result[key] = overrideValue;
     }
+  }
+  
+  if (skippedCount > 0) {
+    console.log(`[deepMerge] Skipped ${skippedCount} empty/null values, samples:`, skippedSamples.join(", "));
   }
   
   return result;

@@ -220,6 +220,19 @@ export default function ContentEditorPage() {
                       allKeys.map((key) => {
                         const heVal = section.he?.[key] ?? "";
                         const enVal = section.en?.[key] ?? "";
+                        
+                        // Log actual values being rendered
+                        if (!window.__loggedKeys) window.__loggedKeys = {};
+                        if (!window.__loggedKeys[activeSection]) {
+                          window.__loggedKeys[activeSection] = {};
+                          console.log(`[ContentEditor] === VALUES IN ${activeSection.toUpperCase()} ===`);
+                          allKeys.forEach(k => {
+                            const he = section.he?.[k] ?? "EMPTY";
+                            const en = section.en?.[k] ?? "EMPTY";
+                            console.log(`[ContentEditor]   "${k}": EN="${en.substring(0, 40)}${en.length > 40 ? "..." : ""}" | HE="${he.substring(0, 40)}${he.length > 40 ? "..." : ""}"`);
+                          });
+                        }
+                        
                         const isLong = heVal.length > 60 || enVal.length > 60;
                         return (
                           <tr key={key} className="border-b border-gray-100 last:border-b-0">
