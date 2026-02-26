@@ -4,6 +4,8 @@ import { useState } from "react";
 import { CheckCircle } from "lucide-react";
 import { useLang } from "./LangContext";
 
+type Lang = "en" | "he";
+
 // Formspree legacy endpoint — works without an account.
 // To upgrade: create a form at formspree.io, then replace with:
 //   https://formspree.io/f/<YOUR_FORM_ID>
@@ -42,7 +44,7 @@ const copy = {
 type Status = "idle" | "sending" | "success" | "error";
 
 export default function ContactForm() {
-  const { lang } = useLang();
+  const { lang } = useLang() as { lang: Lang };
   const content = copy[lang];
   const [status, setStatus] = useState<Status>("idle");
 

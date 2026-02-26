@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Globe } from "lucide-react";
 import { useLang } from "./LangContext";
+
+type Lang = "en" | "he";
  
 const nav = {
   he: {
@@ -32,7 +34,7 @@ const nav = {
 } as const;
  
 export default function Navbar() {
-  const { lang } = useLang();
+  const { lang } = useLang() as { lang: Lang };
   const { links, switchLabel } = nav[lang];
   const pathname = usePathname();
   // Swap the language prefix in the current path (e.g. /en/expertise → /he/expertise)
@@ -82,7 +84,7 @@ export default function Navbar() {
  
           {/* Desktop links — center */}
           <ul className="hidden items-center gap-10 md:flex">
-            {links.map((link) => (
+            {links.map((link: { label: string; href: string }) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
@@ -150,7 +152,7 @@ export default function Navbar() {
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
             <ul className="flex flex-col gap-8">
-              {links.map((link, i) => (
+              {links.map((link: { label: string; href: string }, i: number) => (
                 <motion.li
                   key={link.href}
                   initial={{ opacity: 0, x: lang === "he" ? 40 : -40 }}

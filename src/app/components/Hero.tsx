@@ -6,6 +6,8 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDownRight, ArrowDownLeft } from "lucide-react";
 import { useRef } from "react";
 import { useLang } from "./LangContext";
+
+type Lang = "en" | "he";
  
 /* ── Per-language copy ── */
 const copy = {
@@ -64,7 +66,7 @@ const fadeScale = {
    12-column asymmetric grid with layered depth overlap
    ═════════════════════════════════════════════════════════ */
 export default function Hero() {
-  const { lang } = useLang();
+  const { lang } = useLang() as { lang: Lang };
   const { overline, heading, sub, g1Label, cta, imageAlt, stat1, stat2 } = copy[lang];
   const Arrow = lang === "he" ? ArrowDownLeft : ArrowDownRight;
  
@@ -119,7 +121,7 @@ export default function Hero() {
             className="font-heading text-[clamp(2.75rem,5vw,6rem)] leading-[0.92] font-bold tracking-tight text-charcoal"
             variants={fadeUp(0.05)}
           >
-            {heading.split("\n").map((line, i) => (
+            {heading.split("\n").map((line: string, i: number) => (
               <span key={i} className="block">
                 {line}
               </span>

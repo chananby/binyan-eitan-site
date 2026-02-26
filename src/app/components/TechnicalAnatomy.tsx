@@ -5,6 +5,8 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLang } from "./LangContext";
 
+type Lang = "en" | "he";
+
 /* ── Hotspot data (הטקסטים ההנדסיים החדשים) ── */
 interface Hotspot {
   id: string;
@@ -65,7 +67,7 @@ const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
    TECHNICAL ANATOMY SECTION (הגרסה העשירה והמקצועית)
    ═════════════════════════════════════════════════════════ */
 export default function TechnicalAnatomy() {
-  const { lang } = useLang();
+  const { lang } = useLang() as { lang: Lang };
   const { overline, heading, sub } = copy[lang];
   const [active, setActive] = useState<string | null>(null);
 
@@ -120,7 +122,7 @@ export default function TechnicalAnatomy() {
             />
 
             {/* ── Hotspots ── */}
-            {hotspots.map((spot) => {
+            {hotspots.map((spot: Hotspot) => {
               const isActive = active === spot.id;
               return (
                 <div

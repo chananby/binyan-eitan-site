@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Crosshair, Clock, Users } from "lucide-react";
 import { useLang } from "./LangContext";
 
+type Lang = "en" | "he";
+
 /* ── Pillar data (הטקסטים המדויקים שלנו) ── */
 interface Pillar {
   id: string;
@@ -94,7 +96,7 @@ const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
    PILLARS OF TRUST SECTION (הגרסה העשירה והמלאה)
    ═════════════════════════════════════════════════════════ */
 export default function Pillars() {
-  const { lang } = useLang();
+  const { lang } = useLang() as { lang: Lang };
   const { overline, heading } = copy[lang];
   const [openId, setOpenId] = useState<string>(pillars[0].id);
 
@@ -111,7 +113,7 @@ export default function Pillars() {
           </div>
           <div className="col-span-4 mt-6 md:col-span-7 md:col-start-4 md:mt-0">
             <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
-              {heading.split("\n").map((line, i) => (
+              {heading.split("\n").map((line: string, i: number) => (
                 <span key={i} className="block">
                   {line}
                 </span>
@@ -124,7 +126,7 @@ export default function Pillars() {
         <div className="grid grid-cols-4 gap-x-4 md:grid-cols-12 md:gap-x-6">
           {/* Accordion items */}
           <div className="col-span-4 md:col-span-10 md:col-start-1">
-            {pillars.map((pillar) => {
+            {pillars.map((pillar: Pillar) => {
               const isOpen = openId === pillar.id;
               const content = pillar[lang];
               const Icon = pillar.icon;

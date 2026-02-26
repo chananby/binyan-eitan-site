@@ -75,7 +75,8 @@ const content = {
 } as const;
 
 export default function ExpertiseArticle() {
-  const { lang } = useLang();
+  type Lang = "en" | "he";
+  const { lang } = useLang() as { lang: Lang };
   const c = content[lang];
   const p = pillars[lang];
   const dir = lang === "he" ? "rtl" : "ltr";
@@ -116,7 +117,7 @@ export default function ExpertiseArticle() {
 
           {/* Pillars */}
           <div className="space-y-10 border-t border-warm-gray-light pt-10">
-            {p.map((pillar) => (
+            {p.map((pillar: { num: string; title: string; body: string }) => (
               <div key={pillar.num} className="grid grid-cols-[auto_1fr] gap-6 items-start">
                 <span className="font-heading text-5xl font-bold text-accent/20 leading-none select-none">
                   {pillar.num}
