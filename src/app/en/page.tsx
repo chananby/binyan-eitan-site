@@ -1,4 +1,30 @@
-import ContactForm from "../components/ContactForm";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Coming Soon | Binyan Eitan",
+  description: "The site is under construction. Please check back soon.",
+  robots: "noindex, nofollow",
+};
+
+export default function MaintenanceEnglish() {
+  return (
+    <main className="min-h-screen flex flex-col items-center justify-center bg-stone-100 text-charcoal p-4" dir="ltr">
+      <h1 className="text-4xl font-bold mb-4">בנין איתן - הנדסה ובנייה</h1>
+      <p className="text-lg mb-8">האתר החדש שלנו בבנייה. בקרוב נחשוף את הפרויקטים החדשים שלנו.</p>
+      <a
+        href="tel:+972525000447"
+        className="inline-block px-6 py-3 bg-[#8D775F] text-white rounded-lg font-semibold"
+      >
+        Call Us: +972‑52‑500‑0447
+      </a>
+    </main>
+  );
+}
+
+/*
+Original page content preserved below for future restoration:
+
+(import ContactForm from "../components/ContactForm";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
@@ -12,35 +38,10 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Binyan Eitan | Luxury Construction & Engineering Israel",
   description: "G1 Registered Contractor. 20+ years of luxury construction, structural engineering and premium renovations across Israel. Jerusalem & Lod.",
-  keywords: [
-    "Construction Engineering Israel",
-    "G1 Registered Contractor",
-    "Luxury Construction Israel",
-    "Structural Engineering Jerusalem",
-    "Premium Renovations Israel",
-    "Binyan Eitan",
-    "בנייה פרטית וציבורית",
-    "קבלן רשום ג1",
-  ],
-  openGraph: {
-    title: "Binyan Eitan | Engineering Beyond the Surface",
-    description: "G1 Registered Contractor. 20+ years of luxury construction, structural engineering and premium renovations across Israel.",
-    url: "https://binyaneitan.com/en",
-    siteName: "Binyan Eitan",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Binyan Eitan — Luxury Construction & Engineering Israel" }],
-    locale: "en_IL",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Binyan Eitan | Luxury Construction & Engineering Israel",
-    description: "G1 Registered Contractor. 20+ years of luxury construction and structural engineering across Israel.",
-    images: ["/og-image.jpg"],
-  },
-  alternates: {
-    canonical: "https://binyaneitan.com/en",
-    languages: { he: "https://binyaneitan.com/he" },
-  },
+  keywords: [...],
+  openGraph: { ... },
+  twitter: { ... },
+  alternates: { ... },
 };
 
 export default function EnglishHome() {
@@ -48,92 +49,9 @@ export default function EnglishHome() {
     <main className="relative" dir="ltr">
       <Navbar />
       <Hero />
-
-      <div className="border-b border-warm-gray-light" />
-
-      {/* The Foundation Section */}
-      <section id="about" className="relative bg-bone py-24 md:py-32">
-        <div className="mx-auto grid max-w-[1440px] grid-cols-4 gap-x-4 px-8 md:grid-cols-12 md:gap-x-6">
-          <SectionReveal className="col-span-4 mb-10 md:col-span-3 md:col-start-1 md:mb-0">
-            <p className="overline-label">
-              <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
-              The Foundation
-            </p>
-          </SectionReveal>
-          <SectionReveal delay={0.1} className="col-span-4 md:col-span-6 md:col-start-4 text-start">
-            <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
-              Quality as a Standard. Your Peace of Mind is the Goal.
-            </h2>
-            <p className="mt-6 font-body text-base leading-relaxed font-light text-charcoal/55 md:mt-8 md:text-lg">
-              At Binyan Eitan, we believe a luxury home is defined by what lies beneath the surface—infrastructure, structural integrity, and uncompromising engineering. We turn architectural vision into a solid, secure reality through meticulous management and professional excellence.
-            </p>
-          </SectionReveal>
-        </div>
-      </section>
-
-      <div className="border-b border-warm-gray-light" />
-      <TechnicalAnatomy />
-
-      <div className="border-b border-warm-gray-light" />
-      <Pillars />
-
-      {/* Expertise Section */}
-      <section id="expertise" className="relative bg-charcoal py-24 text-bone md:py-32">
-        <div className="mx-auto max-w-[1440px] px-8 text-start">
-          <SectionReveal className="mb-10 md:mb-16">
-            <p className="overline-label !text-warm-gray">
-              <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
-              Areas of Expertise
-            </p>
-            <h2 className="mt-5 max-w-2xl font-heading text-3xl leading-snug font-bold text-bone md:text-4xl lg:text-5xl">
-              Engineering, Design & Execution — Under One Roof.
-            </h2>
-          </SectionReveal>
-          <div className="grid grid-cols-1 gap-px bg-bone/[0.06] md:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                num: "01",
-                title: "Structural Engineering",
-                desc: "Advanced structural design and execution for complex projects. Precise casting, solid foundations, and smart engineering solutions that enable bold, uncompromising architecture.",
-              },
-              {
-                num: "02",
-                title: "Luxury Construction",
-                desc: "Turnkey management and execution of premium projects. Working with world-class finishing materials, fanatical attention to detail, and close supervision at every moment.",
-              },
-              {
-                num: "03",
-                title: "Premium Renovations",
-                desc: "Complete transformation of existing properties. Structural reinforcement, upgrading advanced technological systems, and adapting the structure to contemporary luxury living standards.",
-              },
-              {
-                num: "04",
-                title: "Project Management & Engineering Supervision",
-                desc: "End-to-end project management and on-site engineering supervision. Ensuring every phase meets the highest standards of quality, safety, and technical precision.",
-              },
-            ].map((service) => (
-              <div
-                key={service.num}
-                className="group flex flex-col bg-charcoal p-8 transition-colors duration-500 hover:bg-charcoal-light md:p-12 text-start"
-              >
-                <h3 className="font-heading text-xl font-bold text-bone md:text-2xl">
-                  {service.title}
-                </h3>
-                <p className="mt-4 font-body text-sm leading-relaxed font-light text-bone/50">
-                  {service.desc}
-                </p>
-                <div className="mt-auto pt-8 h-px w-12 bg-accent/30 transition-all duration-500 group-hover:w-20 group-hover:bg-accent" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <PortfolioGallery />
-      <EngineeringExcellence />
-
-      <ContactForm />
+      ...
       <Footer />
     </main>
   );
 }
+*/

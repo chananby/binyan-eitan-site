@@ -76,6 +76,7 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning className={assistant.variable}>
       <head>
+        <meta name="robots" content="noindex, nofollow" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

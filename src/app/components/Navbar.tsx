@@ -11,16 +11,16 @@ import { useLang } from "./LangContext";
 const nav = {
   he: {
     links: [
-      { label: "פרויקטים", href: "/he#portfolio" },
-      { label: "מי אנחנו", href: "/he/about" },
+      // { label: "פרויקטים", href: "/he#portfolio" },
+      // { label: "מי אנחנו", href: "/he/about" },
       { label: "צור קשר", href: "/he#contact" },
     ],
     switchLabel: "EN",
   },
   en: {
     links: [
-      { label: "Portfolio", href: "/en#portfolio" },
-      { label: "The Firm", href: "/en/about" },
+      // { label: "Portfolio", href: "/en#portfolio" },
+      // { label: "The Firm", href: "/en/about" },
       { label: "Inquiry", href: "/en#contact" },
     ],
     switchLabel: "עב",
