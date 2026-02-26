@@ -128,7 +128,6 @@ export default function ContentEditorPage() {
     }
   };
 
-  // Block rendering completely until data is ready
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center font-sans">
@@ -223,7 +222,7 @@ export default function ContentEditorPage() {
                                 value={heVal}
                                 onChange={(e) => handleChange("he", key, e.target.value)}
                                 rows={3}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y transition-shadow bg-white"
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y transition-shadow bg-white"
                                 dir="rtl"
                               />
                             ) : (
@@ -231,7 +230,7 @@ export default function ContentEditorPage() {
                                 type="text"
                                 value={heVal}
                                 onChange={(e) => handleChange("he", key, e.target.value)}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none transition-shadow bg-white"
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none transition-shadow bg-white"
                                 dir="rtl"
                               />
                             )}
@@ -242,14 +241,14 @@ export default function ContentEditorPage() {
                                 value={enVal}
                                 onChange={(e) => handleChange("en", key, e.target.value)}
                                 rows={3}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y transition-shadow bg-white"
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y transition-shadow bg-white"
                               />
                             ) : (
                               <input
                                 type="text"
                                 value={enVal}
                                 onChange={(e) => handleChange("en", key, e.target.value)}
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none transition-shadow bg-white"
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none transition-shadow bg-white"
                               />
                             )}
                           </td>
