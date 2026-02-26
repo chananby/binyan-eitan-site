@@ -6,32 +6,9 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowDownRight, ArrowDownLeft } from "lucide-react";
 import { useRef } from "react";
 import { useLang } from "./LangContext";
+import { useTranslations } from "./TranslationsProvider";
 
 type Lang = "en" | "he";
- 
-/* ── Per-language copy ── */
-const copy = {
-  he: {
-    overline: "בנין איתן",
-    heading: "הנדסה מורכבת,\nביצוע ללא פשרות.",
-    sub: "קבלן רשום ג1 (מס' 41805). 20 שנות דיוק טכני ובטיחות ללא פשרות.",
-    g1Label: "קבלן רשום ג1",
-    cta: "לצפייה בפרויקטים",
-    imageAlt: "גימור פנים יוקרתי",
-    stat1: { value: "20+", label: "שנות ניסיון" },
-    stat2: { value: "150+", label: "פרויקטים שהושלמו" },
-  },
-  en: {
-    overline: "Binyan Eitan",
-    heading: "Complex Engineering,\nUncompromising Execution.",
-    sub: "G1 Registered Contractor (License #41805). 20 years of technical precision and uncompromising safety.",
-    g1Label: "G1 Registered Contractor",
-    cta: "Explore Portfolio",
-    imageAlt: "Luxury interior finish",
-    stat1: { value: "20+", label: "Years of Experience" },
-    stat2: { value: "150+", label: "Projects Completed" },
-  },
-} as const;
  
 /* ── Animation constants ── */
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -67,7 +44,10 @@ const fadeScale = {
    ═════════════════════════════════════════════════════════ */
 export default function Hero() {
   const { lang } = useLang() as { lang: Lang };
-  const { overline, heading, sub, g1Label, cta, imageAlt, stat1, stat2 } = copy[lang];
+  const t = useTranslations("hero", lang);
+  const { overline, heading, sub, g1Label, cta, imageAlt, imageFloatLabel, scroll } = t;
+  const stat1 = { value: t.stat1Value, label: t.stat1Label };
+  const stat2 = { value: t.stat2Value, label: t.stat2Label };
   const Arrow = lang === "he" ? ArrowDownLeft : ArrowDownRight;
  
   const sectionRef = useRef<HTMLElement>(null);
@@ -241,7 +221,7 @@ export default function Hero() {
             transition={{ delay: 1, duration: 0.7, ease }}
           >
             <p className="font-body text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-warm-gray">
-              {lang === "he" ? "גימור פנים יוקרתי" : "Luxury Interior Finish"}
+              {imageFloatLabel}
             </p>
           </motion.div>
         </motion.div>
@@ -256,7 +236,7 @@ export default function Hero() {
           transition={{ delay: 1.4, duration: 0.6 }}
         >
           <span className="font-body text-[0.6rem] font-medium tracking-[0.3em] uppercase text-warm-gray">
-            {lang === "he" ? "גלול" : "Scroll"}
+            {scroll}
           </span>
           <motion.div
             className="h-10 w-px bg-charcoal/15 origin-top"

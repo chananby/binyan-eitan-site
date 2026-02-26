@@ -2,8 +2,10 @@
 
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
+import { useTranslations } from "../TranslationsProvider";
 
 export default function HeHomeClient() {
+  const t = useTranslations("home", "he");
   return (
     <motion.main
       className="min-h-screen flex flex-col items-center justify-center bg-stone-100 text-charcoal p-4"
@@ -18,7 +20,7 @@ export default function HeHomeClient() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        בנין איתן - הנדסה ובנייה | בהובלת מוטי איתן
+        {t.heading}
       </motion.h1>
 
       <motion.p
@@ -27,7 +29,7 @@ export default function HeHomeClient() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.4 }}
       >
-        אנו בונים עבורכם אתר חדש שיציג את הפרויקטים המורכבים והיוקרתיים שלנו. בינתיים, אנחנו כאן לכל שאלה הנדסית או תכנונית.
+        {t.description}
       </motion.p>
 
       <div className="flex flex-col sm:flex-row gap-4">
@@ -37,7 +39,7 @@ export default function HeHomeClient() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          התקשרו אלינו: <span dir="ltr" className="inline-block">+972‑52‑500‑0447</span>
+          {t.callUs} <span dir="ltr" className="inline-block">{t.phone}</span>
         </motion.a>
 
         <motion.a
@@ -46,7 +48,7 @@ export default function HeHomeClient() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <MessageCircle className="ml-2" /> WhatsApp
+          <MessageCircle className="ml-2" /> {t.whatsapp}
         </motion.a>
       </div>
     </motion.main>

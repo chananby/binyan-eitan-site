@@ -5,55 +5,17 @@ import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useLang } from "./LangContext";
+import { useTranslations } from "./TranslationsProvider";
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
 const ITEMS = [
-  {
-    src: "/precision-tiling-with-laser-alignment.jpg",
-    en: "Laser-Aligned Tiling",
-    he: "ריצוף מדויק בלייזר",
-  },
-  {
-    src: "/structural-foundation-reinforcement.jpg",
-    en: "Structural Reinforcement",
-    he: "חיזוק וביסוס יסודות",
-  },
-  {
-    src: "/luxury-electrical-infrastructure-precision.jpg",
-    en: "Advanced Electrical Infrastructure",
-    he: "תשתיות חשמל חכמות",
-  },
-  {
-    src: "/expert-jerusalem-stone-facade-work.jpg",
-    en: "Jerusalem Stone Facade",
-    he: "חיפוי אבן ירושלמית",
-  },
-  {
-    src: "/professional-airless-painting-standards.jpg",
-    en: "Professional Airless Painting",
-    he: "צביעה מקצועית",
-  },
+  { src: "/precision-tiling-with-laser-alignment.jpg" },
+  { src: "/structural-foundation-reinforcement.jpg" },
+  { src: "/luxury-electrical-infrastructure-precision.jpg" },
+  { src: "/expert-jerusalem-stone-facade-work.jpg" },
+  { src: "/professional-airless-painting-standards.jpg" },
 ];
-
-const UI = {
-  en: {
-    overline: "Behind the Work",
-    title: "Technical Excellence",
-    sub: "The fine details that define the difference.",
-    close: "Close",
-    prev: "Previous",
-    next: "Next",
-  },
-  he: {
-    overline: "מאחורי הקלעים",
-    title: "מצוינות בביצוע",
-    sub: "הפרטים הקטנים שמגדירים את ההבדל.",
-    close: "סגור",
-    prev: "קודם",
-    next: "הבא",
-  },
-} as const;
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -62,7 +24,8 @@ const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 export default function EngineeringExcellence() {
   const { lang } = useLang();
   const l = lang as "en" | "he";
-  const ui = UI[l];
+  const ui = useTranslations("engineering", l);
+  const ut = ui as Record<string, string>;
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const total = ITEMS.length;
@@ -116,41 +79,44 @@ export default function EngineeringExcellence() {
 
           {/* 3-column grid of expertise images */}
           <div className="grid grid-cols-2 gap-1 sm:grid-cols-2 lg:grid-cols-3">
-            {ITEMS.map((item, index) => (
-              <motion.button
-                key={item.src}
-                onClick={() => setActiveIndex(index)}
-                className="group relative aspect-square w-full overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: (index % 3) * 0.07, ease }}
-                aria-label={item[l]}
-              >
-                {/* Photo */}
-                <Image
-                  src={item.src}
-                  alt={item[l]}
-                  fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
+            {ITEMS.map((item, index) => {
+              const label = ut[`item_${index}_label`] ?? "";
+              return (
+                <motion.button
+                  key={item.src}
+                  onClick={() => setActiveIndex(index)}
+                  className="group relative aspect-square w-full overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.5, delay: (index % 3) * 0.07, ease }}
+                  aria-label={label}
+                >
+                  {/* Photo */}
+                  <Image
+                    src={item.src}
+                    alt={label}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
 
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-charcoal/0 transition-colors duration-500 group-hover:bg-charcoal/65" />
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-charcoal/0 transition-colors duration-500 group-hover:bg-charcoal/65" />
 
-                {/* Centered label — fades in */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                  <div className="h-px w-8 bg-accent" />
-                  <span className="font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-bone text-center px-4 leading-relaxed">
-                    {item[l]}
-                  </span>
-                </div>
+                  {/* Centered label — fades in */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                    <div className="h-px w-8 bg-accent" />
+                    <span className="font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-bone text-center px-4 leading-relaxed">
+                      {label}
+                    </span>
+                  </div>
 
-                {/* Bottom accent line */}
-                <div className="absolute bottom-0 start-0 h-px w-0 bg-accent transition-all duration-700 ease-[var(--ease-expo)] group-hover:w-full" />
-              </motion.button>
-            ))}
+                  {/* Bottom accent line */}
+                  <div className="absolute bottom-0 start-0 h-px w-0 bg-accent transition-all duration-700 ease-[var(--ease-expo)] group-hover:w-full" />
+                </motion.button>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -213,7 +179,7 @@ export default function EngineeringExcellence() {
                 >
                   <Image
                     src={ITEMS[activeIndex].src}
-                    alt={ITEMS[activeIndex][l]}
+                    alt={ut[`item_${activeIndex}_label`] ?? ""}
                     fill
                     sizes="(max-width: 480px) 80vw, 480px"
                     className="object-contain"
@@ -231,7 +197,7 @@ export default function EngineeringExcellence() {
                   </p>
                 </div>
                 <h3 className="font-body text-base font-semibold tracking-[0.1em] uppercase text-white">
-                  {ITEMS[activeIndex][l]}
+                  {ut[`item_${activeIndex}_label`]}
                 </h3>
               </div>
 

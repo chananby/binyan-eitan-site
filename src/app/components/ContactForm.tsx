@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle } from "lucide-react";
 import { useLang } from "./LangContext";
+import { useTranslations } from "./TranslationsProvider";
 
 type Lang = "en" | "he";
 
@@ -12,40 +13,11 @@ type Lang = "en" | "he";
 // The email must be verified via the confirmation Formspree sends to office@binyaneitan.com.
 const FORMSPREE_URL = "https://formspree.io/office@binyaneitan.com";
 
-const copy = {
-  he: {
-    overline: "יצירת קשר",
-    title: "מתחילים לבנות את החזון שלכם. צרו קשר לייעוץ ראשוני.",
-    name: "שם מלא",
-    phone: "טלפון",
-    email: "אימייל",
-    message: "ספרו לנו על הפרויקט...",
-    submit: "שליחת הודעה",
-    sending: "שולח...",
-    success: "תודה, פנייתך התקבלה",
-    successSub: "ניצור קשר בהקדם.",
-    error: "שגיאה בשליחה. אנא נסו שוב.",
-  },
-  en: {
-    overline: "Get in Touch",
-    title: "Let's discuss your next project.",
-    name: "Full Name",
-    phone: "Phone Number",
-    email: "Email Address",
-    message: "Tell us about your project...",
-    submit: "Send Message",
-    sending: "Sending...",
-    success: "Thank you, your message has been sent",
-    successSub: "We'll be in touch shortly.",
-    error: "Submission failed. Please try again.",
-  },
-} as const;
-
 type Status = "idle" | "sending" | "success" | "error";
 
 export default function ContactForm() {
   const { lang } = useLang() as { lang: Lang };
-  const content = copy[lang];
+  const content = useTranslations("contact", lang);
   const [status, setStatus] = useState<Status>("idle");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

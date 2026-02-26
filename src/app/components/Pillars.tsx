@@ -4,91 +4,23 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Crosshair, Clock, Users } from "lucide-react";
 import { useLang } from "./LangContext";
+import { useTranslations } from "./TranslationsProvider";
 
 type Lang = "en" | "he";
 
-/* ── Pillar data (הטקסטים המדויקים שלנו) ── */
+/* ── Pillar data ── */
 interface Pillar {
   id: string;
   num: string;
   icon: React.ElementType;
-  he: { title: string; summary: string; body: string };
-  en: { title: string; summary: string; body: string };
 }
 
 const pillars: Pillar[] = [
-  {
-    id: "reliability",
-    num: "01",
-    icon: Shield,
-    he: {
-      title: "אמינות",
-      summary: "מחויבות מוחלטת לשקיפות מלאה ולסטנדרטים מחמירים.",
-      body: "מחויבות מוחלטת לשקיפות מלאה ולסטנדרטים מחמירים.",
-    },
-    en: {
-      title: "Reliability",
-      summary: "Our word is an engineering promise.",
-      body: "In construction, trust is the most valuable asset. We operate with full transparency, no 'surprises,' and no excuses, out of total commitment to the result and the client.",
-    },
-  },
-  {
-    id: "precision",
-    num: "02",
-    icon: Crosshair,
-    he: {
-      title: "דיוק הנדסי",
-      summary: "תכנון וביצוע ברזולוציה הגבוהה ביותר, ללא עיגולי פינות.",
-      body: "תכנון וביצוע ברזולוציה הגבוהה ביותר, ללא עיגולי פינות.",
-    },
-    en: {
-      title: "Engineering Precision",
-      summary: "Mastering the smallest details.",
-      body: "We don't cut corners. Every joint, pour, and finish is executed to the highest standard, ensuring meticulous pre-planning and uncompromising on-site execution.",
-    },
-  },
-  {
-    id: "timeline",
-    num: "03",
-    icon: Clock,
-    he: {
-      title: "עמידה בזמנים",
-      summary: "ניהול פרויקטים דינמי ומקצועי המבטיח מסירה בזמן.",
-      body: "ניהול פרויקטים דינמי ומקצועי המבטיח מסירה בזמן, ללא פשרות על האיכות.",
-    },
-    en: {
-      title: "Timeline Integrity",
-      summary: "Time management is a matter of respect.",
-      body: "Your time is valuable. Project management is conducted according to realistic and strict schedules, understanding that punctuality is an inseparable part of quality.",
-    },
-  },
-  {
-    id: "partnership",
-    num: "04",
-    icon: Users,
-    he: {
-      title: "שותפות",
-      summary: "אתכם לאורך כל הדרך.",
-      body: "אנחנו לא רק הקבלן שלכם, אנחנו השותפים שלכם למסע. שקיפות, תקשורת רציפה והקשבה לצרכים שלכם הם הבסיס לכל פרויקט מוצלח.",
-    },
-    en: {
-      title: "Partnership",
-      summary: "With you all the way.",
-      body: "We are not just your contractor; we are your partners on the journey. Transparency, continuous communication, and listening to your needs are the foundation of every successful project.",
-    },
-  },
+  { id: "reliability", num: "01", icon: Shield },
+  { id: "precision", num: "02", icon: Crosshair },
+  { id: "timeline", num: "03", icon: Clock },
+  { id: "partnership", num: "04", icon: Users },
 ];
-
-const copy = {
-  he: {
-    overline: "סטנדרט של מצוינות",
-    heading: "הערכים שמנחים\nכל פרויקט.",
-  },
-  en: {
-    overline: "Standard of Excellence",
-    heading: "The Values That\nGuide Every Project.",
-  },
-} as const;
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -97,7 +29,8 @@ const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
    ═════════════════════════════════════════════════════════ */
 export default function Pillars() {
   const { lang } = useLang() as { lang: Lang };
-  const { overline, heading } = copy[lang];
+  const t = useTranslations("pillars", lang);
+  const tt = t as Record<string, string>;
   const [openId, setOpenId] = useState<string>(pillars[0].id);
 
   return (
@@ -108,12 +41,12 @@ export default function Pillars() {
           <div className="col-span-4 md:col-span-3 md:col-start-1">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
-              {overline}
+              {t.overline}
             </p>
           </div>
           <div className="col-span-4 mt-6 md:col-span-7 md:col-start-4 md:mt-0">
             <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
-              {heading.split("\n").map((line: string, i: number) => (
+              {t.heading.split("\n").map((line: string, i: number) => (
                 <span key={i} className="block">
                   {line}
                 </span>
@@ -126,9 +59,13 @@ export default function Pillars() {
         <div className="grid grid-cols-4 gap-x-4 md:grid-cols-12 md:gap-x-6">
           {/* Accordion items */}
           <div className="col-span-4 md:col-span-10 md:col-start-1">
-            {pillars.map((pillar: Pillar) => {
+            {pillars.map((pillar: Pillar, i: number) => {
               const isOpen = openId === pillar.id;
-              const content = pillar[lang];
+              const content = {
+                title: tt[`pillar_${i}_title`] ?? "",
+                summary: tt[`pillar_${i}_summary`] ?? "",
+                body: tt[`pillar_${i}_body`] ?? "",
+              };
               const Icon = pillar.icon;
 
               return (

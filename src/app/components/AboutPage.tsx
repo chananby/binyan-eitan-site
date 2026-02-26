@@ -5,110 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowDownRight, ArrowDownLeft } from "lucide-react";
 import { useLang } from "./LangContext";
+import { useTranslations } from "./TranslationsProvider";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import ContactForm from "./ContactForm";
-
-// ── Copy ──────────────────────────────────────────────────────────────────────
-
-const copy = {
-  en: {
-    // Hero
-    overline: "The Firm",
-    hero: "Built on Trust\nand Precision.",
-    heroSub: "Two decades of complex, luxury construction across Israel.",
-    g1Label: "G1 Registered Contractor",
-    ctaLabel: "Explore Portfolio",
-    ctaHref: "/en#portfolio",
-
-    // Founder
-    founderOverline: "Our Founder",
-    founderHeading: "A Legacy of\nHands-On Leadership.",
-    founderBody:
-      "For two decades, Binyan Eitan has led complex and prestigious projects across Israel. Moti Eitan, founder and owner, brings over 20 years of experience across key roles: from entrepreneurship and supervision to project management and on-site execution. He is a C1 registered contractor, ensuring every job carries the highest legal and safety guarantees.",
-    founderName: "Moti Eitan",
-    founderRole: "Founder & Owner, Binyan Eitan",
-
-    // Standard
-    standardOverline: "Our Standard",
-    standardQuote:
-      "Trust and service are at the heart of everything we do — rooted in the understanding that a home is built, first and foremost, with people.",
-
-    // Expertise
-    expertiseOverline: "Expertise Highlights",
-    expertiseHeading: "What Sets\nUs Apart.",
-    expertise: [
-      {
-        num: "01",
-        title: "Multidisciplinary\nExperience",
-        desc: "From structural engineering and casting to luxury finishes and systems integration — handled in-house with absolute accountability at every stage.",
-      },
-      {
-        num: "02",
-        title: "Entrepreneurial\nVision",
-        desc: "Each project is approached with an owner's mindset: timeline, budget, and quality are non-negotiable anchors that drive every decision.",
-      },
-      {
-        num: "03",
-        title: "Personal\nGuidance",
-        desc: "Moti Eitan is personally involved at every critical phase, ensuring that every decision reflects the client's vision and our uncompromising standards.",
-      },
-    ],
-
-    // Stats
-    stat1: { value: "20+", label: "Years of Experience" },
-    stat2: { value: "150+", label: "Projects Completed" },
-    stat3: { value: "G1", label: "Registered Contractor" },
-  },
-  he: {
-    // Hero
-    overline: "המשרד",
-    hero: "בונים על בסיס\nשל אמון ודיוק.",
-    heroSub: "שני עשורים של בנייה מורכבת ויוקרתית בישראל.",
-    g1Label: "קבלן רשום ג1",
-    ctaLabel: "לתיק העבודות",
-    ctaHref: "/he#portfolio",
-
-    // Founder
-    founderOverline: "המייסד",
-    founderHeading: "מנהיגות\nמהשטח.",
-    founderBody:
-      'מזה שני עשורים שחברת "בנין איתן" מובילה פרויקטים מורכבים ויוקרתיים בישראל. מוטי איתן, מייסד ובעלים, מביא ניסיון של מעל 20 שנה במגוון תפקידי מפתח: מיזמות, פיקוח, ניהול וביצוע בשטח. הוא קבלן רשום C1, מה שמבטיח אחריות ולגיטימציה מלאות לכל עבודה.',
-    founderName: "מוטי איתן",
-    founderRole: "מייסד ובעלים, בנין איתן",
-
-    // Standard
-    standardOverline: "הסטנדרט שלנו",
-    standardQuote:
-      "האמון והשירות שאנו מעניקים עומדים במרכז העשייה שלנו, מתוך הבנה שבית בונים קודם כל עם אנשים.",
-
-    // Expertise
-    expertiseOverline: "נקודות חוזק",
-    expertiseHeading: "מה\nמייחד אותנו.",
-    expertise: [
-      {
-        num: "01",
-        title: "ניסיון\nרב-תחומי",
-        desc: "מהנדסת קונסטרוקציה ויציקות ועד גימורי יוקרה ואינטגרציה של מערכות — הכל בוצע בפיקוחנו הישיר, עם אחריות מלאה בכל שלב.",
-      },
-      {
-        num: "02",
-        title: "חזון\nיזמי",
-        desc: "כל פרויקט מנוהל עם חשיבה של בעלים: לוח זמנים, תקציב ואיכות הם עמודי תווך שאין מתפשרים עליהם.",
-      },
-      {
-        num: "03",
-        title: "ליווי\nאישי",
-        desc: "מוטי איתן מעורב אישית בכל שלב קריטי, ומוודא שכל החלטה משקפת את החזון של הלקוח ואת הסטנדרטים שלנו.",
-      },
-    ],
-
-    // Stats
-    stat1: { value: "20+", label: "שנות ניסיון" },
-    stat2: { value: "150+", label: "פרויקטים שהושלמו" },
-    stat3: { value: "ג1", label: "קבלן רשום" },
-  },
-} as const;
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -139,8 +39,19 @@ function FadeUp({
 export default function AboutPage() {
   const { lang, dir } = useLang();
   const l = lang as "en" | "he";
-  const c = copy[l];
+  const c = useTranslations("about", l);
+  const ct = c as Record<string, string>;
   const ArrowIcon = lang === "he" ? ArrowDownLeft : ArrowDownRight;
+  const expertise = [
+    { num: "01", title: ct.expertise_0_title, desc: ct.expertise_0_desc },
+    { num: "02", title: ct.expertise_1_title, desc: ct.expertise_1_desc },
+    { num: "03", title: ct.expertise_2_title, desc: ct.expertise_2_desc },
+  ];
+  const stats = [
+    { value: c.stat1Value, label: c.stat1Label },
+    { value: c.stat2Value, label: c.stat2Label },
+    { value: c.stat3Value, label: c.stat3Label },
+  ];
 
   return (
     <main className="relative" dir={dir}>
@@ -166,7 +77,7 @@ export default function AboutPage() {
             {/* G1 Badge — visually distinct */}
             <div className="inline-flex items-center gap-3 border border-accent bg-accent/[0.06] px-5 py-3 self-start">
               <span className="font-heading text-2xl font-bold text-accent leading-none">
-                {lang === "he" ? "ג1" : "G1"}
+                {c.g1BadgeText}
               </span>
               <div className="h-6 w-px bg-accent/30" />
               <span className="font-body text-xs font-semibold tracking-[0.18em] uppercase text-accent/80">
@@ -181,7 +92,7 @@ export default function AboutPage() {
 
           {/* Stats row */}
           <FadeUp delay={0.28} className="mt-10 grid grid-cols-3 max-w-lg gap-px bg-bone/[0.06]">
-            {[c.stat1, c.stat2, c.stat3].map((stat) => (
+            {stats.map((stat) => (
               <div key={stat.label} className="bg-charcoal px-6 py-5">
                 <p className="font-heading text-3xl font-bold text-bone md:text-4xl">{stat.value}</p>
                 <p className="mt-1 font-body text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-bone/35">
@@ -194,7 +105,7 @@ export default function AboutPage() {
           {/* CTA link */}
           <FadeUp delay={0.34} className="mt-14">
             <Link
-              href={c.ctaHref}
+              href={`/${lang}#portfolio`}
               className="group inline-flex items-center gap-3 font-body text-sm font-semibold tracking-wide text-bone/60 hover:text-bone transition-colors duration-300"
             >
               <span className="relative">
@@ -319,7 +230,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-px bg-charcoal/[0.07] md:grid-cols-3">
-            {c.expertise.map((item, i) => (
+            {expertise.map((item, i) => (
               <motion.div
                 key={item.num}
                 className="group bg-bone p-10 transition-colors duration-500 hover:bg-charcoal md:p-14 text-start"

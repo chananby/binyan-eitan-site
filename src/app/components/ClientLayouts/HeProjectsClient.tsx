@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import { ChevronLeft } from "lucide-react";
+import { useTranslations } from "../TranslationsProvider";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -35,27 +36,24 @@ const cardVariants = {
   },
 };
 
-const projects = [
-  {
-    id: 1,
-    title: "פרויקט אמשינוב",
-    category: "אדריכלות מסחרית",
-    description:
-      "פיתוח מסחרי דגל הכולל 100 טון פלדה, גג פתיחה הידראולי והנדסה חדשנית.",
-    features: ["100 טון פלדה", "גג פתיחה הידראולי", "ביצוע 24/7"],
-    image: "gradient-from-[#8D775F] to-[#A89B87]",
-  },
-  {
-    id: 2,
-    title: "וילה יוקרתית",
-    category: "דיור פרטי",
-    description: `אחוזת מגורים בינלאומית המעוצבת באופן מעודן, עם גימורים מיובאים, שילוב חומרים מחו"ל ואלגנטיות אדריכלית חסרת זמן.`,
-    features: ["גימורים מקוסטמים", "מערכות חכמות מתקדמות", "חומרים בנימה"],
-    image: "gradient-from-[#B8A390] to-[#8D775F]",
-  },
+const projectImages = [
+  "gradient-from-[#8D775F] to-[#A89B87]",
+  "gradient-from-[#B8A390] to-[#8D775F]",
 ];
 
 export default function HeProjectsClient() {
+  const t = useTranslations("projects", "he");
+  const tt = t as Record<string, string>;
+
+  const projects = [0, 1].map((i) => ({
+    id: i + 1,
+    title: tt[`proj_${i}_title`] ?? "",
+    category: tt[`proj_${i}_category`] ?? "",
+    description: tt[`proj_${i}_description`] ?? "",
+    features: [0, 1, 2].map((f) => tt[`proj_${i}_feature_${f}`] ?? "").filter(Boolean),
+    image: projectImages[i],
+  }));
+
   return (
     <main className="relative" dir="rtl">
       <Navbar />
@@ -75,13 +73,13 @@ export default function HeProjectsClient() {
             className="text-5xl md:text-6xl font-light mb-4"
             style={{ color: "#2D2926" }}
           >
-            הפרויקטים שלנו
+            {t.pageTitle}
           </h1>
           <p
             className="text-lg md:text-xl font-light mb-8"
             style={{ color: "#2D2926" }}
           >
-            הנדסה מעבר לפני השטח באמצעות ראייה אדריכלית
+            {t.subtitle}
           </p>
           <Link
             href="/he"
@@ -91,7 +89,7 @@ export default function HeProjectsClient() {
               color: "#F3F2EE",
             }}
           >
-            חזרה לדף הבית
+            {t.backToHome}
             <ChevronLeft size={18} />
           </Link>
         </motion.div>
@@ -156,7 +154,7 @@ export default function HeProjectsClient() {
                       className="text-sm font-semibold uppercase tracking-widest"
                       style={{ color: "#8D775F" }}
                     >
-                      תכונות עיקריות
+                      {t.featuresLabel}
                     </p>
                     <ul className="space-y-2">
                       {project.features.map((feature, idx) => (
@@ -192,7 +190,7 @@ export default function HeProjectsClient() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    קרא עוד
+                    {t.learnMore}
                   </motion.button>
                 </motion.div>
               </div>
@@ -219,13 +217,13 @@ export default function HeProjectsClient() {
             className="text-4xl font-light mb-6"
             style={{ color: "#2D2926" }}
           >
-            מוכנים לדיון בחזון שלכם?
+            {t.ctaHeading}
           </h2>
           <p
             className="text-lg font-light mb-8"
             style={{ color: "#2D2926" }}
           >
-            בואו נשתפ פעולה בפרויקט האדריכלי הבא שלכם
+            {t.ctaSub}
           </p>
           <Link
             href="/he#contact"
@@ -235,7 +233,7 @@ export default function HeProjectsClient() {
               color: "#F3F2EE",
             }}
           >
-            התחל פרויקט
+            {t.ctaButton}
             <ChevronLeft size={18} />
           </Link>
         </motion.div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useLang } from "./LangContext";
+import { useTranslations } from "./TranslationsProvider";
 
 type Lang = "en" | "he";
 
@@ -10,57 +11,6 @@ const WHATSAPP_HE =
   "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%9E%D7%95%D7%98%D7%99%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%94%D7%99%D7%99%20%D7%93%D7%A8%D7%9A%20%D7%94%D7%90%D7%AA%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%94%D7%AA%D7%99%D7%99%D7%A2%D7%A5%20%D7%9C%D7%92%D7%91%D7%99%20%D7%A4%D7%A8%D7%95%D7%99%D7%A7%D7%98...";
 const WHATSAPP_EN =
   "https://wa.me/972585008447?text=Hi%20Moti%2C%20I%20reached%20out%20via%20the%20website%20and%20would%20like%20to%20consult%20regarding%20a%20project...";
-
-const copy = {
-  he: {
-    desc: "הנדסה מעבר לפני השטח. ביצוע ללא פשרות בסטנדרט בנייה יוקרתית.",
-    g1Label: "קבלן רשום ג1",
-    contractorName: "בניין איתן בע\"מ",
-    licenseNumber: "41805",
-    classification: "ג' 1 (C1) - ענף 100",
-    address: "ירושלים / לוד, ישראל",
-    contactHeading: "צור קשר",
-    nav: "ניווט",
-    portfolio: "פרויקטים",
-    about: "מי אנחנו",
-    rights: "כל הזכויות שמורות לבניין איתן.",
-    email: "office@binyaneitan.com",
-    officePhone: "02-5000447",
-    officePhoneTel: "+97225000447",
-    mobile: "058-5008447",
-    mobileTel: "+972585008447",
-    whatsapp: WHATSAPP_HE,
-    whatsappLabel: "WhatsApp",
-    officeLabel: "משרד",
-    inquiry: "צור קשר",
-    knowledge: "ידע מקצועי",
-    expertiseArticle: "אתגרים הנדסיים",
-  },
-  en: {
-    desc: "Engineering beyond the surface. Uncompromising execution in luxury construction.",
-    g1Label: "G1 Registered Contractor",
-    contractorName: "Binyan Eitan Ltd.",
-    licenseNumber: "41805",
-    classification: "G1 (C1) - Branch 100",
-    address: "Jerusalem / Lod, Israel",
-    contactHeading: "Contact",
-    nav: "Navigation",
-    portfolio: "Portfolio",
-    about: "The Firm",
-    rights: "All rights reserved to Binyan Eitan.",
-    email: "office@binyaneitan.com",
-    officePhone: "02-5000447",
-    officePhoneTel: "+97225000447",
-    mobile: "058-5008447",
-    mobileTel: "+972585008447",
-    whatsapp: WHATSAPP_EN,
-    whatsappLabel: "WhatsApp",
-    officeLabel: "Office",
-    inquiry: "Inquiry",
-    knowledge: "Knowledge",
-    expertiseArticle: "Engineering Challenges",
-  },
-} as const;
 
 // Minimal WhatsApp SVG icon
 function WhatsAppIcon() {
@@ -79,7 +29,8 @@ function WhatsAppIcon() {
 
 export default function Footer() {
   const { lang } = useLang() as { lang: Lang };
-  const content = copy[lang];
+  const content = useTranslations("footer", lang);
+  const whatsappUrl = lang === "he" ? WHATSAPP_HE : WHATSAPP_EN;
 
   return (
     <footer className="bg-charcoal text-bone py-10 md:py-14 border-t border-charcoal-light">
@@ -101,7 +52,7 @@ export default function Footer() {
               </span>
               <div className="mt-2 text-[0.72rem] text-bone/70">
                 <div>{content.contractorName}</div>
-                <div>{lang === "he" ? `מס' רישיון: ${content.licenseNumber}` : `License #: ${content.licenseNumber}`}</div>
+                <div>{content.licensePrefix} {content.licenseNumber}</div>
                 <div className="text-[0.65rem] text-bone/50">{content.classification}</div>
               </div>
             </div>
@@ -125,7 +76,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href={content.whatsapp}
+                  href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-accent transition-colors inline-flex items-center gap-2"
@@ -170,24 +121,22 @@ export default function Footer() {
           {/* Legal nav */}
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             <Link href={`/${lang}/legal`} className="font-body text-[0.6rem] tracking-[0.15em] uppercase text-bone/35 hover:text-accent transition-colors">
-              {lang === "he" ? "תנאי שימוש" : "Terms of Use"}
+              {content.termsOfUse}
             </Link>
             <span className="text-bone/15" aria-hidden="true">·</span>
             <Link href={`/${lang}/legal`} className="font-body text-[0.6rem] tracking-[0.15em] uppercase text-bone/35 hover:text-accent transition-colors">
-              {lang === "he" ? "מדיניות פרטיות" : "Privacy Policy"}
+              {content.privacyPolicy}
             </Link>
             <span className="text-bone/15" aria-hidden="true">·</span>
             <Link href={`/${lang}/legal`} className="font-body text-[0.6rem] tracking-[0.15em] uppercase text-bone/35 hover:text-accent transition-colors">
-              {lang === "he" ? "הצהרת נגישות" : "Accessibility Statement"}
+              {content.accessibility}
             </Link>
           </div>
           {/* Copyright + disclaimer */}
           <p className="font-body text-[0.6rem] tracking-wider text-bone/25">
             &copy; {new Date().getFullYear()} {content.rights}
             {" · "}
-            {lang === "he"
-              ? "כל התמונות באתר הן לצרכי המחשה בלבד."
-              : "All images are for illustration purposes only."}
+            {content.disclaimer}
           </p>
         </div>
       </div>

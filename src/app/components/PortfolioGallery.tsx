@@ -5,14 +5,13 @@ import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useLang } from "./LangContext";
+import { useTranslations } from "./TranslationsProvider";
 
 // ── Project data ──────────────────────────────────────────────────────────────
 
 const PROJECTS = [
   {
     num: "01",
-    en: { title: "Amshinov Residence", category: "Luxury Construction" },
-    he: { title: "מגורי אמשינוב", category: "בניית יוקרה" },
     cover: "/amshinov-1.jpg",
     series: [
       "/amshinov-1.jpg",
@@ -43,8 +42,6 @@ const PROJECTS = [
   },
   {
     num: "02",
-    en: { title: "Bayit Vegan Estate", category: "Premium Renovation" },
-    he: { title: "אחוזת בית וגן", category: "שיפוץ פרימיום" },
     cover: "/bayit-vegan.jpg",
     series: [
       "/bayit-vegan-1.jpg",
@@ -70,8 +67,6 @@ const PROJECTS = [
   },
   {
     num: "03",
-    en: { title: "Ohel Avshalom Project", category: "Structural Engineering" },
-    he: { title: "פרויקט אוהל אבשלום", category: "הנדסת קונסטרוקציה" },
     cover: "/ohel-avshalom.jpg",
     series: [
       "/ohel-avshalom-1.jpg",
@@ -93,8 +88,6 @@ const PROJECTS = [
   },
   {
     num: "04",
-    en: { title: "Ramat Eshkol Penthouse", category: "Luxury Construction" },
-    he: { title: "פנטהאוז רמת אשכול", category: "בניית יוקרה" },
     cover: "/ramat-eshkol.jpg",
     series: [
       "/ramat-eshkol-penthouse-1.jpg",
@@ -110,11 +103,6 @@ const PROJECTS = [
   },
 ];
 
-const UI = {
-  en: { overline: "Selected Work", title: "Portfolio", close: "Close", prev: "Previous", next: "Next" },
-  he: { overline: "", title: "עבודות נבחרות", close: "סגור", prev: "קודם", next: "הבא" },
-} as const;
-
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -122,7 +110,8 @@ const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 export default function PortfolioGallery() {
   const { lang } = useLang();
   const l = lang as "en" | "he";
-  const ui = UI[l];
+  const ui = useTranslations("portfolio", l);
+  const ut = ui as Record<string, string>;
 
   const [activeProject, setActiveProject] = useState<number | null>(null);
   const [activeImage, setActiveImage] = useState(0);
@@ -189,7 +178,8 @@ export default function PortfolioGallery() {
           {/* 3-column grid */}
           <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
             {PROJECTS.map((proj, index) => {
-              const { title, category } = proj[l];
+              const title = ut[`proj_${index}_title`] ?? "";
+              const category = ut[`proj_${index}_category`] ?? "";
               return (
                 <motion.button
                   key={proj.num}
@@ -298,7 +288,7 @@ export default function PortfolioGallery() {
                 >
                   <Image
                     src={series[activeImage]}
-                    alt={`${project[l].title} — ${activeImage + 1}`}
+                    alt={`${ut[`proj_${activeProject}_title`]} — ${activeImage + 1}`}
                     fill
                     sizes="(max-width: 620px) 88vw, 620px"
                     className="object-contain"
@@ -310,10 +300,10 @@ export default function PortfolioGallery() {
               {/* Caption */}
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-6 py-8 text-start pointer-events-none z-10">
                 <p className="font-body text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-accent mb-2">
-                  {project[l].category}
+                  {ut[`proj_${activeProject}_category`]}
                 </p>
                 <h3 className="font-heading text-xl md:text-2xl font-bold text-white">
-                  {project[l].title}
+                  {ut[`proj_${activeProject}_title`]}
                 </h3>
               </div>
 

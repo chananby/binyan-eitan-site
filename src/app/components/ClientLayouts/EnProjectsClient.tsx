@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import { ChevronRight } from "lucide-react";
+import { useTranslations } from "../TranslationsProvider";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -35,28 +36,24 @@ const cardVariants = {
   },
 };
 
-const projects = [
-  {
-    id: 1,
-    title: "Amshinov Project",
-    category: "Commercial Architecture",
-    description:
-      "A landmark commercial development featuring 100 tons of steel, a hydraulic opening roof, and cutting-edge engineering.",
-    features: ["100 tons of steel", "Hydraulic opening roof", "24/7 execution monitoring"],
-    image: "gradient-from-[#8D775F] to-[#A89B87]",
-  },
-  {
-    id: 2,
-    title: "Luxury Villa",
-    category: "Residential",
-    description:
-      "A premium international residential estate showcasing sophisticated design, master craftsmanship, material integration from abroad, and timeless architectural elegance.",
-    features: ["Custom finishes", "Advanced smart systems", "Sustainable materials"],
-    image: "gradient-from-[#B8A390] to-[#8D775F]",
-  },
+const projectImages = [
+  "gradient-from-[#8D775F] to-[#A89B87]",
+  "gradient-from-[#B8A390] to-[#8D775F]",
 ];
 
 export default function EnProjectsClient() {
+  const t = useTranslations("projects", "en");
+  const tt = t as Record<string, string>;
+
+  const projects = [0, 1].map((i) => ({
+    id: i + 1,
+    title: tt[`proj_${i}_title`] ?? "",
+    category: tt[`proj_${i}_category`] ?? "",
+    description: tt[`proj_${i}_description`] ?? "",
+    features: [0, 1, 2].map((f) => tt[`proj_${i}_feature_${f}`] ?? "").filter(Boolean),
+    image: projectImages[i],
+  }));
+
   return (
     <main className="relative" dir="ltr">
       <Navbar />
@@ -76,13 +73,13 @@ export default function EnProjectsClient() {
             className="text-5xl md:text-6xl font-light mb-4"
             style={{ color: "#2D2926" }}
           >
-            Our Projects
+            {t.pageTitle}
           </h1>
           <p
             className="text-lg md:text-xl font-light mb-8"
             style={{ color: "#2D2926" }}
           >
-            Engineering excellence through architectural vision
+            {t.subtitle}
           </p>
           <Link
             href="/en"
@@ -92,7 +89,7 @@ export default function EnProjectsClient() {
               color: "#F3F2EE",
             }}
           >
-            Back to Home
+            {t.backToHome}
             <ChevronRight size={18} />
           </Link>
         </motion.div>
@@ -157,7 +154,7 @@ export default function EnProjectsClient() {
                       className="text-sm font-semibold uppercase tracking-widest"
                       style={{ color: "#8D775F" }}
                     >
-                      Key Features
+                      {t.featuresLabel}
                     </p>
                     <ul className="space-y-2">
                       {project.features.map((feature, idx) => (
@@ -193,7 +190,7 @@ export default function EnProjectsClient() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    Learn More
+                    {t.learnMore}
                   </motion.button>
                 </motion.div>
               </div>
@@ -220,13 +217,13 @@ export default function EnProjectsClient() {
             className="text-4xl font-light mb-6"
             style={{ color: "#2D2926" }}
           >
-            Ready to Discuss Your Vision?
+            {t.ctaHeading}
           </h2>
           <p
             className="text-lg font-light mb-8"
             style={{ color: "#2D2926" }}
           >
-            Let's collaborate on your next architectural masterpiece
+            {t.ctaSub}
           </p>
           <Link
             href="/en#contact"
@@ -236,7 +233,7 @@ export default function EnProjectsClient() {
               color: "#F3F2EE",
             }}
           >
-            Start a Project
+            {t.ctaButton}
             <ChevronRight size={18} />
           </Link>
         </motion.div>

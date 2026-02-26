@@ -7,35 +7,15 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Globe } from "lucide-react";
 import { useLang } from "./LangContext";
+import { useTranslations } from "./TranslationsProvider";
 
 type Lang = "en" | "he";
- 
-const nav = {
-  he: {
-    links: [
-      // { label: "פרויקטים", href: "/he#portfolio" },
-      // { label: "מי אנחנו", href: "/he/about" },
-      // { label: "מאחורי הקירות", href: "/he/behind-the-walls" },
-      // { label: "בנייה מרחוק", href: "/he/building-from-afar" },
-      // { label: "שאלות נפוצות", href: "/he/faq" },
-      { label: "צור קשר", href: "/he#contact" },
-    ],
-    switchLabel: "EN",
-  },
-  en: {
-    links: [
-      // { label: "Portfolio", href: "/en#portfolio" },
-      // { label: "The Firm", href: "/en/about" },      // { label: "Behind the Walls", href: "/en/behind-the-walls" },
-      // { label: "Building from Afar", href: "/en/building-from-afar" },
-      // { label: "FAQ", href: "/en/faq" },      { label: "Inquiry", href: "/en#contact" },
-    ],
-    switchLabel: "עב",
-  },
-} as const;
- 
+
 export default function Navbar() {
   const { lang } = useLang() as { lang: Lang };
-  const { links, switchLabel } = nav[lang];
+  const t = useTranslations("nav", lang);
+  const links = [{ label: t.inquiry, href: `/${lang}#contact` }];
+  const switchLabel = t.switchLabel;
   const pathname = usePathname();
   // Swap the language prefix in the current path (e.g. /en/expertise → /he/expertise)
   const otherLang = lang === "he" ? "en" : "he";
