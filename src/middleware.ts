@@ -4,6 +4,11 @@ import type { NextRequest } from "next/server";
 export function middleware(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
 
+  // Never apply middleware to API routes or internal routes
+  if (pathname.startsWith("/api") || pathname.startsWith("/internal")) {
+    return NextResponse.next();
+  }
+
   // preview mode bypass via query or cookie
   const previewQuery = searchParams.get("preview") === "true";
   const previewCookie = req.cookies.get("preview_mode")?.value === "true" ||
@@ -39,5 +44,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/en/:path*", "/he/:path*"],
+  matcher: ["/en/:path*", "/he/:path*", "/api/:path*", "/internal/:path*"],
 };

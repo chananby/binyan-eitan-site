@@ -7,12 +7,21 @@ const KV_KEY = "site_translations";
 
 export async function GET() {
   try {
+    console.log(`[translations/GET] Fetching from KV key: "${KV_KEY}"`);
     const stored = await kv.get<typeof defaultTranslations>(KV_KEY);
-    if (!stored) return NextResponse.json(defaultTranslations);
+    
+    if (!stored) {
+      console.log("[translations/GET] KV is empty, returning defaults from translations.json");
+      return NextResponse.json(defaultTranslations);
+    }
+    
+    console.log("[translations/GET] Found data in KV, merging with defaults");
     // Deep-merge: KV values override defaults, missing keys fall back to defaults
     const merged = deepMerge(defaultTranslations, stored);
+    console.log("[translations/GET] Merged data has", Object.keys(merged).length, "sections");
     return NextResponse.json(merged);
-  } catch {
+  } catch (err) {
+    console.error("[translations/GET] Error:", err);
     return NextResponse.json(defaultTranslations);
   }
 }
