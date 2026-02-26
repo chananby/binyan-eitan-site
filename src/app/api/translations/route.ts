@@ -16,9 +16,14 @@ export async function GET() {
     }
     
     console.log("[translations/GET] Found data in KV, merging with defaults");
-    // Deep-merge: KV values override defaults, missing keys fall back to defaults
+    console.log("[translations/GET] Stored data sections:", Object.keys(stored).length);
+    
+    // Deep-merge: KV values override defaults, but empty strings fallback to defaults
     const merged = deepMerge(defaultTranslations, stored);
+    
     console.log("[translations/GET] Merged data has", Object.keys(merged).length, "sections");
+    console.log("[translations/GET] ✓ Returning merged data (empty KV values were replaced with defaults)");
+    
     return NextResponse.json(merged);
   } catch (err) {
     console.error("[translations/GET] Error:", err);
@@ -48,21 +53,32 @@ export async function PUT(req: Request) {
 
 function deepMerge(base: Record<string, any>, override: Record<string, any>): Record<string, any> {
   const result: Record<string, any> = { ...base };
+  
   for (const key of Object.keys(override)) {
-    // Skip empty strings - they should not overwrite defaults
-    if (override[key] === "") continue;
+    const overrideValue = override[key];
+    const baseValue = base[key];
     
+    // Skip empty strings, null, or undefined - they should not overwrite defaults
+    if (overrideValue === "" || overrideValue === null || overrideValue === undefined) {
+      console.log(`[deepMerge] Skipping empty/null value for key "${key}", keeping default`);
+      continue;
+    }
+    
+    // If both are objects (and not arrays), recurse into them
     if (
-      override[key] !== null &&
-      typeof override[key] === "object" &&
-      !Array.isArray(override[key]) &&
-      typeof base[key] === "object" &&
-      base[key] !== null
+      overrideValue !== null &&
+      typeof overrideValue === "object" &&
+      !Array.isArray(overrideValue) &&
+      baseValue !== null &&
+      typeof baseValue === "object" &&
+      !Array.isArray(baseValue)
     ) {
-      result[key] = deepMerge(base[key], override[key]);
+      result[key] = deepMerge(baseValue, overrideValue);
     } else {
-      result[key] = override[key];
+      // For non-object values, use the override (we already filtered out empty/null above)
+      result[key] = overrideValue;
     }
   }
+  
   return result;
 }
