@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Whatsapp } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -52,7 +52,7 @@ export default function MaintenanceHebrew() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Whatsapp className="ml-2" /> WhatsApp
+          <MessageCircle className="ml-2" /> WhatsApp
         </motion.a>
       </div>
     </motion.main>
