@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname, searchParams } = req.nextUrl;
+
+  // preview mode bypass
+  if (searchParams.get("preview") === "true") {
+    return NextResponse.next();
+  }
 
   // redirect specific sections back to their respective home
   const redirectPattern = /^\/(en|he)\/(projects|about|expertise)(\/|$)/;
