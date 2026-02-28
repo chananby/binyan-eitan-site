@@ -1,20 +1,47 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
-import { useEffect } from "react";
 import { useTranslations } from "../TranslationsProvider";
+import Navbar from "../Navbar";
+import Hero from "../Hero";
+import Pillars from "../Pillars";
+import PortfolioGallery from "../PortfolioGallery";
+import EngineeringExcellence from "../EngineeringExcellence";
+import ContactForm from "../ContactForm";
+import Footer from "../Footer";
 
 export default function HeHomeClient({ isPreview }: { isPreview?: boolean }) {
   const t = useTranslations("home", "he");
-  
+
+  // Lazy initializer: check sessionStorage synchronously on first render
+  // (safe because this component is loaded with ssr:false)
+  const [showPreview] = useState<boolean>(
+    () => !!isPreview || (typeof window !== "undefined" && sessionStorage.getItem("preview_mode") === "true")
+  );
+
   useEffect(() => {
-    // Store preview mode in sessionStorage for consistency across navigation
     if (isPreview) {
       sessionStorage.setItem("preview_mode", "true");
     }
   }, [isPreview]);
-  
+
+  if (showPreview) {
+    return (
+      <main className="relative bg-bone" dir="rtl">
+        <Navbar />
+        <Hero />
+        <Pillars />
+        <PortfolioGallery />
+        <EngineeringExcellence />
+        <ContactForm />
+        <Footer />
+      </main>
+    );
+  }
+
+  // ── Maintenance screen ─────────────────────────────────────────────────────
   return (
     <motion.main
       className="min-h-screen flex flex-col items-center justify-center bg-stone-100 text-charcoal p-4 pt-20 sm:pt-4"
