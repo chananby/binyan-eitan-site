@@ -10,14 +10,6 @@ export const metadata: Metadata = {
 
 const HeHomeClient = dynamic(() => import("../components/ClientLayouts/HeHomeClient"), { ssr: false });
 
-interface SearchParams {
-  preview?: string;
+export default function MaintenanceHebrew() {
+  return <HeHomeClient />;
 }
-
-export default function MaintenanceHebrew({ searchParams }: { searchParams: SearchParams }) {
-  const isPreview = searchParams?.preview === "true";
-  
-  return <HeHomeClient isPreview={isPreview} />;
-}
-
-

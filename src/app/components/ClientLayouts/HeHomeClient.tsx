@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 import { useTranslations } from "../TranslationsProvider";
@@ -12,20 +12,14 @@ import EngineeringExcellence from "../EngineeringExcellence";
 import ContactForm from "../ContactForm";
 import Footer from "../Footer";
 
-export default function HeHomeClient({ isPreview }: { isPreview?: boolean }) {
+export default function HeHomeClient() {
   const t = useTranslations("home", "he");
 
-  // Lazy initializer: check sessionStorage synchronously on first render
+  // Lazy initializer: read sessionStorage synchronously on first render
   // (safe because this component is loaded with ssr:false)
   const [showPreview] = useState<boolean>(
-    () => !!isPreview || (typeof window !== "undefined" && sessionStorage.getItem("preview_mode") === "true")
+    () => typeof window !== "undefined" && sessionStorage.getItem("preview_mode") === "true"
   );
-
-  useEffect(() => {
-    if (isPreview) {
-      sessionStorage.setItem("preview_mode", "true");
-    }
-  }, [isPreview]);
 
   if (showPreview) {
     return (
