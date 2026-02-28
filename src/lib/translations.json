@@ -275,11 +275,9 @@
       "close": "Close",
       "prev": "Previous",
       "next": "Next",
-      "item_0_label": "Laser-Aligned Tiling",
-      "item_1_label": "Structural Reinforcement",
-      "item_2_label": "Advanced Electrical Infrastructure",
-      "item_3_label": "Jerusalem Stone Facade",
-      "item_4_label": "Professional Airless Painting"
+      "item_0_label": "Yard Paving Preparation",
+      "item_1_label": "Jerusalem Stone Facade",
+      "item_2_label": "Professional Airless Painting"
     },
     "he": {
       "overline": "מאחורי הקלעים",
@@ -288,13 +286,29 @@
       "close": "סגור",
       "prev": "קודם",
       "next": "הבא",
-      "item_0_label": "ריצוף מדויק בלייזר",
-      "item_1_label": "חיזוק וביסוס יסודות",
-      "item_2_label": "תשתיות חשמל חכמות",
-      "item_3_label": "חיפוי אבן ירושלמית",
-      "item_4_label": "צביעה מקצועית"
+      "item_0_label": "הכנה לריצוף חצר",
+      "item_1_label": "חיפוי אבן ירושלמית",
+      "item_2_label": "צביעה מקצועית"
     }
   },
+  "articles": [
+    {
+      "id": "1",
+      "slug": "g1-contractor-certification",
+      "title_en": "Why G1 Certification Matters",
+      "title_he": "למה סיווג ג1 חשוב",
+      "content_en": "Not all contractors are created equal. A G1 (Gimmel-1) registration is the highest classification issued by the Israeli government for general construction contractors. It legally authorizes the contractor to handle complex structural engineering, high-value projects, and multidisciplinary builds.\n\nChoosing a G1 registered contractor means your project is backed by verified engineering capacity, mandatory insurance coverage, and full legal accountability — from foundation to final finishes.\n\nBinyan Eitan holds G1 license #41805, providing clients with the peace of mind that comes from working with Israel's most qualified construction professionals.",
+      "content_he": "לא כל קבלן שווה. סיווג ג1 הוא הסיווג הגבוה ביותר שניתן על ידי ממשלת ישראל לקבלני בנייה כלליים. הוא מעניק אישור חוקי לביצוע פרויקטים הנדסיים מורכבים, בנייה רב-תחומית ועבודות בהיקפים גבוהים.\n\nבחירה בקבלן ג1 רשום משמעה שהפרויקט שלכם מגובה ביכולת הנדסית מאומתת, כיסוי ביטוחי חובה ואחריות משפטית מלאה — מהיסוד ועד הגמר.\n\nבנין איתן מחזיקה בסיווג ג1 מס' 41805, המעניק ללקוחות שקט נפשי מלא בעבודה עם בעלי המקצוע המוסמכים ביותר בישראל."
+    },
+    {
+      "id": "2",
+      "slug": "building-from-abroad",
+      "title_en": "Building Your Israeli Property From Abroad",
+      "title_he": "ניהול פרויקט בנייה בישראל מרחוק",
+      "content_en": "For many international residents — especially from the US, UK, and France — building or renovating a property in Israel is a long-held dream. At Binyan Eitan, we specialize in making that dream a seamless reality.\n\nOur remote management process is built around three pillars: real-time reporting with photo documentation, digital change-order approvals, and consistent on-site supervision by Moti Eitan personally.\n\nWhether you're directing the project from New York or Miami, you'll always know exactly what's happening at your project — without the need to be physically present.",
+      "content_he": "עבור רבים מהתפוצה — במיוחד מארצות הברית, בריטניה וצרפת — בנייה או שיפוץ נכס בישראל הוא חלום שנושאים שנים. ב\"בנין איתן\", אנחנו מתמחים בהפיכת החלום הזה למציאות חלקה.\n\nתהליך הניהול מרחוק שלנו בנוי סביב שלושה עמודי תווך: דיווח בזמן אמת עם תיעוד תמונות, אישור שינויים דיגיטלי, ופיקוח שטח עקבי בהובלת מוטי איתן אישית.\n\nבין אם אתם בניו יורק או מיאמי — תמיד תדעו בדיוק מה קורה בפרויקט שלכם, בלי להיות נוכחים פיזית."
+    }
+  ],
   "projects": {
     "en": {
       "pageTitle": "Our Projects",
