@@ -109,20 +109,28 @@ export default function ContentEditorPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(translations),
       });
-      
+
       if (res.ok) {
         setDirty(false);
-        showToast("Saved successfully! Refreshing site...", true);
+        showToast("נשמר בהצלחה! האתר מתעדכן...", true);
+
+        // Signal all TranslationsProvider instances (same tab + other tabs) to refetch immediately
+        const channel = new BroadcastChannel("translations-sync");
+        channel.postMessage("updated");
+        channel.close();
+
         try {
           await fetch("/api/revalidate", { method: "POST" });
         } catch {
           // Ignore revalidation errors
         }
       } else {
-        showToast("Save failed. Try again.", false);
+        const errorData = await res.json().catch(() => ({}));
+        const detail = errorData.error ?? "שגיאת שרת";
+        showToast(`שמירה נכשלה: ${detail}`, false);
       }
     } catch {
-      showToast("Network error. Try again.", false);
+      showToast("שגיאת רשת. נסה שוב.", false);
     } finally {
       setSaving(false);
     }

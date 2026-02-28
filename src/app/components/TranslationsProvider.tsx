@@ -29,21 +29,24 @@ export function TranslationsProvider({ children }: { children: React.ReactNode }
 
     loadTranslations();
 
-    // Refetch translations every 30 seconds to ensure we have the latest content
+    // Periodic refetch as a safety net
     const interval = setInterval(loadTranslations, 30000);
-    
-    // Also refetch when page becomes visible (user returns from another tab)
+
+    // Refetch when tab regains focus
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        loadTranslations();
-      }
+      if (document.visibilityState === "visible") loadTranslations();
     };
-    
     document.addEventListener("visibilitychange", handleVisibility);
+
+    // Instant refetch when the content editor broadcasts a successful save
+    // Works both within the same tab and across tabs on the same origin
+    const channel = new BroadcastChannel("translations-sync");
+    channel.addEventListener("message", loadTranslations);
 
     return () => {
       clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibility);
+      channel.close();
     };
   }, []);
 
