@@ -78,7 +78,7 @@ export default function EngineeringExcellence() {
           </div>
 
           {/* 3-column grid of expertise images */}
-          <div className="grid grid-cols-2 gap-1 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
             {ITEMS.map((item, index) => {
               const label = ut[`item_${index}_label`] ?? "";
               return (
@@ -101,11 +101,11 @@ export default function EngineeringExcellence() {
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
 
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-charcoal/0 transition-colors duration-500 group-hover:bg-charcoal/65" />
+                  {/* Hover overlay — always dimmed on mobile, fades in on hover for md+ */}
+                  <div className="absolute inset-0 bg-charcoal/45 transition-colors duration-500 md:bg-charcoal/0 md:group-hover:bg-charcoal/65" />
 
-                  {/* Centered label — fades in */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                  {/* Centered label — always visible on mobile, hover-only on md+ */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 opacity-100 transition-opacity duration-500 md:opacity-0 md:group-hover:opacity-100">
                     <div className="h-px w-8 bg-accent" />
                     <span className="font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-bone text-center px-4 leading-relaxed">
                       {label}
@@ -213,7 +213,7 @@ export default function EngineeringExcellence() {
             {/* Close */}
             <button
               onClick={closeLightbox}
-              className="absolute top-5 end-5 grid size-11 place-items-center border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition-colors duration-300"
+              className="absolute top-5 end-5 grid size-12 place-items-center border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition-colors duration-300"
               aria-label={ui.close}
             >
               <X size={20} />

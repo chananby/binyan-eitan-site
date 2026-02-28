@@ -34,7 +34,7 @@ export default function ProcessSection() {
   const dir = lang === "he" ? "rtl" : "ltr";
 
   return (
-    <section className="bg-bone py-24" dir={dir}>
+    <section className="bg-bone py-14 md:py-24" dir={dir}>
       <div className="mx-auto max-w-[1440px] px-8">
         <motion.p
           className="overline-label mb-4"

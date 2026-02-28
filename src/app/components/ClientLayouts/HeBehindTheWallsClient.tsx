@@ -8,9 +8,9 @@ export default function HeBehindTheWallsClient() {
   return (
     <main className="relative bg-bone" dir="rtl">
       <Navbar />
-      <section className="py-24 px-8 max-w-3xl mx-auto">
+      <section className="py-14 md:py-24 px-8 max-w-3xl mx-auto">
         <motion.h1
-          className="font-heading text-4xl font-bold text-charcoal mb-8"
+          className="font-heading text-3xl sm:text-4xl font-bold text-charcoal mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}

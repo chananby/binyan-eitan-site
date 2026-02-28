@@ -17,14 +17,14 @@ export default function EnHomeClient({ isPreview }: { isPreview?: boolean }) {
   
   return (
     <motion.main
-      className="min-h-screen flex flex-col items-center justify-center bg-stone-100 text-charcoal p-4"
+      className="min-h-screen flex flex-col items-center justify-center bg-stone-100 text-charcoal p-4 pt-20 sm:pt-4"
       dir="ltr"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
       <motion.h1
-        className="text-4xl font-heading font-bold mb-4 text-center"
+        className="text-3xl sm:text-4xl font-heading font-bold mb-4 text-center"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
@@ -44,7 +44,7 @@ export default function EnHomeClient({ isPreview }: { isPreview?: boolean }) {
       <div className="flex flex-col sm:flex-row gap-4">
         <motion.a
           href="tel:+972525000447"
-          className="inline-flex items-center justify-center px-6 py-3 bg-[#8D775F] text-white rounded-lg font-semibold"
+          className="inline-flex w-full sm:w-auto items-center justify-center px-6 py-3 bg-accent text-bone rounded-lg font-semibold"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -53,7 +53,7 @@ export default function EnHomeClient({ isPreview }: { isPreview?: boolean }) {
 
         <motion.a
           href="https://wa.me/972585008447"
-          className="inline-flex items-center justify-center px-6 py-3 bg-[#8D775F] text-white rounded-lg font-semibold"
+          className="inline-flex w-full sm:w-auto items-center justify-center px-6 py-3 bg-accent text-bone rounded-lg font-semibold"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >

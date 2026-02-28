@@ -126,10 +126,10 @@ export default function Navbar() {
         {mobileOpen && (
          <motion.div
             className="fixed inset-0 z-50 flex flex-col items-start justify-center bg-bone px-8 md:hidden"
-            initial={{ clipPath: lang === 'he' ? "circle(0% at 44px 36px)" : "circle(0% at calc(100% - 44px) 36px)" }}
-            animate={{ clipPath: lang === 'he' ? "circle(150% at 44px 36px)" : "circle(150% at calc(100% - 44px) 36px)" }}
-            exit={{ clipPath: lang === 'he' ? "circle(0% at 44px 36px)" : "circle(0% at calc(100% - 44px) 36px)" }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ y: "-100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "-100%", opacity: 0 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           >
             <ul className="flex flex-col gap-8">
               {links.map((link: { label: string; href: string }, i: number) => (
