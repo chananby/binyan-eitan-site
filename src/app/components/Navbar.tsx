@@ -60,7 +60,9 @@ export default function Navbar() {
       <motion.header
         dir={dir}
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-          scrolled ? "glass" : "bg-transparent border-b border-transparent"
+          scrolled
+            ? "glass"
+            : "bg-bone/70 backdrop-blur-md border-b border-transparent"
         }`}
         initial={{ y: -80 }}
         animate={{ y: 0 }}

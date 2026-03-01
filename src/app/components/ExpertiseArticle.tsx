@@ -136,10 +136,10 @@ export default function ExpertiseArticle() {
             </div>
           </section>
 
-          <div className="border-b border-warm-gray-light" />
+          <div className="border-b-2 border-warm-gray-light" />
 
           {/* ── FAQ Accordion ── */}
-          <section id="faq" className="scroll-mt-24 bg-bone py-16 md:py-24">
+          <section id="faq" className="scroll-mt-24 bg-bone-dark py-16 md:py-24">
             <div className="mx-auto max-w-[860px] px-8">
               <h2 className="font-heading text-2xl font-bold text-charcoal mb-10">
                 {c.faqHeading}
