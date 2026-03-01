@@ -309,6 +309,29 @@
       "content_he": "עבור רבים מהתפוצה — במיוחד מארצות הברית, בריטניה וצרפת — בנייה או שיפוץ נכס בישראל הוא חלום שנושאים שנים. ב\"בנין איתן\", אנחנו מתמחים בהפיכת החלום הזה למציאות חלקה.\n\nתהליך הניהול מרחוק שלנו בנוי סביב שלושה עמודי תווך: דיווח בזמן אמת עם תיעוד תמונות, אישור שינויים דיגיטלי, ופיקוח שטח עקבי בהובלת מוטי איתן אישית.\n\nבין אם אתם בניו יורק או מיאמי — תמיד תדעו בדיוק מה קורה בפרויקט שלכם, בלי להיות נוכחים פיזית."
     }
   ],
+  "faqs": [
+    {
+      "id": "1",
+      "question_en": "Do you provide daily progress reports?",
+      "question_he": "האם אתם מספקים דיווח יומי על התקדמות הפרויקט?",
+      "answer_en": "Yes. Every active project receives a daily photo report sent directly to the client, documenting site progress, material deliveries, and any notable developments.",
+      "answer_he": "כן. כל פרויקט פעיל מקבל דיווח תמונות יומי הנשלח ישירות ללקוח, המתעד את התקדמות האתר, אספקת חומרים וכל התפתחות משמעותית."
+    },
+    {
+      "id": "2",
+      "question_en": "Can you manage a project if I'm living abroad?",
+      "question_he": "האם אתם יכולים לנהל פרויקט כשאני גר בחו\"ל?",
+      "answer_en": "Absolutely. We specialize in remote client management. Our process includes video call updates, digital change-order approvals, and a dedicated point of contact throughout the project.",
+      "answer_he": "בהחלט. אנחנו מתמחים בניהול לקוחות מרחוק. התהליך שלנו כולל עדכונים בשיחות וידאו, אישור שינויים דיגיטלי, ואיש קשר ייעודי לאורך כל הפרויקט."
+    },
+    {
+      "id": "3",
+      "question_en": "What areas do you serve?",
+      "question_he": "באילו אזורים אתם פועלים?",
+      "answer_en": "Binyan Eitan operates throughout Israel, with a concentration of projects in Jerusalem and the central region. Contact us to discuss your specific location.",
+      "answer_he": "בנין איתן פועלת ברחבי ישראל, עם ריכוז פרויקטים בירושלים ובאזור המרכז. צרו איתנו קשר לדיון על המיקום הספציפי שלכם."
+    }
+  ],
   "projects": {
     "en": {
       "pageTitle": "Our Projects",

@@ -6,7 +6,6 @@ import defaultTranslations from "@/src/lib/translations.json";
 type TranslationsData = typeof defaultTranslations;
 type SectionKey = keyof TranslationsData;
 
-// Articles are stored at translations.articles but managed separately in the editor
 interface Article {
   id: string;
   slug: string;
@@ -14,6 +13,14 @@ interface Article {
   title_he: string;
   content_en: string;
   content_he: string;
+}
+
+interface Faq {
+  id: string;
+  question_en: string;
+  question_he: string;
+  answer_en: string;
+  answer_he: string;
 }
 
 // Sections that follow the standard { en: {...}, he: {...} } shape
@@ -30,12 +37,7 @@ const SECTIONS: { key: SectionKey; label: string }[] = [
   { key: "projects", label: "Projects" },
 ];
 
-type ActiveTab = SectionKey | "articles";
-
-type SectionData = {
-  en: Record<string, string>;
-  he: Record<string, string>;
-};
+type ActiveTab = SectionKey | "articles" | "faqs";
 
 function getSafeValue(
   translations: any,
@@ -65,6 +67,7 @@ export default function ContentEditorPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("hero");
   const [translations, setTranslations] = useState<TranslationsData>(defaultTranslations);
   const [articles, setArticles] = useState<Article[]>([]);
+  const [faqs, setFaqs] = useState<Faq[]>([]);
   const [loading, setLoading] = useState(true);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -84,11 +87,17 @@ export default function ContentEditorPage() {
           } else {
             setArticles(defaultTranslations.articles as Article[]);
           }
+          if (Array.isArray(data.faqs)) {
+            setFaqs(data.faqs);
+          } else {
+            setFaqs(defaultTranslations.faqs as Faq[]);
+          }
         }
       } catch {
         console.error("Failed to load translations, using defaults.");
         setTranslations(defaultTranslations);
         setArticles(defaultTranslations.articles as Article[]);
+        setFaqs(defaultTranslations.faqs as Faq[]);
       } finally {
         setLoading(false);
       }
@@ -103,7 +112,7 @@ export default function ContentEditorPage() {
 
   const handleChange = useCallback(
     (lang: "en" | "he", key: string, value: string) => {
-      if (activeTab === "articles") return;
+      if (activeTab === "articles" || activeTab === "faqs") return;
       setTranslations((prev) => ({
         ...prev,
         [activeTab]: {
@@ -122,7 +131,7 @@ export default function ContentEditorPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = { ...translations, articles };
+      const payload = { ...translations, articles, faqs };
       const res = await fetch("/api/translations", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -154,31 +163,41 @@ export default function ContentEditorPage() {
     }
   };
 
-  // ── Article CRUD helpers ──────────────────────────────────────────────────
+  // ── Article CRUD ──────────────────────────────────────────────────────────
   const addArticle = () => {
     setArticles((prev) => [
       ...prev,
-      {
-        id: Date.now().toString(),
-        slug: "",
-        title_en: "",
-        title_he: "",
-        content_en: "",
-        content_he: "",
-      },
+      { id: Date.now().toString(), slug: "", title_en: "", title_he: "", content_en: "", content_he: "" },
     ]);
     setDirty(true);
   };
 
   const updateArticle = (idx: number, field: keyof Article, value: string) => {
-    setArticles((prev) =>
-      prev.map((a, i) => (i === idx ? { ...a, [field]: value } : a))
-    );
+    setArticles((prev) => prev.map((a, i) => (i === idx ? { ...a, [field]: value } : a)));
     setDirty(true);
   };
 
   const deleteArticle = (idx: number) => {
     setArticles((prev) => prev.filter((_, i) => i !== idx));
+    setDirty(true);
+  };
+
+  // ── FAQ CRUD ──────────────────────────────────────────────────────────────
+  const addFaq = () => {
+    setFaqs((prev) => [
+      ...prev,
+      { id: Date.now().toString(), question_en: "", question_he: "", answer_en: "", answer_he: "" },
+    ]);
+    setDirty(true);
+  };
+
+  const updateFaq = (idx: number, field: keyof Faq, value: string) => {
+    setFaqs((prev) => prev.map((f, i) => (i === idx ? { ...f, [field]: value } : f)));
+    setDirty(true);
+  };
+
+  const deleteFaq = (idx: number) => {
+    setFaqs((prev) => prev.filter((_, i) => i !== idx));
     setDirty(true);
   };
   // ─────────────────────────────────────────────────────────────────────────
@@ -192,7 +211,9 @@ export default function ContentEditorPage() {
     );
   }
 
-  const section = activeTab !== "articles" ? (translations[activeTab as SectionKey] as any) : null;
+  const section = activeTab !== "articles" && activeTab !== "faqs"
+    ? (translations[activeTab as SectionKey] as any)
+    : null;
   const allKeys =
     section && section.en && section.he
       ? Array.from(new Set([...Object.keys(section.en ?? {}), ...Object.keys(section.he ?? {})]))
@@ -243,8 +264,11 @@ export default function ContentEditorPage() {
             </button>
           ))}
 
-          {/* Articles separator */}
+          {/* CMS separator */}
           <div className="border-t-2 border-gray-200 mt-1">
+            <p className="px-5 pt-3 pb-1 text-xs font-bold text-gray-400 uppercase tracking-widest">
+              CMS
+            </p>
             <button
               onClick={() => setActiveTab("articles")}
               className={`w-full text-left px-5 py-3.5 text-sm font-bold border-b border-gray-100 transition-colors ${
@@ -253,7 +277,17 @@ export default function ContentEditorPage() {
                   : "text-gray-600 hover:bg-gray-50"
               }`}
             >
-              Articles / FAQ
+              Professional Articles
+            </button>
+            <button
+              onClick={() => setActiveTab("faqs")}
+              className={`w-full text-left px-5 py-3.5 text-sm font-bold border-b border-gray-100 transition-colors ${
+                activeTab === "faqs"
+                  ? "bg-[#8D775F]/10 text-[#8D775F] border-l-4 border-l-[#8D775F]"
+                  : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              Q&amp;A (FAQ)
             </button>
           </div>
         </nav>
@@ -261,39 +295,35 @@ export default function ContentEditorPage() {
         {/* Main area */}
         <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-5xl mx-auto">
-            {activeTab === "articles" ? (
-              /* ── Articles CRUD ── */
+
+            {/* ── Articles CRUD ── */}
+            {activeTab === "articles" && (
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Articles / FAQ</h2>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Professional Articles</h2>
+                    <p className="text-sm text-gray-500 mt-1">Long-form articles with their own page at /expertise/[slug]</p>
+                  </div>
                   <button
                     onClick={addArticle}
                     className="px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-md hover:bg-[#7A6451] transition-colors shadow-sm"
                   >
-                    + Add New Article
+                    + Add Article
                   </button>
                 </div>
 
                 {articles.length === 0 && (
                   <div className="bg-white rounded-lg border border-gray-200 shadow-sm py-16 text-center">
-                    <p className="text-gray-500 text-sm">
-                      No articles yet. Click &quot;Add New Article&quot; to get started.
-                    </p>
+                    <p className="text-gray-500 text-sm">No articles yet. Click &quot;Add Article&quot; to get started.</p>
                   </div>
                 )}
 
                 <div className="space-y-6">
                   {articles.map((article, idx) => (
-                    <div
-                      key={article.id}
-                      className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
-                    >
-                      {/* Card header */}
+                    <div key={article.id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                       <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-200">
                         <div className="flex items-center gap-3 flex-1">
-                          <span className="font-mono text-xs text-gray-400 shrink-0">
-                            #{idx + 1}
-                          </span>
+                          <span className="font-mono text-xs text-gray-400 shrink-0">#{idx + 1}</span>
                           <span className="text-xs font-bold text-gray-500 shrink-0">Slug:</span>
                           <input
                             type="text"
@@ -314,14 +344,10 @@ export default function ContentEditorPage() {
                         </button>
                       </div>
 
-                      {/* Fields */}
                       <div className="p-5 space-y-5">
-                        {/* Title row */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div dir="rtl">
-                            <label className="block text-xs font-bold text-gray-500 mb-1.5">
-                              כותרת (Hebrew Title)
-                            </label>
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5">כותרת (Hebrew Title)</label>
                             <input
                               type="text"
                               value={article.title_he}
@@ -332,9 +358,7 @@ export default function ContentEditorPage() {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-1.5">
-                              Title (English)
-                            </label>
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5">Title (English)</label>
                             <input
                               type="text"
                               value={article.title_en}
@@ -345,12 +369,9 @@ export default function ContentEditorPage() {
                           </div>
                         </div>
 
-                        {/* Content row */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div dir="rtl">
-                            <label className="block text-xs font-bold text-gray-500 mb-1.5">
-                              תוכן (Hebrew Content)
-                            </label>
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5">תוכן (Hebrew Content)</label>
                             <textarea
                               value={article.content_he}
                               onChange={(e) => updateArticle(idx, "content_he", e.target.value)}
@@ -361,9 +382,7 @@ export default function ContentEditorPage() {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-1.5">
-                              Content (English)
-                            </label>
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5">Content (English)</label>
                             <textarea
                               value={article.content_en}
                               onChange={(e) => updateArticle(idx, "content_en", e.target.value)}
@@ -378,8 +397,102 @@ export default function ContentEditorPage() {
                   ))}
                 </div>
               </div>
-            ) : (
-              /* ── Standard section table ── */
+            )}
+
+            {/* ── FAQ CRUD ── */}
+            {activeTab === "faqs" && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Q&amp;A (FAQ)</h2>
+                    <p className="text-sm text-gray-500 mt-1">Short question/answer pairs — shown as an accordion on the expertise page, no separate page needed.</p>
+                  </div>
+                  <button
+                    onClick={addFaq}
+                    className="px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-md hover:bg-[#7A6451] transition-colors shadow-sm"
+                  >
+                    + Add FAQ
+                  </button>
+                </div>
+
+                {faqs.length === 0 && (
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm py-16 text-center">
+                    <p className="text-gray-500 text-sm">No FAQ entries yet. Click &quot;Add FAQ&quot; to get started.</p>
+                  </div>
+                )}
+
+                <div className="space-y-6">
+                  {faqs.map((faq, idx) => (
+                    <div key={faq.id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                      <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-200">
+                        <span className="font-mono text-xs text-gray-400">#{idx + 1}</span>
+                        <button
+                          onClick={() => deleteFaq(idx)}
+                          className="text-red-500 hover:text-red-700 text-sm font-bold px-3 py-1 rounded hover:bg-red-50 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+
+                      <div className="p-5 space-y-5">
+                        {/* Question row */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div dir="rtl">
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5">שאלה (Hebrew Question)</label>
+                            <input
+                              type="text"
+                              value={faq.question_he}
+                              onChange={(e) => updateFaq(idx, "question_he", e.target.value)}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white transition-shadow"
+                              dir="rtl"
+                              placeholder="שאלה נפוצה"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5">Question (English)</label>
+                            <input
+                              type="text"
+                              value={faq.question_en}
+                              onChange={(e) => updateFaq(idx, "question_en", e.target.value)}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white transition-shadow"
+                              placeholder="Frequently asked question"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Answer row */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div dir="rtl">
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5">תשובה (Hebrew Answer)</label>
+                            <textarea
+                              value={faq.answer_he}
+                              onChange={(e) => updateFaq(idx, "answer_he", e.target.value)}
+                              rows={4}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white transition-shadow"
+                              dir="rtl"
+                              placeholder="תשובה לשאלה"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-gray-500 mb-1.5">Answer (English)</label>
+                            <textarea
+                              value={faq.answer_en}
+                              onChange={(e) => updateFaq(idx, "answer_en", e.target.value)}
+                              rows={4}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white transition-shadow"
+                              placeholder="Answer to the question"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Standard section table ── */}
+            {activeTab !== "articles" && activeTab !== "faqs" && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 capitalize">
                   {activeTab} Section
@@ -434,9 +547,7 @@ export default function ContentEditorPage() {
                                 {isLong ? (
                                   <textarea
                                     value={heVal}
-                                    onChange={(e) =>
-                                      handleChange("he", key, e.target.value)
-                                    }
+                                    onChange={(e) => handleChange("he", key, e.target.value)}
                                     rows={3}
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y transition-shadow bg-white"
                                     dir="rtl"
@@ -445,9 +556,7 @@ export default function ContentEditorPage() {
                                   <input
                                     type="text"
                                     value={heVal}
-                                    onChange={(e) =>
-                                      handleChange("he", key, e.target.value)
-                                    }
+                                    onChange={(e) => handleChange("he", key, e.target.value)}
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none transition-shadow bg-white"
                                     dir="rtl"
                                   />
@@ -457,9 +566,7 @@ export default function ContentEditorPage() {
                                 {isLong ? (
                                   <textarea
                                     value={enVal}
-                                    onChange={(e) =>
-                                      handleChange("en", key, e.target.value)
-                                    }
+                                    onChange={(e) => handleChange("en", key, e.target.value)}
                                     rows={3}
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y transition-shadow bg-white"
                                   />
@@ -467,9 +574,7 @@ export default function ContentEditorPage() {
                                   <input
                                     type="text"
                                     value={enVal}
-                                    onChange={(e) =>
-                                      handleChange("en", key, e.target.value)
-                                    }
+                                    onChange={(e) => handleChange("en", key, e.target.value)}
                                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none transition-shadow bg-white"
                                   />
                                 )}
@@ -483,6 +588,7 @@ export default function ContentEditorPage() {
                 </div>
               </div>
             )}
+
           </div>
         </main>
       </div>

@@ -15,20 +15,34 @@ interface Article {
   content_he: string;
 }
 
+interface Faq {
+  id: string;
+  question_en: string;
+  question_he: string;
+  answer_en: string;
+  answer_he: string;
+}
+
 const ui = {
   en: {
     overline: "Knowledge Base",
     heading: "Engineering\nInsights.",
     sub: "Professional articles on modern construction, engineering challenges, and project management.",
+    articlesHeading: "Professional Articles",
+    faqHeading: "Frequently Asked Questions",
     readMore: "Read Article",
-    empty: "No articles published yet.",
+    emptyArticles: "No articles published yet.",
+    emptyFaq: "No FAQ entries yet.",
   },
   he: {
     overline: "ידע מקצועי",
     heading: "תובנות\nהנדסיות.",
     sub: "מאמרים מקצועיים בנושאי בנייה מודרנית, אתגרים הנדסיים וניהול פרויקטים.",
+    articlesHeading: "מאמרים מקצועיים",
+    faqHeading: "שאלות נפוצות",
     readMore: "קרא מאמר",
-    empty: "אין מאמרים פורסמו עדיין.",
+    emptyArticles: "אין מאמרים פורסמו עדיין.",
+    emptyFaq: "אין שאלות נפוצות עדיין.",
   },
 } as const;
 
@@ -39,17 +53,22 @@ export default function ExpertiseArticle() {
   const dir = lang === "he" ? "rtl" : "ltr";
 
   const [articles, setArticles] = useState<Article[]>([]);
+  const [faqs, setFaqs] = useState<Faq[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openFaq, setOpenFaq] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/translations", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data?.articles)) setArticles(data.articles);
+        if (Array.isArray(data?.faqs)) setFaqs(data.faqs);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  const toggleFaq = (id: string) => setOpenFaq((prev) => (prev === id ? null : id));
 
   return (
     <main className="relative bg-bone" dir={dir}>
@@ -72,42 +91,99 @@ export default function ExpertiseArticle() {
 
       <div className="border-b border-warm-gray-light" />
 
-      {/* Article list */}
-      <section className="bg-bone py-16 md:py-24">
-        <div className="mx-auto max-w-[860px] px-8">
-          {loading ? (
-            <div className="flex justify-center py-20">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent" />
+      {loading ? (
+        <section className="bg-bone py-24">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent" />
+          </div>
+        </section>
+      ) : (
+        <>
+          {/* ── Professional Articles ── */}
+          <section className="bg-bone py-16 md:py-24">
+            <div className="mx-auto max-w-[860px] px-8">
+              <h2 className="font-heading text-2xl font-bold text-charcoal mb-10">
+                {c.articlesHeading}
+              </h2>
+
+              {articles.length === 0 ? (
+                <p className="text-charcoal/50 font-body text-lg text-center py-10">{c.emptyArticles}</p>
+              ) : (
+                <div className="divide-y divide-warm-gray-light">
+                  {articles.map((article) => {
+                    const title = lang === "en" ? article.title_en : article.title_he;
+                    const body = lang === "en" ? article.content_en : article.content_he;
+                    const excerpt =
+                      body.replace(/\n/g, " ").slice(0, 180) + (body.length > 180 ? "…" : "");
+                    return (
+                      <div key={article.id} className="py-10 group">
+                        <Link href={`/${lang}/expertise/${article.slug}`}>
+                          <h3 className="font-heading text-2xl font-bold text-charcoal group-hover:text-accent transition-colors duration-200 mb-3">
+                            {title}
+                          </h3>
+                          <p className="font-body text-base text-charcoal/60 leading-relaxed mb-5">
+                            {excerpt}
+                          </p>
+                          <span className="font-body text-sm font-semibold tracking-[0.18em] uppercase text-accent group-hover:text-accent-dark transition-colors duration-200">
+                            {c.readMore} →
+                          </span>
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          ) : articles.length === 0 ? (
-            <p className="text-charcoal/50 font-body text-lg text-center py-20">{c.empty}</p>
-          ) : (
-            <div className="divide-y divide-warm-gray-light">
-              {articles.map((article) => {
-                const title = lang === "en" ? article.title_en : article.title_he;
-                const body = lang === "en" ? article.content_en : article.content_he;
-                const excerpt =
-                  body.replace(/\n/g, " ").slice(0, 180) + (body.length > 180 ? "…" : "");
-                return (
-                  <div key={article.id} className="py-10 group">
-                    <Link href={`/${lang}/expertise/${article.slug}`}>
-                      <h2 className="font-heading text-2xl font-bold text-charcoal group-hover:text-accent transition-colors duration-200 mb-3">
-                        {title}
-                      </h2>
-                      <p className="font-body text-base text-charcoal/60 leading-relaxed mb-5">
-                        {excerpt}
-                      </p>
-                      <span className="font-body text-sm font-semibold tracking-[0.18em] uppercase text-accent group-hover:text-accent-dark transition-colors duration-200">
-                        {c.readMore} →
-                      </span>
-                    </Link>
-                  </div>
-                );
-              })}
+          </section>
+
+          <div className="border-b border-warm-gray-light" />
+
+          {/* ── FAQ Accordion ── */}
+          <section className="bg-bone py-16 md:py-24">
+            <div className="mx-auto max-w-[860px] px-8">
+              <h2 className="font-heading text-2xl font-bold text-charcoal mb-10">
+                {c.faqHeading}
+              </h2>
+
+              {faqs.length === 0 ? (
+                <p className="text-charcoal/50 font-body text-lg text-center py-10">{c.emptyFaq}</p>
+              ) : (
+                <div className="divide-y divide-warm-gray-light">
+                  {faqs.map((faq) => {
+                    const question = lang === "en" ? faq.question_en : faq.question_he;
+                    const answer = lang === "en" ? faq.answer_en : faq.answer_he;
+                    const isOpen = openFaq === faq.id;
+                    return (
+                      <div key={faq.id}>
+                        <button
+                          onClick={() => toggleFaq(faq.id)}
+                          className="w-full flex items-center justify-between gap-4 py-6 text-start group"
+                          aria-expanded={isOpen}
+                        >
+                          <span className="font-heading text-lg font-semibold text-charcoal group-hover:text-accent transition-colors duration-200">
+                            {question}
+                          </span>
+                          <span
+                            className="shrink-0 text-accent text-xl font-light transition-transform duration-200"
+                            style={{ transform: isOpen ? "rotate(45deg)" : "rotate(0deg)" }}
+                          >
+                            +
+                          </span>
+                        </button>
+                        {isOpen && (
+                          <p className="pb-6 font-body text-base text-charcoal/70 leading-relaxed">
+                            {answer}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </section>
+          </section>
+        </>
+      )}
 
       <div className="border-b border-warm-gray-light" />
       <Footer />
