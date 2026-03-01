@@ -14,7 +14,15 @@ type Lang = "en" | "he";
 export default function Navbar() {
   const { lang } = useLang() as { lang: Lang };
   const t = useTranslations("nav", lang);
-  const links = [{ label: t.inquiry, href: `/${lang}#contact` }];
+  const navLabels = {
+    en: { portfolio: "Portfolio", firm: "The Firm" },
+    he: { portfolio: "תיק עבודות", firm: "המשרד" },
+  };
+  const links = [
+    { label: navLabels[lang].portfolio, href: `/${lang}#portfolio` },
+    { label: navLabels[lang].firm, href: `/${lang}/about` },
+    { label: t.inquiry, href: `/${lang}#contact` },
+  ];
   const switchLabel = t.switchLabel;
   const pathname = usePathname();
   // Swap the language prefix in the current path (e.g. /en/expertise → /he/expertise)

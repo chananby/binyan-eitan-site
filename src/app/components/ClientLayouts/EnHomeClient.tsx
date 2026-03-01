@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 import { useTranslations } from "../TranslationsProvider";
@@ -14,6 +14,8 @@ import Footer from "../Footer";
 
 export default function EnHomeClient() {
   const t = useTranslations("home", "en");
+
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   // Lazy initializer: read sessionStorage synchronously on first render
   // (safe because this component is loaded with ssr:false)

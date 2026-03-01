@@ -31,8 +31,8 @@ export function middleware(req: NextRequest) {
     return response;
   }
 
-  // redirect specific sections back to their respective home
-  const redirectPattern = /^\/(en|he)\/(projects|about|expertise)(\/|$)/;
+  // redirect sections that are not yet live back to their respective home
+  const redirectPattern = /^\/(en|he)\/(projects)(\/|$)/;
   if (redirectPattern.test(pathname)) {
     const locale = pathname.startsWith("/he") ? "/he" : "/en";
     const dest = req.nextUrl.clone();
