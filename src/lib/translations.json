@@ -73,7 +73,8 @@
       "licenseNumber": "41805",
       "licensePrefix": "License #:",
       "classification": "G1 (C1) - Branch 100",
-      "address": "Jerusalem / Lod, Israel",
+      "address": "Jerusalem & Central Israel",
+      "licenseText": "Licensed Contractor 41805 (C1)",
       "contactHeading": "Contact",
       "nav": "Navigation",
       "portfolio": "Portfolio",
@@ -101,7 +102,8 @@
       "licenseNumber": "41805",
       "licensePrefix": "מס' רישיון:",
       "classification": "ג' 1 (C1) - ענף 100",
-      "address": "ירושלים / לוד, ישראל",
+      "address": "ירושלים והמרכז",
+      "licenseText": "קבלן רשום 41805 (ג-1)",
       "contactHeading": "צור קשר",
       "nav": "ניווט",
       "portfolio": "פרויקטים",
@@ -287,7 +289,13 @@
       "next": "Next",
       "item_0_label": "Yard Paving Preparation",
       "item_1_label": "Jerusalem Stone Facade",
-      "item_2_label": "Professional Airless Painting"
+      "item_2_label": "Professional Airless Painting",
+      "step1_title": "Creative Logistics",
+      "step1_desc": "Steel lifting in dense areas",
+      "step2_title": "Deep Infrastructure",
+      "step2_desc": "4m deep excavations & sewage",
+      "step3_title": "Advanced Finish",
+      "step3_desc": "Electric roofs & premium finish"
     },
     "he": {
       "overline": "מאחורי הקלעים",
@@ -298,7 +306,13 @@
       "next": "הבא",
       "item_0_label": "הכנה לריצוף חצר",
       "item_1_label": "חיפוי אבן ירושלמית",
-      "item_2_label": "צביעה מקצועית"
+      "item_2_label": "צביעה מקצועית",
+      "step1_title": "פתרונות לוגיסטיים",
+      "step1_desc": "הנפת פלדה ומנופים בסביבה צפופה",
+      "step2_title": "תשתיות וקידוח",
+      "step2_desc": "חפירות עומק 4 מ' ושיקום ביוב",
+      "step3_title": "גמר ומערכות",
+      "step3_desc": "גגות חשמליים וגמר פרימיום"
     }
   },
   "articles": [
@@ -322,24 +336,24 @@
   "faqs": [
     {
       "id": "1",
-      "question_en": "Do you provide daily progress reports?",
-      "question_he": "האם אתם מספקים דיווח יומי על התקדמות הפרויקט?",
-      "answer_en": "Yes. Every active project receives a daily photo report sent directly to the client, documenting site progress, material deliveries, and any notable developments.",
-      "answer_he": "כן. כל פרויקט פעיל מקבל דיווח תמונות יומי הנשלח ישירות ללקוח, המתעד את התקדמות האתר, אספקת חומרים וכל התפתחות משמעותית."
+      "question_en": "What areas do you serve?",
+      "question_he": "אזורי פעילות?",
+      "answer_en": "Jerusalem, the Central region, and surrounding areas.",
+      "answer_he": "ירושלים, המרכז והסביבה."
     },
     {
       "id": "2",
-      "question_en": "Can you manage a project if I'm living abroad?",
-      "question_he": "האם אתם יכולים לנהל פרויקט כשאני גר בחו\"ל?",
-      "answer_en": "Absolutely. We specialize in remote client management. Our process includes video call updates, digital change-order approvals, and a dedicated point of contact throughout the project.",
-      "answer_he": "בהחלט. אנחנו מתמחים בניהול לקוחות מרחוק. התהליך שלנו כולל עדכונים בשיחות וידאו, אישור שינויים דיגיטלי, ואיש קשר ייעודי לאורך כל הפרויקט."
+      "question_en": "What guarantees do you offer?",
+      "question_he": "ביטחון בבנייה?",
+      "answer_en": "G1 licensed contractor with full legal accountability and close on-site oversight on every project.",
+      "answer_he": "קבלן רשום ג-1, אחריות מלאה ופיקוח צמוד."
     },
     {
       "id": "3",
-      "question_en": "What areas do you serve?",
-      "question_he": "באילו אזורים אתם פועלים?",
-      "answer_en": "Binyan Eitan operates throughout Israel, with a concentration of projects in Jerusalem and the central region. Contact us to discuss your specific location.",
-      "answer_he": "בנין איתן פועלת ברחבי ישראל, עם ריכוז פרויקטים בירושלים ובאזור המרכז. צרו איתנו קשר לדיון על המיקום הספציפי שלכם."
+      "question_en": "Can overseas clients work with you?",
+      "question_he": "לקוחות מחו\"ל?",
+      "answer_en": "Continuous reporting and HD documentation for full peace of mind — managed entirely from abroad.",
+      "answer_he": "דיווח שוטף ותיעוד ב-HD לשקט נפשי מרחוק."
     }
   ],
   "projects": {
