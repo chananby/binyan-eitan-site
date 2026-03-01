@@ -35,7 +35,7 @@ export default function EnFAQClient() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            Frequently Asked Questions
+            Common Questions
           </motion.h1>
           <div className="space-y-4">
             {faqs.map((item, idx) => (

@@ -86,7 +86,7 @@ export default function Hero() {
             TEXT COLUMN — cols 1–6
             Sits on top of image via z-index for overlap
             ────────────────────────────────────────────── */}
-        <div className="z-20 col-span-4 flex flex-col justify-center md:col-span-6 md:col-start-1 md:row-start-1">
+        <div className="z-20 col-span-4 flex flex-col justify-center md:col-span-6 md:col-start-1 md:row-start-1 max-w-[600px]">
           {/* Overline */}
           <motion.p
             className="overline-label mb-6 md:mb-8"
@@ -98,7 +98,7 @@ export default function Hero() {
  
           {/* ── Main Heading ── */}
           <motion.h1
-            className="font-heading text-[clamp(2.75rem,5vw,6rem)] leading-[0.92] font-bold tracking-tight text-charcoal"
+            className="font-heading text-[clamp(2.75rem,5vw,6rem)] leading-[1.4] font-bold tracking-tight text-charcoal"
             variants={fadeUp(0.05)}
           >
             {heading.split("\n").map((line: string, i: number) => (
@@ -110,7 +110,7 @@ export default function Hero() {
  
           {/* ── Subline ── */}
           <motion.p
-            className="mt-7 max-w-md font-body text-base leading-relaxed font-light text-charcoal/55 md:mt-9 md:text-lg"
+            className="mt-10 max-w-md font-body text-sm leading-relaxed font-light text-charcoal/50 md:mt-12 md:text-base"
             variants={fadeUp(0.15)}
           >
             {sub}
@@ -129,7 +129,7 @@ export default function Hero() {
           {/* ── CTA ── */}
           <motion.div className="mt-10 md:mt-14" variants={fadeUp(0.25)}>
             <Link
-              href={`/${lang}#portfolio`}
+              href={`/${lang}#contact`}
               className="group inline-flex w-fit items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent"
             >
               {cta}

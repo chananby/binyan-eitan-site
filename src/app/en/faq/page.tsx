@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
-  title: "FAQ | Binyan Eitan",
-  description: "Frequently asked questions about our construction services.",
+  title: "Common Questions | Binyan Eitan",
+  description: "Common questions about our construction and engineering services.",
   robots: "noindex, nofollow",
 };
 

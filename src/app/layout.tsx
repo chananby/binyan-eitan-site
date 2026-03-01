@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Assistant } from "next/font/google";
+import { Assistant, Heebo } from "next/font/google";
 import "./globals.css";
 import AccessibilityMenu from "./components/AccessibilityMenu";
 import { TranslationsProvider } from "./components/TranslationsProvider";
@@ -9,6 +9,13 @@ const assistant = Assistant({
   variable: "--font-heading",
   display: "swap",
   weight: ["300", "400", "600", "700", "800"],
+});
+
+const heebo = Heebo({
+  subsets: ["latin", "hebrew"],
+  variable: "--font-heebo",
+  display: "swap",
+  weight: ["300", "400", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -75,7 +82,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html suppressHydrationWarning className={assistant.variable}>
+    <html suppressHydrationWarning className={`${assistant.variable} ${heebo.variable}`}>
       <head>
         <meta name="robots" content="noindex, nofollow" />
         <script

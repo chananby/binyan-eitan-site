@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import defaultTranslations from "@/src/lib/translations.json";
 
 type TranslationsData = typeof defaultTranslations;
@@ -72,6 +72,7 @@ export default function ContentEditorPage() {
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const loadTranslations = async () => {
@@ -219,21 +220,82 @@ export default function ContentEditorPage() {
       ? Array.from(new Set([...Object.keys(section.en ?? {}), ...Object.keys(section.he ?? {})]))
       : [];
 
+  const q = searchQuery.toLowerCase().trim();
+
+  // Sections whose keys or values match the search query
+  const matchingSections = useMemo(() => {
+    if (!q) return null;
+    return SECTIONS.filter((s) => {
+      if (s.label.toLowerCase().includes(q) || s.key.toLowerCase().includes(q)) return true;
+      const sec = (translations[s.key] as any);
+      if (!sec) return false;
+      for (const lang of ["en", "he"] as const) {
+        const langData = sec[lang];
+        if (!langData) continue;
+        for (const [k, v] of Object.entries(langData)) {
+          if (k.toLowerCase().includes(q) || String(v).toLowerCase().includes(q)) return true;
+        }
+      }
+      return false;
+    });
+  }, [q, translations]);
+
+  // Keys for the active section, filtered by search
+  const filteredKeys = useMemo(() => {
+    if (!q) return allKeys;
+    return allKeys.filter((key) => {
+      if (key.toLowerCase().includes(q)) return true;
+      const heVal = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "he", key);
+      const enVal = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "en", key);
+      return heVal.toLowerCase().includes(q) || enVal.toLowerCase().includes(q);
+    });
+  }, [q, allKeys, translations, activeTab]);
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0 shadow-sm z-10">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">Content Editor</h1>
-          <p className="text-sm text-gray-500 mt-0.5">עריכת תוכן האתר - בנין איתן</p>
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex flex-col gap-3 shrink-0 shadow-sm z-10">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Content Editor</h1>
+            <p className="text-sm text-gray-500 mt-0.5">עריכת תוכן האתר - בנין איתן</p>
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={!dirty || saving}
+            className="px-6 py-2.5 bg-[#8D775F] text-white text-sm font-bold tracking-wide rounded-md disabled:opacity-50 hover:bg-[#7A6451] transition-colors shadow-sm"
+          >
+            {saving ? "Saving…" : "Save Changes"}
+          </button>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={!dirty || saving}
-          className="px-6 py-2.5 bg-[#8D775F] text-white text-sm font-bold tracking-wide rounded-md disabled:opacity-50 hover:bg-[#7A6451] transition-colors shadow-sm"
-        >
-          {saving ? "Saving…" : "Save Changes"}
-        </button>
+        {/* Global Search */}
+        <div className="relative">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <circle cx={11} cy={11} r={8} /><path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search sections, keys, or values… (e.g. הנדסה, contact)"
+            className="w-full border border-gray-300 rounded-md pl-9 pr-4 py-2 text-sm text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white transition-shadow"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        {q && matchingSections !== null && (
+          <p className="text-xs text-gray-500">
+            {matchingSections.length === 0
+              ? "No matches found."
+              : `Matches in: ${matchingSections.map((s) => s.label).join(", ")}`}
+          </p>
+        )}
       </div>
 
       {/* Toast */}
@@ -250,19 +312,25 @@ export default function ContentEditorPage() {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <nav className="w-56 shrink-0 bg-white border-r border-gray-200 overflow-y-auto">
-          {SECTIONS.map((s) => (
-            <button
-              key={s.key}
-              onClick={() => setActiveTab(s.key)}
-              className={`w-full text-left px-5 py-3.5 text-sm font-medium border-b border-gray-100 transition-colors ${
-                activeTab === s.key
-                  ? "bg-[#8D775F]/10 text-[#8D775F] border-l-4 border-l-[#8D775F]"
-                  : "text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
+          {SECTIONS.map((s) => {
+            const hasMatch = q && matchingSections ? matchingSections.some((ms) => ms.key === s.key) : false;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setActiveTab(s.key)}
+                className={`w-full text-left px-5 py-3.5 text-sm font-medium border-b border-gray-100 transition-colors ${
+                  activeTab === s.key
+                    ? "bg-[#8D775F]/10 text-[#8D775F] border-l-4 border-l-[#8D775F]"
+                    : hasMatch
+                    ? "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {s.label}
+                {hasMatch && <span className="float-right text-amber-500 text-xs">●</span>}
+              </button>
+            );
+          })}
 
           {/* CMS separator */}
           <div className="border-t-2 border-gray-200 mt-1">
@@ -287,7 +355,7 @@ export default function ContentEditorPage() {
                   : "text-gray-600 hover:bg-gray-50"
               }`}
             >
-              Q&amp;A (FAQ)
+              Common Questions (Q&amp;A)
             </button>
           </div>
         </nav>
@@ -404,20 +472,20 @@ export default function ContentEditorPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Q&amp;A (FAQ)</h2>
+                    <h2 className="text-2xl font-bold text-gray-800">Common Questions (Q&amp;A)</h2>
                     <p className="text-sm text-gray-500 mt-1">Short question/answer pairs — shown as an accordion on the expertise page, no separate page needed.</p>
                   </div>
                   <button
                     onClick={addFaq}
                     className="px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-md hover:bg-[#7A6451] transition-colors shadow-sm"
                   >
-                    + Add FAQ
+                    + Add Question
                   </button>
                 </div>
 
                 {faqs.length === 0 && (
                   <div className="bg-white rounded-lg border border-gray-200 shadow-sm py-16 text-center">
-                    <p className="text-gray-500 text-sm">No FAQ entries yet. Click &quot;Add FAQ&quot; to get started.</p>
+                    <p className="text-gray-500 text-sm">No questions yet. Click &quot;Add Question&quot; to get started.</p>
                   </div>
                 )}
 
@@ -511,14 +579,14 @@ export default function ContentEditorPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {allKeys.length === 0 ? (
+                      {filteredKeys.length === 0 ? (
                         <tr>
                           <td colSpan={3} className="px-5 py-10 text-center text-gray-500">
-                            לא נמצאו שדות לעריכה באזור זה.
+                            {q ? `No matching keys in this section.` : "לא נמצאו שדות לעריכה באזור זה."}
                           </td>
                         </tr>
                       ) : (
-                        allKeys.map((key) => {
+                        filteredKeys.map((key) => {
                           const heVal = getSafeValue(
                             translations,
                             defaultTranslations,
