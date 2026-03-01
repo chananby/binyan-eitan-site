@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>חידון פורים למתקדמים | בניין איתן</title>
+    <title>חידון פורים האינטראקטיבי | בניין איתן</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React and Babel -->
@@ -11,127 +11,143 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&family=Assistant:wght@400;700;800&display=swap');
+        
         body { 
-            font-family: 'Heebo', sans-serif; 
+            font-family: 'Assistant', 'Heebo', sans-serif; 
             margin: 0;
             padding: 0;
             overflow-x: hidden;
+            background-color: #f3f4f6;
         }
-        .purim-gradient { background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%); }
-        
-        /* Animations */
-        .animate-pop { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop {
-            0% { transform: scale(0.8); opacity: 0; }
+
+        .purim-gradient { 
+            background: linear-gradient(135deg, #6d28d9 0%, #a855f7 100%); 
+        }
+
+        /* Floating Animation */
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        /* Progress Basket Animation */
+        .basket-item {
+            animation: bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes bounce-in {
+            0% { transform: scale(0); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
 
-        .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #facc15;
-            animation: fall 3s linear infinite;
+        /* Pulse for Correct Answer */
+        .correct-pulse {
+            animation: pulse-green 1.5s infinite;
         }
-        @keyframes fall {
-            to { transform: translateY(100vh) rotate(360deg); }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
         }
 
-        .yashar-koach {
-            animation: float-up 1s ease-out forwards;
-            position: absolute;
-            pointer-events: none;
-            z-index: 50;
+        /* Shelter Mode Banner Animation */
+        .banner-slide {
+            animation: slide-down 0.8s ease-out;
         }
-        @keyframes float-up {
-            0% { transform: translateY(0) scale(0.5); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateY(-100px) scale(1.2); opacity: 0; }
+        @keyframes slide-down {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
         }
-        
-        .mask-bg {
-            opacity: 0.05;
-            position: absolute;
-            z-index: 0;
-            pointer-events: none;
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
         }
     </style>
 </head>
-<body class="bg-gray-50">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // Sound Engine (Web Audio API) - No external files needed
+        // Sound Engine
         const playSound = (type) => {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            
-            if (type === 'correct') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-                osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1); // A5
-                gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(220, ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(110, ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                }
                 osc.start();
                 osc.stop(ctx.currentTime + 0.3);
-            } else if (type === 'wrong') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(220, ctx.currentTime); // A3
-                osc.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.2); // A2
-                gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.3);
-            }
+            } catch(e) {}
         };
 
-        const MaskIcon = ({ className }) => (
-            <svg viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
-                <path d="M19.5 5C17.5 5 15.5 6.5 12 6.5C8.5 6.5 6.5 5 4.5 5C2.5 5 1 6.5 1 9.5C1 14 5 19 12 19C19 19 23 14 23 9.5C23 6.5 21.5 5 19.5 5ZM8 12C7.2 12 6.5 11.3 6.5 10.5C6.5 9.7 7.2 9 8 9C8.8 9 9.5 9.7 9.5 10.5C9.5 11.3 8.8 12 8 12ZM16 12C15.2 12 14.5 11.3 14.5 10.5C14.5 9.7 15.2 9 16 9C16.8 9 17.5 9.7 17.5 10.5C17.5 11.3 16.8 12 16 12Z"/>
+        const IconCrown = () => (
+            <svg className="w-12 h-12 text-yellow-400 floating" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5ZM19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V18H19V19Z" />
             </svg>
         );
 
-        const TrophyIcon = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-yellow-400"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        const IconMask = () => (
+            <svg className="w-10 h-10 text-purple-400 floating" style={{animationDelay: '1s'}} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.5,5C17.5,5 15.5,6.5 12,6.5C8.5,6.5 6.5,5 4.5,5C2.5,5 1,6.5 1,9.5C1,14 5,19 12,19C19,19 23,14 23,9.5C23,6.5 21.5,5 19.5,5ZM8,12C7.2,12 6.5,11.3 6.5,10.5C6.5,9.7 7.2,9 8,9C8.8,9 9.5,9.7 9.5,10.5C9.5,11.3 8.8,12 8,12ZM16,12C15.2,12 14.5,11.3 14.5,10.5C14.5,9.7 15.2,9 16,9C16.8,9 17.5,9.7 17.5,10.5C17.5,11.3 16.8,12 16,12Z" />
+            </svg>
         );
 
         const questions = [
             {
                 question: "מדוע נגזרה גזירת כליה על עם ישראל בימי אחשוורוש לפי חז\"ל?",
-                options: ["מפני שהשתחוו לפסלו של נבוכדנצר ונהנו מסעודת אחשוורוש", "מפני ששכחו את תורת משה והתערבו בגויים", "מפני שלא עלו לארץ ישראל לבנות את המקדש", "מפני שמרדכי סירב להשתחוות להמן"],
+                options: ["מפני שהשתחוו לפסל ונהנו מסעודת אחשוורוש", "מפני ששכחו את תורת משה", "מפני שלא עלו לארץ ישראל", "מפני שמרדכי לא השתחווה"],
                 answer: 0,
                 rationale: "הגמרא במסכת מגילה מציינת ששילוב העבודה זרה מהעבר וההנאה מסעודת אחשוורוש גרמו לקטרוג."
             },
             {
                 question: "מי מזוהה במדרש כ'ממוכן', ומה הייתה הצעתו?",
-                options: ["דניאל הנביא", "המן, והציע להרוג את ושתי כדי להאדיר את כבוד הגברים", "אליהו הנביא", "התך"],
+                options: ["דניאל הנביא", "המן - הציע להרוג את ושתי", "אליהו הנביא", "התך"],
                 answer: 1,
                 rationale: "חז\"ל מזהים את ממוכן כהמן, שקפץ בראש להציע הצעה שתשרת את האינטרסים שלו."
             },
             {
-                question: "מדוע סירב מרדכי להשתחוות להמן (מעבר לאיסור הכללי)?",
-                options: ["בגלל שמרדכי היה משבט יהודה והמן מעמלק", "מכיוון שהמן חקק צלם של עבודה זרה על בגדו", "מכיוון שהמן היה עבד של מרדכי בעברו", "כי המלך לא באמת ציווה להשתחוות"],
+                question: "מדוע סירב מרדכי להשתחוות להמן?",
+                options: ["בגלל האיבה בין יהודה לעמלק", "מכיוון שהמן חקק צלם עבודה זרה על בגדו", "מכיוון שהמן היה עבד של מרדכי", "כי המלך לא באמת ציווה"],
                 answer: 1,
                 rationale: "המן הפך את עצמו לאלוהות או נשא עליו סמל עבודה זרה, ולכן מרדכי מסר את הנפש."
             },
             {
-                question: "מה היה הסכום שהציע המן למלך תמורת השמדת היהודים?",
+                question: "מהו הסכום שהציע המן למלך תמורת השמדת היהודים?",
                 options: ["חמשת אלפים כיכר זהב", "מאה אלף מנה כסף", "שבעת אלפים כיכר כסף", "עשרת אלפים כיכר כסף"],
                 answer: 3,
                 rationale: "זהו הסכום הנקוב במגילה, כנגד עשרת אלפי מחצית השקל של בני ישראל."
             },
             {
-                question: "באיזה תאריך חלו שלושת ימי הצום שגזרה אסתר במקור?",
+                question: "באיזה תאריך חלו שלושת ימי הצום שגזרה אסתר?",
                 options: ["י\"א-י\"ג באדר", "י\"ג-ט\"ו בניסן", "א'-ג' בסיוון", "י'-י\"ב בתשרי"],
                 answer: 1,
-                rationale: "הצום היה בחודש ניסן, ומרדכי טען שהצום יבטל את שמחת הפסח, אך אסתר עמדה על כך."
+                rationale: "הצום היה בחודש ניסן, ומרדכי חשש שזה יבטל את שמחת הפסח, אך אסתר עמדה על כך."
             },
             {
                 question: "מה היה הקשר המשפחתי המקורי בין מרדכי לאסתר?",
@@ -140,14 +156,8 @@
                 rationale: "כתוב 'בת אביחיל דוד מרדכי', כלומר מרדכי ואביה היו אחים."
             },
             {
-                question: "מה היה שמה העברי המקורי של אסתר?",
-                options: ["הדסה", "איילת", "שרה", "מרים"],
-                answer: 0,
-                rationale: "מפורש במגילה: 'ויהי אומן את הדסה היא אסתר'."
-            },
-            {
                 question: "מי היו בגתן ותרש ומה היה תפקידם?",
-                options: ["יועצי המלך", "שומרי הסף שביקשו לשלוח יד במלך", "שרי הצבא", "טבחי הארמון"],
+                options: ["יועצי המלך", "שומרי הסף שניסו להתנקש במלך", "שרי הצבא", "טבחי הארמון"],
                 answer: 1,
                 rationale: "שני סריסים משומרי הסף שקצפו על המלך ורצו להתנקש בו."
             },
@@ -158,46 +168,22 @@
                 rationale: "על שם הגורל (פור) שהפיל המן לקביעת יום ההשמדה."
             },
             {
-                question: "מהי ההגדרה ההלכתית של 'מתנות לאביונים'?",
-                options: ["מתנה אחת לשני עניים", "שתי מתנות לעני אחד", "מחצית השקל", "צדקה לקופה הכללית"],
-                answer: 0,
-                rationale: "חובה לתת לפחות מתנה אחת לשני עניים שונים (שתי מתנות בסה\"כ)."
-            },
-            {
                 question: "אילו ערים חוגגות את פורים בט\"ו באדר?",
                 options: ["ערים גדולות", "ערי בירה", "ערים מוקפות חומה מימי יהושע בן נון", "רק ירושלים ושושן"],
                 answer: 2,
                 rationale: "תיקנו לפי זמן יהושע כדי לחלוק כבוד לארץ ישראל שהייתה חרבה אז."
             },
             {
-                question: "מה גרם לנדודי השינה של המלך ב'לילה ההוא'?",
-                options: ["אכילת יתר", "חשד שאסתר והמן מורדים בו", "מלאך הכה אותו", "רעש מהחצר"],
-                answer: 1,
-                rationale: "הוא חשש שהזמנת המן לסעודה מעידה על קשר חשאי נגדו."
-            },
-            {
                 question: "מי היה חרבונה ומה היה חלקו?",
-                options: ["בנו של המן", "שליח המלך", "סריס שהזכיר את העץ שהכין המן", "משרת אסתר"],
+                options: ["בנו של המן", "שליח המלך", "סריס שהזכיר את העץ של המן", "משרת אסתר"],
                 answer: 2,
                 rationale: "הוא הפנה את תשומת לב המלך לעץ שבנה המן עבור מרדכי 'אשר דיבר טוב על המלך'."
-            },
-            {
-                question: "מה הוחרג מ'חצי המלכות' שהציע המלך לאסתר?",
-                options: ["הכתר", "בניין בית המקדש השני", "חיי ושתי", "127 מדינות"],
-                answer: 1,
-                rationale: "חז\"ל דורשים שחצי המלכות הוא המקדש העומד בלב העולם."
             },
             {
                 question: "כיצד קוראים את שמות עשרת בני המן?",
                 options: ["במנגינה עליזה", "בקול רם", "בלחישה", "בנשימה אחת"],
                 answer: 3,
                 rationale: "להראות שכולם מתו יחד ונספו ברגע אחד."
-            },
-            {
-                question: "מה הדין לגבי 'משלוח מנות' לאבל?",
-                options: ["האבל חייב לשלוח, אך אין לשלוח לו מנות שמחה", "פטור מהמצווה", "מותר כרגיל", "רק מתנות לאביונים"],
-                answer: 0,
-                rationale: "האבל חייב במצוות היום אך אין שואלים בשלומו בדברי שמחה."
             },
             {
                 question: "מדוע נהוג להתחפש בפורים?",
@@ -218,12 +204,6 @@
                 rationale: "בירושלים מחלקים המצוות לשישי, שבת וראשון כדי למנוע חילול שבת."
             },
             {
-                question: "מי הייתה זרש ומה הציעה?",
-                options: ["בת המלך", "אחות מרדכי", "אשת המן, הציעה לבנות עץ", "מרעילה"],
-                answer: 2,
-                rationale: "היא זו שייעצה להמן לבנות עץ גבוה כדי לתלות את מרדכי עליו."
-            },
-            {
                 question: "האם נשים חייבות בקריאת המגילה?",
                 options: ["פטורות", "חייבות, כי אף הן היו באותו הנס", "רק רווקות", "רק שמיעה"],
                 answer: 1,
@@ -237,7 +217,7 @@
             },
             {
                 question: "מה הכמות המינימלית למשלוח מנות?",
-                options: ["מנה גדולה", "שתי מנות מאכל שונות לאדם אחד", "לחם ומים", "פירות ושוקולד"],
+                options: ["מנה אחת", "שתי מנות מאכל שונות לאדם אחד", "לחם ומים", "פירות ושוקולד"],
                 answer: 1,
                 rationale: "שתי מנות שונות המוכנות לאכילה מיד לאדם אחד לפחות."
             },
@@ -252,6 +232,12 @@
                 options: ["עלייה לירושלים", "צבא חזק", "ביטול צומות", "קבלת התורה מחדש מרצון"],
                 answer: 3,
                 rationale: "חז\"ל מלמדים שבפורים יהודים קיבלו את התורה מאהבה, בניגוד לכפייה בסיני."
+            },
+            {
+                question: "מי הייתה זרש ומה הציעה?",
+                options: ["אשת המן - הציעה לבנות עץ", "אחות המלך", "יועצת אסתר", "מלכת פרס"],
+                answer: 0,
+                rationale: "זרש הייתה אשתו של המן והיא זו שייעצה לו לבנות עץ בגובה 50 אמה."
             }
         ];
 
@@ -261,7 +247,9 @@
             const [score, setScore] = useState(0);
             const [answered, setAnswered] = useState(false);
             const [selected, setSelected] = useState(null);
-            const [showYasharKoach, setShowYasharKoach] = useState(false);
+            const [encouragement, setEncouragement] = useState("");
+
+            const praises = ["אשריך!", "חזק וברוך!", "מעולה!", "יישר כוח!", "כל הכבוד!", "בקיאות מופלאה!"];
 
             const startQuiz = () => {
                 setScore(0);
@@ -278,10 +266,10 @@
                 if (idx === questions[index].answer) {
                     setScore(s => s + 1);
                     playSound('correct');
-                    setShowYasharKoach(true);
-                    setTimeout(() => setShowYasharKoach(false), 1000);
+                    setEncouragement(praises[Math.floor(Math.random() * praises.length)]);
                 } else {
                     playSound('wrong');
+                    setEncouragement("");
                 }
             };
 
@@ -290,76 +278,102 @@
                     setIndex(index + 1);
                     setAnswered(false);
                     setSelected(null);
+                    setEncouragement("");
                 } else {
                     setStep('result');
                 }
             };
 
             return (
-                <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
-                    {/* Background Masks */}
-                    <MaskIcon className="mask-bg w-64 h-64 top-10 left-10 rotate-12" />
-                    <MaskIcon className="mask-bg w-48 h-48 bottom-10 right-10 -rotate-12" />
+                <div className="min-h-screen bg-indigo-50 flex flex-col items-center p-4">
+                    {/* Shelter/Morale Banner */}
+                    <div className="w-full max-w-2xl bg-yellow-400 text-yellow-900 py-3 px-6 rounded-b-2xl shadow-md text-center font-bold mb-6 banner-slide z-20">
+                        🇮🇱 פורים חזק ובטוח לכל עם ישראל במקלטים ובחזית! השמחה היא הכוח שלנו. 🇮🇱
+                    </div>
 
                     {step === 'start' && (
-                        <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-t-8 border-purple-600 z-10 animate-pop">
+                        <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-purple-200 z-10 animate-pop mt-10">
                             <div className="purim-gradient p-12 text-center text-white relative">
-                                <TrophyIcon />
-                                <h1 className="text-4xl font-black mb-4">חידון פורים התורני</h1>
-                                <p className="text-xl opacity-90 italic">מגילה, מדרש והלכה למתקדמים</p>
+                                <div className="flex justify-center gap-4 mb-4">
+                                    <IconCrown />
+                                    <IconMask />
+                                </div>
+                                <h1 className="text-4xl font-black mb-2">חידון פורים האינטראקטיבי</h1>
+                                <p className="text-lg opacity-90">בניין איתן | יחד ננצח בשמחה!</p>
                             </div>
-                            <div className="p-10 text-center">
-                                <p className="text-gray-600 mb-8 text-lg leading-relaxed font-medium">
-                                    "ליהודים הייתה אורה ושמחה וששון ויקר"
+                            <div className="p-8 text-center">
+                                <p className="text-gray-700 mb-8 text-xl font-medium leading-relaxed">
+                                    בואו נפיג את המתח עם קצת תורה ושמחה! 
                                     <br />
-                                    בחנו את בקיאותכם במקורות חז"ל והלכות החג בחידון חגיגי ומעמיק.
+                                    חידון מאתגר וכיפי לכל המשפחה.
                                 </p>
-                                <button onClick={startQuiz} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-12 rounded-full text-xl transition-all shadow-lg active:scale-95">
-                                    התחל חידון
+                                <button onClick={startQuiz} className="bg-purple-600 hover:bg-purple-700 text-white font-black py-5 px-16 rounded-full text-2xl transition-all shadow-xl hover:scale-105 active:scale-95">
+                                    קדימה, מתחילים!
                                 </button>
                             </div>
                         </div>
                     )}
 
                     {step === 'quiz' && (
-                        <div className="max-w-2xl w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-purple-100 z-10 animate-pop">
-                            {showYasharKoach && (
-                                <div className="yashar-koach left-1/2 -translate-x-1/2 top-1/2 text-4xl font-black text-green-600 drop-shadow-md">
-                                    יישר כוח!
+                        <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-purple-100 z-10 animate-pop">
+                            {/* Progress & Basket Area */}
+                            <div className="bg-purple-50 p-6 border-b flex flex-col gap-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-black text-purple-800 text-lg">שאלה {index + 1} / {questions.length}</span>
+                                    <div className="flex gap-1">
+                                        {[...Array(score)].map((_, i) => (
+                                            <span key={i} className="basket-item text-2xl">🍬</span>
+                                        ))}
+                                        {score > 0 && <span className="text-2xl">🧺</span>}
+                                    </div>
                                 </div>
-                            )}
-                            <div className="bg-purple-50 p-6 flex justify-between items-center border-b">
-                                <span className="font-bold text-purple-800">שאלה {index + 1} / {questions.length}</span>
-                                <div className="w-48 h-2 bg-purple-200 rounded-full overflow-hidden">
-                                    <div className="h-full bg-purple-600 transition-all duration-300" style={{width: `${((index+1)/questions.length)*100}%`}}></div>
+                                <div className="w-full h-4 bg-purple-100 rounded-full overflow-hidden border border-purple-200">
+                                    <div className="h-full bg-purple-600 transition-all duration-500 shadow-inner" style={{width: `${((index+1)/questions.length)*100}%`}}></div>
                                 </div>
                             </div>
-                            <div className="p-8 md:p-12">
-                                <h2 className="text-2xl font-bold mb-8 text-gray-800 leading-tight">{questions[index].question}</h2>
-                                <div className="space-y-4">
+
+                            <div className="p-8 md:p-12 relative">
+                                {encouragement && (
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-green-500 text-white px-6 py-2 rounded-full font-black text-xl shadow-lg animate-bounce z-30">
+                                        {encouragement}
+                                    </div>
+                                )}
+                                
+                                <h2 className="text-2xl md:text-3xl font-black mb-10 text-gray-800 leading-tight text-center">{questions[index].question}</h2>
+                                
+                                <div className="grid grid-cols-1 gap-4">
                                     {questions[index].options.map((opt, i) => {
-                                        let style = "border-gray-200 hover:bg-purple-50";
+                                        let style = "border-gray-200 hover:border-purple-400 hover:bg-purple-50";
                                         if (answered) {
-                                            if (i === questions[index].answer) style = "bg-green-50 border-green-500 text-green-800 ring-2 ring-green-100";
-                                            else if (selected === i) style = "bg-red-50 border-red-500 text-red-800";
-                                            else style = "opacity-50 border-gray-100";
+                                            if (i === questions[index].answer) style = "bg-green-100 border-green-500 text-green-900 correct-pulse scale-105";
+                                            else if (selected === i) style = "bg-red-50 border-red-500 text-red-900 shake opacity-70";
+                                            else style = "opacity-40 border-gray-100 grayscale";
                                         }
                                         return (
-                                            <button key={i} onClick={() => onSelect(i)} disabled={answered} className={`w-full p-5 text-right border-2 rounded-2xl transition-all font-medium text-lg ${style} flex justify-between items-center`}>
+                                            <button 
+                                                key={i} 
+                                                onClick={() => onSelect(i)} 
+                                                disabled={answered} 
+                                                className={`w-full p-5 text-right border-4 rounded-2xl transition-all font-bold text-xl shadow-sm ${style} flex justify-between items-center`}
+                                            >
                                                 <span>{opt}</span>
-                                                {answered && i === questions[index].answer && <span className="text-green-600">✓</span>}
+                                                {answered && i === questions[index].answer && <span className="text-2xl">✨</span>}
                                             </button>
                                         );
                                     })}
                                 </div>
+
                                 {answered && (
-                                    <div className="mt-8 animate-in fade-in slide-in-from-top-4 duration-500">
-                                        <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100 mb-6">
-                                            <p className="text-blue-900 text-sm"><strong>מקור והסבר:</strong> {questions[index].rationale}</p>
+                                    <div className="mt-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="bg-blue-50 p-6 rounded-2xl border-2 border-blue-200 mb-8 shadow-inner">
+                                            <p className="text-blue-900 text-lg leading-relaxed">
+                                                <strong className="block text-xl mb-1">💡 פנינה מהמקורות:</strong>
+                                                {questions[index].rationale}
+                                            </p>
                                         </div>
-                                        <button onClick={next} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-black transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
-                                            {index + 1 === questions.length ? "סיום וצפייה בציון" : "לשאלה הבאה"}
-                                            <span className="rotate-180">←</span>
+                                        <button onClick={next} className="w-full bg-purple-800 text-white py-5 rounded-2xl font-black text-2xl hover:bg-black transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3">
+                                            {index + 1 === questions.length ? "לסיום החגיגי!" : "לשאלה הבאה"}
+                                            <span className="rotate-180 text-3xl">⬅️</span>
                                         </button>
                                     </div>
                                 )}
@@ -368,29 +382,30 @@
                     )}
 
                     {step === 'result' && (
-                        <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden text-center p-12 border-4 border-yellow-400 z-10 animate-pop">
-                            {[...Array(20)].map((_, i) => (
-                                <div key={i} className="confetti" style={{
-                                    left: `${Math.random() * 100}%`,
-                                    animationDelay: `${Math.random() * 3}s`,
-                                    backgroundColor: ['#7c3aed', '#facc15', '#ef4444', '#10b981'][Math.floor(Math.random() * 4)]
-                                }}></div>
-                            ))}
-                            <div className="text-6xl mb-6">🎭</div>
-                            <h2 className="text-3xl font-black mb-2 text-purple-800">אשריכם! החידון הושלם</h2>
-                            <div className="my-8">
-                                <div className="text-7xl font-black text-purple-600">{Math.round((score/questions.length)*100)}%</div>
-                                <p className="text-gray-500 mt-2 text-xl font-bold">הצלחתם ב-{score} שאלות מתוך {questions.length}</p>
+                        <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden text-center p-12 border-8 border-yellow-400 z-10 animate-pop mt-10 relative">
+                            <div className="text-8xl mb-6">🎭🍷</div>
+                            <h2 className="text-4xl font-black mb-4 text-purple-900">כל הכבוד!</h2>
+                            <p className="text-2xl text-gray-600 font-bold mb-8">הצלחתם לאסוף {score} מנות בסל!</p>
+                            
+                            <div className="bg-indigo-50 rounded-3xl p-10 mb-10 shadow-inner">
+                                <div className="text-8xl font-black text-indigo-600 mb-2">{Math.round((score/questions.length)*100)}%</div>
+                                <div className="flex justify-center gap-2 mt-4 flex-wrap">
+                                    {[...Array(score)].map((_, i) => <span key={i} className="text-3xl floating" style={{animationDelay: `${i*0.2}s`}}>🍪</span>)}
+                                </div>
                             </div>
-                            <p className="text-gray-700 mb-10 text-lg italic leading-relaxed font-medium">
-                                {score === questions.length ? "חילכם לאורייתא! בקיאות מופלאה בכל מכמני המגילה." :
-                                 score >= 20 ? "יישר כוח גדול! שליטה מצוינת במקורות חז\"ל." :
-                                 score >= 15 ? "יפה מאוד, ידע מרשים ומכובד." : 
-                                 "סיום טוב, תמיד טוב לחזור ולשנן את דברי רבותינו."}
+
+                            <p className="text-2xl text-gray-800 mb-10 font-bold leading-relaxed px-4">
+                                {score === questions.length ? "בקיאות מדהימה! אתם ראויים לכתר מלכות. שנזכה לאורה ושמחה!" :
+                                 score >= 15 ? "יישר כוח! ידע תורני מרשים ביותר. פורים שמח!" :
+                                 "סיום יפה מאוד! תמיד טוב לחזור למגילה וללמוד."}
                             </p>
-                            <button onClick={startQuiz} className="bg-purple-600 text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-purple-700 transition-all shadow-lg active:scale-95">
-                                ניסיון חוזר
-                            </button>
+
+                            <div className="flex flex-col gap-4">
+                                <button onClick={startQuiz} className="bg-purple-600 text-white py-5 rounded-full font-black text-2xl hover:bg-purple-700 transition-all shadow-xl active:scale-95">
+                                    סיבוב נוסף? 🔄
+                                </button>
+                                <p className="text-sm text-gray-400">מוגש באהבה על ידי בניין איתן</p>
+                            </div>
                         </div>
                     )}
                 </div>
