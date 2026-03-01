@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>חידון פורים האינטראקטיבי | בניין איתן</title>
+    
+    <!-- Meta Tags for Social Sharing (WhatsApp, Facebook) -->
+    <meta property="og:title" content="חידון פורים התורני של בניין איתן">
+    <meta property="og:description" content="ליהודים הייתה אורה ושמחה! בואו לבחון את הידע שלכם בחידון פורים חגיגי ואינטראקטיבי במיוחד.">
+    <meta property="og:type" content="website">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React and Babel -->
@@ -71,6 +77,10 @@
             30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
             40%, 60% { transform: translate3d(4px, 0, 0); }
         }
+
+        .logo-container {
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
     </style>
 </head>
 <body>
@@ -106,16 +116,30 @@
             } catch(e) {}
         };
 
-        const IconCrown = () => (
-            <svg className="w-12 h-12 text-yellow-400 floating" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5ZM19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V18H19V19Z" />
-            </svg>
-        );
-
-        const IconMask = () => (
-            <svg className="w-10 h-10 text-purple-400 floating" style={{animationDelay: '1s'}} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19.5,5C17.5,5 15.5,6.5 12,6.5C8.5,6.5 6.5,5 4.5,5C2.5,5 1,6.5 1,9.5C1,14 5,19 12,19C19,19 23,14 23,9.5C23,6.5 21.5,5 19.5,5ZM8,12C7.2,12 6.5,11.3 6.5,10.5C6.5,9.7 7.2,9 8,9C8.8,9 9.5,9.7 9.5,10.5C9.5,11.3 8.8,12 8,12ZM16,12C15.2,12 14.5,11.3 14.5,10.5C14.5,9.7 15.2,9 16,9C16.8,9 17.5,9.7 17.5,10.5C17.5,11.3 16.8,12 16,12Z" />
-            </svg>
+        // Custom Combined Brand Logo Component
+        const BrandLogo = ({ light = false }) => (
+            <div className="flex flex-col items-center logo-container mb-4">
+                <svg width="100" height="100" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="floating">
+                    {/* Stylized Building/Foundation (Binyan) */}
+                    <path d="M40 160V80L100 40L160 80V160H40Z" fill={light ? "white" : "#6d28d9"} fillOpacity="0.2" stroke={light ? "white" : "#6d28d9"} strokeWidth="4" />
+                    <rect x="70" y="100" width="20" height="20" rx="2" fill={light ? "white" : "#6d28d9"} fillOpacity="0.4" />
+                    <rect x="110" y="100" width="20" height="20" rx="2" fill={light ? "white" : "#6d28d9"} fillOpacity="0.4" />
+                    <rect x="85" y="130" width="30" height="30" rx="2" fill={light ? "white" : "#6d28d9"} />
+                    
+                    {/* Purim Mask overlapping the building */}
+                    <path d="M30 90C30 80 50 70 80 75C100 75 100 85 120 85C150 85 170 80 170 90C170 110 150 130 100 130C50 130 30 110 30 90Z" fill="#FACC15" stroke="white" strokeWidth="3" />
+                    <circle cx="70" cy="100" r="8" fill="#4C1D95" />
+                    <circle cx="130" cy="100" r="8" fill="#4C1D95" />
+                    <path d="M85 115C95 120 105 120 115 115" stroke="#4C1D95" strokeWidth="2" strokeLinecap="round" />
+                    
+                    {/* Decorative Elements */}
+                    <circle cx="160" cy="50" r="5" fill="#FACC15" />
+                    <circle cx="40" cy="40" r="4" fill="#A855F7" />
+                </svg>
+                <div className={`mt-2 text-2xl font-black ${light ? "text-white" : "text-purple-900"}`} style={{letterSpacing: '-1px'}}>
+                    בניין איתן
+                </div>
+            </div>
         );
 
         const questions = [
@@ -284,6 +308,17 @@
                 }
             };
 
+            const shareQuiz = () => {
+                const text = `הוצאתי ${score}/${questions.length} בחידון פורים התורני של בניין איתן! מי מצליח לעקוף אותי?`;
+                const url = window.location.href;
+                if (navigator.share) {
+                    navigator.share({ title: 'חידון פורים - בניין איתן', text, url });
+                } else {
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + " " + url)}`;
+                    window.open(whatsappUrl, '_blank');
+                }
+            };
+
             return (
                 <div className="min-h-screen bg-indigo-50 flex flex-col items-center p-4">
                     {/* Shelter/Morale Banner */}
@@ -293,13 +328,10 @@
 
                     {step === 'start' && (
                         <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-purple-200 z-10 animate-pop mt-10">
-                            <div className="purim-gradient p-12 text-center text-white relative">
-                                <div className="flex justify-center gap-4 mb-4">
-                                    <IconCrown />
-                                    <IconMask />
-                                </div>
-                                <h1 className="text-4xl font-black mb-2">חידון פורים האינטראקטיבי</h1>
-                                <p className="text-lg opacity-90">בניין איתן | יחד ננצח בשמחה!</p>
+                            <div className="purim-gradient p-10 text-center text-white relative">
+                                <BrandLogo light />
+                                <h1 className="text-3xl font-black mb-2 mt-4">חידון פורים האינטראקטיבי</h1>
+                                <p className="text-lg opacity-90">יחד ננצח בשמחה!</p>
                             </div>
                             <div className="p-8 text-center">
                                 <p className="text-gray-700 mb-8 text-xl font-medium leading-relaxed">
@@ -383,7 +415,7 @@
 
                     {step === 'result' && (
                         <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden text-center p-12 border-8 border-yellow-400 z-10 animate-pop mt-10 relative">
-                            <div className="text-8xl mb-6">🎭🍷</div>
+                            <BrandLogo />
                             <h2 className="text-4xl font-black mb-4 text-purple-900">כל הכבוד!</h2>
                             <p className="text-2xl text-gray-600 font-bold mb-8">הצלחתם לאסוף {score} מנות בסל!</p>
                             
@@ -401,10 +433,12 @@
                             </p>
 
                             <div className="flex flex-col gap-4">
-                                <button onClick={startQuiz} className="bg-purple-600 text-white py-5 rounded-full font-black text-2xl hover:bg-purple-700 transition-all shadow-xl active:scale-95">
+                                <button onClick={shareQuiz} className="bg-green-600 text-white py-4 rounded-full font-black text-xl hover:bg-green-700 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2">
+                                    שתפו לחברים בוואטסאפ 📱
+                                </button>
+                                <button onClick={startQuiz} className="text-purple-600 font-bold py-2 hover:underline">
                                     סיבוב נוסף? 🔄
                                 </button>
-                                <p className="text-sm text-gray-400">מוגש באהבה על ידי בניין איתן</p>
                             </div>
                         </div>
                     )}
