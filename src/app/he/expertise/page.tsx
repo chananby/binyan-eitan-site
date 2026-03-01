@@ -1,6 +1,8 @@
 import ExpertiseArticle from "../../components/ExpertiseArticle";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "בנין איתן | ידע מקצועי | בחירת קבלן לפרויקטים מורכבים",
   description:

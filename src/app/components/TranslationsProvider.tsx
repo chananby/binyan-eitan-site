@@ -4,8 +4,12 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import defaultTranslations from "@/src/lib/translations.json";
 
 type TranslationsData = typeof defaultTranslations;
-type SectionKey = keyof TranslationsData;
 type LangKey = "en" | "he";
+
+// Only sections that follow the {en: {...}, he: {...}} shape
+type LocalizedSection = {
+  [K in keyof TranslationsData]: TranslationsData[K] extends { en: object; he: object } ? K : never;
+}[keyof TranslationsData];
 
 const TranslationsContext = createContext<TranslationsData>(defaultTranslations);
 
@@ -40,8 +44,10 @@ export function TranslationsProvider({ children }: { children: React.ReactNode }
 
     // Instant refetch when the content editor broadcasts a successful save
     // Works both within the same tab and across tabs on the same origin
+    // 300ms delay ensures the KV write has fully propagated before we read
+    const onSync = () => setTimeout(loadTranslations, 300);
     const channel = new BroadcastChannel("translations-sync");
-    channel.addEventListener("message", loadTranslations);
+    channel.addEventListener("message", onSync);
 
     return () => {
       clearInterval(interval);
@@ -57,10 +63,10 @@ export function TranslationsProvider({ children }: { children: React.ReactNode }
   );
 }
 
-export function useTranslations<S extends SectionKey>(
+export function useTranslations<S extends LocalizedSection>(
   section: S,
   lang: LangKey
 ): TranslationsData[S][LangKey] {
   const translations = useContext(TranslationsContext);
-  return translations[section]?.[lang] ?? ({} as TranslationsData[S][LangKey]);
+  return (translations[section] as any)?.[lang] ?? ({} as TranslationsData[S][LangKey]);
 }
