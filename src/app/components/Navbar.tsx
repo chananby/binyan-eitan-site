@@ -64,13 +64,14 @@ export default function Navbar() {
     { label: l.firm, href: `/${lang}/about` },
     { label: l.expertise, href: `/${lang}/expertise` },
     { label: l.portfolio, href: `/${lang}#portfolio` },
-    { label: l.faq, href: `/${lang}/faq` },
+    { label: l.faq, href: `/${lang}/expertise#faq` },
   ];
 
+  // Hash-only links are never "active page" indicators
   const isActive = (href: string) => {
-    const path = href.split("#")[0];
-    if (path === `/${lang}`) return pathname === `/${lang}`;
-    return pathname.startsWith(path);
+    if (href.includes("#")) return false;
+    if (href === `/${lang}`) return pathname === `/${lang}`;
+    return pathname.startsWith(href);
   };
 
   return (
@@ -79,9 +80,7 @@ export default function Navbar() {
       <motion.header
         dir={dir}
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-          scrolled
-            ? "bg-bone/90 backdrop-blur-md border-b border-warm-gray-light shadow-[0_1px_24px_rgba(45,41,38,0.06)]"
-            : "bg-transparent border-b border-transparent"
+          scrolled ? "glass" : "bg-transparent border-b border-transparent"
         }`}
         initial={{ y: -80 }}
         animate={{ y: 0 }}
