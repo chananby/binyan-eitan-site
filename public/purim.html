@@ -5,17 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>חידון פורים האינטראקטיבי | בניין איתן</title>
     
-    <!-- Meta Tags for Social Sharing (WhatsApp, Facebook) -->
-    <meta property="og:title" content="חידון פורים">
-    <meta property="og:description" content="ליהודים הייתה אורה ושמחה! בואו לבחון את הידע שלכם בחידון פורים חגיגי ואינטראקטיבי במיוחד.">
+    <!-- Meta Tags for WhatsApp, Facebook, Telegram etc. -->
+    <meta property="og:title" content="חידון פורים | בניין איתן">
+    <meta property="og:description" content="ליהודים הייתה אורה ושמחה! בואו לבחון את הידע שלכם בחידון פורים חגיגי, תורני ומאתגר.">
     
-    <!-- תמונה סטטית, יפה וישירה של מגילת אסתר שוואטסאפ קורא בקלות -->
-    <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Megillah_1.JPG/600px-Megillah_1.JPG">
+    <!-- תמונה אמינה ומהירה של כתר מלכות - עובדת מצוין בוואטסאפ -->
+    <meta property="og:image" itemprop="image" content="https://images.unsplash.com/photo-1514222709107-a180c68d72b4?q=80&w=600&h=600&fit=crop">
+    <meta property="og:image:secure_url" itemprop="image" content="https://images.unsplash.com/photo-1514222709107-a180c68d72b4?q=80&w=600&h=600&fit=crop">
+    <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="600">
-    <meta property="og:image:height" content="400">
+    <meta property="og:image:height" content="600">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://binyaneitan.com/purim">
-    <meta property="og:site_name" content="בניין איתן">
+    
+    <!-- Twitter Cards (עוזר גם במערכות אחרות) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="חידון פורים | בניין איתן">
+    <meta name="twitter:description" content="ליהודים הייתה אורה ושמחה! בואו לבחון את הידע שלכם בחידון פורים.">
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1514222709107-a180c68d72b4?q=80&w=600&h=600&fit=crop">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -316,7 +322,7 @@
             };
 
             const shareQuiz = () => {
-                const text = `הוצאתי ${score}/${questions.length} בחידון פורים התורני של בניין איתן! מי מצליח לעקוף אותי?`;
+                const text = `הוצאתי ${score}/${questions.length} בחידון פורים של בניין איתן! מי מצליח לעקוף אותי?`;
                 const url = window.location.href;
                 if (navigator.share) {
                     navigator.share({ title: 'חידון פורים', text, url });
@@ -337,7 +343,7 @@
                         <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-purple-200 z-10 animate-pop mt-10">
                             <div className="purim-gradient p-10 text-center text-white relative">
                                 <BrandLogo light />
-                                <h1 className="text-3xl font-black mb-2 mt-4">חידון פורים האינטראקטיבי</h1>
+                                <h1 className="text-3xl font-black mb-2 mt-4">חידון פורים</h1>
                                 <p className="text-lg opacity-90">יחד ננצח בשמחה!</p>
                             </div>
                             <div className="p-8 text-center">
