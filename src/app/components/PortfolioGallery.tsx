@@ -159,7 +159,7 @@ export default function PortfolioGallery() {
   return (
     <>
       {/* ── Gallery Section ── */}
-      <section id="portfolio" className="bg-bone py-16 md:py-24">
+      <section id="portfolio" className="scroll-mt-20 bg-bone py-16 md:py-24">
         <div className="mx-auto max-w-[1440px] px-8">
 
           {/* Header */}

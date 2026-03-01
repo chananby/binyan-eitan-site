@@ -100,7 +100,7 @@ export default function ExpertiseArticle() {
       ) : (
         <>
           {/* ── Professional Articles ── */}
-          <section className="bg-bone py-16 md:py-24">
+          <section id="articles" className="scroll-mt-24 bg-bone py-16 md:py-24">
             <div className="mx-auto max-w-[860px] px-8">
               <h2 className="font-heading text-2xl font-bold text-charcoal mb-10">
                 {c.articlesHeading}
@@ -139,7 +139,7 @@ export default function ExpertiseArticle() {
           <div className="border-b border-warm-gray-light" />
 
           {/* ── FAQ Accordion ── */}
-          <section id="faq" className="bg-bone py-16 md:py-24">
+          <section id="faq" className="scroll-mt-24 bg-bone py-16 md:py-24">
             <div className="mx-auto max-w-[860px] px-8">
               <h2 className="font-heading text-2xl font-bold text-charcoal mb-10">
                 {c.faqHeading}
