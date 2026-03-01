@@ -203,24 +203,16 @@ export default function ContentEditorPage() {
   };
   // ─────────────────────────────────────────────────────────────────────────
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center font-sans">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8D775F] mb-4"></div>
-        <p className="text-gray-600 font-medium text-lg">טוען נתונים מהשרת...</p>
-      </div>
-    );
-  }
+  // ── All derived values that use hooks MUST be above any early return ──────
+  const q = searchQuery.toLowerCase().trim();
 
   const section = activeTab !== "articles" && activeTab !== "faqs"
     ? (translations[activeTab as SectionKey] as any)
     : null;
-  const allKeys =
+  const allKeys: string[] =
     section && section.en && section.he
       ? Array.from(new Set([...Object.keys(section.en ?? {}), ...Object.keys(section.he ?? {})]))
       : [];
-
-  const q = searchQuery.toLowerCase().trim();
 
   // Sections whose keys or values match the search query
   const matchingSections = useMemo(() => {
@@ -249,7 +241,18 @@ export default function ContentEditorPage() {
       const enVal = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "en", key);
       return heVal.toLowerCase().includes(q) || enVal.toLowerCase().includes(q);
     });
-  }, [q, allKeys, translations, activeTab]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, activeTab, translations]);
+  // ─────────────────────────────────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center font-sans">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8D775F] mb-4"></div>
+        <p className="text-gray-600 font-medium text-lg">טוען נתונים מהשרת...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
