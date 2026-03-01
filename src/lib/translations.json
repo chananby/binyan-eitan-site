@@ -1,11 +1,21 @@
 {
   "nav": {
     "en": {
-      "inquiry": "Inquiry",
+      "home": "Home",
+      "about": "The Firm",
+      "expertise": "Expertise",
+      "projects": "Portfolio",
+      "faq": "Common Questions",
+      "contact": "Contact Us",
       "switchLabel": "עב"
     },
     "he": {
-      "inquiry": "צור קשר",
+      "home": "דף הבית",
+      "about": "החברה",
+      "expertise": "מומחיות",
+      "projects": "תיק פרויקטים",
+      "faq": "שאלות נפוצות",
+      "contact": "יצירת קשר",
       "switchLabel": "EN"
     }
   },
@@ -31,7 +41,7 @@
       "heading": "Complex Engineering,\nUncompromising Execution.",
       "sub": "G1 Registered Contractor (License #41805). 20 years of technical precision and uncompromising safety.",
       "g1Label": "G1 Registered Contractor",
-      "cta": "Explore Portfolio",
+      "cta": "Let's Talk",
       "imageAlt": "Luxury interior finish",
       "imageFloatLabel": "Luxury Interior Finish",
       "scroll": "Scroll",
@@ -45,7 +55,7 @@
       "heading": "הנדסה מורכבת,\nביצוע ללא פשרות.",
       "sub": "קבלן רשום ג1 (מס' 41805). 20 שנות דיוק טכני ובטיחות ללא פשרות.",
       "g1Label": "קבלן רשום ג1",
-      "cta": "לצפייה בפרויקטים",
+      "cta": "דברו איתנו",
       "imageAlt": "גימור פנים יוקרתי",
       "imageFloatLabel": "גימור פנים יוקרתי",
       "scroll": "גלול",
@@ -341,7 +351,7 @@
       "learnMore": "Learn More",
       "ctaHeading": "Ready to Discuss Your Vision?",
       "ctaSub": "Let's collaborate on your next architectural masterpiece",
-      "ctaButton": "Start a Project",
+      "ctaButton": "Contact Us",
       "proj_0_title": "Amshinov Project",
       "proj_0_category": "Commercial Architecture",
       "proj_0_description": "A landmark commercial development featuring 100 tons of steel, a hydraulic opening roof, and cutting-edge engineering.",
@@ -363,7 +373,7 @@
       "learnMore": "קרא עוד",
       "ctaHeading": "מוכנים לדיון בחזון שלכם?",
       "ctaSub": "בואו נשתפ פעולה בפרויקט האדריכלי הבא שלכם",
-      "ctaButton": "התחל פרויקט",
+      "ctaButton": "יצירת קשר",
       "proj_0_title": "פרויקט אמשינוב",
       "proj_0_category": "אדריכלות מסחרית",
       "proj_0_description": "פיתוח מסחרי דגל הכולל 100 טון פלדה, גג פתיחה הידראולי והנדסה חדשנית.",

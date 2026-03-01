@@ -29,7 +29,7 @@ const ui = {
     heading: "Engineering\nInsights.",
     sub: "Professional articles on modern construction, engineering challenges, and project management.",
     articlesHeading: "Professional Articles",
-    faqHeading: "Frequently Asked Questions",
+    faqHeading: "Common Questions",
     readMore: "Read Article",
     emptyArticles: "No articles published yet.",
     emptyFaq: "No FAQ entries yet.",

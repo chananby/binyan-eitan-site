@@ -17,14 +17,14 @@ const NAV_LABELS = {
     { label: "Home", href: (lang: string) => `/${lang}` },
     { label: "The Firm", href: (lang: string) => `/${lang}/about` },
     { label: "Expertise", href: (lang: string) => `/${lang}/expertise` },
-    { label: "FAQ", href: (lang: string) => `/${lang}/expertise#faq` },
+    { label: "Common Questions", href: (lang: string) => `/${lang}/expertise#faq` },
     { label: "Portfolio", href: (lang: string) => `/${lang}#portfolio` },
   ],
   he: [
     { label: "דף הבית", href: (lang: string) => `/${lang}` },
     { label: "החברה", href: (lang: string) => `/${lang}/about` },
     { label: "מומחיות", href: (lang: string) => `/${lang}/expertise` },
-    { label: 'שו"ת', href: (lang: string) => `/${lang}/expertise#faq` },
+    { label: "שאלות נפוצות", href: (lang: string) => `/${lang}/expertise#faq` },
     { label: "תיק פרויקטים", href: (lang: string) => `/${lang}#portfolio` },
   ],
 } as const;

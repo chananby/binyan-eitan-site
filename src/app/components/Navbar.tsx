@@ -11,25 +11,6 @@ import { useTranslations } from "./TranslationsProvider";
 
 type Lang = "en" | "he";
 
-const NAV_LABELS = {
-  en: {
-    home: "Home",
-    firm: "The Firm",
-    expertise: "Expertise",
-    portfolio: "Portfolio",
-    faq: "FAQ",
-    contact: "Contact Us",
-  },
-  he: {
-    home: "דף הבית",
-    firm: "החברה",
-    expertise: "מומחיות",
-    portfolio: "תיק פרויקטים",
-    faq: 'שו"ת',
-    contact: "צור קשר",
-  },
-} as const;
-
 interface NavLink {
   label: string;
   href: string;
@@ -39,7 +20,6 @@ export default function Navbar() {
   const { lang } = useLang() as { lang: Lang };
   const t = useTranslations("nav", lang);
   const homeT = useTranslations("home", lang);
-  const l = NAV_LABELS[lang];
   const pathname = usePathname();
   const otherLang = lang === "he" ? "en" : "he";
   const switchHref = pathname.replace(new RegExp(`^/(he|en)`), `/${otherLang}`);
@@ -60,11 +40,11 @@ export default function Navbar() {
   }, [mobileOpen]);
 
   const navLinks: NavLink[] = [
-    { label: l.home, href: `/${lang}` },
-    { label: l.firm, href: `/${lang}/about` },
-    { label: l.expertise, href: `/${lang}/expertise` },
-    { label: l.portfolio, href: `/${lang}#portfolio` },
-    { label: l.faq, href: `/${lang}/expertise#faq` },
+    { label: t.home as string, href: `/${lang}` },
+    { label: t.about as string, href: `/${lang}/about` },
+    { label: t.expertise as string, href: `/${lang}/expertise` },
+    { label: t.projects as string, href: `/${lang}#portfolio` },
+    { label: t.faq as string, href: `/${lang}/expertise#faq` },
   ];
 
   // Hash-only links are never "active page" indicators
@@ -134,7 +114,7 @@ export default function Navbar() {
               href={`/${lang}#contact`}
               className="hidden md:inline-flex items-center bg-accent text-bone px-5 py-2 text-[11px] font-semibold tracking-[0.18em] uppercase transition-colors duration-300 hover:bg-accent-dark"
             >
-              {l.contact}
+              {t.contact as string}
             </Link>
 
             {/* Language switcher */}
@@ -213,7 +193,7 @@ export default function Navbar() {
 
             {/* Nav links */}
             <nav className="flex-1 flex flex-col justify-center px-8">
-              {[...navLinks, { label: l.contact, href: `/${lang}#contact` }].map(
+              {[...navLinks, { label: t.contact as string, href: `/${lang}#contact` }].map(
                 (link, i) => {
                   const active = isActive(link.href);
                   return (
