@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חידון פורים למתקדמים | בניין איתן</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap');
+        body { font-family: 'Heebo', sans-serif; }
+        .purim-gradient { background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%); }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const questions = [
+            {
+                question: "מדוע נגזרה גזירת כליה על עם ישראל בימי אחשוורוש לפי חז\"ל?",
+                options: ["מפני שהשתחוו לפסלו של נבוכדנצר ונהנו מסעודת אחשוורוש", "מפני ששכחו את תורת משה והתערבו בגויים", "מפני שלא עלו לארץ ישראל לבנות את המקדש", "מפני שמרדכי סירב להשתחוות להמן"],
+                answer: 0,
+                rationale: "הגמרא במסכת מגילה מציינת ששילוב העבודה זרה מהעבר וההנאה מסעודת אחשוורוש גרמו לקטרוג."
+            },
+            {
+                question: "מי מזוהה במדרש כ'ממוכן', ומה הייתה הצעתו?",
+                options: ["דניאל הנביא", "המן, והציע להרוג את ושתי כדי להאדיר את כבוד הגברים", "אליהו הנביא", "התך"],
+                answer: 1,
+                rationale: "חז\"ל מזהים את ממוכן כהמן, שקפץ בראש להציע הצעה שתשרת את האינטרסים שלו."
+            },
+            {
+                question: "מדוע סירב מרדכי להשתחוות להמן (מעבר לאיסור הכללי)?",
+                options: ["בגלל שמרדכי היה משבט יהודה והמן מעמלק", "מכיוון שהמן חקק צלם של עבודה זרה על בגדו", "מכיוון שהמן היה עבד של מרדכי בעברו", "כי המלך לא באמת ציווה להשתחוות"],
+                answer: 1,
+                rationale: "המן הפך את עצמו לאלוהות או נשא עליו סמל עבודה זרה, ולכן מרדכי מסר את הנפש."
+            },
+            {
+                question: "מה היה הסכום שהציע המן למלך תמורת השמדת היהודים?",
+                options: ["חמשת אלפים כיכר זהב", "מאה אלף מנה כסף", "שבעת אלפים כיכר כסף", "עשרת אלפים כיכר כסף"],
+                answer: 3,
+                rationale: "זהו הסכום הנקוב במגילה, כנגד עשרת אלפי מחצית השקל של בני ישראל."
+            },
+            {
+                question: "באיזה תאריך חלו שלושת ימי הצום שגזרה אסתר במקור?",
+                options: ["י\"א-י\"ג באדר", "י\"ג-ט\"ו בניסן", "א'-ג' בסיוון", "י'-י\"ב בתשרי"],
+                answer: 1,
+                rationale: "הצום היה בחודש ניסן, ומרדכי טען שהצום יבטל את שמחת הפסח, אך אסתר עמדה על כך."
+            },
+            {
+                question: "מה היה הקשר המשפחתי המקורי בין מרדכי לאסתר?",
+                options: ["דוד ואחיינית", "אחים", "בני דודים (בת דודו)", "סבא ונכדה"],
+                answer: 2,
+                rationale: "כתוב 'בת אביחיל דוד מרדכי', כלומר מרדכי ואביה היו אחים."
+            },
+            {
+                question: "מה היה שמה העברי המקורי של אסתר?",
+                options: ["הדסה", "איילת", "שרה", "מרים"],
+                answer: 0,
+                rationale: "מפורש במגילה: 'ויהי אומן את הדסה היא אסתר'."
+            },
+            {
+                question: "מי היו בגתן ותרש ומה היה תפקידם?",
+                options: ["יועצי המלך", "שומרי הסף שביקשו לשלוח יד במלך", "שרי הצבא", "טבחי הארמון"],
+                answer: 1,
+                rationale: "שני סריסים משומרי הסף שקצפו על המלך ורצו להתנקש בו."
+            },
+            {
+                question: "מדוע נקרא החג 'פורים'?",
+                options: ["מלשון פורענות", "על שם הפאר של אסתר", "על שם ה'פור' (הגורל)", "מלשון הפרה"],
+                answer: 2,
+                rationale: "על שם הגורל (פור) שהפיל המן לקביעת יום ההשמדה."
+            },
+            {
+                question: "מהי ההגדרה ההלכתית של 'מתנות לאביונים'?",
+                options: ["מתנה אחת לשני עניים", "שתי מתנות לעני אחד", "מחצית השקל", "צדקה לקופה הכללית"],
+                answer: 0,
+                rationale: "חובה לתת לפחות מתנה אחת לשני עניים שונים (שתי מתנות בסה\"כ)."
+            },
+            {
+                question: "אילו ערים חוגגות את פורים בט\"ו באדר?",
+                options: ["ערים גדולות", "ערי בירה", "ערים מוקפות חומה מימי יהושע בן נון", "רק ירושלים ושושן"],
+                answer: 2,
+                rationale: "תיקנו לפי זמן יהושע כדי לחלוק כבוד לארץ ישראל שהייתה חרבה אז."
+            },
+            {
+                question: "מה גרם לנדודי השינה של המלך ב'לילה ההוא'?",
+                options: ["אכילת יתר", "חשד שאסתר והמן מורדים בו", "מלאך הכה אותו", "רעש מהחצר"],
+                answer: 1,
+                rationale: "הוא חשש שהזמנת המן לסעודה מעידה על קשר חשאי נגדו."
+            },
+            {
+                question: "מי היה חרבונה ומה היה חלקו?",
+                options: ["בנו של המן", "שליח המלך", "סריס שהזכיר את העץ שהכין המן", "משרת אסתר"],
+                answer: 2,
+                rationale: "הוא הפנה את תשומת לב המלך לעץ שבנה המן עבור מרדכי 'אשר דיבר טוב על המלך'."
+            },
+            {
+                question: "מה הוחרג מ'חצי המלכות' שהציע המלך לאסתר?",
+                options: ["הכתר", "בניין בית המקדש השני", "חיי ושתי", "127 מדינות"],
+                answer: 1,
+                rationale: "חז\"ל דורשים שחצי המלכות הוא המקדש העומד בלב העולם."
+            },
+            {
+                question: "כיצד קוראים את שמות עשרת בני המן?",
+                options: ["במנגינה עליזה", "בקול רם", "בלחישה", "בנשימה אחת"],
+                answer: 3,
+                rationale: "להראות שכולם מתו יחד ונספו ברגע אחד."
+            },
+            {
+                question: "מה הדין לגבי 'משלוח מנות' לאבל?",
+                options: ["האבל חייב לשלוח, אך אין לשלוח לו מנות שמחה", "פטור מהמצווה", "מותר כרגיל", "רק מתנות לאביונים"],
+                answer: 0,
+                rationale: "האבל חייב במצוות היום אך אין שואלים בשלומו בדברי שמחה."
+            },
+            {
+                question: "מדוע נהוג להתחפש בפורים?",
+                options: ["קרנבל חיצוני", "שהעניים לא יתביישו", "לזכר הנס בהסתרה ('הסתר פנים')", "להידמות למרדכי"],
+                answer: 2,
+                rationale: "לבטא את השגחת השם הנסתרת בתוך מסווה הטבע."
+            },
+            {
+                question: "כמה פעמים מופיע שם השם המפורש במגילה?",
+                options: ["אף פעם לא בגלוי", "פעם אחת", "7 פעמים", "בכל פרק"],
+                answer: 0,
+                rationale: "המגילה היא הספר היחיד בתנ\"ך ללא שם השם המפורש."
+            },
+            {
+                question: "מהו 'פורים משולש'?",
+                options: ["אדר א', ב' ושושן", "כשפורים חל בשבת ומחלקים המצוות", "חגיגה של 3 ימים", "פורים ביום שלישי"],
+                answer: 1,
+                rationale: "בירושלים מחלקים המצוות לשישי, שבת וראשון כדי למנוע חילול שבת."
+            },
+            {
+                question: "מי הייתה זרש ומה הציעה?",
+                options: ["בת המלך", "אחות מרדכי", "אשת המן, הציעה לבנות עץ", "מרעילה"],
+                answer: 2,
+                rationale: "היא זו שייעצה להמן לבנות עץ גבוה כדי לתלות את מרדכי עליו."
+            },
+            {
+                question: "האם נשים חייבות בקריאת המגילה?",
+                options: ["פטורות", "חייבות, כי אף הן היו באותו הנס", "רק רווקות", "רק שמיעה"],
+                answer: 1,
+                rationale: "החיוב חל על נשים כי הנס נעשה על ידי אסתר ועבורן באותה מידה."
+            },
+            {
+                question: "איזו תפילה מוסיפים בעמידה בפורים?",
+                options: ["יעלה ויבוא", "הלל", "מעין המאורע", "על הניסים"],
+                answer: 3,
+                rationale: "תוספת ההודיה המיוחדת לימי הנס של פורים וחנוכה."
+            },
+            {
+                question: "מה הכמות המינימלית למשלוח מנות?",
+                options: ["מנה גדולה", "שתי מנות מאכל שונות לאדם אחד", "לחם ומים", "פירות ושוקולד"],
+                answer: 1,
+                rationale: "שתי מנות שונות המוכנות לאכילה מיד לאדם אחד לפחות."
+            },
+            {
+                question: "למה נמשלה אסתר במזמור כ\"ב בתהילים?",
+                options: ["שושנה", "גפן", "איילת השחר", "יונה"],
+                answer: 2,
+                rationale: "המדרש מזהה את איילת השחר כאסתר המאירה את הגלות."
+            },
+            {
+                question: "מהי משמעות 'קיבלו וקיימו' בסוף המגילה?",
+                options: ["עלייה לירושלים", "צבא חזק", "ביטול צומות", "קבלת התורה מחדש מרצון"],
+                answer: 3,
+                rationale: "חז\"ל מלמדים שבפורים יהודים קיבלו את התורה מאהבה, בניגוד לכפייה בסיני."
+            }
+        ];
+
+        function App() {
+            const [step, setStep] = useState('start');
+            const [index, setIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [answered, setAnswered] = useState(false);
+            const [selected, setSelected] = useState(null);
+
+            const startQuiz = () => {
+                setScore(0);
+                setIndex(0);
+                setStep('quiz');
+                setAnswered(false);
+            };
+
+            const onSelect = (idx) => {
+                if (answered) return;
+                setSelected(idx);
+                setAnswered(true);
+                if (idx === questions[index].answer) setScore(s => s + 1);
+            };
+
+            const next = () => {
+                if (index + 1 < questions.length) {
+                    setIndex(index + 1);
+                    setAnswered(false);
+                    setSelected(null);
+                } else {
+                    setStep('result');
+                }
+            };
+
+            if (step === 'start') return (
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden border-t-8 border-purple-600">
+                        <div className="purim-gradient p-12 text-center text-white">
+                            <h1 className="text-4xl font-black mb-4">חידון פורים הגדול</h1>
+                            <p className="text-xl opacity-90">בניין איתן | ידע, מדרש והלכה</p>
+                        </div>
+                        <div className="p-10 text-center">
+                            <p className="text-gray-600 mb-8 text-lg leading-relaxed">
+                                ברוכים הבאים לחידון פורים המקיף שלנו. 25 שאלות שיבחנו את הבקיאות שלכם במגילה, במדרשי חז"ל ובהלכות החג. מוכנים?
+                            </p>
+                            <button onClick={startQuiz} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-12 rounded-full text-xl transition-all shadow-lg">
+                                התחל חידון
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            if (step === 'quiz') return (
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <div className="max-w-2xl w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-purple-100">
+                        <div className="bg-purple-50 p-6 flex justify-between items-center border-b">
+                            <span className="font-bold text-purple-800">שאלה {index + 1} / {questions.length}</span>
+                            <div className="w-48 h-2 bg-purple-200 rounded-full overflow-hidden">
+                                <div className="h-full bg-purple-600" style={{width: `${((index+1)/questions.length)*100}%`}}></div>
+                            </div>
+                        </div>
+                        <div className="p-8 md:p-12">
+                            <h2 className="text-2xl font-bold mb-8 text-gray-800">{questions[index].question}</h2>
+                            <div className="space-y-4">
+                                {questions[index].options.map((opt, i) => {
+                                    let style = "border-gray-200 hover:bg-purple-50";
+                                    if (answered) {
+                                        if (i === questions[index].answer) style = "bg-green-100 border-green-500 text-green-800";
+                                        else if (selected === i) style = "bg-red-100 border-red-500 text-red-800";
+                                        else style = "opacity-50 border-gray-100";
+                                    }
+                                    return (
+                                        <button key={i} onClick={() => onSelect(i)} disabled={answered} className={`w-full p-5 text-right border-2 rounded-2xl transition-all font-medium text-lg ${style}`}>
+                                            {opt}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {answered && (
+                                <div className="mt-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                                    <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100 mb-6">
+                                        <p className="text-blue-900 text-sm"><strong>מקור והסבר:</strong> {questions[index].rationale}</p>
+                                    </div>
+                                    <button onClick={next} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-black transition-all">
+                                        {index + 1 === questions.length ? "סיום וצפייה בציון" : "לשאלה הבאה"}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const pct = Math.round((score/questions.length)*100);
+            return (
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden text-center p-12 border-4 border-yellow-400">
+                        <div className="text-6xl mb-6">🎉</div>
+                        <h2 className="text-3xl font-black mb-2">החידון הושלם!</h2>
+                        <div className="my-8">
+                            <div className="text-7xl font-black text-purple-600">{pct}%</div>
+                            <p className="text-gray-500 mt-2 text-xl font-bold">הצלחת ב-{score} שאלות</p>
+                        </div>
+                        <p className="text-gray-700 mb-10 text-lg italic">
+                            {pct === 100 ? "מושלם! אתה בקיא במגילה ובחז\"ל בצורה יוצאת דופן." :
+                             pct >= 80 ? "כל הכבוד! שליטה מצוינת במקורות פורים." :
+                             pct >= 60 ? "יפה מאוד, אתה מכיר היטב את המגילה וההלכה." : 
+                             "סיום טוב, כדאי לעבור שוב על המגילה ודברי חז\"ל."}
+                        </p>
+                        <button onClick={startQuiz} className="bg-purple-600 text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-purple-700 transition-all">
+                            ניסיון חוזר
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
