@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import defaultTranslations from "@/src/lib/translations.json";
+import XRaySlider from "@/src/app/components/XRaySlider";
 
 type TranslationsData = typeof defaultTranslations;
 type SectionKey = keyof TranslationsData;
@@ -380,6 +381,87 @@ function MediaManager({
                       הוסף תמונה
                     </button>
                   </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── X-Ray Slider ── */}
+      <section>
+        <SectionDivider label="X-Ray Slider — תשתית vs תוצאה סופית" />
+        <div className="space-y-6">
+          {PORTFOLIO_PROJECTS.slice(0, 2).map((proj) => {
+            const beforeUrl = getPortfolioVal(`xray_before_${proj.projKey}`) ||
+              (translations.projects as any)?.he?.[`${proj.projKey}_xray_before`] || "";
+            const afterUrl  = getPortfolioVal(`xray_after_${proj.projKey}`) ||
+              (translations.projects as any)?.he?.[`${proj.projKey}_xray_after`] || "";
+            return (
+              <div key={proj.num} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="flex items-center gap-2.5 px-5 py-3.5 bg-gray-50 border-b border-gray-200">
+                  <span className="font-mono text-xs font-bold text-[#8D775F] bg-[#8D775F]/10 px-2 py-0.5 rounded">{proj.num}</span>
+                  <span className="font-bold text-sm text-gray-900">{proj.defaultName_he}</span>
+                  <span className="text-gray-400 text-xs">·</span>
+                  <span className="text-gray-400 text-xs">{proj.defaultName_en}</span>
+                </div>
+                <div className="p-5 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1.5">
+                        תמונת תשתית (Before)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <div className="shrink-0 w-14 h-10 rounded overflow-hidden border border-gray-200 bg-gray-100">
+                          <ImageThumb src={beforeUrl} className="w-full h-full" />
+                        </div>
+                        <input
+                          type="text" dir="ltr" value={beforeUrl}
+                          onChange={(e) => {
+                            setBoth("projects", `${proj.projKey}_xray_before`, e.target.value);
+                          }}
+                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-xs font-mono text-gray-800 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                          placeholder="/infrastructure-photo.jpg"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1.5">
+                        תמונת תוצאה סופית (After)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <div className="shrink-0 w-14 h-10 rounded overflow-hidden border border-gray-200 bg-gray-100">
+                          <ImageThumb src={afterUrl} className="w-full h-full" />
+                        </div>
+                        <input
+                          type="text" dir="ltr" value={afterUrl}
+                          onChange={(e) => {
+                            setBoth("projects", `${proj.projKey}_xray_after`, e.target.value);
+                          }}
+                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-xs font-mono text-gray-800 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                          placeholder="/final-result-photo.jpg"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Live preview — only shown when both URLs are filled */}
+                  {beforeUrl && afterUrl ? (
+                    <div>
+                      <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2">תצוגה מקדימה חיה</p>
+                      <XRaySlider
+                        beforeUrl={beforeUrl}
+                        afterUrl={afterUrl}
+                        beforeLabel="תשתית"
+                        afterLabel="תוצאה סופית"
+                        dir="rtl"
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400 italic py-2 text-center">
+                      הזינו שתי כתובות תמונה כדי לראות תצוגה מקדימה חיה של ה-Slider
+                    </p>
+                  )}
                 </div>
               </div>
             );

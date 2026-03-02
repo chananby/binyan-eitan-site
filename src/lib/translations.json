@@ -435,7 +435,14 @@
       "proj_1_description": "Jerusalem stone courtyard development, restoration of deep drainage and sewage systems, and high-end interior finishing with custom ceilings and smart lighting.",
       "proj_1_feature_0": "Jerusalem stone courtyard paving",
       "proj_1_feature_1": "Deep drainage & sewage restoration",
-      "proj_1_feature_2": "Custom ceilings & smart lighting"
+      "proj_1_feature_2": "Custom ceilings & smart lighting",
+      "xrayBeforeLabel": "Infrastructure",
+      "xrayAfterLabel": "Final Result",
+      "xrayCaption": "See the precision behind the walls",
+      "proj_0_xray_before": "",
+      "proj_0_xray_after": "",
+      "proj_1_xray_before": "",
+      "proj_1_xray_after": ""
     },
     "he": {
       "pageTitle": "הפרויקטים שלנו",
@@ -457,7 +464,14 @@
       "proj_1_description": "פיתוח חצרות באבן ירושלמית, שיקום מערכות ניקוז וביוב עמוקות, וגמר פנים יוקרתי הכולל תקרות מעוצבות ותאורה חכמה.",
       "proj_1_feature_0": "ריצוף חצרות באבן ירושלמית",
       "proj_1_feature_1": "שיקום ניקוז וביוב עמוק",
-      "proj_1_feature_2": "תקרות מעוצבות ותאורה חכמה"
+      "proj_1_feature_2": "תקרות מעוצבות ותאורה חכמה",
+      "xrayBeforeLabel": "תשתית",
+      "xrayAfterLabel": "תוצאה סופית",
+      "xrayCaption": "ראו את הדיוק שמאחורי הקירות",
+      "proj_0_xray_before": "",
+      "proj_0_xray_after": "",
+      "proj_1_xray_before": "",
+      "proj_1_xray_after": ""
     }
   }
 }

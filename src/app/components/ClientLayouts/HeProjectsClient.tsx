@@ -6,6 +6,7 @@ import Navbar from "../Navbar";
 import Footer from "../Footer";
 import { ChevronLeft } from "lucide-react";
 import { useTranslations } from "../TranslationsProvider";
+import XRaySlider from "../XRaySlider";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -45,6 +46,10 @@ export default function HeProjectsClient() {
   const t = useTranslations("projects", "he");
   const tt = t as Record<string, string>;
 
+  const xrayBeforeLabel = (tt["xrayBeforeLabel"] || "תשתית") as string;
+  const xrayAfterLabel  = (tt["xrayAfterLabel"]  || "תוצאה סופית") as string;
+  const xrayCaption     = (tt["xrayCaption"]     || "ראו את הדיוק שמאחורי הקירות") as string;
+
   const projects = [0, 1].map((i) => ({
     id: i + 1,
     title: tt[`proj_${i}_title`] ?? "",
@@ -52,6 +57,8 @@ export default function HeProjectsClient() {
     description: tt[`proj_${i}_description`] ?? "",
     features: [0, 1, 2].map((f) => tt[`proj_${i}_feature_${f}`] ?? "").filter(Boolean),
     image: projectImages[i],
+    xrayBefore: (tt[`proj_${i}_xray_before`] ?? "") as string,
+    xrayAfter:  (tt[`proj_${i}_xray_after`]  ?? "") as string,
   }));
 
   return (
@@ -147,6 +154,23 @@ export default function HeProjectsClient() {
                   >
                     {project.description}
                   </p>
+
+                  {/* X-Ray Slider — only renders when both images are configured */}
+                  {project.xrayBefore && project.xrayAfter && (
+                    <div className="mb-6 -mx-8">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-center mb-3 px-8"
+                         style={{ color: "#8D775F" }}>
+                        {xrayCaption}
+                      </p>
+                      <XRaySlider
+                        beforeUrl={project.xrayBefore}
+                        afterUrl={project.xrayAfter}
+                        beforeLabel={xrayBeforeLabel}
+                        afterLabel={xrayAfterLabel}
+                        dir="rtl"
+                      />
+                    </div>
+                  )}
 
                   {/* Features */}
                   <div className="space-y-3 mb-6">
