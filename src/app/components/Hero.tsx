@@ -1,5 +1,5 @@
 "use client";
- 
+
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -9,17 +9,17 @@ import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
 
 type Lang = "en" | "he";
- 
+
 /* ── Animation constants ── */
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
- 
+
 const stagger = {
   hidden: {},
   visible: {
     transition: { staggerChildren: 0.12, delayChildren: 0.1 },
   },
 };
- 
+
 const fadeUp = (delay = 0) => ({
   hidden: { opacity: 0, y: 32 },
   visible: {
@@ -28,7 +28,7 @@ const fadeUp = (delay = 0) => ({
     transition: { duration: 0.9, delay, ease },
   },
 });
- 
+
 const fadeScale = {
   hidden: { opacity: 0, scale: 1.06 },
   visible: {
@@ -37,26 +37,27 @@ const fadeScale = {
     transition: { duration: 1.4, delay: 0.15, ease },
   },
 };
- 
+
 /* ═════════════════════════════════════════════════════════
    HERO SECTION
-   12-column asymmetric grid with layered depth overlap
+   12-column asymmetric grid — content box ensures readability
    ═════════════════════════════════════════════════════════ */
 export default function Hero() {
   const { lang } = useLang() as { lang: Lang };
   const t = useTranslations("hero", lang);
   const { overline, heading, sub, g1Label, cta, imageAlt, imageFloatLabel, scroll } = t;
+  const imageUrl = (t.imageUrl as string) || "/luxury-interior.jpg";
   const stat1 = { value: t.stat1Value, label: t.stat1Label };
   const stat2 = { value: t.stat2Value, label: t.stat2Label };
   const Arrow = lang === "he" ? ArrowDownLeft : ArrowDownRight;
- 
+
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end start"],
   });
   const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
- 
+
   return (
     <section
       ref={sectionRef}
@@ -64,17 +65,14 @@ export default function Hero() {
     >
       {/* ── Architectural grid lines (decorative) ── */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        {/* Vertical accent line — start side */}
         <div className="absolute inset-y-0 start-[8.33%] w-px bg-charcoal/[0.03]" />
-        {/* Vertical accent line — midpoint */}
         <div className="absolute inset-y-0 start-[41.66%] w-px bg-charcoal/[0.03] max-md:hidden" />
-        {/* Vertical accent line — image boundary */}
         <div className="absolute inset-y-0 start-[58.33%] w-px bg-accent/[0.06] max-md:hidden" />
       </div>
- 
+
       {/* ═══════════════════════════════════════════════
           MAIN 12-COLUMN GRID
-          Text: cols 1–6 | Image: cols 5–12 (overlaps col 5-6)
+          Text: cols 1–6 | Image: cols 5–12
           ═══════════════════════════════════════════════ */}
       <motion.div
         className="relative mx-auto grid min-h-svh max-w-[1440px] grid-cols-4 gap-x-4 px-8 pt-20 pb-12 md:grid-cols-12 md:gap-x-6 md:pt-28 md:pb-16"
@@ -84,87 +82,96 @@ export default function Hero() {
       >
         {/* ──────────────────────────────────────────────
             TEXT COLUMN — cols 1–6
-            Sits on top of image via z-index for overlap
+            Wrapped in a content box for guaranteed readability
             ────────────────────────────────────────────── */}
-        <div className="z-20 col-span-4 flex flex-col justify-center md:col-span-6 md:col-start-1 md:row-start-1 max-w-[600px]">
-          {/* Overline */}
-          <motion.p
-            className="overline-label mb-6 md:mb-8"
-            variants={fadeUp()}
-          >
-            <span className="me-3 inline-block h-px w-8 bg-accent align-middle" />
-            {overline}
-          </motion.p>
- 
-          {/* ── Main Heading ── */}
-          <motion.h1
-            className="font-heading text-[clamp(2.75rem,5vw,6rem)] leading-[1.4] font-bold tracking-tight text-charcoal"
-            variants={fadeUp(0.05)}
-          >
-            {heading.split("\n").map((line: string, i: number) => (
-              <span key={i} className="block">
-                {line}
-              </span>
-            ))}
-          </motion.h1>
- 
-          {/* ── Subline ── */}
-          <motion.p
-            className="mt-10 max-w-md font-body text-sm leading-relaxed font-light text-charcoal/50 md:mt-12 md:text-base"
-            variants={fadeUp(0.15)}
-          >
-            {sub}
-          </motion.p>
- 
-          {/* ── G1 Certification Badge ── */}
-          <motion.div className="mt-6 md:mt-8" variants={fadeUp(0.2)}>
-            <span className="inline-flex items-center gap-2.5 border border-accent/50 bg-accent/[0.04] px-4 py-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
-              <span className="font-body text-[0.65rem] font-semibold tracking-[0.22em] uppercase text-accent">
-                {g1Label}
-              </span>
-            </span>
-          </motion.div>
+        <div className="z-20 col-span-4 flex flex-col justify-center md:col-span-6 md:col-start-1 md:row-start-1">
 
-          {/* ── CTA ── */}
-          <motion.div className="mt-10 md:mt-14" variants={fadeUp(0.25)}>
-            <Link
-              href={`/${lang}#contact`}
-              className="group inline-flex w-fit items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent"
+          {/* ── Content Box ── */}
+          <div className="relative max-w-[560px] bg-white/85 backdrop-blur-md border border-charcoal/[0.07] shadow-2xl shadow-black/[0.08] px-8 py-10 md:px-10 md:py-12 lg:px-12 lg:py-14">
+
+            {/* Accent corner lines */}
+            <span className="pointer-events-none absolute top-0 start-0 h-12 w-px bg-accent/50" aria-hidden="true" />
+            <span className="pointer-events-none absolute top-0 start-0 h-px w-12 bg-accent/50" aria-hidden="true" />
+
+            {/* Overline */}
+            <motion.p
+              className="overline-label mb-6 md:mb-8"
+              variants={fadeUp()}
             >
-              {cta}
-              <Arrow
-                size={18}
-                strokeWidth={2}
-                className="transition-transform duration-500 ease-[var(--ease-expo)] group-hover:translate-y-0.5"
-              />
-            </Link>
-          </motion.div>
- 
-          {/* ── Stats Row ── */}
-          <motion.div
-            className="mt-14 flex gap-12 border-t border-charcoal/[0.07] pt-8 md:mt-20 md:gap-16"
-            variants={fadeUp(0.35)}
-          >
-            <div>
-              <span className="block font-heading text-3xl font-bold text-charcoal md:text-4xl">
-                {stat1.value}
+              <span className="me-3 inline-block h-px w-8 bg-accent align-middle" />
+              {overline}
+            </motion.p>
+
+            {/* ── Main Heading ── */}
+            <motion.h1
+              className="font-heading text-[clamp(2.4rem,4.5vw,5.2rem)] leading-[1.35] font-bold tracking-tight text-charcoal"
+              variants={fadeUp(0.05)}
+            >
+              {heading.split("\n").map((line: string, i: number) => (
+                <span key={i} className="block">
+                  {line}
+                </span>
+              ))}
+            </motion.h1>
+
+            {/* ── Subline ── */}
+            <motion.p
+              className="mt-8 max-w-sm font-body text-sm leading-relaxed font-light text-charcoal/55 md:mt-10 md:text-[0.95rem]"
+              variants={fadeUp(0.15)}
+            >
+              {sub}
+            </motion.p>
+
+            {/* ── G1 Certification Badge ── */}
+            <motion.div className="mt-6 md:mt-7" variants={fadeUp(0.2)}>
+              <span className="inline-flex items-center gap-2.5 border border-accent/50 bg-accent/[0.04] px-4 py-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+                <span className="font-body text-[0.65rem] font-semibold tracking-[0.22em] uppercase text-accent">
+                  {g1Label}
+                </span>
               </span>
-              <span className="mt-1 block font-body text-xs font-medium tracking-wider uppercase text-warm-gray">
-                {stat1.label}
-              </span>
-            </div>
-            <div>
-              <span className="block font-heading text-3xl font-bold text-charcoal md:text-4xl">
-                {stat2.value}
-              </span>
-              <span className="mt-1 block font-body text-xs font-medium tracking-wider uppercase text-warm-gray">
-                {stat2.label}
-              </span>
-            </div>
-          </motion.div>
+            </motion.div>
+
+            {/* ── CTA ── */}
+            <motion.div className="mt-8 md:mt-10" variants={fadeUp(0.25)}>
+              <Link
+                href={`/${lang}#contact`}
+                className="group inline-flex w-fit items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent"
+              >
+                {cta}
+                <Arrow
+                  size={18}
+                  strokeWidth={2}
+                  className="transition-transform duration-500 ease-[var(--ease-expo)] group-hover:translate-y-0.5"
+                />
+              </Link>
+            </motion.div>
+
+            {/* ── Stats Row ── */}
+            <motion.div
+              className="mt-10 flex gap-10 border-t border-charcoal/[0.07] pt-7 md:mt-14 md:gap-14"
+              variants={fadeUp(0.35)}
+            >
+              <div>
+                <span className="block font-heading text-3xl font-bold text-charcoal md:text-4xl">
+                  {stat1.value}
+                </span>
+                <span className="mt-1 block font-body text-xs font-medium tracking-wider uppercase text-warm-gray">
+                  {stat1.label}
+                </span>
+              </div>
+              <div>
+                <span className="block font-heading text-3xl font-bold text-charcoal md:text-4xl">
+                  {stat2.value}
+                </span>
+                <span className="mt-1 block font-body text-xs font-medium tracking-wider uppercase text-warm-gray">
+                  {stat2.label}
+                </span>
+              </div>
+            </motion.div>
+          </div>
         </div>
- 
+
         {/* ──────────────────────────────────────────────
             IMAGE COLUMN — cols 5–12
             Starts at col 5 to deliberately overlap cols 5-6
@@ -179,40 +186,40 @@ export default function Hero() {
             className="absolute -end-3 -bottom-3 z-0 h-full w-full border border-accent/15 md:-end-6 md:-bottom-6"
             aria-hidden="true"
           />
- 
+
           {/* Secondary micro-frame — architectural detail */}
           <div
             className="absolute -end-1.5 -bottom-1.5 z-0 h-full w-full border border-charcoal/[0.04] md:-end-3 md:-bottom-3"
             aria-hidden="true"
           />
- 
+
           {/* Image container with parallax */}
           <motion.div
             className="relative z-10 aspect-[4/5] w-full overflow-hidden md:aspect-[3/4] lg:aspect-[4/5]"
             style={{ y: imageY }}
           >
             <Image
-              src="/luxury-interior.jpg"
-              alt={imageAlt}
+              src={imageUrl}
+              alt={imageAlt as string}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 66vw"
               priority
             />
- 
+
             {/* Gradient veil — ensures heading legibility in overlap zone */}
             <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-bone via-bone/60 via-35% to-transparent md:from-bone/90 md:via-bone/40 md:via-40% md:to-transparent"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-bone/20 via-bone/10 via-35% to-transparent"
               aria-hidden="true"
             />
- 
+
             {/* Bottom vignette for mobile stacking */}
             <div
               className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-bone/50 to-transparent md:hidden"
               aria-hidden="true"
             />
           </motion.div>
- 
+
           {/* ── Floating label on image (architectural detail) ── */}
           <motion.div
             className="absolute -bottom-5 end-8 z-20 hidden bg-bone px-5 py-3 shadow-sm md:block"
@@ -221,11 +228,11 @@ export default function Hero() {
             transition={{ delay: 1, duration: 0.7, ease }}
           >
             <p className="font-body text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-warm-gray">
-              {imageFloatLabel}
+              {imageFloatLabel as string}
             </p>
           </motion.div>
         </motion.div>
- 
+
         {/* ──────────────────────────────────────────────
             SCROLL INDICATOR — bottom center
             ────────────────────────────────────────────── */}
@@ -236,7 +243,7 @@ export default function Hero() {
           transition={{ delay: 1.4, duration: 0.6 }}
         >
           <span className="font-body text-[0.6rem] font-medium tracking-[0.3em] uppercase text-warm-gray">
-            {scroll}
+            {scroll as string}
           </span>
           <motion.div
             className="h-10 w-px bg-charcoal/15 origin-top"

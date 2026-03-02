@@ -62,7 +62,7 @@ export default function Navbar() {
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
           scrolled
             ? "glass"
-            : "bg-bone/70 backdrop-blur-md border-b border-transparent"
+            : "bg-bone/92 backdrop-blur-md border-b border-charcoal/[0.07]"
         }`}
         initial={{ y: -80 }}
         animate={{ y: 0 }}
