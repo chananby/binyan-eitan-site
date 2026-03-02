@@ -5,20 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>מרכז הפעילות לפורים | בניין איתן</title>
     
+    <!-- Meta Tags for Dynamic Sharing -->
     <meta property="og:title" content="פורים בבניין איתן - חידונים ודילמות">
     <meta property="og:description" content="ליהודים הייתה אורה ושמחה! בואו לבחון את הידע שלכם בחידוני פורים וסימולציות מנהיגות ברמה גבוהה.">
-    <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/3/36/Megillah_1.JPG">
+    <meta property="og:image" content="[https://upload.wikimedia.org/wikipedia/commons/3/36/Megillah_1.JPG](https://upload.wikimedia.org/wikipedia/commons/3/36/Megillah_1.JPG)">
     <meta property="og:image:width" content="600">
     <meta property="og:image:height" content="600">
     <meta property="og:type" content="website">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <!-- React and Babel -->
+    <script src="[https://unpkg.com/react@18/umd/react.production.min.js](https://unpkg.com/react@18/umd/react.production.min.js)"></script>
+    <script src="[https://unpkg.com/react-dom@18/umd/react-dom.production.min.js](https://unpkg.com/react-dom@18/umd/react-dom.production.min.js)"></script>
+    <script src="[https://unpkg.com/@babel/standalone/babel.min.js](https://unpkg.com/@babel/standalone/babel.min.js)"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&family=Heebo:wght@400;700;900&display=swap');
+        @import url('[https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&family=Heebo:wght@400;700;900&display=swap](https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&family=Heebo:wght@400;700;900&display=swap)');
         
         body { 
             font-family: 'Assistant', 'Heebo', sans-serif; 
@@ -340,9 +343,11 @@
         const DilemmaComponent = ({ isMuted, onBack }) => {
             const [idx, setIdx] = useState(0);
             const [feedback, setFeedback] = useState(null);
+            const [selected, setSelected] = useState(null); // Fix for crash
 
             const handleChoice = (i) => {
                 if (feedback) return;
+                setSelected(i);
                 const correct = i === DILEMMAS[idx].ans;
                 playSfx(correct ? 'ok' : 'no', isMuted);
                 setFeedback(correct ? 'yes' : 'no');
@@ -350,7 +355,9 @@
 
             const next = () => {
                 if (idx + 1 < DILEMMAS.length) {
-                    setIdx(idx + 1); setFeedback(null);
+                    setIdx(idx + 1); 
+                    setFeedback(null);
+                    setSelected(null);
                 } else {
                     setIdx(-1);
                 }
@@ -419,7 +426,7 @@
                                         {idx + 1 === DILEMMAS.length ? 'לסיום המשימה!' : 'לדילמה הבאה'}
                                     </button>
                                 ) : (
-                                    <button onClick={() => setFeedback(null)} className="w-full bg-slate-600 hover:bg-slate-500 text-white py-4 rounded-xl font-bold text-lg transition-all">
+                                    <button onClick={() => { setFeedback(null); setSelected(null); }} className="w-full bg-slate-600 hover:bg-slate-500 text-white py-4 rounded-xl font-bold text-lg transition-all">
                                         בחירה מחודשת 🔄
                                     </button>
                                 )}
@@ -435,14 +442,34 @@
             const [view, setView] = useState('home'); // home, quiz1, quiz2, dilemma
             const [muted, setMuted] = useState(false);
 
+            // Handle back button and direct links (History API)
             useEffect(() => {
-                const params = new URLSearchParams(window.location.search);
-                const act = params.get('act');
-                if (act === '1') setView('quiz1');
-                else if (act === '2') setView('quiz2');
-                else if (act === '3') setView('dilemma');
-                else setView('home');
+                const handlePopState = () => {
+                    const params = new URLSearchParams(window.location.search);
+                    const act = params.get('act');
+                    if (act === '1') setView('quiz1');
+                    else if (act === '2') setView('quiz2');
+                    else if (act === '3') setView('dilemma');
+                    else setView('home');
+                };
+
+                // Trigger on load
+                handlePopState();
+
+                // Listen to back/forward browser buttons
+                window.addEventListener('popstate', handlePopState);
+                return () => window.removeEventListener('popstate', handlePopState);
             }, []);
+
+            // Custom navigate function for clean URL updates
+            const navigate = (viewName, actParam) => {
+                setView(viewName);
+                if (actParam) {
+                    window.history.pushState({ view: viewName }, '', `?act=${actParam}`);
+                } else {
+                    window.history.pushState({ view: 'home' }, '', window.location.pathname);
+                }
+            };
 
             return (
                 <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -460,7 +487,7 @@
                             <BinyanLogo />
 
                             <div className="grid grid-cols-1 gap-5">
-                                <button onClick={() => { setView('quiz1'); window.history.pushState({}, '', '?act=1'); }} 
+                                <button onClick={() => navigate('quiz1', '1')} 
                                     className="card-pop bg-white p-6 rounded-3xl shadow-xl border-b-8 border-purple-300 flex items-center gap-5 text-right group">
                                     <div className="w-16 h-16 shrink-0 bg-purple-100 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-all">📖</div>
                                     <div>
@@ -469,7 +496,7 @@
                                     </div>
                                 </button>
 
-                                <button onClick={() => { setView('quiz2'); window.history.pushState({}, '', '?act=2'); }} 
+                                <button onClick={() => navigate('quiz2', '2')} 
                                     className="card-pop bg-white p-6 rounded-3xl shadow-xl border-b-8 border-indigo-300 flex items-center gap-5 text-right group">
                                     <div className="w-16 h-16 shrink-0 bg-indigo-100 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-all">📜</div>
                                     <div>
@@ -478,7 +505,7 @@
                                     </div>
                                 </button>
 
-                                <button onClick={() => { setView('dilemma'); window.history.pushState({}, '', '?act=3'); }} 
+                                <button onClick={() => navigate('dilemma', '3')} 
                                     className="card-pop bg-slate-900 p-6 rounded-3xl shadow-xl border-b-8 border-yellow-500 flex items-center gap-5 text-right group">
                                     <div className="w-16 h-16 shrink-0 bg-yellow-500 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-all">⚖️</div>
                                     <div>
@@ -494,9 +521,9 @@
                         </div>
                     )}
 
-                    {view === 'quiz1' && <QuizComponent type="1" title="עומק המגילה" data={QUIZ_A} isMuted={muted} onBack={() => { setView('home'); window.history.pushState({}, '', window.location.pathname); }} />}
-                    {view === 'quiz2' && <QuizComponent type="2" title="סוגיות בהלכה" data={QUIZ_B} isMuted={muted} onBack={() => { setView('home'); window.history.pushState({}, '', window.location.pathname); }} />}
-                    {view === 'dilemma' && <DilemmaComponent isMuted={muted} onBack={() => { setView('home'); window.history.pushState({}, '', window.location.pathname); }} />}
+                    {view === 'quiz1' && <QuizComponent type="1" title="עומק המגילה" data={QUIZ_A} isMuted={muted} onBack={() => navigate('home', null)} />}
+                    {view === 'quiz2' && <QuizComponent type="2" title="סוגיות בהלכה" data={QUIZ_B} isMuted={muted} onBack={() => navigate('home', null)} />}
+                    {view === 'dilemma' && <DilemmaComponent isMuted={muted} onBack={() => navigate('home', null)} />}
                 </div>
             );
         };
@@ -506,4 +533,3 @@
     </script>
 </body>
 </html>
-```eof
