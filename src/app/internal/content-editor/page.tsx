@@ -13,6 +13,8 @@ interface Article {
   title_he: string;
   content_en: string;
   content_he: string;
+  mainImage?: string;
+  mainImageAlt?: string;
 }
 
 interface Faq {
@@ -23,48 +25,22 @@ interface Faq {
   answer_he: string;
 }
 
-// ── Portfolio project definitions (matches PortfolioGallery PROJECTS order) ──
+// Image item with alt text
+interface ProjectImage {
+  url: string;
+  alt: string;
+}
+
+// ── Portfolio project definitions ──────────────────────────────────────────────
 const PORTFOLIO_PROJECTS = [
-  {
-    num: "01",
-    projKey: "proj_0",
-    coverKey: "proj_0_cover",
-    titleKey: "proj_0_title",
-    defaultCover: "/amshinov-1.jpg",
-    defaultName_he: "קרית אמשינוב",
-    defaultName_en: "Amshinov Complex",
-  },
-  {
-    num: "02",
-    projKey: "proj_1",
-    coverKey: "proj_1_cover",
-    titleKey: "proj_1_title",
-    defaultCover: "/bayit-vegan.jpg",
-    defaultName_he: "אחוזת בית וגן",
-    defaultName_en: "Bayit Vegan Estate",
-  },
-  {
-    num: "03",
-    projKey: "proj_2",
-    coverKey: "proj_2_cover",
-    titleKey: "proj_2_title",
-    defaultCover: "/ohel-avshalom.jpg",
-    defaultName_he: "מוסדות אוהל אבשלום",
-    defaultName_en: "Ohel Avshalom Institutions",
-  },
-  {
-    num: "04",
-    projKey: "proj_3",
-    coverKey: "proj_3_cover",
-    titleKey: "proj_3_title",
-    defaultCover: "/ramat-eshkol.jpg",
-    defaultName_he: "פנטהאוז רמת אשכול",
-    defaultName_en: "Ramat Eshkol Penthouse",
-  },
+  { num: "01", projKey: "proj_0", coverKey: "proj_0_cover", titleKey: "proj_0_title", defaultCover: "/amshinov-1.jpg",    defaultName_he: "קרית אמשינוב",       defaultName_en: "Amshinov Complex" },
+  { num: "02", projKey: "proj_1", coverKey: "proj_1_cover", titleKey: "proj_1_title", defaultCover: "/bayit-vegan.jpg",   defaultName_he: "אחוזת בית וגן",       defaultName_en: "Bayit Vegan Estate" },
+  { num: "03", projKey: "proj_2", coverKey: "proj_2_cover", titleKey: "proj_2_title", defaultCover: "/ohel-avshalom.jpg", defaultName_he: "מוסדות אוהל אבשלום", defaultName_en: "Ohel Avshalom Institutions" },
+  { num: "04", projKey: "proj_3", coverKey: "proj_3_cover", titleKey: "proj_3_title", defaultCover: "/ramat-eshkol.jpg",  defaultName_he: "פנטהאוז רמת אשכול",  defaultName_en: "Ramat Eshkol Penthouse" },
 ];
 
-// Engineering Excellence images (hardcoded in EngineeringExcellence.tsx)
-const ENGINEERING_ITEMS = [
+// Fallback engineering image sources
+const ENGINEERING_FALLBACKS = [
   "/precision-tiling-with-laser-alignment.jpg",
   "/structural-foundation-reinforcement.jpg",
   "/luxury-electrical-infrastructure-precision.jpg",
@@ -72,310 +48,320 @@ const ENGINEERING_ITEMS = [
   "/professional-airless-painting-standards.jpg",
 ];
 
-// Sections that follow the standard { en: {...}, he: {...} } shape
+// Content sections for the text editor sidebar
 const SECTIONS: { key: SectionKey; label: string }[] = [
-  { key: "nav", label: "Navigation" },
-  { key: "home", label: "Home" },
-  { key: "hero", label: "Hero" },
-  { key: "footer", label: "Footer" },
-  { key: "contact", label: "Contact" },
-  { key: "about", label: "About" },
-  { key: "portfolio", label: "Portfolio" },
-  { key: "pillars", label: "Pillars" },
-  { key: "engineering", label: "Engineering" },
-  { key: "projects", label: "Projects" },
+  { key: "nav",         label: "ניווט (Nav)" },
+  { key: "home",        label: "בית (Home)" },
+  { key: "hero",        label: "פתיחה (Hero)" },
+  { key: "footer",      label: "כותרת תחתונה" },
+  { key: "contact",     label: "יצירת קשר" },
+  { key: "about",       label: "אודות" },
+  { key: "portfolio",   label: "תיק עבודות" },
+  { key: "pillars",     label: "עמודי יסוד" },
+  { key: "engineering", label: "הנדסה" },
+  { key: "projects",    label: "פרויקטים" },
 ];
 
-type ActiveTab = SectionKey | "articles" | "faqs";
-type EditorMode = "content" | "media";
+type ActiveTab = SectionKey | "faqs";
+type EditorMode = "content" | "media" | "articles";
 
-function getSafeValue(
-  translations: any,
-  defaultTrans: any,
-  section: SectionKey,
-  lang: "en" | "he",
-  key: string
-): string {
+function getSafeValue(translations: any, defaultTrans: any, section: SectionKey, lang: "en" | "he", key: string): string {
   try {
-    const sectionData = translations?.[section];
-    if (!sectionData) return (defaultTrans[section]?.[lang]?.[key] as string) ?? "";
-    const langData = sectionData?.[lang];
-    if (!langData) return (defaultTrans[section]?.[lang]?.[key] as string) ?? "";
-    const value = langData?.[key];
-    if (!value || value === "") return (defaultTrans[section]?.[lang]?.[key] as string) ?? "";
-    return value as string;
+    const v = translations?.[section]?.[lang]?.[key];
+    if (!v || v === "") return (defaultTrans[section]?.[lang]?.[key] as string) ?? "";
+    return v as string;
   } catch {
     return (defaultTrans[section]?.[lang]?.[key] as string) ?? "";
   }
 }
 
-// ── Thumbnail component with broken-image fallback ────────────────────────────
+// ── Thumbnail with broken-image fallback ─────────────────────────────────────
 function ImageThumb({ src, className = "" }: { src: string; className?: string }) {
   const [err, setErr] = useState(false);
-  const [key, setKey] = useState(0);
+  const [k, setK] = useState(0);
+  useEffect(() => { setErr(false); setK((n) => n + 1); }, [src]);
 
-  // Reset error state when src changes
-  useEffect(() => { setErr(false); setKey((k) => k + 1); }, [src]);
-
-  if (!src) {
-    return (
-      <div className={`flex items-center justify-center bg-gray-100 text-gray-400 text-xs ${className}`}>
-        No URL
-      </div>
-    );
-  }
-
+  if (!src) return (
+    <div className={`flex items-center justify-center bg-gray-100 text-gray-300 text-[10px] ${className}`}>
+      ללא תמונה
+    </div>
+  );
   return err ? (
-    <div className={`flex flex-col items-center justify-center gap-1 bg-gray-100 text-gray-400 ${className}`}>
-      <svg className="w-6 h-6 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className={`flex flex-col items-center justify-center gap-1 bg-gray-100 text-gray-300 ${className}`}>
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth={1.5} />
         <path d="m3 16 5-5 4 4 3-3 6 6" strokeWidth={1.5} />
         <circle cx="8.5" cy="8.5" r="1.5" />
       </svg>
-      <span className="text-[10px] font-mono px-1 truncate max-w-full">{src.split("/").pop()}</span>
+      <span className="text-[9px] font-mono px-1 truncate max-w-full">{src.split("/").pop()}</span>
     </div>
   ) : (
     // eslint-disable-next-line @next/next/no-img-element
-    <img
-      key={key}
-      src={src}
-      alt=""
-      onError={() => setErr(true)}
-      className={`object-cover ${className}`}
-    />
+    <img key={k} src={src} alt="" onError={() => setErr(true)} className={`object-cover ${className}`} />
   );
 }
 
-// ── Helper: read a project's series images from translations ─────────────────
-function getProjectImages(translations: TranslationsData, projKey: string): string[] {
-  const data = (translations.portfolio as any)?.he || (translations.portfolio as any)?.en || {};
-  const images: string[] = [];
-  let i = 0;
-  while (data[`${projKey}_img_${i}`] !== undefined) {
-    images.push(data[`${projKey}_img_${i}`] || "");
-    i++;
-  }
-  return images;
+// ── Shared UI primitives ──────────────────────────────────────────────────────
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-5">
+      <span className="h-px flex-1 bg-gray-200" />
+      <h3 className="text-[11px] font-bold tracking-[0.18em] uppercase text-gray-400">{label}</h3>
+      <span className="h-px flex-1 bg-gray-200" />
+    </div>
+  );
 }
 
-// ── Inline icon buttons ───────────────────────────────────────────────────────
-function IconBtn({
-  onClick, disabled = false, title, children, danger = false,
-}: {
+function IconBtn({ onClick, disabled = false, title, children, danger = false }: {
   onClick: () => void; disabled?: boolean; title: string; children: React.ReactNode; danger?: boolean;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
+    <button type="button" onClick={onClick} disabled={disabled} title={title}
       className={`shrink-0 grid place-items-center w-7 h-7 rounded-md border transition-colors disabled:opacity-25 disabled:cursor-not-allowed ${
         danger
-          ? "border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+          ? "border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600"
           : "border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-      }`}
-    >
+      }`}>
       {children}
     </button>
   );
 }
 
-// ── Media Manager Panel ────────────────────────────────────────────────────────
+// SVG icon helpers
+const SvgUp = () => (
+  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+    <path d="M5 8V2M2 5l3-3 3 3" />
+  </svg>
+);
+const SvgDown = () => (
+  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+    <path d="M5 2v6M2 5l3 3 3-3" />
+  </svg>
+);
+const SvgTrash = () => (
+  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
+    <path d="M2 3h6M4 3V2h2v1M3.5 3l.5 5h2l.5-5" />
+  </svg>
+);
+
+// ── Image row (URL + alt text + controls) ─────────────────────────────────────
+function ImageRow({
+  image, index, total,
+  onUrlChange, onAltChange, onMoveUp, onMoveDown, onDelete,
+}: {
+  image: ProjectImage; index: number; total: number;
+  onUrlChange: (v: string) => void; onAltChange: (v: string) => void;
+  onMoveUp: () => void; onMoveDown: () => void; onDelete: () => void;
+}) {
+  return (
+    <div className="flex gap-2 items-start group">
+      {/* Thumbnail */}
+      <div className="shrink-0 w-14 h-11 rounded overflow-hidden border border-gray-200 bg-gray-100 mt-0.5">
+        <ImageThumb src={image.url} className="w-full h-full" />
+      </div>
+
+      {/* Inputs */}
+      <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex items-center gap-1">
+          <span className="shrink-0 font-mono text-[9px] text-gray-300 w-4 text-center">{index + 1}</span>
+          <input
+            type="text" value={image.url} onChange={(e) => onUrlChange(e.target.value)}
+            className="flex-1 min-w-0 border border-gray-300 rounded-md px-2.5 py-1.5 text-xs font-mono text-gray-800 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+            dir="ltr" placeholder="/photo.jpg"
+          />
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="shrink-0 w-4" />
+          <input
+            type="text" value={image.alt} onChange={(e) => onAltChange(e.target.value)}
+            className="flex-1 min-w-0 border border-gray-200 rounded-md px-2.5 py-1 text-[11px] text-gray-600 focus:ring-1 focus:ring-[#8D775F] focus:border-transparent outline-none bg-gray-50"
+            placeholder="תיאור תמונה (SEO / נגישות)"
+          />
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="shrink-0 flex flex-col gap-1 mt-0.5">
+        <IconBtn onClick={onMoveUp}   disabled={index === 0}         title="הזז למעלה"><SvgUp /></IconBtn>
+        <IconBtn onClick={onMoveDown} disabled={index === total - 1} title="הזז למטה"><SvgDown /></IconBtn>
+        <IconBtn onClick={onDelete} title="הסר תמונה" danger><SvgTrash /></IconBtn>
+      </div>
+    </div>
+  );
+}
+
+// ── Helper: read a project's series from translations ─────────────────────────
+function getProjectImages(translations: TranslationsData, projKey: string): ProjectImage[] {
+  const data = (translations.portfolio as any)?.he || {};
+  const images: ProjectImage[] = [];
+  let i = 0;
+  while (data[`${projKey}_img_${i}`] !== undefined) {
+    images.push({ url: data[`${projKey}_img_${i}`] || "", alt: data[`${projKey}_img_${i}_alt`] || "" });
+    i++;
+  }
+  return images;
+}
+
+// ── Helper: read engineering images from translations ─────────────────────────
+function getEngineeringImages(translations: TranslationsData): ProjectImage[] {
+  const data = (translations.engineering as any)?.he || (translations.engineering as any)?.en || {};
+  return ENGINEERING_FALLBACKS.map((fallback, i) => ({
+    url: data[`imageUrl_${i}`] || fallback,
+    alt: data[`imageAlt_${i}`] || "",
+  }));
+}
+
+// ── Media Manager ─────────────────────────────────────────────────────────────
 function MediaManager({
-  translations,
-  onMediaChange,
-  onProjectImagesChange,
+  translations, onMediaChange, onProjectImagesChange, onEngineeringImagesChange,
 }: {
   translations: TranslationsData;
   onMediaChange: (section: SectionKey, lang: "en" | "he", key: string, value: string) => void;
-  onProjectImagesChange: (projKey: string, images: string[]) => void;
+  onProjectImagesChange: (projKey: string, images: ProjectImage[]) => void;
+  onEngineeringImagesChange: (images: ProjectImage[]) => void;
 }) {
   const getPortfolioVal = (key: string) =>
-    (translations.portfolio as any)?.he?.[key] ||
-    (translations.portfolio as any)?.en?.[key] ||
-    "";
-
+    (translations.portfolio as any)?.he?.[key] || (translations.portfolio as any)?.en?.[key] || "";
   const getHeroVal = (key: string) =>
-    (translations.hero as any)?.he?.[key] ||
-    (translations.hero as any)?.en?.[key] ||
-    "";
+    (translations.hero as any)?.he?.[key] || (translations.hero as any)?.en?.[key] || "";
 
-  const handlePortfolioCover = (key: string, value: string) => {
-    onMediaChange("portfolio", "en", key, value);
-    onMediaChange("portfolio", "he", key, value);
+  const setBoth = (section: SectionKey, key: string, value: string) => {
+    onMediaChange(section, "en", key, value);
+    onMediaChange(section, "he", key, value);
   };
 
-  const handleHeroImage = (value: string) => {
-    onMediaChange("hero", "en", "imageUrl", value);
-    onMediaChange("hero", "he", "imageUrl", value);
-  };
-
-  // ── Series helpers ──────────────────────────────────────────────────────────
-  const updateImage = (projKey: string, idx: number, value: string) => {
+  // ── Series helpers ───────────────────────────
+  const updateProjImage = (projKey: string, idx: number, field: keyof ProjectImage, val: string) => {
     const imgs = [...getProjectImages(translations, projKey)];
-    imgs[idx] = value;
+    imgs[idx] = { ...imgs[idx], [field]: val };
     onProjectImagesChange(projKey, imgs);
   };
-
-  const deleteImage = (projKey: string, idx: number) => {
-    const imgs = getProjectImages(translations, projKey).filter((_, i) => i !== idx);
-    onProjectImagesChange(projKey, imgs);
+  const deleteProjImage = (projKey: string, idx: number) => {
+    onProjectImagesChange(projKey, getProjectImages(translations, projKey).filter((_, i) => i !== idx));
   };
-
-  const moveImage = (projKey: string, idx: number, dir: -1 | 1) => {
+  const moveProjImage = (projKey: string, idx: number, dir: -1 | 1) => {
     const imgs = [...getProjectImages(translations, projKey)];
-    const swapIdx = idx + dir;
-    if (swapIdx < 0 || swapIdx >= imgs.length) return;
-    [imgs[idx], imgs[swapIdx]] = [imgs[swapIdx], imgs[idx]];
+    const si = idx + dir;
+    if (si < 0 || si >= imgs.length) return;
+    [imgs[idx], imgs[si]] = [imgs[si], imgs[idx]];
     onProjectImagesChange(projKey, imgs);
   };
+  const addProjImage = (projKey: string) => {
+    onProjectImagesChange(projKey, [...getProjectImages(translations, projKey), { url: "", alt: "" }]);
+  };
 
-  const addImage = (projKey: string) => {
-    const imgs = [...getProjectImages(translations, projKey), ""];
-    onProjectImagesChange(projKey, imgs);
+  // ── Engineering helpers ──────────────────────
+  const updateEngImage = (idx: number, field: keyof ProjectImage, val: string) => {
+    const imgs = [...getEngineeringImages(translations)];
+    imgs[idx] = { ...imgs[idx], [field]: val };
+    onEngineeringImagesChange(imgs);
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-10">
+    <div className="max-w-4xl mx-auto space-y-10 pb-10" dir="rtl">
 
-      {/* ── Hero Image ── */}
+      {/* ── תמונת פתיחה (Hero) ── */}
       <section>
-        <SectionDivider label="Hero Image" />
+        <SectionDivider label="תמונת פתיחה (Hero)" />
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="flex gap-5 items-start">
-            <div className="shrink-0 w-32 h-24 rounded-lg overflow-hidden border border-gray-200">
+          <div className="flex gap-4 items-start">
+            <div className="shrink-0 w-36 h-28 rounded-lg overflow-hidden border border-gray-200">
               <ImageThumb src={getHeroVal("imageUrl") || "/luxury-interior.jpg"} className="w-full h-full" />
             </div>
-            <div className="flex-1">
-              <label className="block text-xs font-bold text-gray-500 mb-2">
-                Image URL <span className="font-normal text-gray-400">(hero.imageUrl)</span>
-              </label>
-              <input
-                type="text"
-                value={getHeroVal("imageUrl") || "/luxury-interior.jpg"}
-                onChange={(e) => handleHeroImage(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-mono text-gray-800 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
-                placeholder="/your-hero-image.jpg"
-                dir="ltr"
-              />
-              <p className="mt-1.5 text-xs text-gray-400">Full-bleed background image in the Hero section.</p>
+            <div className="flex-1 space-y-2">
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1">כתובת תמונה</label>
+                <input type="text" dir="ltr"
+                  value={getHeroVal("imageUrl") || "/luxury-interior.jpg"}
+                  onChange={(e) => setBoth("hero", "imageUrl", e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono text-gray-800 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                  placeholder="/your-hero-image.jpg"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1">תיאור תמונה (SEO / נגישות)</label>
+                <input type="text"
+                  value={getHeroVal("imageAlt")}
+                  onChange={(e) => setBoth("hero", "imageAlt", e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:ring-1 focus:ring-[#8D775F] focus:border-transparent outline-none"
+                  placeholder="תיאור קצר לנגישות ו-SEO"
+                />
+              </div>
+              <p className="text-[11px] text-gray-400">תמונת הרקע הראשית של עמוד הבית.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Portfolio Gallery ── */}
+      {/* ── גלריית פרויקטים ── */}
       <section>
-        <SectionDivider label="Portfolio Gallery" />
+        <SectionDivider label="גלריית פרויקטים" />
         <div className="space-y-6">
           {PORTFOLIO_PROJECTS.map((proj) => {
             const coverUrl = getPortfolioVal(proj.coverKey) || proj.defaultCover;
+            const coverAlt = getPortfolioVal(`${proj.coverKey}_alt`);
             const nameHe = getPortfolioVal(proj.titleKey) || proj.defaultName_he;
-            const nameEn = proj.defaultName_en;
             const seriesImages = getProjectImages(translations, proj.projKey);
 
             return (
               <div key={proj.num} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 {/* Project header */}
                 <div className="flex items-center gap-2.5 px-5 py-3.5 bg-gray-50 border-b border-gray-200">
-                  <span className="font-mono text-xs font-bold text-[#8D775F] bg-[#8D775F]/10 px-2 py-0.5 rounded">
-                    {proj.num}
-                  </span>
-                  <span className="font-bold text-sm text-gray-900" dir="rtl">{nameHe}</span>
+                  <span className="font-mono text-xs font-bold text-[#8D775F] bg-[#8D775F]/10 px-2 py-0.5 rounded">{proj.num}</span>
+                  <span className="font-bold text-sm text-gray-900">{nameHe}</span>
                   <span className="text-gray-400 text-xs">·</span>
-                  <span className="text-gray-500 text-xs">{nameEn}</span>
+                  <span className="text-gray-400 text-xs">{proj.defaultName_en}</span>
                   <span className="ms-auto text-[11px] text-gray-400">
-                    {seriesImages.length} gallery photo{seriesImages.length !== 1 ? "s" : ""}
+                    {seriesImages.length} תמונה{seriesImages.length !== 1 ? " בגלריה" : " בגלריה"}
                   </span>
                 </div>
 
                 <div className="p-5 space-y-5">
-                  {/* Cover photo row */}
+                  {/* Cover photo */}
                   <div>
-                    <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2">Cover Photo</p>
+                    <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2.5">תמונת שער</p>
                     <div className="flex gap-3 items-start">
-                      <div className="shrink-0 w-20 h-14 rounded-md overflow-hidden border border-gray-200 bg-gray-100">
+                      <div className="shrink-0 w-24 h-16 rounded-md overflow-hidden border border-gray-200 bg-gray-100">
                         <ImageThumb src={coverUrl} className="w-full h-full" />
                       </div>
-                      <div className="flex-1">
-                        <input
-                          type="text"
-                          value={coverUrl}
-                          onChange={(e) => handlePortfolioCover(proj.coverKey, e.target.value)}
+                      <div className="flex-1 space-y-1.5">
+                        <input type="text" dir="ltr" value={coverUrl}
+                          onChange={(e) => { setBoth("portfolio", proj.coverKey, e.target.value); }}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs font-mono text-gray-800 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
-                          dir="ltr"
                           placeholder="/project-cover.jpg"
                         />
-                        <p className="mt-1 text-[11px] text-gray-400">
-                          key: <code className="bg-gray-100 px-1 rounded">{proj.coverKey}</code>
-                        </p>
+                        <input type="text" value={coverAlt}
+                          onChange={(e) => setBoth("portfolio", `${proj.coverKey}_alt`, e.target.value)}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-[11px] text-gray-600 bg-gray-50 focus:ring-1 focus:ring-[#8D775F] focus:border-transparent outline-none"
+                          placeholder="תיאור תמונה (SEO / נגישות)"
+                        />
                       </div>
                     </div>
                   </div>
 
                   {/* Gallery series */}
                   <div>
-                    <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2">
-                      Gallery Series
-                    </p>
-
+                    <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2.5">גלריית הפרויקט</p>
                     {seriesImages.length === 0 ? (
-                      <p className="text-xs text-gray-400 italic py-2">No gallery images yet. Add one below.</p>
+                      <p className="text-xs text-gray-400 italic py-2">אין תמונות עדיין — הוסף תמונה ראשונה:</p>
                     ) : (
-                      <div className="space-y-2">
-                        {seriesImages.map((url, idx) => (
-                          <div key={idx} className="flex gap-2 items-center group">
-                            {/* Thumbnail */}
-                            <div className="shrink-0 w-12 h-9 rounded overflow-hidden border border-gray-200 bg-gray-100">
-                              <ImageThumb src={url} className="w-full h-full" />
-                            </div>
-
-                            {/* Index badge */}
-                            <span className="shrink-0 font-mono text-[10px] text-gray-400 w-5 text-center">
-                              {idx + 1}
-                            </span>
-
-                            {/* URL input */}
-                            <input
-                              type="text"
-                              value={url}
-                              onChange={(e) => updateImage(proj.projKey, idx, e.target.value)}
-                              className="flex-1 min-w-0 border border-gray-300 rounded-md px-2.5 py-1.5 text-xs font-mono text-gray-800 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
-                              dir="ltr"
-                              placeholder="/photo.jpg"
-                            />
-
-                            {/* Reorder + delete */}
-                            <IconBtn onClick={() => moveImage(proj.projKey, idx, -1)} disabled={idx === 0} title="Move up">
-                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-                                <path d="M5 8V2M2 5l3-3 3 3" />
-                              </svg>
-                            </IconBtn>
-                            <IconBtn onClick={() => moveImage(proj.projKey, idx, 1)} disabled={idx === seriesImages.length - 1} title="Move down">
-                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-                                <path d="M5 2v6M2 5l3 3 3-3" />
-                              </svg>
-                            </IconBtn>
-                            <IconBtn onClick={() => deleteImage(proj.projKey, idx)} title="Remove image" danger>
-                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
-                                <path d="M2 3h6M4 3V2h2v1M3.5 3l.5 5h2l.5-5" />
-                              </svg>
-                            </IconBtn>
-                          </div>
+                      <div className="space-y-2.5">
+                        {seriesImages.map((img, idx) => (
+                          <ImageRow
+                            key={idx} image={img} index={idx} total={seriesImages.length}
+                            onUrlChange={(v) => updateProjImage(proj.projKey, idx, "url", v)}
+                            onAltChange={(v) => updateProjImage(proj.projKey, idx, "alt", v)}
+                            onMoveUp={() => moveProjImage(proj.projKey, idx, -1)}
+                            onMoveDown={() => moveProjImage(proj.projKey, idx, 1)}
+                            onDelete={() => deleteProjImage(proj.projKey, idx)}
+                          />
                         ))}
                       </div>
                     )}
-
-                    {/* Add image button */}
-                    <button
-                      type="button"
-                      onClick={() => addImage(proj.projKey)}
-                      className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-[#8D775F] hover:text-[#7A6451] transition-colors"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-                        <circle cx="7" cy="7" r="5.5" />
-                        <path d="M7 4.5v5M4.5 7h5" />
+                    <button type="button" onClick={() => addProjImage(proj.projKey)}
+                      className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-[#8D775F] hover:bg-[#7A6451] text-white text-xs font-bold rounded-lg transition-colors shadow-sm">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                        <path d="M6 1v10M1 6h10" />
                       </svg>
                       הוסף תמונה
                     </button>
@@ -387,21 +373,37 @@ function MediaManager({
         </div>
       </section>
 
-      {/* ── Engineering Excellence (read-only reference) ── */}
+      {/* ── מצוינות הנדסית ── */}
       <section>
-        <SectionDivider label="Engineering Excellence — Reference" />
+        <SectionDivider label="מצוינות הנדסית — 5 תמונות" />
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
           <p className="text-xs text-gray-500 mb-4">
-            These images are hardcoded in <code className="bg-gray-100 px-1 rounded text-[11px]">EngineeringExcellence.tsx</code>. Edit that file to swap them.
+            תמונות אלו מוצגות בגלריית המצוינות ההנדסית. ניתן להחליף את הקבצים ולשנות את הסדר.
           </p>
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-            {ENGINEERING_ITEMS.map((src, i) => (
-              <div key={i} className="space-y-1.5">
-                <div className="aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
-                  <ImageThumb src={src} className="w-full h-full" />
-                </div>
-                <p className="text-[10px] text-gray-400 font-mono leading-tight break-all">{src.split("/").pop()}</p>
-              </div>
+          <div className="space-y-2.5">
+            {getEngineeringImages(translations).map((img, idx) => (
+              <ImageRow
+                key={idx} image={img} index={idx} total={5}
+                onUrlChange={(v) => updateEngImage(idx, "url", v)}
+                onAltChange={(v) => updateEngImage(idx, "alt", v)}
+                onMoveUp={() => {
+                  const imgs = [...getEngineeringImages(translations)];
+                  if (idx === 0) return;
+                  [imgs[idx], imgs[idx - 1]] = [imgs[idx - 1], imgs[idx]];
+                  onEngineeringImagesChange(imgs);
+                }}
+                onMoveDown={() => {
+                  const imgs = [...getEngineeringImages(translations)];
+                  if (idx === imgs.length - 1) return;
+                  [imgs[idx], imgs[idx + 1]] = [imgs[idx + 1], imgs[idx]];
+                  onEngineeringImagesChange(imgs);
+                }}
+                onDelete={() => {/* engineering slots fixed — just clear */
+                  const imgs = [...getEngineeringImages(translations)];
+                  imgs[idx] = { url: "", alt: "" };
+                  onEngineeringImagesChange(imgs);
+                }}
+              />
             ))}
           </div>
         </div>
@@ -410,12 +412,128 @@ function MediaManager({
   );
 }
 
-function SectionDivider({ label }: { label: string }) {
+// ── Articles Manager ───────────────────────────────────────────────────────────
+function ArticlesManager({
+  articles, onAdd, onUpdate, onDelete,
+}: {
+  articles: Article[];
+  onAdd: () => void;
+  onUpdate: (idx: number, field: keyof Article, value: string) => void;
+  onDelete: (idx: number) => void;
+}) {
   return (
-    <div className="flex items-center gap-3 mb-5">
-      <span className="h-px flex-1 bg-gray-200" />
-      <h3 className="text-xs font-bold tracking-[0.2em] uppercase text-gray-400">{label}</h3>
-      <span className="h-px flex-1 bg-gray-200" />
+    <div className="max-w-4xl mx-auto pb-10" dir="rtl">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">ניהול מאמרים מקצועיים</h2>
+          <p className="text-sm text-gray-500 mt-1">כל מאמר מקבל עמוד משלו בכתובת <span dir="ltr">/expertise/[slug]</span></p>
+        </div>
+        <button onClick={onAdd}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#8D775F] hover:bg-[#7A6451] text-white text-sm font-bold rounded-lg transition-colors shadow-sm">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+            <path d="M7 1v12M1 7h12" />
+          </svg>
+          מאמר חדש
+        </button>
+      </div>
+
+      {articles.length === 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm py-16 text-center">
+          <p className="text-gray-400 text-sm">אין מאמרים עדיין. לחץ על &quot;מאמר חדש&quot; להתחלה.</p>
+        </div>
+      )}
+
+      <div className="space-y-6">
+        {articles.map((article, idx) => (
+          <div key={article.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            {/* Header row */}
+            <div className="flex items-center gap-3 px-5 py-3.5 bg-gray-50 border-b border-gray-200">
+              <span className="font-mono text-xs text-[#8D775F] bg-[#8D775F]/10 px-2 py-0.5 rounded font-bold">
+                #{String(idx + 1).padStart(2, "0")}
+              </span>
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <label className="text-xs font-bold text-gray-500 shrink-0">Slug:</label>
+                <input type="text" dir="ltr" value={article.slug}
+                  onChange={(e) => onUpdate(idx, "slug", e.target.value)}
+                  className="min-w-0 border border-gray-300 rounded px-2 py-1 text-xs font-mono text-gray-800 w-52 focus:ring-1 focus:ring-[#8D775F] outline-none bg-white"
+                  placeholder="article-url-slug"
+                />
+                <span className="text-[11px] text-gray-400 hidden sm:inline" dir="ltr">
+                  → /expertise/{article.slug || "…"}
+                </span>
+              </div>
+              <button onClick={() => onDelete(idx)}
+                className="text-red-400 hover:text-red-600 text-xs font-bold px-3 py-1 rounded hover:bg-red-50 transition-colors shrink-0">
+                מחק
+              </button>
+            </div>
+
+            <div className="p-5 space-y-5">
+              {/* Main image */}
+              <div>
+                <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2.5">תמונת מאמר</p>
+                <div className="flex gap-3 items-start">
+                  <div className="shrink-0 w-24 h-16 rounded-md overflow-hidden border border-gray-200 bg-gray-100">
+                    <ImageThumb src={article.mainImage || ""} className="w-full h-full" />
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <input type="text" dir="ltr" value={article.mainImage || ""}
+                      onChange={(e) => onUpdate(idx, "mainImage", e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs font-mono text-gray-800 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                      placeholder="/article-main-image.jpg"
+                    />
+                    <input type="text" value={article.mainImageAlt || ""}
+                      onChange={(e) => onUpdate(idx, "mainImageAlt", e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-[11px] text-gray-600 bg-gray-50 focus:ring-1 focus:ring-[#8D775F] focus:border-transparent outline-none"
+                      placeholder="תיאור תמונה (SEO / נגישות)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Titles */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5">כותרת בעברית</label>
+                  <input type="text" dir="rtl" value={article.title_he}
+                    onChange={(e) => onUpdate(idx, "title_he", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                    placeholder="כותרת המאמר"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5">Title (English)</label>
+                  <input type="text" dir="ltr" value={article.title_en}
+                    onChange={(e) => onUpdate(idx, "title_en", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                    placeholder="Article title"
+                  />
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5">תוכן בעברית</label>
+                  <textarea dir="rtl" rows={7} value={article.content_he}
+                    onChange={(e) => onUpdate(idx, "content_he", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
+                    placeholder={"תוכן המאמר...\n\n(הפרד פסקאות בשתי שורות ריקות)"}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5">Content (English)</label>
+                  <textarea dir="ltr" rows={7} value={article.content_en}
+                    onChange={(e) => onUpdate(idx, "content_en", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
+                    placeholder={"Article content...\n\n(Separate paragraphs with two blank lines)"}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -434,10 +552,10 @@ export default function ContentEditorPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const loadTranslations = async () => {
+    const load = async () => {
       try {
         const res = await fetch("/api/translations", { cache: "no-store" });
-        if (!res.ok) throw new Error("Fetch failed");
+        if (!res.ok) throw new Error();
         const data = await res.json();
         if (data && typeof data === "object" && Object.keys(data).length > 0) {
           setTranslations(data);
@@ -452,151 +570,135 @@ export default function ContentEditorPage() {
         setLoading(false);
       }
     };
-    loadTranslations();
+    load();
   }, []);
 
   const showToast = useCallback((msg: string, ok: boolean) => {
     setToast({ msg, ok });
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 3200);
   }, []);
 
-  const handleChange = useCallback(
-    (lang: "en" | "he", key: string, value: string) => {
-      if (activeTab === "articles" || activeTab === "faqs") return;
-      setTranslations((prev) => ({
-        ...prev,
-        [activeTab]: {
-          ...prev[activeTab as SectionKey],
-          [lang]: {
-            ...(prev[activeTab as SectionKey] as any)[lang],
-            [key]: value,
-          },
-        },
-      }));
-      setDirty(true);
-    },
-    [activeTab]
-  );
+  // ── Translation field change (text editor) ────────────────────────────────
+  const handleChange = useCallback((lang: "en" | "he", key: string, value: string) => {
+    if (activeTab === "faqs") return;
+    setTranslations((prev) => ({
+      ...prev,
+      [activeTab]: {
+        ...prev[activeTab as SectionKey],
+        [lang]: { ...(prev[activeTab as SectionKey] as any)[lang], [key]: value },
+      },
+    }));
+    setDirty(true);
+  }, [activeTab]);
 
-  // Write to any section/lang (used by Media Manager)
-  const handleMediaChange = useCallback(
-    (section: SectionKey, lang: "en" | "he", key: string, value: string) => {
-      setTranslations((prev) => ({
-        ...prev,
-        [section]: {
-          ...prev[section],
-          [lang]: {
-            ...(prev[section] as any)?.[lang],
-            [key]: value,
-          },
-        },
-      }));
-      setDirty(true);
-    },
-    []
-  );
+  // ── Media: write any section/lang/key ─────────────────────────────────────
+  const handleMediaChange = useCallback((section: SectionKey, lang: "en" | "he", key: string, value: string) => {
+    setTranslations((prev) => ({
+      ...prev,
+      [section]: { ...prev[section], [lang]: { ...(prev[section] as any)?.[lang], [key]: value } },
+    }));
+    setDirty(true);
+  }, []);
 
-  // Batch-update a project's gallery series (add/delete/reorder)
-  const handleProjectImagesChange = useCallback(
-    (projKey: string, images: string[]) => {
-      setTranslations((prev) => {
-        const portfolio = prev.portfolio as any;
-        const newEn = { ...(portfolio.en || {}) };
-        const newHe = { ...(portfolio.he || {}) };
-        // Remove all old series keys for this project
-        for (const k of Object.keys(newEn)) {
-          if (k.startsWith(`${projKey}_img_`)) delete newEn[k];
-        }
-        for (const k of Object.keys(newHe)) {
-          if (k.startsWith(`${projKey}_img_`)) delete newHe[k];
-        }
-        // Write the new ordered list
-        images.forEach((url, i) => {
-          newEn[`${projKey}_img_${i}`] = url;
-          newHe[`${projKey}_img_${i}`] = url;
-        });
-        return { ...prev, portfolio: { en: newEn, he: newHe } };
+  // ── Portfolio series batch update ─────────────────────────────────────────
+  const handleProjectImagesChange = useCallback((projKey: string, images: ProjectImage[]) => {
+    setTranslations((prev) => {
+      const p = prev.portfolio as any;
+      const newEn = { ...(p.en || {}) };
+      const newHe = { ...(p.he || {}) };
+      for (const k of [...Object.keys(newEn), ...Object.keys(newHe)]) {
+        if (k.startsWith(`${projKey}_img_`)) { delete newEn[k]; delete newHe[k]; }
+      }
+      images.forEach(({ url, alt }, i) => {
+        newEn[`${projKey}_img_${i}`] = url; newHe[`${projKey}_img_${i}`] = url;
+        newEn[`${projKey}_img_${i}_alt`] = alt; newHe[`${projKey}_img_${i}_alt`] = alt;
       });
-      setDirty(true);
-    },
-    []
-  );
+      return { ...prev, portfolio: { en: newEn, he: newHe } };
+    });
+    setDirty(true);
+  }, []);
 
+  // ── Engineering images batch update ───────────────────────────────────────
+  const handleEngineeringImagesChange = useCallback((images: ProjectImage[]) => {
+    setTranslations((prev) => {
+      const eng = prev.engineering as any;
+      const newEn = { ...(eng.en || {}) };
+      const newHe = { ...(eng.he || {}) };
+      images.forEach(({ url, alt }, i) => {
+        newEn[`imageUrl_${i}`] = url; newHe[`imageUrl_${i}`] = url;
+        newEn[`imageAlt_${i}`] = alt; newHe[`imageAlt_${i}`] = alt;
+      });
+      return { ...prev, engineering: { en: newEn, he: newHe } };
+    });
+    setDirty(true);
+  }, []);
+
+  // ── Save ──────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = { ...translations, articles, faqs };
       const res = await fetch("/api/translations", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...translations, articles, faqs }),
       });
       if (res.ok) {
         setDirty(false);
         showToast("נשמר בהצלחה! האתר מתעדכן...", true);
-        const channel = new BroadcastChannel("translations-sync");
-        channel.postMessage("updated");
-        channel.close();
-        try { await fetch("/api/revalidate", { method: "POST" }); } catch { /* ignore */ }
+        const ch = new BroadcastChannel("translations-sync");
+        ch.postMessage("updated"); ch.close();
+        try { await fetch("/api/revalidate", { method: "POST" }); } catch { /**/ }
       } else {
-        const errorData = await res.json().catch(() => ({}));
-        showToast(`שמירה נכשלה: ${errorData.error ?? "שגיאת שרת"}`, false);
+        const e = await res.json().catch(() => ({}));
+        showToast(`שמירה נכשלה: ${e.error ?? "שגיאת שרת"}`, false);
       }
-    } catch {
-      showToast("שגיאת רשת. נסה שוב.", false);
-    } finally {
-      setSaving(false);
-    }
+    } catch { showToast("שגיאת רשת. נסה שוב.", false); }
+    finally { setSaving(false); }
   };
 
   // ── Article CRUD ──────────────────────────────────────────────────────────
   const addArticle = () => {
-    setArticles((prev) => [...prev, { id: Date.now().toString(), slug: "", title_en: "", title_he: "", content_en: "", content_he: "" }]);
+    setArticles((p) => [...p, { id: Date.now().toString(), slug: "", title_en: "", title_he: "", content_en: "", content_he: "", mainImage: "", mainImageAlt: "" }]);
     setDirty(true);
   };
   const updateArticle = (idx: number, field: keyof Article, value: string) => {
-    setArticles((prev) => prev.map((a, i) => (i === idx ? { ...a, [field]: value } : a)));
+    setArticles((p) => p.map((a, i) => (i === idx ? { ...a, [field]: value } : a)));
     setDirty(true);
   };
   const deleteArticle = (idx: number) => {
-    setArticles((prev) => prev.filter((_, i) => i !== idx));
+    setArticles((p) => p.filter((_, i) => i !== idx));
     setDirty(true);
   };
 
   // ── FAQ CRUD ──────────────────────────────────────────────────────────────
   const addFaq = () => {
-    setFaqs((prev) => [...prev, { id: Date.now().toString(), question_en: "", question_he: "", answer_en: "", answer_he: "" }]);
+    setFaqs((p) => [...p, { id: Date.now().toString(), question_en: "", question_he: "", answer_en: "", answer_he: "" }]);
     setDirty(true);
   };
   const updateFaq = (idx: number, field: keyof Faq, value: string) => {
-    setFaqs((prev) => prev.map((f, i) => (i === idx ? { ...f, [field]: value } : f)));
+    setFaqs((p) => p.map((f, i) => (i === idx ? { ...f, [field]: value } : f)));
     setDirty(true);
   };
   const deleteFaq = (idx: number) => {
-    setFaqs((prev) => prev.filter((_, i) => i !== idx));
+    setFaqs((p) => p.filter((_, i) => i !== idx));
     setDirty(true);
   };
 
-  // ── Derived values (must be above early returns) ──────────────────────────
+  // ── Derived (above early return) ──────────────────────────────────────────
   const q = searchQuery.toLowerCase().trim();
-  const section = activeTab !== "articles" && activeTab !== "faqs"
-    ? (translations[activeTab as SectionKey] as any)
-    : null;
-  const allKeys: string[] =
-    section && section.en && section.he
-      ? Array.from(new Set([...Object.keys(section.en ?? {}), ...Object.keys(section.he ?? {})]))
-      : [];
+  const section = activeTab !== "faqs" ? (translations[activeTab as SectionKey] as any) : null;
+  const allKeys: string[] = section?.en && section?.he
+    ? Array.from(new Set([...Object.keys(section.en), ...Object.keys(section.he)]))
+    : [];
 
   const matchingSections = useMemo(() => {
     if (!q) return null;
     return SECTIONS.filter((s) => {
       if (s.label.toLowerCase().includes(q) || s.key.toLowerCase().includes(q)) return true;
-      const sec = (translations[s.key] as any);
+      const sec = translations[s.key] as any;
       if (!sec) return false;
       for (const lang of ["en", "he"] as const) {
-        const langData = sec[lang];
-        if (!langData) continue;
-        for (const [k, v] of Object.entries(langData)) {
+        for (const [k, v] of Object.entries(sec[lang] ?? {})) {
           if (k.toLowerCase().includes(q) || String(v).toLowerCase().includes(q)) return true;
         }
       }
@@ -608,257 +710,174 @@ export default function ContentEditorPage() {
     if (!q) return allKeys;
     return allKeys.filter((key) => {
       if (key.toLowerCase().includes(q)) return true;
-      const heVal = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "he", key);
-      const enVal = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "en", key);
-      return heVal.toLowerCase().includes(q) || enVal.toLowerCase().includes(q);
+      const he = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "he", key);
+      const en = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "en", key);
+      return he.toLowerCase().includes(q) || en.toLowerCase().includes(q);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, activeTab, translations]);
 
-  // ─────────────────────────────────────────────────────────────────────────
+  if (loading) return (
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center font-sans">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8D775F] mb-4" />
+      <p className="text-gray-600 font-medium">טוען נתונים...</p>
+    </div>
+  );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center font-sans">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8D775F] mb-4" />
-        <p className="text-gray-600 font-medium text-lg">טוען נתונים מהשרת...</p>
-      </div>
-    );
-  }
+  // Tab button style helper
+  const tabCls = (mode: EditorMode) =>
+    `px-4 py-1.5 text-sm font-semibold rounded-md transition-all duration-200 ${
+      editorMode === mode ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+    }`;
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
+    <div className="min-h-screen bg-gray-50 font-sans flex flex-col" dir="rtl">
       {/* ── Header ── */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex flex-col gap-3 shrink-0 shadow-sm z-10">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Content Editor</h1>
-            <p className="text-sm text-gray-500 mt-0.5">עריכת תוכן האתר — בנין איתן</p>
+            <h1 className="text-xl font-bold text-gray-900">עורך התוכן</h1>
+            <p className="text-sm text-gray-500 mt-0.5">בנין איתן — ניהול תוכן האתר</p>
           </div>
-          <button
-            onClick={handleSave}
-            disabled={!dirty || saving}
-            className="px-6 py-2.5 bg-[#8D775F] text-white text-sm font-bold tracking-wide rounded-md disabled:opacity-50 hover:bg-[#7A6451] transition-colors shadow-sm"
-          >
-            {saving ? "Saving…" : dirty ? "💾 Save Changes" : "Saved"}
+          <button onClick={handleSave} disabled={!dirty || saving}
+            className="px-6 py-2.5 bg-[#8D775F] text-white text-sm font-bold tracking-wide rounded-md disabled:opacity-40 hover:bg-[#7A6451] transition-colors shadow-sm">
+            {saving ? "שומר..." : dirty ? "💾 שמור שינויים" : "✓ נשמר"}
           </button>
         </div>
 
-        {/* ── Top-level mode tabs ── */}
+        {/* Mode tabs */}
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
-          <button
-            onClick={() => setEditorMode("content")}
-            className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all duration-200 ${
-              editorMode === "content"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            עריכת תוכן
+          <button onClick={() => setEditorMode("content")} className={tabCls("content")}>עריכת תוכן</button>
+          <button onClick={() => setEditorMode("media")} className={tabCls("media")}>
+            <span className="inline-flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2" /><path d="m3 16 5-5 4 4 3-3 6 6" /><circle cx="8.5" cy="8.5" r="1.5" />
+              </svg>
+              ניהול מדיה
+            </span>
           </button>
-          <button
-            onClick={() => setEditorMode("media")}
-            className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all duration-200 flex items-center gap-2 ${
-              editorMode === "media"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="m3 16 5-5 4 4 3-3 6 6" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-            </svg>
-            ניהול מדיה
+          <button onClick={() => setEditorMode("articles")} className={tabCls("articles")}>
+            <span className="inline-flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path d="M4 6h16M4 10h16M4 14h10" strokeLinecap="round" />
+              </svg>
+              ניהול מאמרים
+              {articles.length > 0 && (
+                <span className="bg-[#8D775F]/20 text-[#8D775F] text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  {articles.length}
+                </span>
+              )}
+            </span>
           </button>
         </div>
 
-        {/* Search — shown only in content mode */}
+        {/* Search — content mode only */}
         {editorMode === "content" && (
-          <>
-            <div className="relative">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <circle cx={11} cy={11} r={8} /><path d="m21 21-4.35-4.35" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search sections, keys, or values… (e.g. הנדסה, contact)"
-                className="w-full border border-gray-300 rounded-md pl-9 pr-4 py-2 text-sm text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white transition-shadow"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            {q && matchingSections !== null && (
-              <p className="text-xs text-gray-500">
-                {matchingSections.length === 0
-                  ? "No matches found."
-                  : `Matches in: ${matchingSections.map((s) => s.label).join(", ")}`}
-              </p>
+          <div className="relative" dir="ltr">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <circle cx={11} cy={11} r={8} /><path d="m21 21-4.35-4.35" />
+            </svg>
+            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search sections, keys, or values…"
+              className="w-full border border-gray-300 rounded-md pl-9 pr-4 py-2 text-sm text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold">✕</button>
             )}
-          </>
+          </div>
+        )}
+        {editorMode === "content" && q && matchingSections !== null && (
+          <p className="text-xs text-gray-500">
+            {matchingSections.length === 0 ? "לא נמצאו תוצאות." : `תוצאות ב: ${matchingSections.map((s) => s.label).join(", ")}`}
+          </p>
         )}
       </div>
 
       {/* ── Toast ── */}
       {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded shadow-lg text-sm font-bold ${
-          toast.ok ? "bg-green-600 text-white" : "bg-red-600 text-white"
-        }`}>
+        <div className={`fixed top-4 left-4 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-bold ${toast.ok ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
           {toast.msg}
         </div>
       )}
 
-      {/* ── MEDIA MODE ── */}
+      {/* ══════════════════ MEDIA MODE ══════════════════ */}
       {editorMode === "media" && (
         <div className="flex-1 overflow-y-auto p-8">
           <MediaManager
             translations={translations}
             onMediaChange={handleMediaChange}
             onProjectImagesChange={handleProjectImagesChange}
+            onEngineeringImagesChange={handleEngineeringImagesChange}
           />
         </div>
       )}
 
-      {/* ── CONTENT MODE ── */}
+      {/* ══════════════════ ARTICLES MODE ══════════════════ */}
+      {editorMode === "articles" && (
+        <div className="flex-1 overflow-y-auto p-8">
+          <ArticlesManager
+            articles={articles}
+            onAdd={addArticle}
+            onUpdate={updateArticle}
+            onDelete={deleteArticle}
+          />
+        </div>
+      )}
+
+      {/* ══════════════════ CONTENT MODE ══════════════════ */}
       {editorMode === "content" && (
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar */}
-          <nav className="w-56 shrink-0 bg-white border-r border-gray-200 overflow-y-auto">
+          <nav className="w-56 shrink-0 bg-white border-l border-gray-200 overflow-y-auto" dir="rtl">
             {SECTIONS.map((s) => {
               const hasMatch = q && matchingSections ? matchingSections.some((ms) => ms.key === s.key) : false;
               return (
-                <button
-                  key={s.key}
-                  onClick={() => setActiveTab(s.key)}
-                  className={`w-full text-left px-5 py-3.5 text-sm font-medium border-b border-gray-100 transition-colors ${
+                <button key={s.key} onClick={() => setActiveTab(s.key)}
+                  className={`w-full text-right px-5 py-3.5 text-sm font-medium border-b border-gray-100 transition-colors ${
                     activeTab === s.key
-                      ? "bg-[#8D775F]/10 text-[#8D775F] border-l-4 border-l-[#8D775F]"
+                      ? "bg-[#8D775F]/10 text-[#8D775F] border-r-4 border-r-[#8D775F]"
                       : hasMatch
                       ? "bg-amber-50 text-amber-700 hover:bg-amber-100"
                       : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
+                  }`}>
                   {s.label}
-                  {hasMatch && <span className="float-right text-amber-500 text-xs">●</span>}
+                  {hasMatch && <span className="float-left text-amber-500 text-xs">●</span>}
                 </button>
               );
             })}
 
             <div className="border-t-2 border-gray-200 mt-1">
               <p className="px-5 pt-3 pb-1 text-xs font-bold text-gray-400 uppercase tracking-widest">CMS</p>
-              <button
-                onClick={() => setActiveTab("articles")}
-                className={`w-full text-left px-5 py-3.5 text-sm font-bold border-b border-gray-100 transition-colors ${
-                  activeTab === "articles"
-                    ? "bg-[#8D775F]/10 text-[#8D775F] border-l-4 border-l-[#8D775F]"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                Professional Articles
-              </button>
-              <button
-                onClick={() => setActiveTab("faqs")}
-                className={`w-full text-left px-5 py-3.5 text-sm font-bold border-b border-gray-100 transition-colors ${
+              <button onClick={() => setActiveTab("faqs")}
+                className={`w-full text-right px-5 py-3.5 text-sm font-bold border-b border-gray-100 transition-colors ${
                   activeTab === "faqs"
-                    ? "bg-[#8D775F]/10 text-[#8D775F] border-l-4 border-l-[#8D775F]"
+                    ? "bg-[#8D775F]/10 text-[#8D775F] border-r-4 border-r-[#8D775F]"
                     : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                Common Questions (Q&amp;A)
+                }`}>
+                שאלות נפוצות
               </button>
             </div>
           </nav>
 
-          {/* Main content area */}
-          <main className="flex-1 overflow-y-auto p-8">
+          {/* Main content */}
+          <main className="flex-1 overflow-y-auto p-8" dir="rtl">
             <div className="max-w-5xl mx-auto">
 
-              {/* ── Articles ── */}
-              {activeTab === "articles" && (
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-800">Professional Articles</h2>
-                      <p className="text-sm text-gray-500 mt-1">Long-form articles with their own page at /expertise/[slug]</p>
-                    </div>
-                    <button onClick={addArticle} className="px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-md hover:bg-[#7A6451] transition-colors shadow-sm">
-                      + Add Article
-                    </button>
-                  </div>
-                  {articles.length === 0 && (
-                    <div className="bg-white rounded-lg border border-gray-200 shadow-sm py-16 text-center">
-                      <p className="text-gray-500 text-sm">No articles yet. Click &quot;Add Article&quot; to get started.</p>
-                    </div>
-                  )}
-                  <div className="space-y-6">
-                    {articles.map((article, idx) => (
-                      <div key={article.id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                        <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-200">
-                          <div className="flex items-center gap-3 flex-1">
-                            <span className="font-mono text-xs text-gray-400 shrink-0">#{idx + 1}</span>
-                            <span className="text-xs font-bold text-gray-500 shrink-0">Slug:</span>
-                            <input
-                              type="text"
-                              value={article.slug}
-                              onChange={(e) => updateArticle(idx, "slug", e.target.value)}
-                              className="border border-gray-300 rounded px-2 py-1 text-sm font-mono text-gray-800 w-56 focus:ring-1 focus:ring-[#8D775F] outline-none bg-white"
-                              placeholder="article-url-slug"
-                            />
-                            <span className="text-xs text-gray-400 hidden sm:inline">→ /expertise/{article.slug || "…"}</span>
-                          </div>
-                          <button onClick={() => deleteArticle(idx)} className="text-red-500 hover:text-red-700 text-sm font-bold px-3 py-1 rounded hover:bg-red-50 transition-colors shrink-0 ms-4">Delete</button>
-                        </div>
-                        <div className="p-5 space-y-5">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div dir="rtl">
-                              <label className="block text-xs font-bold text-gray-500 mb-1.5">כותרת (Hebrew Title)</label>
-                              <input type="text" value={article.title_he} onChange={(e) => updateArticle(idx, "title_he", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" dir="rtl" placeholder="כותרת המאמר" />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold text-gray-500 mb-1.5">Title (English)</label>
-                              <input type="text" value={article.title_en} onChange={(e) => updateArticle(idx, "title_en", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" placeholder="Article title" />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div dir="rtl">
-                              <label className="block text-xs font-bold text-gray-500 mb-1.5">תוכן (Hebrew Content)</label>
-                              <textarea value={article.content_he} onChange={(e) => updateArticle(idx, "content_he", e.target.value)} rows={7} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" dir="rtl" placeholder={"תוכן המאמר...\n\n(הפרד פסקאות בשתי שורות ריקות)"} />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold text-gray-500 mb-1.5">Content (English)</label>
-                              <textarea value={article.content_en} onChange={(e) => updateArticle(idx, "content_en", e.target.value)} rows={7} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" placeholder={"Article content...\n\n(Separate paragraphs with two blank lines)"} />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── FAQs ── */}
+              {/* FAQs */}
               {activeTab === "faqs" && (
                 <div>
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-800">Common Questions (Q&amp;A)</h2>
-                      <p className="text-sm text-gray-500 mt-1">Short question/answer pairs — shown as an accordion on the expertise page.</p>
+                      <h2 className="text-2xl font-bold text-gray-800">שאלות נפוצות</h2>
+                      <p className="text-sm text-gray-500 mt-1">שאלות ותשובות קצרות — מוצגות כאקורדיון בעמוד המומחיות.</p>
                     </div>
                     <button onClick={addFaq} className="px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-md hover:bg-[#7A6451] transition-colors shadow-sm">
-                      + Add Question
+                      + הוסף שאלה
                     </button>
                   </div>
                   {faqs.length === 0 && (
                     <div className="bg-white rounded-lg border border-gray-200 shadow-sm py-16 text-center">
-                      <p className="text-gray-500 text-sm">No questions yet. Click &quot;Add Question&quot; to get started.</p>
+                      <p className="text-gray-500 text-sm">אין שאלות עדיין.</p>
                     </div>
                   )}
                   <div className="space-y-6">
@@ -866,27 +885,27 @@ export default function ContentEditorPage() {
                       <div key={faq.id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                         <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-200">
                           <span className="font-mono text-xs text-gray-400">#{idx + 1}</span>
-                          <button onClick={() => deleteFaq(idx)} className="text-red-500 hover:text-red-700 text-sm font-bold px-3 py-1 rounded hover:bg-red-50 transition-colors">Delete</button>
+                          <button onClick={() => deleteFaq(idx)} className="text-red-500 hover:text-red-700 text-sm font-bold px-3 py-1 rounded hover:bg-red-50 transition-colors">מחק</button>
                         </div>
                         <div className="p-5 space-y-5">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div dir="rtl">
-                              <label className="block text-xs font-bold text-gray-500 mb-1.5">שאלה (Hebrew Question)</label>
-                              <input type="text" value={faq.question_he} onChange={(e) => updateFaq(idx, "question_he", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" dir="rtl" placeholder="שאלה נפוצה" />
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 mb-1.5">שאלה (עברית)</label>
+                              <input type="text" dir="rtl" value={faq.question_he} onChange={(e) => updateFaq(idx, "question_he", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" placeholder="שאלה נפוצה" />
                             </div>
                             <div>
                               <label className="block text-xs font-bold text-gray-500 mb-1.5">Question (English)</label>
-                              <input type="text" value={faq.question_en} onChange={(e) => updateFaq(idx, "question_en", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" placeholder="Frequently asked question" />
+                              <input type="text" dir="ltr" value={faq.question_en} onChange={(e) => updateFaq(idx, "question_en", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" placeholder="Frequently asked question" />
                             </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div dir="rtl">
-                              <label className="block text-xs font-bold text-gray-500 mb-1.5">תשובה (Hebrew Answer)</label>
-                              <textarea value={faq.answer_he} onChange={(e) => updateFaq(idx, "answer_he", e.target.value)} rows={4} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" dir="rtl" placeholder="תשובה לשאלה" />
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 mb-1.5">תשובה (עברית)</label>
+                              <textarea dir="rtl" rows={4} value={faq.answer_he} onChange={(e) => updateFaq(idx, "answer_he", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" placeholder="תשובה לשאלה" />
                             </div>
                             <div>
                               <label className="block text-xs font-bold text-gray-500 mb-1.5">Answer (English)</label>
-                              <textarea value={faq.answer_en} onChange={(e) => updateFaq(idx, "answer_en", e.target.value)} rows={4} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" placeholder="Answer to the question" />
+                              <textarea dir="ltr" rows={4} value={faq.answer_en} onChange={(e) => updateFaq(idx, "answer_en", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" placeholder="Answer to the question" />
                             </div>
                           </div>
                         </div>
@@ -896,70 +915,65 @@ export default function ContentEditorPage() {
                 </div>
               )}
 
-              {/* ── Standard section table ── */}
-              {activeTab !== "articles" && activeTab !== "faqs" && (
+              {/* Standard section table */}
+              {activeTab !== "faqs" && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6 capitalize">
-                    {activeTab} Section
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                    {SECTIONS.find((s) => s.key === activeTab)?.label ?? activeTab}
                   </h2>
                   <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-200">
-                          <th className="text-left px-5 py-4 font-bold text-gray-700 w-48">Key</th>
-                          <th className="text-right px-5 py-4 font-bold text-gray-700 w-1/3" dir="rtl">עברית (Hebrew)</th>
-                          <th className="text-left px-5 py-4 font-bold text-gray-700 w-1/3">English</th>
+                          <th className="text-right px-5 py-4 font-bold text-gray-700 w-44">שדה</th>
+                          <th className="text-right px-5 py-4 font-bold text-gray-700 w-1/3" dir="rtl">עברית</th>
+                          <th className="text-left px-5 py-4 font-bold text-gray-700 w-1/3" dir="ltr">English</th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredKeys.length === 0 ? (
                           <tr>
                             <td colSpan={3} className="px-5 py-10 text-center text-gray-500">
-                              {q ? `No matching keys in this section.` : "לא נמצאו שדות לעריכה באזור זה."}
+                              {q ? "לא נמצאו תוצאות." : "אין שדות בקטגוריה זו."}
                             </td>
                           </tr>
-                        ) : (
-                          filteredKeys.map((key) => {
-                            const heVal = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "he", key);
-                            const enVal = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "en", key);
-                            const isLong = heVal.length > 50 || enVal.length > 50;
-                            // Detect image URL keys for a mini thumbnail
-                            const isImageKey = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(heVal) || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(enVal) || key.toLowerCase().includes("image") || key.toLowerCase().includes("cover") || key.toLowerCase().includes("photo") || key.toLowerCase().includes("src") || key.toLowerCase().includes("url");
+                        ) : filteredKeys.map((key) => {
+                          const heVal = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "he", key);
+                          const enVal = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "en", key);
+                          const isLong = heVal.length > 50 || enVal.length > 50;
+                          const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(heVal || enVal) ||
+                            ["image", "cover", "photo", "src", "url"].some((w) => key.toLowerCase().includes(w));
 
-                            return (
-                              <tr key={key} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors">
-                                <td className="px-5 py-4 font-mono text-xs text-gray-500 align-top">
-                                  {key}
-                                  {isImageKey && (heVal || enVal) && (
-                                    <div className="mt-1.5 w-12 h-9 rounded overflow-hidden border border-gray-200">
-                                      <ImageThumb src={heVal || enVal} className="w-full h-full" />
-                                    </div>
-                                  )}
-                                </td>
-                                <td className="px-5 py-4 align-top" dir="rtl">
-                                  {isLong ? (
-                                    <textarea value={heVal} onChange={(e) => handleChange("he", key, e.target.value)} rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y transition-shadow bg-white" dir="rtl" />
-                                  ) : (
-                                    <input type="text" value={heVal} onChange={(e) => handleChange("he", key, e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none transition-shadow bg-white" dir="rtl" />
-                                  )}
-                                </td>
-                                <td className="px-5 py-4 align-top">
-                                  {isLong ? (
-                                    <textarea value={enVal} onChange={(e) => handleChange("en", key, e.target.value)} rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y transition-shadow bg-white" />
-                                  ) : (
-                                    <input type="text" value={enVal} onChange={(e) => handleChange("en", key, e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none transition-shadow bg-white" />
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })
-                        )}
+                          return (
+                            <tr key={key} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50">
+                              <td className="px-5 py-4 font-mono text-xs text-gray-500 align-top">
+                                {key}
+                                {isImg && (heVal || enVal) && (
+                                  <div className="mt-1.5 w-12 h-9 rounded overflow-hidden border border-gray-200">
+                                    <ImageThumb src={heVal || enVal} className="w-full h-full" />
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-5 py-4 align-top" dir="rtl">
+                                {isLong
+                                  ? <textarea value={heVal} onChange={(e) => handleChange("he", key, e.target.value)} rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" dir="rtl" />
+                                  : <input type="text" value={heVal} onChange={(e) => handleChange("he", key, e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" dir="rtl" />
+                                }
+                              </td>
+                              <td className="px-5 py-4 align-top" dir="ltr">
+                                {isLong
+                                  ? <textarea value={enVal} onChange={(e) => handleChange("en", key, e.target.value)} rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" />
+                                  : <input type="text" value={enVal} onChange={(e) => handleChange("en", key, e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" />
+                                }
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
                 </div>
               )}
-
             </div>
           </main>
         </div>

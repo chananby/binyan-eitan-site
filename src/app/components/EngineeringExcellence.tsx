@@ -7,14 +7,14 @@ import Image from "next/image";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
 
-// ── Data ──────────────────────────────────────────────────────────────────────
+// ── Fallback image data ────────────────────────────────────────────────────────
 
-const ITEMS = [
-  { src: "/precision-tiling-with-laser-alignment.jpg" },
-  { src: "/structural-foundation-reinforcement.jpg" },
-  { src: "/luxury-electrical-infrastructure-precision.jpg" },
-  { src: "/expert-jerusalem-stone-facade-work.jpg" },
-  { src: "/professional-airless-painting-standards.jpg" },
+const FALLBACK_SRCS = [
+  "/precision-tiling-with-laser-alignment.jpg",
+  "/structural-foundation-reinforcement.jpg",
+  "/luxury-electrical-infrastructure-precision.jpg",
+  "/expert-jerusalem-stone-facade-work.jpg",
+  "/professional-airless-painting-standards.jpg",
 ];
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -26,6 +26,11 @@ export default function EngineeringExcellence() {
   const l = lang as "en" | "he";
   const ui = useTranslations("engineering", l);
   const ut = ui as Record<string, string>;
+
+  // Build ITEMS from translations, falling back to hardcoded paths
+  const ITEMS = FALLBACK_SRCS.map((fallback, i) => ({
+    src: ut[`imageUrl_${i}`] || fallback,
+  }));
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const total = ITEMS.length;
@@ -179,7 +184,7 @@ export default function EngineeringExcellence() {
                 >
                   <Image
                     src={ITEMS[activeIndex].src}
-                    alt={ut[`item_${activeIndex}_label`] ?? ""}
+                    alt={ut[`imageAlt_${activeIndex}`] || ut[`item_${activeIndex}_label`] || ""}
                     fill
                     sizes="(max-width: 480px) 80vw, 480px"
                     className="object-contain"

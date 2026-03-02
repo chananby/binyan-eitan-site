@@ -305,7 +305,17 @@
       "step2_title": "Deep Infrastructure",
       "step2_desc": "4m deep excavations & sewage",
       "step3_title": "Advanced Finish",
-      "step3_desc": "Electric roofs & premium finish"
+      "step3_desc": "Electric roofs & premium finish",
+      "imageUrl_0": "/precision-tiling-with-laser-alignment.jpg",
+      "imageUrl_1": "/structural-foundation-reinforcement.jpg",
+      "imageUrl_2": "/luxury-electrical-infrastructure-precision.jpg",
+      "imageUrl_3": "/expert-jerusalem-stone-facade-work.jpg",
+      "imageUrl_4": "/professional-airless-painting-standards.jpg",
+      "imageAlt_0": "Precision tiling with laser alignment",
+      "imageAlt_1": "Structural foundation reinforcement",
+      "imageAlt_2": "Professional electrical infrastructure",
+      "imageAlt_3": "Jerusalem stone facade work",
+      "imageAlt_4": "Professional airless painting"
     },
     "he": {
       "overline": "מאחורי הקלעים",
@@ -322,7 +332,17 @@
       "step2_title": "תשתיות וקידוח",
       "step2_desc": "חפירות עומק 4 מ' ושיקום ביוב",
       "step3_title": "גמר ומערכות",
-      "step3_desc": "גגות חשמליים וגמר פרימיום"
+      "step3_desc": "גגות חשמליים וגמר פרימיום",
+      "imageUrl_0": "/precision-tiling-with-laser-alignment.jpg",
+      "imageUrl_1": "/structural-foundation-reinforcement.jpg",
+      "imageUrl_2": "/luxury-electrical-infrastructure-precision.jpg",
+      "imageUrl_3": "/expert-jerusalem-stone-facade-work.jpg",
+      "imageUrl_4": "/professional-airless-painting-standards.jpg",
+      "imageAlt_0": "ריצוף מדויק עם יישור לייזר",
+      "imageAlt_1": "חיזוק יסודות מבניים",
+      "imageAlt_2": "תשתית חשמלית מקצועית",
+      "imageAlt_3": "חיפוי אבן ירושלמית",
+      "imageAlt_4": "צביעה מקצועית בתרסיס"
     }
   },
   "articles": [
