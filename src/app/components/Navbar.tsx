@@ -59,10 +59,10 @@ export default function Navbar() {
       {/* ── Sticky Bar ── */}
       <motion.header
         dir={dir}
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 backdrop-blur-md border-b ${
           scrolled
-            ? "glass"
-            : "bg-bone/92 backdrop-blur-md border-b border-charcoal/[0.07]"
+            ? "glass border-charcoal/[0.10]"
+            : "bg-bone/92 border-charcoal/[0.07]"
         }`}
         initial={{ y: -80 }}
         animate={{ y: 0 }}

@@ -11,8 +11,22 @@ interface Article {
   slug: string;
   title_en: string;
   title_he: string;
-  content_en: string;
-  content_he: string;
+  intro_en?: string;
+  intro_he?: string;
+  s1_title_en?: string;
+  s1_title_he?: string;
+  s1_body_en?: string;
+  s1_body_he?: string;
+  s2_title_en?: string;
+  s2_title_he?: string;
+  s2_body_en?: string;
+  s2_body_he?: string;
+  table_data_en?: string;
+  table_data_he?: string;
+  tip_en?: string;
+  tip_he?: string;
+  summary_en?: string;
+  summary_he?: string;
   mainImage?: string;
   mainImageAlt?: string;
 }
@@ -468,7 +482,8 @@ function ArticlesManager({
               </button>
             </div>
 
-            <div className="p-5 space-y-5">
+            <div className="p-5 space-y-6">
+
               {/* Main image */}
               <div>
                 <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2.5">תמונת מאמר</p>
@@ -492,44 +507,149 @@ function ArticlesManager({
               </div>
 
               {/* Titles */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 mb-1.5">כותרת בעברית</label>
+              <div>
+                <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2.5">כותרת</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <input type="text" dir="rtl" value={article.title_he}
                     onChange={(e) => onUpdate(idx, "title_he", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
-                    placeholder="כותרת המאמר"
+                    placeholder="כותרת המאמר (עברית)"
                   />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 mb-1.5">Title (English)</label>
                   <input type="text" dir="ltr" value={article.title_en}
                     onChange={(e) => onUpdate(idx, "title_en", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
-                    placeholder="Article title"
+                    placeholder="Article title (English)"
                   />
                 </div>
               </div>
 
-              {/* Content */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 mb-1.5">תוכן בעברית</label>
-                  <textarea dir="rtl" rows={7} value={article.content_he}
-                    onChange={(e) => onUpdate(idx, "content_he", e.target.value)}
+              {/* Intro */}
+              <div>
+                <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2.5">פתיח (Intro)</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <textarea dir="rtl" rows={3} value={article.intro_he || ""}
+                    onChange={(e) => onUpdate(idx, "intro_he", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
-                    placeholder={"תוכן המאמר...\n\n(הפרד פסקאות בשתי שורות ריקות)"}
+                    placeholder="פסקת פתיח יוקרתית..."
                   />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 mb-1.5">Content (English)</label>
-                  <textarea dir="ltr" rows={7} value={article.content_en}
-                    onChange={(e) => onUpdate(idx, "content_en", e.target.value)}
+                  <textarea dir="ltr" rows={3} value={article.intro_en || ""}
+                    onChange={(e) => onUpdate(idx, "intro_en", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
-                    placeholder={"Article content...\n\n(Separate paragraphs with two blank lines)"}
+                    placeholder="Elegant opening paragraph..."
                   />
                 </div>
               </div>
+
+              {/* Section 1 */}
+              <div className="border border-gray-100 rounded-lg p-4 space-y-3 bg-gray-50/50">
+                <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400">פרק 1</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input type="text" dir="rtl" value={article.s1_title_he || ""}
+                    onChange={(e) => onUpdate(idx, "s1_title_he", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-medium focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                    placeholder="כותרת פרק 1 (עברית)"
+                  />
+                  <input type="text" dir="ltr" value={article.s1_title_en || ""}
+                    onChange={(e) => onUpdate(idx, "s1_title_en", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-medium focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                    placeholder="Section 1 title (English)"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <textarea dir="rtl" rows={4} value={article.s1_body_he || ""}
+                    onChange={(e) => onUpdate(idx, "s1_body_he", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
+                    placeholder="תוכן פרק 1..."
+                  />
+                  <textarea dir="ltr" rows={4} value={article.s1_body_en || ""}
+                    onChange={(e) => onUpdate(idx, "s1_body_en", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
+                    placeholder="Section 1 body..."
+                  />
+                </div>
+              </div>
+
+              {/* Section 2 */}
+              <div className="border border-gray-100 rounded-lg p-4 space-y-3 bg-gray-50/50">
+                <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400">פרק 2</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input type="text" dir="rtl" value={article.s2_title_he || ""}
+                    onChange={(e) => onUpdate(idx, "s2_title_he", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-medium focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                    placeholder="כותרת פרק 2 (עברית)"
+                  />
+                  <input type="text" dir="ltr" value={article.s2_title_en || ""}
+                    onChange={(e) => onUpdate(idx, "s2_title_en", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-medium focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                    placeholder="Section 2 title (English)"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <textarea dir="rtl" rows={4} value={article.s2_body_he || ""}
+                    onChange={(e) => onUpdate(idx, "s2_body_he", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
+                    placeholder="תוכן פרק 2..."
+                  />
+                  <textarea dir="ltr" rows={4} value={article.s2_body_en || ""}
+                    onChange={(e) => onUpdate(idx, "s2_body_en", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
+                    placeholder="Section 2 body..."
+                  />
+                </div>
+              </div>
+
+              {/* Table Data */}
+              <div>
+                <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">טבלת השוואה (Table Data)</p>
+                <p className="text-[10px] text-gray-400 mb-2">פורמט: <span dir="ltr" className="font-mono bg-gray-100 px-1 rounded">מפתח:ערך|מפתח:ערך</span></p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input type="text" dir="rtl" value={article.table_data_he || ""}
+                    onChange={(e) => onUpdate(idx, "table_data_he", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                    placeholder="מפתח:ערך|מפתח:ערך"
+                  />
+                  <input type="text" dir="ltr" value={article.table_data_en || ""}
+                    onChange={(e) => onUpdate(idx, "table_data_en", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                    placeholder="Key:Value|Key:Value"
+                  />
+                </div>
+              </div>
+
+              {/* Moti's Tip */}
+              <div>
+                <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2.5">הטיפ של מוטי (Tip Box)</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <textarea dir="rtl" rows={3} value={article.tip_he || ""}
+                    onChange={(e) => onUpdate(idx, "tip_he", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
+                    placeholder="הטיפ המקצועי של מוטי..."
+                  />
+                  <textarea dir="ltr" rows={3} value={article.tip_en || ""}
+                    onChange={(e) => onUpdate(idx, "tip_en", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
+                    placeholder="Moti's professional tip..."
+                  />
+                </div>
+              </div>
+
+              {/* Summary */}
+              <div>
+                <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2.5">סיכום (Summary)</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input type="text" dir="rtl" value={article.summary_he || ""}
+                    onChange={(e) => onUpdate(idx, "summary_he", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                    placeholder="משפט סיכום חזק..."
+                  />
+                  <input type="text" dir="ltr" value={article.summary_en || ""}
+                    onChange={(e) => onUpdate(idx, "summary_en", e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                    placeholder="Strong closing statement..."
+                  />
+                </div>
+              </div>
+
             </div>
           </div>
         ))}
@@ -658,7 +778,17 @@ export default function ContentEditorPage() {
 
   // ── Article CRUD ──────────────────────────────────────────────────────────
   const addArticle = () => {
-    setArticles((p) => [...p, { id: Date.now().toString(), slug: "", title_en: "", title_he: "", content_en: "", content_he: "", mainImage: "", mainImageAlt: "" }]);
+    setArticles((p) => [...p, {
+      id: Date.now().toString(), slug: "",
+      title_en: "", title_he: "",
+      intro_en: "", intro_he: "",
+      s1_title_en: "", s1_title_he: "", s1_body_en: "", s1_body_he: "",
+      s2_title_en: "", s2_title_he: "", s2_body_en: "", s2_body_he: "",
+      table_data_en: "", table_data_he: "",
+      tip_en: "", tip_he: "",
+      summary_en: "", summary_he: "",
+      mainImage: "", mainImageAlt: "",
+    }]);
     setDirty(true);
   };
   const updateArticle = (idx: number, field: keyof Article, value: string) => {

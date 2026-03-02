@@ -87,7 +87,7 @@ export default function Hero() {
         <div className="z-20 col-span-4 flex flex-col justify-center md:col-span-6 md:col-start-1 md:row-start-1">
 
           {/* ── Content Box ── */}
-          <div className="relative max-w-[560px] bg-white/85 backdrop-blur-md border border-charcoal/[0.07] shadow-2xl shadow-black/[0.08] px-8 py-10 md:px-10 md:py-12 lg:px-12 lg:py-14">
+          <div className="relative max-w-[560px] bg-white/90 backdrop-blur-xl border border-charcoal/[0.09] shadow-2xl shadow-black/[0.12] px-8 py-10 md:px-10 md:py-12 lg:px-12 lg:py-14">
 
             {/* Accent corner lines */}
             <span className="pointer-events-none absolute top-0 start-0 h-12 w-px bg-accent/50" aria-hidden="true" />
