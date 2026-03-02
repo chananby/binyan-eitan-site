@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
-  title: "פרויקטים | בניין איתן — קבלן רשום ג1 | הנדסה ובנייה יוקרתית בישראל",
+  title: "תיקיית פרויקטים | בנייה יוקרתית והנדסה מדויקת",
   description:
-    "הצגה של פרויקטים מיוחדים כולל אדריכלות מסחרית, וילות יוקרתיות ופתרונות הנדסיים מורכבים.",
+    "ממתחמים ציבוריים ועד וילות פרטיות יוקרתיות — כל פרויקט בנוי לרמת דיוק הנדסי. שקיפות מבנית, חומר שחור פרימיום, דיוק שאפשר לעבור דרכו.",
   keywords: [
     "פרויקטים בנייה ישראל",
     "אדריכלות יוקרתית",
@@ -14,11 +14,11 @@ export const metadata: Metadata = {
     "בנייה פרטית וציבורית",
   ],
   openGraph: {
-    title: "פרויקטים | בניין איתן",
-    description: "תיקיית פרויקטים בנייה יוקרתית והנדסה בישראל.",
+    title: "בניין איתן | פרויקטים — בנויים לרמת דיוק הנדסי",
+    description: "מתחמים מוסדיים, וילות פרטיות, שיפוצים מבניים. ראו איך נראה דיוק אמיתי.",
     url: "https://binyaneitan.com/he/projects",
     siteName: "בניין איתן",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "בניין איתן — פרויקטים" }],
+    images: [{ url: "https://binyaneitan.com/amshinov-1.jpg", width: 1200, height: 800, alt: "בניין איתן — תיקיית פרויקטים הנדסיים" }],
     locale: "he_IL",
     type: "website",
   },

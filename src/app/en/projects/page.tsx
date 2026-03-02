@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
-  title: "Projects | Binyan Eitan — Luxury Construction & Engineering Israel",
+  title: "Projects Portfolio | Luxury Construction & Engineering",
   description:
-    "Showcase of prestigious projects including commercial architecture, residential luxury villas, and complex structural engineering solutions.",
+    "From institutional complexes to private luxury villas — every project built to engineering exactitude. Structural transparency, premium dark materials, precision you can walk through.",
   keywords: [
     "Construction Projects Israel",
     "Luxury Architecture",
@@ -14,11 +14,11 @@ export const metadata: Metadata = {
     "בנייה פרטית וציבורית",
   ],
   openGraph: {
-    title: "Projects | Binyan Eitan",
-    description: "Portfolio of luxury construction and engineering projects across Israel.",
+    title: "Binyan Eitan | Projects — Built to Engineering Exactitude",
+    description: "Institutional complexes, private villas, structural renovations. See what precision looks like.",
     url: "https://binyaneitan.com/en/projects",
     siteName: "Binyan Eitan",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Binyan Eitan — Projects" }],
+    images: [{ url: "https://binyaneitan.com/amshinov-1.jpg", width: 1200, height: 800, alt: "Binyan Eitan — Engineering Projects Portfolio" }],
     locale: "en_IL",
     type: "website",
   },

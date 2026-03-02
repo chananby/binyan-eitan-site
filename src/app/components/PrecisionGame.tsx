@@ -54,6 +54,11 @@ export default function PrecisionGame({ onClose, compact = false }: PrecisionGam
   const [lockVal,   setLockVal]   = useState<number | null>(null);
   const [highScore, setHighScore] = useState<number | null>(null);
 
+  // Timer ref — cleared on unmount to prevent setState after unmount
+  const lockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (lockTimerRef.current) clearTimeout(lockTimerRef.current); }, []);
+
   // Direct DOM refs — avoid 60fps React state updates during animation
   const laserRef   = useRef<HTMLDivElement>(null);
   const laser2Ref  = useRef<HTMLDivElement>(null);
@@ -131,7 +136,7 @@ export default function PrecisionGame({ onClose, compact = false }: PrecisionGam
 
     const newScores = [...scores, rounded];
 
-    setTimeout(() => {
+    lockTimerRef.current = setTimeout(() => {
       if (round < ROUNDS) {
         setRound(r => r + 1);
         setScores(newScores);
