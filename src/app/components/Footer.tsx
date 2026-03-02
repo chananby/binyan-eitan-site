@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
+import PrecisionGame from "./PrecisionGame";
 
 type Lang = "en" | "he";
 
@@ -43,6 +46,7 @@ export default function Footer() {
   const whatsappUrl = lang === "he" ? WHATSAPP_HE : WHATSAPP_EN;
   const dir = lang === "he" ? "rtl" : "ltr";
   const navItems = NAV_LABELS[lang];
+  const [labOpen, setLabOpen] = useState(false);
 
   return (
     <footer className="bg-charcoal text-bone" dir={dir}>
@@ -95,6 +99,15 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
+              <li className="pt-1">
+                <button
+                  onClick={() => setLabOpen(true)}
+                  className="font-body text-sm text-accent/50 hover:text-accent transition-colors duration-200 flex items-center gap-1.5"
+                >
+                  <span className="text-[0.6rem]" aria-hidden="true">⊕</span>
+                  {lang === "he" ? "מעבדת הדיוק" : "Precision Lab"}
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -137,6 +150,28 @@ export default function Footer() {
 
         </div>
       </div>
+
+      {/* ── Precision Lab modal ── */}
+      <AnimatePresence>
+        {labOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setLabOpen(false)}
+          >
+            <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
+            <motion.div
+              className="relative w-full max-w-md border border-bone/[0.07] overflow-hidden"
+              initial={{ scale: 0.92, y: 12 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, y: 12 }}
+              transition={{ duration: 0.25 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <PrecisionGame onClose={() => setLabOpen(false)} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Bottom bar ── */}
       <div className="border-t border-bone/[0.08]">

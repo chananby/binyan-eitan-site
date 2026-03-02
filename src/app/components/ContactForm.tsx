@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CheckCircle } from "lucide-react";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
+import PrecisionGame from "./PrecisionGame";
 
 type Lang = "en" | "he";
 
@@ -57,12 +58,18 @@ export default function ContactForm() {
         </div>
 
         {status === "success" ? (
-          <div className="flex flex-col items-center gap-5 py-16 border border-accent/20 bg-accent/[0.02] text-center">
-            <CheckCircle size={40} strokeWidth={1.5} className="text-accent" />
-            <div>
-              <p className="font-heading text-xl font-bold text-charcoal">{content.success}</p>
-              <p className="mt-2 font-body text-sm text-charcoal/50">{content.successSub}</p>
+          <div>
+            <div className="flex flex-col items-center gap-5 py-10 mb-6 border border-accent/20 bg-accent/[0.02] text-center">
+              <CheckCircle size={40} strokeWidth={1.5} className="text-accent" />
+              <div>
+                <p className="font-heading text-xl font-bold text-charcoal">{content.success}</p>
+                <p className="mt-2 font-body text-sm text-charcoal/50">{content.successSub}</p>
+                <p className="mt-4 font-body text-[0.7rem] text-charcoal/30 tracking-wider">
+                  {lang === "he" ? "בינתיים — בדקו את הדיוק שלכם:" : "While you wait — test your precision:"}
+                </p>
+              </div>
             </div>
+            <PrecisionGame compact />
           </div>
         ) : (
           <form onSubmit={handleSubmit} method="post" className="space-y-12">
