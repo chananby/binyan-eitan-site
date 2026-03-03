@@ -7,20 +7,9 @@
  * Level 3 — Rate:     "כמה אחוז זה X מתוך Y?"        (find the percent)
  */
 
-export type Difficulty = 1 | 2 | 3;
-
-export interface PercentQuestion {
-  id: string;
-  difficulty: Difficulty;
-  /** Full Hebrew question string */
-  text: string;
-  /** Correct numerical answer */
-  answer: number;
-  /** Short Hebrew hint shown after 2 wrong answers */
-  hint: string;
-  /** Unit label shown next to the answer box ("" | "%") */
-  unit: string;
-}
+import type { Difficulty, MathQuestion } from "../types";
+export type { Difficulty } from "../types";
+export { DIFFICULTY_LABELS, DIFFICULTY_COLORS } from "../types";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -29,7 +18,7 @@ function rand(min: number, max: number): number {
 }
 
 const NICE_PERCENTS: Record<Difficulty, number[]> = {
-  1: [10, 20, 25, 50, 75, 100],
+  1: [10, 20, 25, 50, 75],
   2: [10, 20, 25, 50],
   3: [10, 20, 25, 50, 75],
 };
@@ -41,74 +30,80 @@ function pickWhole(level: Difficulty): number {
 }
 
 let _seq = 0;
-function uid(): string {
-  return `q-${Date.now()}-${++_seq}`;
+function uid(): string { return `pct-${Date.now()}-${++_seq}`; }
+
+function fmt(n: number): string {
+  return Number.isInteger(n) ? String(n) : String(Math.round(n * 1000) / 1000);
 }
 
 // ── level generators ─────────────────────────────────────────────────────────
 
-function genLevel1(): PercentQuestion {
-  const pct = NICE_PERCENTS[1][rand(0, NICE_PERCENTS[1].length - 1)];
+function genLevel1(): MathQuestion {
+  const pct   = NICE_PERCENTS[1][rand(0, NICE_PERCENTS[1].length - 1)];
   const whole = pickWhole(1);
   const answer = (pct / 100) * whole;
+  const onePercent = whole / 100;
+
   return {
-    id: uid(),
-    difficulty: 1,
+    id: uid(), difficulty: 1,
     text: `כמה זה ${pct}% מ-${whole}?`,
     answer,
-    hint: `כדי למצוא ${pct}% מ-${whole}, חשב: ${whole} × ${pct} ÷ 100`,
+    hint: `כדי למצוא ${pct}% מ-${whole}: ${whole} × ${pct} ÷ 100`,
     unit: "",
+    fullSolution: [
+      `שלב 1: מצא 1% מ-${whole} — ${whole} ÷ 100 = ${fmt(onePercent)}`,
+      `שלב 2: כפול ב-${pct} (מספר האחוזים) — ${fmt(onePercent)} × ${pct} = ${fmt(answer)}`,
+      `✅ תשובה: ${fmt(answer)}`,
+    ],
   };
 }
 
-function genLevel2(): PercentQuestion {
-  const pct = NICE_PERCENTS[2][rand(0, NICE_PERCENTS[2].length - 1)];
+function genLevel2(): MathQuestion {
+  const pct   = NICE_PERCENTS[2][rand(0, NICE_PERCENTS[2].length - 1)];
   const whole = pickWhole(2);
-  const part = (pct / 100) * whole;
+  const part  = (pct / 100) * whole;
+  const onePercent = part / pct;
+
   return {
-    id: uid(),
-    difficulty: 2,
-    text: `${part} הוא ${pct}% מ-כמה?`,
+    id: uid(), difficulty: 2,
+    text: `${fmt(part)} הוא ${pct}% מ-כמה?`,
     answer: whole,
-    hint: `אם ${part} הוא ${pct}%, אז השלם הוא: ${part} ÷ ${pct} × 100`,
+    hint: `אם ${fmt(part)} הוא ${pct}%, אז השלם הוא: ${fmt(part)} ÷ ${pct} × 100`,
     unit: "",
+    fullSolution: [
+      `שלב 1: ${fmt(part)} הוא ${pct}%, לכן 1% שווה — ${fmt(part)} ÷ ${pct} = ${fmt(onePercent)}`,
+      `שלב 2: כפול ב-100 כדי לקבל את השלם (100%) — ${fmt(onePercent)} × 100 = ${fmt(whole)}`,
+      `✅ תשובה: ${fmt(whole)}`,
+    ],
   };
 }
 
-function genLevel3(): PercentQuestion {
-  const pct = NICE_PERCENTS[3][rand(0, NICE_PERCENTS[3].length - 1)];
+function genLevel3(): MathQuestion {
+  const pct   = NICE_PERCENTS[3][rand(0, NICE_PERCENTS[3].length - 1)];
   const whole = pickWhole(3);
-  const part = (pct / 100) * whole;
+  const part  = (pct / 100) * whole;
+  const ratio = part / whole;
+
   return {
-    id: uid(),
-    difficulty: 3,
-    text: `כמה אחוזים זה ${part} מתוך ${whole}?`,
+    id: uid(), difficulty: 3,
+    text: `כמה אחוזים זה ${fmt(part)} מתוך ${whole}?`,
     answer: pct,
-    hint: `חשב: (${part} ÷ ${whole}) × 100`,
+    hint: `חשב: (${fmt(part)} ÷ ${whole}) × 100`,
     unit: "%",
+    fullSolution: [
+      `שלב 1: חלק את החלק בשלם — ${fmt(part)} ÷ ${whole} = ${fmt(ratio)}`,
+      `שלב 2: כפול ב-100 כדי להפוך לאחוזים — ${fmt(ratio)} × 100 = ${pct}`,
+      `✅ תשובה: ${pct}%`,
+    ],
   };
 }
 
 // ── public API ────────────────────────────────────────────────────────────────
 
-const generators: Record<Difficulty, () => PercentQuestion> = {
-  1: genLevel1,
-  2: genLevel2,
-  3: genLevel3,
+const generators: Record<Difficulty, () => MathQuestion> = {
+  1: genLevel1, 2: genLevel2, 3: genLevel3,
 };
 
-export function generateQuestion(difficulty: Difficulty): PercentQuestion {
+export function generateQuestion(difficulty: Difficulty): MathQuestion {
   return generators[difficulty]();
 }
-
-export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
-  1: "בסיסי",
-  2: "מתקדם",
-  3: "מאתגר",
-};
-
-export const DIFFICULTY_COLORS: Record<Difficulty, string> = {
-  1: "bg-green-100 text-green-700 border-green-300",
-  2: "bg-amber-100 text-amber-700 border-amber-300",
-  3: "bg-red-100 text-red-700 border-red-300",
-};

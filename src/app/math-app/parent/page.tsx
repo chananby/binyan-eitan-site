@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { StoredStats } from "../hooks/useAdaptiveEngine";
-import { DIFFICULTY_LABELS } from "../lib/engines/percentages";
-import type { Difficulty } from "../lib/engines/percentages";
+import { DIFFICULTY_LABELS, type Difficulty } from "../lib/types";
 
 const STORAGE_KEY = "barilan_math_stats";
 
