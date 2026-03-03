@@ -12,6 +12,8 @@ module.exports = {
         body: ['var(--font-body)', 'sans-serif'],
         serif: ['var(--font-heading)', 'sans-serif'],
         sans: ['var(--font-body)', 'sans-serif'],
+        // Math App — Heebo already loaded in root layout
+        heebo: ['var(--font-heebo)', 'Arial', 'sans-serif'],
       },
       colors: {
         // Natural Luxury palette — Warm Stone × Deep Chocolate × Muted Bronze
@@ -34,7 +36,35 @@ module.exports = {
         glass: {
           DEFAULT: 'rgba(243, 242, 238, 0.88)',
           border: 'rgba(45, 41, 38, 0.06)',
-        }
+        },
+        // Math App — blue brand palette
+        brand: {
+          50:  '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+        },
+      },
+      keyframes: {
+        // Math App animations
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '20%':       { transform: 'translateX(-6px)' },
+          '40%':       { transform: 'translateX(6px)' },
+          '60%':       { transform: 'translateX(-4px)' },
+          '80%':       { transform: 'translateX(4px)' },
+        },
+        fadein: {
+          from: { opacity: '0', transform: 'translateY(6px)' },
+          to:   { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        shake:  'shake 0.5s ease',
+        fadein: 'fadein 0.3s ease',
       },
       transitionTimingFunction: {
         // עקומות אנימציה יוקרתיות (Easing) לתנועה חלקה ו"כבדה" יותר
