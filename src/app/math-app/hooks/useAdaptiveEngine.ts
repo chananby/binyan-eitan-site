@@ -1,21 +1,24 @@
 "use client";
 
 /**
- * useAdaptiveEngine(generateFn, startLevel)
- * ------------------------------------------
+ * useAdaptiveEngine(generateFn, initialStats, onStatsUpdate, startLevel)
+ * ────────────────────────────────────────────────────────────────────────
  * Topic-agnostic adaptive practice engine.
- * Pass any engine's generateQuestion function to drive a session.
+ * Storage is the caller's responsibility — handled via onStatsUpdate callback.
  *
- * Rules:
- *   • 3 consecutive correct  → level UP   (max 3)
- *   • 2 consecutive wrong    → show fullSolution + level DOWN (min 1)
- *   • timeout()              → counts as wrong, same adaptive logic
+ * Grace-period rules
+ * ──────────────────
+ *   • 3 consecutive correct answers  → level UP   (max 3)
+ *   • 2 CONSECUTIVE wrong answers    → fullSolution shown + level DOWN (min 1)
+ *   • 1 wrong answer                 → correctStreak resets, stays at current level
+ *   • timeout()                      → counts as wrong, same adaptive logic
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import type { Difficulty, MathQuestion } from "../lib/types";
+import type { Difficulty, MathQuestion, StoredStats } from "../lib/types";
+import { EMPTY_STATS } from "../lib/types";
 
-// ── types ─────────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface SessionStats {
   correct: number;
@@ -28,51 +31,20 @@ export interface SessionStats {
   lastAnswerCorrect: boolean | null;
 }
 
-export interface StoredStats {
-  totalCorrect: number;
-  totalWrong: number;
-  highestLevel: Difficulty;
-  sessionsPlayed: number;
-  pointsTotal: number;
-  lastPlayed: string;
-}
-
 export interface AdaptiveEngine {
   question: MathQuestion;
   stats: SessionStats;
-  stored: StoredStats;
   submit:  (raw: string) => boolean;
   next:    () => void;
   reset:   () => void;
-  timeout: () => void;          // call when timer expires (counts as wrong)
+  timeout: () => void;
 }
 
-// ── constants ─────────────────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "barilan_math_stats";
 const POINTS_BY_LEVEL: Record<Difficulty, number> = { 1: 5, 2: 10, 3: 20 };
 
-const EMPTY_STORED: StoredStats = {
-  totalCorrect: 0, totalWrong: 0,
-  highestLevel: 1, sessionsPlayed: 0,
-  pointsTotal: 0, lastPlayed: "",
-};
-
-// ── helpers ───────────────────────────────────────────────────────────────────
-
-function loadStored(): StoredStats {
-  if (typeof window === "undefined") return { ...EMPTY_STORED };
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...EMPTY_STORED };
-    return { ...EMPTY_STORED, ...JSON.parse(raw) };
-  } catch { return { ...EMPTY_STORED }; }
-}
-
-function saveStored(s: StoredStats): void {
-  if (typeof window === "undefined") return;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch { /* ignore */ }
-}
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function clampLevel(n: number): Difficulty {
   return Math.min(3, Math.max(1, n)) as Difficulty;
@@ -85,65 +57,85 @@ function freshSession(level: Difficulty): SessionStats {
   };
 }
 
-// ── hook ──────────────────────────────────────────────────────────────────────
+// ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useAdaptiveEngine(
   generateFn: (d: Difficulty) => MathQuestion,
+  initialStats: StoredStats = EMPTY_STATS,
+  onStatsUpdate: (s: StoredStats) => void = () => {},
   startLevel: Difficulty = 1,
 ): AdaptiveEngine {
-  // Keep generateFn in a ref so callbacks never go stale even if caller re-renders
-  const generateFnRef = useRef(generateFn);
-  useEffect(() => { generateFnRef.current = generateFn; }, [generateFn]);
+  // Keep callbacks in refs so they're never stale inside memoized callbacks
+  const generateFnRef    = useRef(generateFn);
+  const onStatsUpdateRef = useRef(onStatsUpdate);
+  useEffect(() => { generateFnRef.current    = generateFn;    }, [generateFn]);
+  useEffect(() => { onStatsUpdateRef.current = onStatsUpdate; }, [onStatsUpdate]);
 
-  const [stored, setStored]     = useState<StoredStats>(EMPTY_STORED);
+  // storedRef mirrors the caller's initialStats prop and accumulates mid-session
+  const storedRef = useRef<StoredStats>(initialStats);
+  useEffect(() => { storedRef.current = initialStats; }, [initialStats]);
+
   const [stats, setStats]       = useState<SessionStats>(() => freshSession(startLevel));
   const [question, setQuestion] = useState<MathQuestion>(() => generateFn(startLevel));
 
   const statsRef    = useRef(stats);
-  const storedRef   = useRef(stored);
   const questionRef = useRef(question);
-
   useEffect(() => { statsRef.current    = stats;    }, [stats]);
-  useEffect(() => { storedRef.current   = stored;   }, [stored]);
   useEffect(() => { questionRef.current = question; }, [question]);
 
-  useEffect(() => { setStored(loadStored()); }, []);
-
-  // ── advance to next question ──────────────────────────────────────────────
-  const advanceTo = useCallback((level: Difficulty) => {
-    setQuestion(generateFnRef.current(level));
-    setStats(prev => ({ ...prev, level, showHint: false, lastAnswerCorrect: null }));
+  // ── Flush a patch to cumulative stored stats ──────────────────────────────
+  const flushStored = useCallback((patch: Partial<StoredStats>) => {
+    const next: StoredStats = {
+      ...storedRef.current,
+      ...patch,
+      lastPlayed: new Date().toISOString(),
+    };
+    storedRef.current = next;
+    onStatsUpdateRef.current(next);
   }, []);
 
-  // ── shared wrong-answer logic ─────────────────────────────────────────────
+  // ── Advance to next question ──────────────────────────────────────────────
+  const advanceTo = useCallback((level: Difficulty) => {
+    setQuestion(generateFnRef.current(level));
+    setStats((prev) => ({ ...prev, level, showHint: false, lastAnswerCorrect: null }));
+  }, []);
+
+  // ── Shared wrong-answer logic ─────────────────────────────────────────────
+  //
+  // Grace-period: a single wrong answer bumps wrongStreak to 1 but keeps the level.
+  // Only on the 2nd consecutive wrong does the user drop a level and see the solution.
+  //
   function applyWrong(prev: SessionStats): {
     newStats: SessionStats;
     newLevel: Difficulty;
     showHint: boolean;
   } {
     const newWrongStreak = prev.wrongStreak + 1;
-    const showHint       = newWrongStreak >= 2;
+    const showHint       = newWrongStreak >= 2;             // drop after 2 consecutive
     const newLevel       = showHint ? clampLevel(prev.level - 1) : prev.level;
 
-    const newStats: SessionStats = {
-      ...prev,
-      wrong:        prev.wrong + 1,
-      streak:       0,
-      wrongStreak:  showHint ? 0 : newWrongStreak,
-      level:        newLevel,
+    return {
+      newStats: {
+        ...prev,
+        wrong:       prev.wrong + 1,
+        streak:      0,                                     // correct streak always resets
+        wrongStreak: showHint ? 0 : newWrongStreak,         // reset after penalty
+        level:       newLevel,
+        showHint,
+        lastAnswerCorrect: false,
+      },
+      newLevel,
       showHint,
-      lastAnswerCorrect: false,
     };
-    return { newStats, newLevel, showHint };
   }
 
-  // ── submit ────────────────────────────────────────────────────────────────
+  // ── Submit ────────────────────────────────────────────────────────────────
   const submit = useCallback((raw: string): boolean => {
     const parsed = parseFloat(raw.trim().replace(",", "."));
     if (isNaN(parsed)) return false;
 
-    const prev = statsRef.current;
-    const q    = questionRef.current;
+    const prev      = statsRef.current;
+    const q         = questionRef.current;
     const isCorrect = Math.abs(parsed - q.answer) < 0.001;
 
     if (isCorrect) {
@@ -154,83 +146,59 @@ export function useAdaptiveEngine(
 
       setStats({
         ...prev,
-        correct:  prev.correct + 1,
-        streak:   levelUp ? 0 : newStreak,
+        correct:     prev.correct + 1,
+        streak:      levelUp ? 0 : newStreak,
         wrongStreak: 0,
-        points:   prev.points + earned,
-        level:    newLevel,
-        showHint: false,
+        points:      prev.points + earned,
+        level:       newLevel,
+        showHint:    false,
         lastAnswerCorrect: true,
       });
 
-      const s = storedRef.current;
-      const updated: StoredStats = {
-        ...s,
-        totalCorrect: s.totalCorrect + 1,
-        highestLevel: Math.max(s.highestLevel, newLevel) as Difficulty,
-        pointsTotal:  s.pointsTotal + earned,
-        lastPlayed:   new Date().toISOString(),
-      };
-      saveStored(updated);
-      setStored(updated);
+      flushStored({
+        totalCorrect: storedRef.current.totalCorrect + 1,
+        highestLevel: Math.max(storedRef.current.highestLevel, newLevel) as Difficulty,
+        pointsTotal:  storedRef.current.pointsTotal + earned,
+      });
 
       setTimeout(() => advanceTo(newLevel), 700);
       return true;
     }
 
-    // Wrong answer
+    // Wrong answer — apply grace-period logic
     const { newStats, newLevel, showHint } = applyWrong(prev);
     setStats(newStats);
+    flushStored({ totalWrong: storedRef.current.totalWrong + 1 });
 
-    const s = storedRef.current;
-    const updated: StoredStats = {
-      ...s,
-      totalWrong:  s.totalWrong + 1,
-      lastPlayed:  new Date().toISOString(),
-    };
-    saveStored(updated);
-    setStored(updated);
-
-    if (!showHint) {
-      // Don't auto-advance on wrong — let user retry
+    // If hint shown, user must click "next" manually.
+    // If single wrong (no hint), let the user retry — do NOT auto-advance.
+    if (showHint) {
+      // advanceTo is called by the `next` callback when user dismisses hint
     }
     return false;
-  }, [advanceTo]);
+  }, [advanceTo, flushStored]);
 
-  // ── timeout (timer ran out — counts as wrong) ─────────────────────────────
+  // ── Timeout (timer ran out — counts as wrong) ─────────────────────────────
   const timeout = useCallback(() => {
     const prev = statsRef.current;
     const { newStats, newLevel, showHint } = applyWrong(prev);
     setStats(newStats);
+    flushStored({ totalWrong: storedRef.current.totalWrong + 1 });
+    // Auto-advance only when no hint needs to be shown
+    if (!showHint) setTimeout(() => advanceTo(newLevel), 500);
+  }, [advanceTo, flushStored]);
 
-    const s = storedRef.current;
-    const updated: StoredStats = {
-      ...s,
-      totalWrong:  s.totalWrong + 1,
-      lastPlayed:  new Date().toISOString(),
-    };
-    saveStored(updated);
-    setStored(updated);
-
-    if (!showHint) {
-      setTimeout(() => advanceTo(newLevel), 500);
-    }
-  }, [advanceTo]);
-
-  // ── dismiss hint / advance ────────────────────────────────────────────────
+  // ── Dismiss hint / advance ────────────────────────────────────────────────
   const next = useCallback(() => {
     advanceTo(statsRef.current.level);
   }, [advanceTo]);
 
-  // ── reset session ─────────────────────────────────────────────────────────
+  // ── Reset session ─────────────────────────────────────────────────────────
   const reset = useCallback(() => {
-    const s = loadStored();
-    const updated: StoredStats = { ...s, sessionsPlayed: s.sessionsPlayed + 1 };
-    saveStored(updated);
-    setStored(updated);
+    flushStored({ sessionsPlayed: storedRef.current.sessionsPlayed + 1 });
     setStats(freshSession(startLevel));
     setQuestion(generateFnRef.current(startLevel));
-  }, [startLevel]);
+  }, [startLevel, flushStored]);
 
-  return { question, stats, stored, submit, next, reset, timeout };
+  return { question, stats, submit, next, reset, timeout };
 }

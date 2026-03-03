@@ -1,28 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import type { StoredStats } from "../hooks/useAdaptiveEngine";
-import { DIFFICULTY_LABELS, type Difficulty } from "../lib/types";
-
-const STORAGE_KEY = "barilan_math_stats";
-
-const EMPTY: StoredStats = {
-  totalCorrect: 0, totalWrong: 0,
-  highestLevel: 1, sessionsPlayed: 0,
-  pointsTotal: 0, lastPlayed: "",
-};
-
-function loadStats(): StoredStats {
-  if (typeof window === "undefined") return { ...EMPTY };
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...EMPTY };
-    return { ...EMPTY, ...JSON.parse(raw) };
-  } catch {
-    return { ...EMPTY };
-  }
-}
+import { useProfiles } from "../hooks/useProfiles";
+import { loadProfileStore, saveProfileStore } from "../lib/profiles";
+import { DIFFICULTY_LABELS, type Difficulty, type StoredStats } from "../lib/types";
 
 function formatDate(iso: string): string {
   if (!iso) return "—";
@@ -32,7 +14,7 @@ function formatDate(iso: string): string {
   });
 }
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
+// ── Sub-components ─────────────────────────────────────────────────────────────
 
 function StatCard({ emoji, label, value, sub, accent }: {
   emoji: string; label: string; value: string | number; sub?: string; accent?: string;
@@ -47,11 +29,9 @@ function StatCard({ emoji, label, value, sub, accent }: {
   );
 }
 
-// ── Accuracy bar ──────────────────────────────────────────────────────────────
-
 function AccuracyBar({ correct, wrong }: { correct: number; wrong: number }) {
   const total = correct + wrong;
-  const pct = total === 0 ? 0 : Math.round((correct / total) * 100);
+  const pct   = total === 0 ? 0 : Math.round((correct / total) * 100);
   return (
     <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
       <div className="flex items-center justify-between mb-2">
@@ -71,8 +51,6 @@ function AccuracyBar({ correct, wrong }: { correct: number; wrong: number }) {
     </div>
   );
 }
-
-// ── Coaching tip ──────────────────────────────────────────────────────────────
 
 function ProgressTip({ stats }: { stats: StoredStats }) {
   const total = stats.totalCorrect + stats.totalWrong;
@@ -101,29 +79,102 @@ function ProgressTip({ stats }: { stats: StoredStats }) {
   );
 }
 
+function ProfileStats({ stats, name, onDelete }: {
+  stats: StoredStats; name: string; onDelete: () => void;
+}) {
+  const total = stats.totalCorrect + stats.totalWrong;
+  return (
+    <div className="flex flex-col gap-5">
+      <p className="text-xs text-slate-400">
+        תרגול אחרון: {formatDate(stats.lastPlayed)}
+      </p>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard emoji="⭐" label="נקודות"        value={stats.pointsTotal}  accent="text-amber-500" />
+        <StatCard emoji="✅" label="תשובות נכונות" value={stats.totalCorrect} accent="text-green-600" />
+        <StatCard emoji="🎯" label="רמה הגבוהה"
+          value={DIFFICULTY_LABELS[stats.highestLevel as Difficulty]}
+          sub={`רמה ${stats.highestLevel}`} accent="text-brand-600" />
+        <StatCard emoji="🔁" label="סשנים" value={stats.sessionsPlayed}
+          sub={total > 0 ? `${total} שאלות` : ""} />
+      </div>
+
+      <AccuracyBar correct={stats.totalCorrect} wrong={stats.totalWrong} />
+
+      <ProgressTip stats={stats} />
+
+      {total > 0 && (
+        <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
+          <p className="text-sm font-semibold text-slate-600 mb-3">רמות שהושגו</p>
+          <div className="flex gap-3">
+            {([1, 2, 3] as Difficulty[]).map((lvl) => (
+              <div key={lvl} className={[
+                "flex-1 rounded-xl p-3 text-center border",
+                lvl <= stats.highestLevel
+                  ? "bg-brand-50 border-brand-200 text-brand-700"
+                  : "bg-slate-50 border-slate-100 text-slate-300",
+              ].join(" ")}>
+                <p className="text-lg font-extrabold">{lvl}</p>
+                <p className="text-xs font-medium">{DIFFICULTY_LABELS[lvl]}</p>
+                {lvl <= stats.highestLevel && <p className="text-base mt-1">✔</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-between items-center pt-2">
+        <button
+          onClick={onDelete}
+          className="text-sm text-red-400 hover:text-red-600 transition-colors underline underline-offset-2"
+        >
+          מחק נתוני {name}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ParentDashboard() {
-  const [stats, setStats]   = useState<StoredStats>(EMPTY);
-  const [cleared, setCleared] = useState(false);
+  const { profiles, updateStats } = useProfiles();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [deleted, setDeleted] = useState<string | null>(null);
 
-  useEffect(() => { setStats(loadStats()); }, []);
+  // Pick the first profile by default once loaded
+  const displayId  = selectedId ?? profiles[0]?.id ?? null;
+  const activeProf = profiles.find((p) => p.id === displayId) ?? null;
 
-  const handleClear = () => {
-    if (!confirm("האם למחוק את כל נתוני ההתקדמות? פעולה זו אינה הפיכה.")) return;
-    localStorage.removeItem(STORAGE_KEY);
-    setStats({ ...EMPTY });
-    setCleared(true);
+  const handleDelete = (id: string) => {
+    const prof = profiles.find((p) => p.id === id);
+    if (!prof) return;
+    if (!confirm(`למחוק את כל נתוני ההתקדמות של ${prof.name}? פעולה זו אינה הפיכה.`)) return;
+
+    // Zero out stats for this profile
+    const empty: StoredStats = {
+      totalCorrect: 0, totalWrong: 0,
+      highestLevel: 1, sessionsPlayed: 0,
+      pointsTotal: 0, lastPlayed: "",
+    };
+    // Directly mutate the store (bypassing active-profile guard in updateStats)
+    const store = loadProfileStore();
+    const next = { ...store, profiles: store.profiles.map((p) => p.id === id ? { ...p, stats: empty } : p) };
+    saveProfileStore(next);
+    // If it's the active profile, use the hook so state re-renders too
+    if (store.activeProfileId === id) updateStats(empty);
+    else window.location.reload(); // reload to refresh non-active profile display
+
+    setDeleted(prof.name);
+    setTimeout(() => setDeleted(null), 3000);
   };
-
-  const total = stats.totalCorrect + stats.totalWrong;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-brand-50 flex flex-col items-center py-10 px-4">
       <div className="w-full max-w-2xl">
 
         {/* header */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-extrabold text-slate-800">📊 לוח הורה / מורה</h1>
             <p className="text-sm text-slate-400 mt-0.5">סטטיסטיקות מצטברות מכל הסשנים</p>
@@ -133,62 +184,60 @@ export default function ParentDashboard() {
           </Link>
         </div>
 
-        <p className="text-xs text-slate-400 mb-6 text-left">
-          תרגול אחרון: {formatDate(stats.lastPlayed)}
-        </p>
+        {profiles.length === 0 ? (
+          <p className="text-center text-slate-400 py-20">
+            לא נמצאו פרופילים. <Link href="/math-app" className="text-brand-600 underline">התחל לתרגל ←</Link>
+          </p>
+        ) : (
+          <>
+            {/* Profile tabs */}
+            {profiles.length > 1 && (
+              <div className="flex gap-2 flex-wrap mb-6">
+                {profiles.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setSelectedId(p.id)}
+                    className={[
+                      "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all",
+                      p.id === displayId
+                        ? "bg-brand-600 text-white border-brand-600 shadow-sm"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-brand-300",
+                    ].join(" ")}
+                  >
+                    <span>{p.avatar}</span>
+                    <span>{p.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
-        {/* stat cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-          <StatCard emoji="⭐" label="נקודות"       value={stats.pointsTotal}   accent="text-amber-500" />
-          <StatCard emoji="✅" label="תשובות נכונות" value={stats.totalCorrect}  accent="text-green-600" />
-          <StatCard emoji="🎯" label="רמה הגבוהה"   value={DIFFICULTY_LABELS[stats.highestLevel as Difficulty]}
-                               sub={`רמה ${stats.highestLevel}`} accent="text-brand-600" />
-          <StatCard emoji="🔁" label="סשנים"        value={stats.sessionsPlayed}
-                               sub={total > 0 ? `${total} שאלות` : ""} />
-        </div>
+            {/* Sync key hint */}
+            {activeProf && (
+              <div className="mb-5 text-xs text-slate-400 flex items-center gap-2">
+                <span>🔑</span>
+                <span>מפתח סנכרון של {activeProf.name}:</span>
+                <span className="font-mono font-bold text-slate-600 tracking-wide">
+                  {activeProf.syncKey}
+                </span>
+              </div>
+            )}
 
-        {/* accuracy bar */}
-        <div className="mb-5">
-          <AccuracyBar correct={stats.totalCorrect} wrong={stats.totalWrong} />
-        </div>
+            {/* Stats for selected profile */}
+            {activeProf && (
+              <ProfileStats
+                stats={activeProf.stats}
+                name={activeProf.name}
+                onDelete={() => handleDelete(activeProf.id)}
+              />
+            )}
 
-        {/* coaching tip */}
-        <div className="mb-8">
-          <ProgressTip stats={stats} />
-        </div>
-
-        {/* level grid */}
-        {total > 0 && (
-          <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm mb-8">
-            <p className="text-sm font-semibold text-slate-600 mb-3">רמות שהושגו</p>
-            <div className="flex gap-3">
-              {([1, 2, 3] as Difficulty[]).map((lvl) => (
-                <div key={lvl} className={[
-                  "flex-1 rounded-xl p-3 text-center border",
-                  lvl <= stats.highestLevel
-                    ? "bg-brand-50 border-brand-200 text-brand-700"
-                    : "bg-slate-50 border-slate-100 text-slate-300",
-                ].join(" ")}>
-                  <p className="text-lg font-extrabold">{lvl}</p>
-                  <p className="text-xs font-medium">{DIFFICULTY_LABELS[lvl]}</p>
-                  {lvl <= stats.highestLevel && <p className="text-base mt-1">✔</p>}
-                </div>
-              ))}
-            </div>
-          </div>
+            {deleted && (
+              <p className="text-sm text-green-600 animate-fadein mt-4 text-center">
+                הנתונים של {deleted} נמחקו.
+              </p>
+            )}
+          </>
         )}
-
-        {/* danger zone */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={handleClear}
-            className="text-sm text-red-400 hover:text-red-600 transition-colors underline underline-offset-2"
-          >
-            מחק נתוני התקדמות
-          </button>
-          {cleared && <span className="text-sm text-green-600 animate-fadein">הנתונים נמחקו.</span>}
-        </div>
-
       </div>
     </div>
   );

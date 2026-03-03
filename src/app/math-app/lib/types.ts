@@ -1,6 +1,5 @@
 /**
- * Shared types for all math engines.
- * Both percentages and fractions engines return MathQuestion.
+ * Shared types for all math engines and the profile/storage layer.
  */
 
 export type Difficulty = 1 | 2 | 3;
@@ -8,17 +7,28 @@ export type Difficulty = 1 | 2 | 3;
 export interface MathQuestion {
   id: string;
   difficulty: Difficulty;
-  /** Full Hebrew question string */
   text: string;
-  /** Correct numerical answer */
   answer: number;
-  /** One-line Hebrew hint (shown on first reveal) */
   hint: string;
-  /** Unit label beside the answer display ("" | "%" | …) */
   unit: string;
-  /** Step-by-step Hebrew solution shown when hint is triggered */
   fullSolution: string[];
 }
+
+/** Cumulative stats for one user profile (persisted, topic-agnostic for now) */
+export interface StoredStats {
+  totalCorrect: number;
+  totalWrong: number;
+  highestLevel: Difficulty;
+  sessionsPlayed: number;
+  pointsTotal: number;
+  lastPlayed: string;   // ISO date string
+}
+
+export const EMPTY_STATS: StoredStats = {
+  totalCorrect: 0, totalWrong: 0,
+  highestLevel: 1, sessionsPlayed: 0,
+  pointsTotal: 0, lastPlayed: "",
+};
 
 export const DIFFICULTY_LABELS: Record<Difficulty, string> = {
   1: "בסיסי",

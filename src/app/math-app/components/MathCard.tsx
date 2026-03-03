@@ -18,7 +18,10 @@ export default function MathCard({ question, stats, onSubmit, onNext }: MathCard
   const [shake, setShake]       = useState(false);
   const [pulse, setPulse]       = useState(false);
   const [answered, setAnswered] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef     = useRef<HTMLDivElement>(null);
+  // Ref tracks showHint so the setTimeout callback below never reads a stale closure value
+  const showHintRef = useRef(stats.showHint);
+  useEffect(() => { showHintRef.current = stats.showHint; }, [stats.showHint]);
 
   // Reset on new question
   useEffect(() => {
@@ -40,11 +43,11 @@ export default function MathCard({ question, stats, onSubmit, onNext }: MathCard
       setShake(true);
       setTimeout(() => {
         setShake(false);
-        // allow re-try unless the engine's own hint was triggered
-        if (!stats.showHint) setAnswered(false);
+        // Use ref so we read the value at timeout-fire time, not at callback-creation time
+        if (!showHintRef.current) setAnswered(false);
       }, 600);
     }
-  }, [input, answered, stats.showHint, onSubmit]);
+  }, [input, answered, onSubmit]);
 
   // Physical keyboard support (for desktop users)
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
