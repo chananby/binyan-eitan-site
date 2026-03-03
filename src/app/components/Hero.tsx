@@ -39,8 +39,8 @@ const fadeScale = {
 };
 
 /* ═════════════════════════════════════════════════════════
-   HERO SECTION
-   12-column asymmetric grid — content box ensures readability
+   HERO SECTION — High-Contrast Engineering Palette
+   Deep charcoal background · Crisp bone text · Precision grid
    ═════════════════════════════════════════════════════════ */
 export default function Hero() {
   const { lang } = useLang() as { lang: Lang };
@@ -61,13 +61,15 @@ export default function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-svh overflow-hidden bg-bone"
+      className="relative min-h-svh overflow-hidden bg-charcoal"
     >
-      {/* ── Architectural grid lines (decorative) ── */}
+      {/* ── Precision grid lines (visible on dark) ── */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="absolute inset-y-0 start-[8.33%] w-px bg-charcoal/[0.03]" />
-        <div className="absolute inset-y-0 start-[41.66%] w-px bg-charcoal/[0.03] max-md:hidden" />
-        <div className="absolute inset-y-0 start-[58.33%] w-px bg-accent/[0.06] max-md:hidden" />
+        <div className="absolute inset-y-0 start-[8.33%] w-px bg-bone/[0.05]" />
+        <div className="absolute inset-y-0 start-[41.66%] w-px bg-bone/[0.05] max-md:hidden" />
+        <div className="absolute inset-y-0 start-[58.33%] w-px bg-accent/[0.12] max-md:hidden" />
+        {/* horizontal hairline at top to signal structure */}
+        <div className="absolute inset-x-0 top-[72px] h-px bg-bone/[0.06] md:top-[88px]" />
       </div>
 
       {/* ═══════════════════════════════════════════════
@@ -82,29 +84,27 @@ export default function Hero() {
       >
         {/* ──────────────────────────────────────────────
             TEXT COLUMN — cols 1–6
-            Wrapped in a content box for guaranteed readability
+            Text sits directly on the dark charcoal bg.
             ────────────────────────────────────────────── */}
         <div className="z-20 col-span-4 flex flex-col justify-center md:col-span-6 md:col-start-1 md:row-start-1">
+          <div className="relative max-w-[560px]">
 
-          {/* ── Content Box ── */}
-          <div className="relative max-w-[560px] bg-white/90 backdrop-blur-xl border border-charcoal/[0.09] shadow-2xl shadow-black/[0.12] px-8 py-10 md:px-10 md:py-12 lg:px-12 lg:py-14">
-
-            {/* Accent corner lines */}
-            <span className="pointer-events-none absolute top-0 start-0 h-12 w-px bg-accent/50" aria-hidden="true" />
-            <span className="pointer-events-none absolute top-0 start-0 h-px w-12 bg-accent/50" aria-hidden="true" />
+            {/* Accent corner lines — engineering detail */}
+            <span className="pointer-events-none absolute top-0 start-0 h-14 w-px bg-accent" aria-hidden="true" />
+            <span className="pointer-events-none absolute top-0 start-0 h-px w-14 bg-accent" aria-hidden="true" />
 
             {/* Overline */}
             <motion.p
-              className="overline-label mb-6 md:mb-8"
+              className="overline-label mb-6 text-bone/50 md:mb-8"
               variants={fadeUp()}
             >
               <span className="me-3 inline-block h-px w-8 bg-accent align-middle" />
               {overline}
             </motion.p>
 
-            {/* ── Main Heading ── */}
+            {/* ── Main Heading — Extra Bold, commands attention ── */}
             <motion.h1
-              className="font-heading text-[clamp(2.4rem,4.5vw,5.2rem)] leading-[1.35] font-bold tracking-tight text-charcoal"
+              className="font-heading text-[clamp(2.6rem,5vw,5.6rem)] leading-[1.25] font-extrabold tracking-tight text-bone"
               variants={fadeUp(0.05)}
             >
               {heading.split("\n").map((line: string, i: number) => (
@@ -114,9 +114,9 @@ export default function Hero() {
               ))}
             </motion.h1>
 
-            {/* ── Subline ── */}
+            {/* ── Subline — full-opacity white, 20% larger ── */}
             <motion.p
-              className="mt-8 max-w-sm font-body text-sm leading-relaxed font-light text-charcoal/55 md:mt-10 md:text-[0.95rem]"
+              className="mt-8 max-w-sm font-body text-base leading-relaxed font-normal text-bone md:mt-10 md:text-[1.05rem]"
               variants={fadeUp(0.15)}
             >
               {sub}
@@ -124,7 +124,7 @@ export default function Hero() {
 
             {/* ── G1 Certification Badge ── */}
             <motion.div className="mt-6 md:mt-7" variants={fadeUp(0.2)}>
-              <span className="inline-flex items-center gap-2.5 border border-accent/50 bg-accent/[0.04] px-4 py-2">
+              <span className="inline-flex items-center gap-2.5 border border-accent bg-accent/[0.12] px-4 py-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
                 <span className="font-body text-[0.65rem] font-semibold tracking-[0.22em] uppercase text-accent">
                   {g1Label}
@@ -136,7 +136,7 @@ export default function Hero() {
             <motion.div className="mt-8 md:mt-10" variants={fadeUp(0.25)}>
               <Link
                 href={`/${lang}#contact`}
-                className="group inline-flex w-fit items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent"
+                className="group inline-flex w-fit items-center gap-3 border-b-2 border-bone/50 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-bone transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent"
               >
                 {cta}
                 <Arrow
@@ -147,26 +147,30 @@ export default function Hero() {
               </Link>
             </motion.div>
 
-            {/* ── Stats Row ── */}
+            {/* ── Performance Grid (Stats) ── */}
             <motion.div
-              className="mt-10 flex gap-10 border-t border-charcoal/[0.07] pt-7 md:mt-14 md:gap-14"
+              className="mt-10 border border-bone/15 md:mt-14"
               variants={fadeUp(0.35)}
             >
-              <div>
-                <span className="block font-heading text-3xl font-bold text-charcoal md:text-4xl">
-                  {stat1.value}
-                </span>
-                <span className="mt-1 block font-body text-xs font-medium tracking-wider uppercase text-warm-gray">
-                  {stat1.label}
-                </span>
-              </div>
-              <div>
-                <span className="block font-heading text-3xl font-bold text-charcoal md:text-4xl">
-                  {stat2.value}
-                </span>
-                <span className="mt-1 block font-body text-xs font-medium tracking-wider uppercase text-warm-gray">
-                  {stat2.label}
-                </span>
+              <div className="grid grid-cols-2">
+                {/* Stat 1 */}
+                <div className="px-6 py-5 border-e border-bone/15">
+                  <span className="block font-heading text-3xl font-extrabold text-bone md:text-[2.6rem] leading-none">
+                    {stat1.value}
+                  </span>
+                  <span className="mt-2 block font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-bone/40">
+                    {stat1.label}
+                  </span>
+                </div>
+                {/* Stat 2 */}
+                <div className="px-6 py-5">
+                  <span className="block font-heading text-3xl font-extrabold text-bone md:text-[2.6rem] leading-none">
+                    {stat2.value}
+                  </span>
+                  <span className="mt-2 block font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-bone/40">
+                    {stat2.label}
+                  </span>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -174,22 +178,20 @@ export default function Hero() {
 
         {/* ──────────────────────────────────────────────
             IMAGE COLUMN — cols 5–12
-            Starts at col 5 to deliberately overlap cols 5-6
-            with the text block, creating layered depth
+            Dark gradient overlay to frame the engineering
             ────────────────────────────────────────────── */}
         <motion.div
           className="relative col-span-4 mt-12 self-center md:col-span-8 md:col-start-5 md:row-start-1 md:mt-0"
           variants={fadeScale}
         >
-          {/* Decorative offset frame — gold accent */}
+          {/* Offset frame — accent, more visible on dark */}
           <div
-            className="absolute -end-3 -bottom-3 z-0 h-full w-full border border-accent/15 md:-end-6 md:-bottom-6"
+            className="absolute -end-3 -bottom-3 z-0 h-full w-full border border-accent/30 md:-end-6 md:-bottom-6"
             aria-hidden="true"
           />
-
-          {/* Secondary micro-frame — architectural detail */}
+          {/* Secondary micro-frame */}
           <div
-            className="absolute -end-1.5 -bottom-1.5 z-0 h-full w-full border border-charcoal/[0.04] md:-end-3 md:-bottom-3"
+            className="absolute -end-1.5 -bottom-1.5 z-0 h-full w-full border border-bone/10 md:-end-3 md:-bottom-3"
             aria-hidden="true"
           />
 
@@ -207,52 +209,52 @@ export default function Hero() {
               priority
             />
 
-            {/* Gradient veil — ensures heading legibility in overlap zone */}
+            {/* Dark gradient — frames the precision of the work */}
             <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-bone/20 via-bone/10 via-35% to-transparent"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-charcoal/70 via-charcoal/20 via-40% to-transparent"
               aria-hidden="true"
             />
 
             {/* Bottom vignette for mobile stacking */}
             <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-bone/50 to-transparent md:hidden"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-charcoal/80 to-transparent md:hidden"
+              aria-hidden="true"
+            />
+
+            {/* Top edge line — engineering precision mark */}
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-accent/40"
               aria-hidden="true"
             />
           </motion.div>
 
-          {/* ── Floating label on image (architectural detail) ── */}
+          {/* ── Floating label on image ── */}
           <motion.div
-            className="absolute -bottom-5 end-8 z-20 hidden bg-bone px-5 py-3 shadow-sm md:block"
+            className="absolute -bottom-5 end-8 z-20 hidden border border-bone/15 bg-charcoal px-5 py-3 shadow-lg md:block"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1, duration: 0.7, ease }}
           >
-            <p className="font-body text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-warm-gray">
+            <p className="font-body text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-bone/50">
               {imageFloatLabel as string}
             </p>
           </motion.div>
         </motion.div>
 
-        {/* ──────────────────────────────────────────────
-            SCROLL INDICATOR — bottom center
-            ────────────────────────────────────────────── */}
+        {/* ── Scroll indicator ── */}
         <motion.div
           className="absolute inset-x-0 bottom-10 flex flex-col items-center gap-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.4, duration: 0.6 }}
         >
-          <span className="font-body text-[0.6rem] font-medium tracking-[0.3em] uppercase text-warm-gray">
+          <span className="font-body text-[0.6rem] font-medium tracking-[0.3em] uppercase text-bone/30">
             {scroll as string}
           </span>
           <motion.div
-            className="h-10 w-px bg-charcoal/15 origin-top"
+            className="h-10 w-px bg-bone/20 origin-top"
             animate={{ scaleY: [0, 1, 0] }}
-            transition={{
-              duration: 2.2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
           />
         </motion.div>
       </motion.div>
