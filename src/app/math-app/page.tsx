@@ -2,7 +2,7 @@
 
 import MathAppClient from "./MathAppClient";
 
-// All topics — hub page
+// Senior hub — Grade 5-6 topics only (grade3 lives at /math-app/junior)
 export default function MathAppPage() {
-  return <MathAppClient />;
+  return <MathAppClient topicIds={["percentages", "fractions"]} />;
 }
