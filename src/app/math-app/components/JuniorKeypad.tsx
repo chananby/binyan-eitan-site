@@ -27,7 +27,7 @@ export default function JuniorKeypad({ value, onChange, onSubmit, disabled }: Ju
   }
 
   return (
-    <div className="grid grid-cols-3 gap-3 w-full max-w-xs mx-auto">
+    <div className="grid grid-cols-3 gap-3 w-full max-w-xs mx-auto" dir="ltr">
       {ROWS.flat().map((key) => {
         const isSubmit = key === "✓";
         const isClear  = key === "C";
