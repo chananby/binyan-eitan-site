@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import MathCard from "./components/MathCard";
+import JuniorCard from "./components/JuniorCard";
 import TimerBar from "./components/TimerBar";
 import ProfileSelector from "./components/ProfileSelector";
 import { useAdaptiveEngine } from "./hooks/useAdaptiveEngine";
@@ -22,6 +23,7 @@ export interface Topic {
   subtitle: string;
   badge?: string;
   theme?: "space";
+  junior?: boolean;       // uses JuniorCard + JuniorKeypad UX
   generateFn: (d: Difficulty) => MathQuestion;
 }
 
@@ -44,9 +46,10 @@ export const ALL_TOPICS: Topic[] = [
     id: "grade3",
     emoji: "🚀",
     title: "כיתה ג׳ — חלל",
-    subtitle: "לוחות כפל, שברים בסיסיים והיקף ריבוע",
+    subtitle: "חיבור, חיסור, לוחות כפל, שברים והיקף ריבוע",
     badge: "כיתה ג׳",
     theme: "space",
+    junior: true,
     generateFn: generateG3,
   },
 ];
@@ -139,6 +142,50 @@ function Session({ topic, initialStats, onStatsUpdate, onBack }: SessionProps) {
         {engine.stats.correct} נכון · {engine.stats.wrong} טעות ·{" "}
         <span className={summaryPts}>{engine.stats.points} נק׳</span>
       </div>
+    </div>
+  );
+}
+
+// ── JuniorSession (Grade 3 — kid-friendly UX) ─────────────────────────────────
+
+const STREAK_TO_LEVEL_UP_JUNIOR = 5;
+
+interface JuniorSessionProps {
+  topic: Topic;
+  initialStats: StoredStats;
+  onStatsUpdate: (s: StoredStats) => void;
+  onBack: () => void;
+}
+
+function JuniorSession({ topic, initialStats, onStatsUpdate, onBack }: JuniorSessionProps) {
+  const engine = useAdaptiveEngine(
+    topic.generateFn,
+    initialStats,
+    onStatsUpdate,
+    initialStats.highestLevel,
+    STREAK_TO_LEVEL_UP_JUNIOR,
+  );
+
+  const navBtn = "text-cyan-400/70 hover:text-cyan-300";
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between gap-2">
+        <button onClick={onBack} className={`flex items-center gap-1 transition-colors text-sm font-medium ${navBtn}`}>
+          → חזרה לנושאים
+        </button>
+        <button onClick={engine.reset} className="text-xs text-cyan-600/60 hover:text-cyan-400 transition-colors underline underline-offset-2">
+          אפס
+        </button>
+      </div>
+
+      <JuniorCard
+        question={engine.question}
+        stats={engine.stats}
+        streakToLevelUp={STREAK_TO_LEVEL_UP_JUNIOR}
+        onSubmit={engine.submit}
+        onNext={engine.next}
+      />
     </div>
   );
 }
@@ -321,12 +368,21 @@ export default function MathAppClient({ topicIds, hideComingSoon = false }: Math
   if (activeTopic) {
     return (
       <Shell activeProfile={activeProfile} onSwitchProfile={clearActiveProfile} spaceMode={spaceMode}>
-        <Session
-          topic={activeTopic}
-          initialStats={activeProfile.stats}
-          onStatsUpdate={updateStats}
-          onBack={() => setActiveTopic(null)}
-        />
+        {activeTopic.junior ? (
+          <JuniorSession
+            topic={activeTopic}
+            initialStats={activeProfile.stats}
+            onStatsUpdate={updateStats}
+            onBack={() => setActiveTopic(null)}
+          />
+        ) : (
+          <Session
+            topic={activeTopic}
+            initialStats={activeProfile.stats}
+            onStatsUpdate={updateStats}
+            onBack={() => setActiveTopic(null)}
+          />
+        )}
       </Shell>
     );
   }

@@ -8,7 +8,7 @@
  *
  * Grace-period rules
  * ──────────────────
- *   • 3 consecutive correct answers  → level UP   (max 3)
+ *   • streakToLevelUp consecutive correct answers → level UP   (max 3)
  *   • 2 CONSECUTIVE wrong answers    → fullSolution shown + level DOWN (min 1)
  *   • 1 wrong answer                 → correctStreak resets, stays at current level
  *   • timeout()                      → counts as wrong, same adaptive logic
@@ -64,6 +64,7 @@ export function useAdaptiveEngine(
   initialStats: StoredStats = EMPTY_STATS,
   onStatsUpdate: (s: StoredStats) => void = () => {},
   startLevel: Difficulty = 1,
+  streakToLevelUp: number = 3,
 ): AdaptiveEngine {
   // Keep callbacks in refs so they're never stale inside memoized callbacks
   const generateFnRef    = useRef(generateFn);
@@ -140,7 +141,7 @@ export function useAdaptiveEngine(
 
     if (isCorrect) {
       const newStreak = prev.streak + 1;
-      const levelUp   = newStreak >= 3;
+      const levelUp   = newStreak >= streakToLevelUp;
       const newLevel  = levelUp ? clampLevel(prev.level + 1) : prev.level;
       const earned    = POINTS_BY_LEVEL[prev.level];
 

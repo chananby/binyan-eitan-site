@@ -1,10 +1,10 @@
 /**
  * Grade 3 Junior Engine — Bar-Ilan Math App
  * ─────────────────────────────────────────
- * Topics: multiplication tables (×1–10), basic fractions (½, ¼, ¾),
- *         square perimeters (forward + reverse).
+ * Topics: addition/subtraction (≤100), multiplication tables (×1–10),
+ *         basic fractions (½, ¼, ¾), square perimeters (forward + reverse).
  *
- * Level 1 — Foundations : tables 1,2,5 · halves · small squares
+ * Level 1 — Foundations : addition/subtraction · tables 1,2,3,4,5 · halves
  * Level 2 — Building    : tables 3,4,6 · quarters · bigger squares
  * Level 3 — Challenge   : tables 7,8,9,10 · ¾ · reverse-perimeter
  */
@@ -25,6 +25,64 @@ function randInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// ── Addition ──────────────────────────────────────────────────────────────────
+
+function makeAddition(difficulty: Difficulty): MathQuestion {
+  // L1: two-digit + one/two-digit, sum ≤ 100
+  const a = randInt(10, 50);
+  const b = randInt(5, Math.min(20, 100 - a));
+  const answer = a + b;
+
+  // Decompose tens and ones for hint
+  const aT = Math.floor(a / 10) * 10;
+  const aO = a % 10;
+  const bT = Math.floor(b / 10) * 10;
+  const bO = b % 10;
+  const tensSum  = aT + bT;
+  const onesSum  = aO + bO;
+
+  return {
+    id: uid(),
+    difficulty,
+    text: `${a} + ${b} = ?`,
+    answer,
+    hint: `פרק לעשרות ואחדות`,
+    unit: "",
+    fullSolution: [
+      `שלב 1: פרק לעשרות: ${aT} + ${bT} = ${tensSum}`,
+      `שלב 2: פרק לאחדות: ${aO} + ${bO} = ${onesSum}`,
+      `שלב 3: ${tensSum} + ${onesSum} = ${answer}`,
+      `✅ תשובה: ${answer}`,
+    ],
+  };
+}
+
+// ── Subtraction ───────────────────────────────────────────────────────────────
+
+function makeSubtraction(difficulty: Difficulty): MathQuestion {
+  const a = randInt(20, 80);
+  const b = randInt(5, Math.min(30, a - 1));
+  const answer = a - b;
+
+  const aT = Math.floor(a / 10) * 10;
+  const aO = a % 10;
+  const bRound = Math.floor(b / 10) * 10;
+
+  return {
+    id: uid(),
+    difficulty,
+    text: `${a} − ${b} = ?`,
+    answer,
+    hint: `הפחת עשרות קודם`,
+    unit: "",
+    fullSolution: [
+      `שלב 1: הפחת עשרות: ${a} − ${bRound} = ${a - bRound}`,
+      `שלב 2: הפחת שארית: ${a - bRound} − ${b - bRound} = ${answer}`,
+      `✅ תשובה: ${answer}`,
+    ],
+  };
+}
+
 // ── Multiplication ─────────────────────────────────────────────────────────────
 
 function makeMultiplication(tables: number[], difficulty: Difficulty): MathQuestion {
@@ -32,7 +90,7 @@ function makeMultiplication(tables: number[], difficulty: Difficulty): MathQuest
   const b = randInt(1, 10);
   const answer = a * b;
 
-  // Build a skip-count hint string: e.g. 3,6,9,...
+  // Skip-count hint: show b, 2b, 3b, … a×b
   const skips = Array.from({ length: a }, (_, i) => (i + 1) * b).join(", ");
 
   return {
@@ -40,7 +98,7 @@ function makeMultiplication(tables: number[], difficulty: Difficulty): MathQuest
     difficulty,
     text: `${a} × ${b} = ?`,
     answer,
-    hint: `כפל ${a} ב-${b}`,
+    hint: `ספור בקפיצות של ${b}`,
     unit: "",
     fullSolution: [
       `שלב 1: ${a} × ${b} — נספור ${a} קפיצות של ${b}`,
@@ -153,16 +211,18 @@ function makeReversePerimeter(perims: number[], difficulty: Difficulty): MathQue
 
 // ── Question type union ───────────────────────────────────────────────────────
 
-type QType = "mult" | "frac" | "peri";
+type QType = "add" | "sub" | "mult" | "frac" | "peri";
 
 // ── Main generator ────────────────────────────────────────────────────────────
 
 export function generateQuestion(difficulty: Difficulty): MathQuestion {
   if (difficulty === 1) {
-    const type = pick<QType>(["mult", "mult", "frac", "peri"]);
-    if (type === "mult") return makeMultiplication([1, 2, 5], 1);
-    if (type === "frac") return makeHalf([2, 4, 6, 8, 10, 12, 14, 16, 18, 20], 1);
-    return makeSquarePerimeter([2, 3, 4, 5, 6], 1);
+    // Weighted: mostly arithmetic + tables 1-5, some fractions
+    const type = pick<QType>(["add", "add", "add", "sub", "sub", "mult", "mult", "frac"]);
+    if (type === "add")  return makeAddition(1);
+    if (type === "sub")  return makeSubtraction(1);
+    if (type === "mult") return makeMultiplication([1, 2, 3, 4, 5], 1);
+    return makeHalf([2, 4, 6, 8, 10, 12, 14, 16, 18, 20], 1);
   }
 
   if (difficulty === 2) {
