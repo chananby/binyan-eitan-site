@@ -85,7 +85,7 @@ export default function AboutPage() {
               </span>
             </div>
 
-            <p className="font-body text-base font-light text-bone/50 max-w-md leading-relaxed">
+            <p className="font-body text-base font-light text-bone/50 max-w-md leading-relaxed whitespace-pre-line">
               {c.heroSub}
             </p>
           </FadeUp>
@@ -139,7 +139,7 @@ export default function AboutPage() {
               </FadeUp>
 
               <FadeUp delay={0.15}>
-                <p className="mt-8 font-body text-base font-light leading-relaxed text-charcoal/55 md:text-lg max-w-lg">
+                <p className="mt-8 font-body text-base font-light leading-relaxed text-charcoal/55 md:text-lg max-w-lg whitespace-pre-line">
                   {c.founderBody}
                 </p>
               </FadeUp>
@@ -242,7 +242,7 @@ export default function AboutPage() {
                 <h3 className="font-heading text-xl font-bold text-charcoal transition-colors duration-500 group-hover:text-bone md:text-2xl whitespace-pre-line">
                   {item.title}
                 </h3>
-                <p className="mt-4 font-body text-sm font-light leading-relaxed text-charcoal/55 transition-colors duration-500 group-hover:text-bone/55">
+                <p className="mt-4 font-body text-sm font-light leading-relaxed text-charcoal/55 transition-colors duration-500 group-hover:text-bone/55 whitespace-pre-line">
                   {item.desc}
                 </p>
                 <div className="mt-8 h-px w-12 bg-accent/30 transition-all duration-500 group-hover:w-20 group-hover:bg-accent" />

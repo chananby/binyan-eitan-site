@@ -1152,7 +1152,7 @@ export default function ContentEditorPage() {
                         ) : filteredKeys.map((key) => {
                           const heVal = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "he", key);
                           const enVal = getSafeValue(translations, defaultTranslations, activeTab as SectionKey, "en", key);
-                          const isLong = heVal.length > 50 || enVal.length > 50;
+                          const isLong = heVal.length > 50 || enVal.length > 50 || heVal.includes("\n") || enVal.includes("\n");
                           const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(heVal || enVal) ||
                             ["image", "cover", "photo", "src", "url"].some((w) => key.toLowerCase().includes(w));
 

@@ -116,7 +116,7 @@ export default function Hero() {
 
             {/* ── Subline — readable, full-weight dark text ── */}
             <motion.p
-              className="mt-8 max-w-sm font-body text-base leading-relaxed font-normal text-charcoal/65 text-start md:mt-10 md:text-[1.05rem]"
+              className="mt-8 max-w-sm font-body text-base leading-relaxed font-normal text-charcoal/65 text-start md:mt-10 md:text-[1.05rem] whitespace-pre-line"
               variants={fadeUp(0.15)}
             >
               {sub}
