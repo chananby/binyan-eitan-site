@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import MathCard from "./components/MathCard";
 import JuniorCard from "./components/JuniorCard";
 import TimerBar from "./components/TimerBar";
@@ -342,7 +343,9 @@ interface MathAppClientProps {
 
 export default function MathAppClient({ topicIds, hideComingSoon = false }: MathAppClientProps) {
   const topics = topicIds ? ALL_TOPICS.filter((t) => topicIds.includes(t.id)) : ALL_TOPICS;
+  const singleTopic = topics.length === 1;
 
+  const router = useRouter();
   const {
     profiles, activeProfile, syncing,
     createProfile, selectProfile, clearActiveProfile, joinByKey, updateStats,
@@ -350,6 +353,14 @@ export default function MathAppClient({ topicIds, hideComingSoon = false }: Math
 
   const [activeTopic, setActiveTopic] = useState<Topic | null>(null);
   const spaceMode = activeTopic?.theme === "space";
+
+  // When there's only one topic, skip the dashboard and go straight into the session
+  useEffect(() => {
+    if (singleTopic && activeProfile && !activeTopic) {
+      setActiveTopic(topics[0]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeProfile, singleTopic]);
 
   if (!activeProfile) {
     return (
@@ -366,6 +377,10 @@ export default function MathAppClient({ topicIds, hideComingSoon = false }: Math
   }
 
   if (activeTopic) {
+    const handleBack = singleTopic
+      ? () => router.push("/math-app")
+      : () => setActiveTopic(null);
+
     return (
       <Shell activeProfile={activeProfile} onSwitchProfile={clearActiveProfile} spaceMode={spaceMode}>
         {activeTopic.junior ? (
@@ -373,14 +388,14 @@ export default function MathAppClient({ topicIds, hideComingSoon = false }: Math
             topic={activeTopic}
             initialStats={activeProfile.stats}
             onStatsUpdate={updateStats}
-            onBack={() => setActiveTopic(null)}
+            onBack={handleBack}
           />
         ) : (
           <Session
             topic={activeTopic}
             initialStats={activeProfile.stats}
             onStatsUpdate={updateStats}
-            onBack={() => setActiveTopic(null)}
+            onBack={handleBack}
           />
         )}
       </Shell>
