@@ -87,24 +87,25 @@ export default function Hero() {
             No box, no shadow, no border.
             ────────────────────────────────────────────── */}
         <div className="z-20 col-span-4 flex flex-col justify-center md:col-span-6 md:col-start-1 md:row-start-1">
-          <div className="relative max-w-[560px]">
+          {/* Wrapper: no max-w here — heading breaks into image column deliberately */}
+          <div className="relative w-full">
 
             {/* Accent corner marks — subtle structural detail */}
             <span className="pointer-events-none absolute top-0 start-0 h-12 w-px bg-accent/60" aria-hidden="true" />
             <span className="pointer-events-none absolute top-0 start-0 h-px w-12 bg-accent/60" aria-hidden="true" />
 
-            {/* Overline */}
+            {/* Overline — kept narrow */}
             <motion.p
-              className="overline-label mb-6 text-charcoal/50 md:mb-8"
+              className="overline-label mb-6 text-charcoal/50 md:mb-8 max-w-[520px]"
               variants={fadeUp()}
             >
               <span className="me-3 inline-block h-px w-8 bg-accent align-middle" />
               {overline}
             </motion.p>
 
-            {/* ── Main Heading — strong, extrabold, dark charcoal ── */}
+            {/* ── Main Heading — full column width, intentionally bridges into image ── */}
             <motion.h1
-              className="font-heading text-[clamp(2.6rem,5vw,5.6rem)] leading-[1.25] font-extrabold tracking-tight text-charcoal text-start"
+              className="font-heading text-[clamp(2.6rem,5vw,5.6rem)] leading-[1.25] font-bold tracking-tight text-[#C5A059] text-start w-full [text-shadow:_0_2px_24px_rgba(0,0,0,0.28),_0_1px_6px_rgba(0,0,0,0.14)]"
               variants={fadeUp(0.05)}
             >
               {heading.split("\n").map((line: string, i: number) => (
@@ -114,63 +115,66 @@ export default function Hero() {
               ))}
             </motion.h1>
 
-            {/* ── Subline — readable, full-weight dark text ── */}
-            <motion.p
-              className="mt-8 max-w-sm font-body text-base leading-relaxed font-normal text-charcoal/65 text-start md:mt-10 md:text-[1.05rem] whitespace-pre-line"
-              variants={fadeUp(0.15)}
-            >
-              {sub}
-            </motion.p>
-
-            {/* ── G1 Certification Badge ── */}
-            <motion.div className="mt-6 md:mt-7" variants={fadeUp(0.2)}>
-              <span className="inline-flex items-center gap-2.5 border border-accent/50 bg-accent/[0.04] px-4 py-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
-                <span className="font-body text-[0.65rem] font-semibold tracking-[0.22em] uppercase text-accent">
-                  {g1Label}
-                </span>
-              </span>
-            </motion.div>
-
-            {/* ── CTA ── */}
-            <motion.div className="mt-8 md:mt-10" variants={fadeUp(0.25)}>
-              <Link
-                href={`/${lang}#contact`}
-                className="group inline-flex w-fit items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent"
+            {/* Sub-content constrained to 520px — sits cleanly in the bone zone */}
+            <div className="max-w-[520px]">
+              {/* ── Subline ── */}
+              <motion.p
+                className="mt-8 max-w-sm font-body text-base leading-relaxed font-normal text-charcoal/65 text-start md:mt-10 md:text-[1.05rem] whitespace-pre-line"
+                variants={fadeUp(0.15)}
               >
-                {cta}
-                <Arrow
-                  size={18}
-                  strokeWidth={2}
-                  className="transition-transform duration-500 ease-[var(--ease-expo)] group-hover:translate-y-0.5"
-                />
-              </Link>
-            </motion.div>
+                {sub}
+              </motion.p>
 
-            {/* ── Stats — precision grid with thin borders ── */}
-            <motion.div
-              className="mt-10 border border-charcoal/[0.08] md:mt-14"
-              variants={fadeUp(0.35)}
-            >
-              <div className="grid grid-cols-2">
-                <div className="px-6 py-5 border-e border-charcoal/[0.08]">
-                  <span className="block font-heading text-3xl font-extrabold text-charcoal leading-none md:text-[2.6rem]">
-                    {stat1.value}
+              {/* ── G1 Certification Badge ── */}
+              <motion.div className="mt-6 md:mt-7" variants={fadeUp(0.2)}>
+                <span className="inline-flex items-center gap-2.5 border border-accent/50 bg-accent/[0.04] px-4 py-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+                  <span className="font-body text-[0.65rem] font-semibold tracking-[0.22em] uppercase text-accent">
+                    {g1Label}
                   </span>
-                  <span className="mt-2 block font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/45">
-                    {stat1.label}
-                  </span>
+                </span>
+              </motion.div>
+
+              {/* ── CTA ── */}
+              <motion.div className="mt-8 md:mt-10" variants={fadeUp(0.25)}>
+                <Link
+                  href={`/${lang}#contact`}
+                  className="group inline-flex w-fit items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent"
+                >
+                  {cta}
+                  <Arrow
+                    size={18}
+                    strokeWidth={2}
+                    className="transition-transform duration-500 ease-[var(--ease-expo)] group-hover:translate-y-0.5"
+                  />
+                </Link>
+              </motion.div>
+
+              {/* ── Stats — precision grid with thin borders ── */}
+              <motion.div
+                className="mt-10 border border-charcoal/[0.08] md:mt-14"
+                variants={fadeUp(0.35)}
+              >
+                <div className="grid grid-cols-2">
+                  <div className="px-6 py-5 border-e border-charcoal/[0.08]">
+                    <span className="block font-heading text-3xl font-extrabold text-charcoal leading-none md:text-[2.6rem]">
+                      {stat1.value}
+                    </span>
+                    <span className="mt-2 block font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/45">
+                      {stat1.label}
+                    </span>
+                  </div>
+                  <div className="px-6 py-5">
+                    <span className="block font-heading text-3xl font-extrabold text-charcoal leading-none md:text-[2.6rem]">
+                      {stat2.value}
+                    </span>
+                    <span className="mt-2 block font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/45">
+                      {stat2.label}
+                    </span>
+                  </div>
                 </div>
-                <div className="px-6 py-5">
-                  <span className="block font-heading text-3xl font-extrabold text-charcoal leading-none md:text-[2.6rem]">
-                    {stat2.value}
-                  </span>
-                  <span className="mt-2 block font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/45">
-                    {stat2.label}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
         </div>
 
@@ -207,9 +211,9 @@ export default function Hero() {
               priority
             />
 
-            {/* Bone veil — blends image into page bg at the overlap zone */}
+            {/* Bone veil — minimal: just a hairline fade at the very edge */}
             <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-bone/30 via-bone/10 via-35% to-transparent"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-bone/[0.12] via-transparent via-20% to-transparent"
               aria-hidden="true"
             />
 
