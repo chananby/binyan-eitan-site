@@ -15,7 +15,28 @@ const FALLBACK_SRCS = [
   "/luxury-electrical-infrastructure-precision.jpg",
   "/expert-jerusalem-stone-facade-work.jpg",
   "/professional-airless-painting-standards.jpg",
+  "/premium-marble-bathroom-detailing.jpg",
 ];
+
+// Fallback labels used when translation key is missing (e.g. new images not yet in KV)
+const FALLBACK_LABELS: Record<"en" | "he", string[]> = {
+  en: [
+    "Structural Remodeling",
+    "Foundation Reinforcement",
+    "Interior Wall Framing",
+    "Jerusalem Stone Facade",
+    "Professional Airless Painting",
+    "Premium Marble Detailing",
+  ],
+  he: [
+    "שיפוץ מבני",
+    "חיזוק יסודות",
+    "מסגרת קירות פנים",
+    "חיפוי אבן ירושלמית",
+    "צביעה מקצועית בתרסיס",
+    "גמר שיש פרמיום",
+  ],
+};
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -85,7 +106,7 @@ export default function EngineeringExcellence() {
           {/* 3-column grid of expertise images */}
           <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3">
             {ITEMS.map((item, index) => {
-              const label = ut[`item_${index}_label`] ?? "";
+              const label = ut[`item_${index}_label`] || FALLBACK_LABELS[l][index] || "";
               return (
                 <motion.button
                   key={item.src}

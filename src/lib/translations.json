@@ -302,6 +302,7 @@
       "item_2_label": "Interior Wall Framing",
       "item_3_label": "Jerusalem Stone Facade",
       "item_4_label": "Professional Airless Painting",
+      "item_5_label": "Premium Marble Detailing",
       "step1_title": "Creative Logistics",
       "step1_desc": "Steel lifting in dense areas",
       "step2_title": "Deep Infrastructure",
@@ -313,11 +314,13 @@
       "imageUrl_2": "/interior-wall-framing-systems.jpg",
       "imageUrl_3": "/expert-jerusalem-stone-facade-work.jpg",
       "imageUrl_4": "/professional-airless-painting-standards.jpg",
+      "imageUrl_5": "/premium-marble-bathroom-detailing.jpg",
       "imageAlt_0": "Structural remodeling safety standards",
       "imageAlt_1": "Structural foundation reinforcement",
       "imageAlt_2": "Interior wall framing systems",
       "imageAlt_3": "Jerusalem stone facade work",
-      "imageAlt_4": "Professional airless painting"
+      "imageAlt_4": "Professional airless painting",
+      "imageAlt_5": "Premium marble bathroom detailing"
     },
     "he": {
       "overline": "מאחורי הקלעים",
@@ -331,6 +334,7 @@
       "item_2_label": "מסגרת קירות פנים",
       "item_3_label": "חיפוי אבן ירושלמית",
       "item_4_label": "צביעה מקצועית בתרסיס",
+      "item_5_label": "גמר שיש פרמיום",
       "step1_title": "פתרונות לוגיסטיים",
       "step1_desc": "הנפת פלדה ומנופים בסביבה צפופה",
       "step2_title": "תשתיות וקידוח",
@@ -342,11 +346,13 @@
       "imageUrl_2": "/interior-wall-framing-systems.jpg",
       "imageUrl_3": "/expert-jerusalem-stone-facade-work.jpg",
       "imageUrl_4": "/professional-airless-painting-standards.jpg",
+      "imageUrl_5": "/premium-marble-bathroom-detailing.jpg",
       "imageAlt_0": "תקני בטיחות בשיפוץ מבני",
       "imageAlt_1": "חיזוק יסודות מבניים",
       "imageAlt_2": "מערכות מסגרת קירות פנים",
       "imageAlt_3": "חיפוי אבן ירושלמית",
-      "imageAlt_4": "צביעה מקצועית בתרסיס"
+      "imageAlt_4": "צביעה מקצועית בתרסיס",
+      "imageAlt_5": "גמר שיש פרמיום"
     }
   },
   "articles": [
