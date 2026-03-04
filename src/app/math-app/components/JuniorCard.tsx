@@ -18,10 +18,23 @@ interface JuniorCardProps {
 const HINT_DELAY_SEC = 10;
 const LEVEL_LABELS: Record<number, string> = { 1: "מתחיל 🌱", 2: "מתקדם 🌟", 3: "אלוף 🚀" };
 
+function toSpeakable(text: string): string {
+  return text
+    .replace(/½\s*מ-?/g, "חצי מ-")
+    .replace(/¼\s*מ-?/g, "רבע מ-")
+    .replace(/¾\s*מ-?/g, "שלושה רבעי מ-")
+    .replace(/×/g, "כפול")
+    .replace(/÷/g, "חלקי")
+    .replace(/\+/g, "ועוד")
+    .replace(/−/g, "פחות")
+    .replace(/=\s*\?/g, "שווה כמה?")
+    .replace(/ס״מ/g, "סנטימטר");
+}
+
 function readAloud(text: string) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
+  const utt = new SpeechSynthesisUtterance(toSpeakable(text));
   utt.lang = "he-IL";
   utt.rate = 0.85;
   window.speechSynthesis.speak(utt);
@@ -162,7 +175,7 @@ export default function JuniorCard({ question, stats, streakToLevelUp, onSubmit,
               className="text-center"
             >
               <button
-                onClick={() => readAloud(`רמז: ${question.hint}`)}
+                onClick={() => readAloud(`רמז. ${question.hint}`)}
                 className="text-xs font-semibold text-amber-600 hover:text-amber-500 bg-amber-50 border border-amber-200 px-4 py-2 rounded-full transition-colors"
               >
                 💡 רמז: {question.hint}
