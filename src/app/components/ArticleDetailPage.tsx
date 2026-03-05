@@ -36,6 +36,8 @@ interface Article {
   table_data_en?: string;
   tip_en?: string;
   summary_en?: string;
+  cta_label_en?: string;
+  cta_label_he?: string;
 }
 
 interface Props {
@@ -224,7 +226,7 @@ export default function ArticleDetailPage({ slug }: Props) {
               href={`/${lang}${t.contactHref}`}
               className="bg-accent text-bone px-12 py-5 font-body text-sm font-bold tracking-[0.25em] uppercase transition-all duration-300 hover:bg-charcoal hover:shadow-lg inline-block"
             >
-              {t.ctaLabel}
+              {(lang === "en" ? article.cta_label_en : article.cta_label_he) ?? t.ctaLabel}
             </Link>
           </div>
           

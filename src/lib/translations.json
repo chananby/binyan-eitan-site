@@ -53,7 +53,7 @@
       "heading": "Excellence in Execution.\nConfidence in Construction.",
       "sub": "Licensed G1 Contractor (No. 41805). Expertise in complex project management and luxury finishing with full transparency.",
       "g1Label": "G1 Registered Contractor",
-      "cta": "Contact Us",
+      "cta": "Let's Discuss Your Vision",
       "imageAlt": "Luxury interior finish",
       "imageFloatLabel": "Luxury Interior Finish",
       "imageUrl": "/luxury-interior.jpg",
@@ -68,7 +68,7 @@
       "heading": "החזון שלכם.\nהביצוע המדויק שלנו.",
       "sub": "קבלן רשום ג-1 (מס' 41805). מומחיות בניהול פרויקטים מורכבים וגמר יוקרה עם שקיפות מלאה.",
       "g1Label": "קבלן רשום ג1",
-      "cta": "יצירת קשר",
+      "cta": "בואו נדבר על החזון שלכם",
       "imageAlt": "גימור פנים יוקרתי",
       "imageFloatLabel": "גימור פנים יוקרתי",
       "imageUrl": "/luxury-interior.jpg",
@@ -196,7 +196,7 @@
       "stat2Label": "Projects Completed",
       "stat3Value": "G1",
       "stat3Label": "Registered Contractor",
-      "founderQuote": "I don't just build walls; I build trust. Every project is my personal signature, and I ensure it remains stable, precise, and high-quality for decades to come.",
+      "founderQuote": "To me, construction isn't just concrete and steel — it's a personal commitment. When I sign off on a project, my name is on every wall of your home. I invite you to build with total confidence, with a partner who takes full ownership of the result.",
       "founderTitle": "Founder & CEO, Binyan Eitan"
     },
     "he": {
@@ -227,7 +227,7 @@
       "stat2Label": "פרויקטים שהושלמו",
       "stat3Value": "ג1",
       "stat3Label": "קבלן רשום",
-      "founderQuote": "אני לא בונה קירות, אני בונה אמון. כל פרויקט הוא החתימה האישית שלי, ואני מוודא שהיא תישאר יציבה, ישרה ואיכותית לאורך עשורים.",
+      "founderQuote": "עבורי, בנייה היא לא רק בטון ופלדה – היא מחויבות אישית. כשאני חותם על פרויקט, השם שלי נמצא על כל קיר בבית שלכם. אני מזמין אתכם לבנות בראש שקט, עם שותף שלוקח אחריות מלאה על התוצאה.",
       "founderTitle": "מייסד ומנכ\"ל, בנין איתן"
     }
   },
@@ -241,12 +241,16 @@
       "proj_0_title": "Amshinov Complex",
       "proj_0_category": "Structural Logistics",
       "proj_0_cover": "/amshinov-1.jpg",
+      "proj_0_challenge": "Dense urban site with active street traffic and zero laydown space.",
+      "proj_0_solution": "Surgical scheduling and precision crane lifts — zero disruption to the surrounding neighborhood.",
       "proj_1_title": "Bayit Vegan Estate",
       "proj_1_category": "Premium Renovation",
       "proj_1_cover": "/bayit-vegan.jpg",
       "proj_2_title": "Ohel Avshalom Institutions",
       "proj_2_category": "Structural Engineering",
       "proj_2_cover": "/ohel-avshalom.jpg",
+      "proj_2_challenge": "Complex deep foundation work in challenging soil with strict municipal constraints.",
+      "proj_2_solution": "Advanced anchoring systems and precision reinforced concrete pours to structural-grade spec.",
       "proj_3_title": "Ramat Eshkol Penthouse",
       "proj_3_category": "Luxury Construction",
       "proj_3_cover": "/ramat-eshkol.jpg"
@@ -260,12 +264,16 @@
       "proj_0_title": "קרית אמשינוב",
       "proj_0_category": "מבצע לוגיסטי ומבני",
       "proj_0_cover": "/amshinov-1.jpg",
+      "proj_0_challenge": "אתר עירוני צפוף עם תנועת רחוב פעילה וחוסר מרחב פינוי.",
+      "proj_0_solution": "תזמון כירורגי והנפת פלדה מדויקת בעגורן — ללא הפרעה לסביבה.",
       "proj_1_title": "אחוזת בית וגן",
       "proj_1_category": "שיפוץ פרימיום",
       "proj_1_cover": "/bayit-vegan.jpg",
       "proj_2_title": "מוסדות אוהל אבשלום",
       "proj_2_category": "הנדסת קונסטרוקציה",
       "proj_2_cover": "/ohel-avshalom.jpg",
+      "proj_2_challenge": "עבודות ביסוס עמוק מורכבות בתנאי קרקע מאתגרים עם מגבלות עירוניות מחמירות.",
+      "proj_2_solution": "מערכות עיגון מתקדמות ויציקות בטון מזוין מדויקות בהתאם למפרטי קונסטרוקציה מחמירים.",
       "proj_3_title": "פנטהאוז רמת אשכול",
       "proj_3_category": "בניית יוקרה",
       "proj_3_cover": "/ramat-eshkol.jpg"
@@ -275,9 +283,9 @@
     "en": {
       "overline": "Standard of Excellence",
       "heading": "The Values That\nGuide Every Project.",
-      "pillar_0_title": "HD Execution\nStandards",
-      "pillar_0_summary": "Every detail executed to the highest resolution.",
-      "pillar_0_body": "We don't cut corners. Every joint, pour, and finish is executed to the highest standard, ensuring meticulous pre-planning and uncompromising on-site execution.",
+      "pillar_0_title": "Uncompromising Engineering:\nBuilt Straight, Strong, and Secure",
+      "pillar_0_summary": "Built straight, strong, and safe — every single time.",
+      "pillar_0_body": "Structural complexity is our challenge; peace of mind is yours. We specialize in solving intricate engineering hurdles with zero friction for the client, maintaining millimeter-level precision in every pour and every wall.",
       "pillar_1_title": "Integrity &\nTransparency",
       "pillar_1_summary": "Full transparency, no surprises, no excuses.",
       "pillar_1_body": "In construction, trust is the most valuable asset. We operate with full transparency, no 'surprises,' and no excuses, out of total commitment to the result and the client.",
@@ -291,9 +299,9 @@
     "he": {
       "overline": "סטנדרט של מצוינות",
       "heading": "הערכים שמנחים\nכל פרויקט.",
-      "pillar_0_title": "ביצוע בסטנדרט HD",
-      "pillar_0_summary": "כל פרט מבוצע ברזולוציה הגבוהה ביותר.",
-      "pillar_0_body": "אנחנו לא מעגלים פינות. כל חיבור, יציקה וגמר מבוצעים לפי הסטנדרט הגבוה ביותר, עם תכנון מוקפד מראש וביצוע ללא פשרות בשטח.",
+      "pillar_0_title": "הנדסה ללא פשרות:\nבונים ישר, חזק ובטוח",
+      "pillar_0_summary": "בנייה ישרה, חזקה ובטוחה — בכל פעם.",
+      "pillar_0_body": "המורכבות ההנדסית היא הבעיה שלנו – השקט הוא שלכם. אנחנו מתמחים בפתרון אתגרים מבניים מורכבים מבלי להעמיס על הלקוח, תוך שמירה על דיוק של מילימטרים בכל יציקה וכל קיר.",
       "pillar_1_title": "שקיפות ויושרה",
       "pillar_1_summary": "שקיפות מלאה, ללא הפתעות, ללא תירוצים.",
       "pillar_1_body": "בבנייה, אמון הוא הנכס היקר ביותר. אנחנו פועלים בשקיפות מלאה, ללא 'הפתעות' וללא תירוצים, מתוך מחויבות מוחלטת לתוצאה וללקוח.",
@@ -414,7 +422,9 @@
       "tip_en": "The key to a successful remote build is not just technology — it's having a contractor who takes personal ownership. Moti Eitan's direct involvement on every project is what sets Binyan Eitan apart.",
       "tip_he": "המפתח לבנייה מרחוק מוצלחת הוא לא רק טכנולוגיה — זה לקבלן שלוקח אחריות אישית. המעורבות הישירה של מוטי איתן בכל פרויקט היא זו שמייחדת את בנין איתן.",
       "summary_en": "Distance is no longer a barrier. With Binyan Eitan, your Israeli property project is managed with the same precision and care whether you are in Jerusalem or New York.",
-      "summary_he": "מרחק כבר אינו מחסום. עם בנין איתן, פרויקט הנכס שלכם בישראל מנוהל באותה דיוק ואכפתיות בין אם אתם בירושלים ובין אם בניו יורק."
+      "summary_he": "מרחק כבר אינו מחסום. עם בנין איתן, פרויקט הנכס שלכם בישראל מנוהל באותה דיוק ואכפתיות בין אם אתם בירושלים ובין אם בניו יורק.",
+      "cta_label_en": "Schedule a Consultation (WhatsApp / Zoom)",
+      "cta_label_he": "תיאום שיחת ייעוץ (WhatsApp / Zoom)"
     },
     {
       "id": "3",
@@ -514,6 +524,13 @@
       "link_href": "/expertise/building-from-abroad",
       "link_text_en": "Read: Building from Abroad →",
       "link_text_he": "קרא: בנייה מרחוק ←"
+    },
+    {
+      "id": "5",
+      "question_en": "What happens if I want to make changes or additions during construction?",
+      "question_he": "מה קורה אם אני רוצה לבצע שינויים או תוספות במהלך העבודה?",
+      "answer_en": "Changes are a natural part of the process. To ensure full transparency, we use a digital Change Order system. Every modification is priced and approved by you in writing before any work begins — so you maintain full budget control at all times and finish the project with zero financial surprises.",
+      "answer_he": "שינויים הם חלק טבעי מהתהליך. כדי לשמור על סדר ושקיפות מלאה, אנחנו עובדים עם מערכת 'הזמנת שינויים' (Change Orders) דיגיטלית. כל בקשה לתוספת מתומחרת ומאושרת על ידכם בכתב לפני הביצוע — כך אתם שולטים בתקציב בכל רגע נתון ומסיימים את הפרויקט ללא הפתעות כספיות."
     }
   ],
   "projects": {

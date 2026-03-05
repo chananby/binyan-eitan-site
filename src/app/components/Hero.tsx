@@ -219,9 +219,9 @@ export default function Hero() {
               priority
             />
 
-            {/* Bone veil — subtle fade at the overlap edge for text legibility */}
+            {/* Bone veil — fade at overlap edge for text legibility */}
             <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-bone/[0.18] via-transparent via-25% to-transparent"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-bone/[0.55] via-bone/[0.12] via-35% to-transparent"
               aria-hidden="true"
             />
 

@@ -298,13 +298,33 @@ export default function PortfolioGallery() {
               </AnimatePresence>
 
               {/* Caption */}
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-6 py-8 text-start pointer-events-none z-10">
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-6 py-8 text-start pointer-events-none z-10">
                 <p className="font-body text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-accent mb-2">
                   {ut[`proj_${activeProject}_category`]}
                 </p>
-                <h3 className="font-heading text-xl md:text-2xl font-bold text-white">
+                <h3 className="font-heading text-xl md:text-2xl font-bold text-white mb-3">
                   {ut[`proj_${activeProject}_title`]}
                 </h3>
+                {ut[`proj_${activeProject}_challenge`] && (
+                  <div className="grid grid-cols-2 gap-4 mt-3 border-t border-white/10 pt-3">
+                    <div>
+                      <p className="font-body text-[0.52rem] font-semibold tracking-[0.2em] uppercase text-accent/70 mb-1">
+                        {lang === "he" ? "האתגר" : "Challenge"}
+                      </p>
+                      <p className="font-body text-[0.72rem] text-white/75 leading-snug">
+                        {ut[`proj_${activeProject}_challenge`]}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-body text-[0.52rem] font-semibold tracking-[0.2em] uppercase text-accent/70 mb-1">
+                        {lang === "he" ? "הפתרון" : "Solution"}
+                      </p>
+                      <p className="font-body text-[0.72rem] text-white/75 leading-snug">
+                        {ut[`proj_${activeProject}_solution`]}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Frame border */}
