@@ -517,6 +517,45 @@ function ArticlesManager({
   onUpdate: (idx: number, field: keyof Article, value: string) => void;
   onDelete: (idx: number) => void;
 }) {
+  const [copiedId, setCopiedId] = React.useState<string | null>(null);
+
+  function copyArticle(article: Article, idx: number) {
+    const row = (label: string, val: string | undefined) => val ? `${label}\n  ${val}` : "";
+    const lines = [
+      `════════════════════════════════════`,
+      `  מאמר #${String(idx + 1).padStart(2, "0")} — ${article.slug || "(ללא slug)"}`,
+      `════════════════════════════════════`,
+      "",
+      row("כותרת עב:", article.title_he),
+      row("Title EN:", article.title_en),
+      "",
+      row("פתיח עב:", article.intro_he),
+      row("Intro EN:", article.intro_en),
+      "",
+      row("פרק 1 — כותרת עב:", article.s1_title_he),
+      row("Section 1 title EN:", article.s1_title_en),
+      row("פרק 1 — גוף עב:", article.s1_body_he),
+      row("Section 1 body EN:", article.s1_body_en),
+      "",
+      row("פרק 2 — כותרת עב:", article.s2_title_he),
+      row("Section 2 title EN:", article.s2_title_en),
+      row("פרק 2 — גוף עב:", article.s2_body_he),
+      row("Section 2 body EN:", article.s2_body_en),
+      "",
+      row("טבלה עב:", article.table_data_he),
+      row("Table EN:", article.table_data_en),
+      "",
+      row("טיפ עב:", article.tip_he),
+      row("Tip EN:", article.tip_en),
+      "",
+      row("סיכום עב:", article.summary_he),
+      row("Summary EN:", article.summary_en),
+    ].filter((l) => l !== undefined).join("\n");
+    navigator.clipboard.writeText(lines);
+    setCopiedId(article.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
   return (
     <div className="max-w-4xl mx-auto pb-10" dir="rtl">
       <div className="flex items-center justify-between mb-6">
@@ -558,6 +597,16 @@ function ArticlesManager({
                   → /expertise/{article.slug || "…"}
                 </span>
               </div>
+              <button
+                onClick={() => copyArticle(article, idx)}
+                className={`text-xs font-bold px-3 py-1 rounded transition-colors shrink-0 ${
+                  copiedId === article.id
+                    ? "text-green-600 bg-green-50"
+                    : "text-[#8D775F] hover:bg-[#8D775F]/10"
+                }`}
+              >
+                {copiedId === article.id ? "✓ הועתק" : "📋 העתק"}
+              </button>
               <button onClick={() => onDelete(idx)}
                 className="text-red-400 hover:text-red-600 text-xs font-bold px-3 py-1 rounded hover:bg-red-50 transition-colors shrink-0">
                 מחק
@@ -752,6 +801,7 @@ export default function ContentEditorPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -778,6 +828,44 @@ export default function ContentEditorPage() {
   const showToast = useCallback((msg: string, ok: boolean) => {
     setToast({ msg, ok });
     setTimeout(() => setToast(null), 3200);
+  }, []);
+
+  // ── Copy section to clipboard ─────────────────────────────────────────────
+  const copySectionToClipboard = useCallback((sectionKey: SectionKey, sectionLabel: string, keys: string[]) => {
+    const row = (key: string, lang: "he" | "en", val: string) => `  ${lang === "he" ? "עב" : "EN"} [${key}]: ${val}`;
+    const lines: string[] = [
+      `════════════════════════════════`,
+      `  ${sectionLabel}`,
+      `════════════════════════════════`,
+      "",
+    ];
+    keys.forEach((key) => {
+      const heVal = getSafeValue(translations, defaultTranslations, sectionKey, "he", key);
+      const enVal = getSafeValue(translations, defaultTranslations, sectionKey, "en", key);
+      lines.push(row(key, "he", heVal || "—"));
+      lines.push(row(key, "en", enVal || "—"));
+      lines.push("");
+    });
+    navigator.clipboard.writeText(lines.join("\n"));
+    setCopiedKey(sectionKey);
+    setTimeout(() => setCopiedKey(null), 2000);
+  }, [translations]);
+
+  const copyFaqToClipboard = useCallback((faq: Faq, idx: number) => {
+    const lines = [
+      `════════════════════════════`,
+      `  שאלה #${idx + 1}`,
+      `════════════════════════════`,
+      "",
+      `  עב [question]: ${faq.question_he}`,
+      `  EN [question]: ${faq.question_en}`,
+      "",
+      `  עב [answer]: ${faq.answer_he}`,
+      `  EN [answer]: ${faq.answer_en}`,
+    ].join("\n");
+    navigator.clipboard.writeText(lines);
+    setCopiedKey(`faq-${faq.id}`);
+    setTimeout(() => setCopiedKey(null), 2000);
   }, []);
 
   // ── Translation field change (text editor) ────────────────────────────────
@@ -1097,7 +1185,19 @@ export default function ContentEditorPage() {
                       <div key={faq.id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                         <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-200">
                           <span className="font-mono text-xs text-gray-400">#{idx + 1}</span>
-                          <button onClick={() => deleteFaq(idx)} className="text-red-500 hover:text-red-700 text-sm font-bold px-3 py-1 rounded hover:bg-red-50 transition-colors">מחק</button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => copyFaqToClipboard(faq, idx)}
+                              className={`text-xs font-bold px-3 py-1 rounded transition-colors ${
+                                copiedKey === `faq-${faq.id}`
+                                  ? "text-green-600 bg-green-50"
+                                  : "text-[#8D775F] hover:bg-[#8D775F]/10"
+                              }`}
+                            >
+                              {copiedKey === `faq-${faq.id}` ? "✓ הועתק" : "📋 העתק"}
+                            </button>
+                            <button onClick={() => deleteFaq(idx)} className="text-red-500 hover:text-red-700 text-sm font-bold px-3 py-1 rounded hover:bg-red-50 transition-colors">מחק</button>
+                          </div>
                         </div>
                         <div className="p-5 space-y-5">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1130,9 +1230,28 @@ export default function ContentEditorPage() {
               {/* Standard section table */}
               {activeTab !== "faqs" && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                    {SECTIONS.find((s) => s.key === activeTab)?.label ?? activeTab}
-                  </h2>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      {SECTIONS.find((s) => s.key === activeTab)?.label ?? activeTab}
+                    </h2>
+                    <button
+                      onClick={() => {
+                        const label = SECTIONS.find((s) => s.key === activeTab)?.label ?? String(activeTab);
+                        copySectionToClipboard(activeTab as SectionKey, label, allKeys);
+                      }}
+                      className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-md border transition-colors ${
+                        copiedKey === activeTab
+                          ? "border-green-300 text-green-600 bg-green-50"
+                          : "border-gray-200 text-gray-500 hover:border-[#8D775F] hover:text-[#8D775F] hover:bg-[#8D775F]/5"
+                      }`}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="4" y="4" width="8" height="8" rx="1.5" />
+                        <path d="M1 9V2a1 1 0 0 1 1-1h7" />
+                      </svg>
+                      {copiedKey === activeTab ? "✓ הועתק!" : "העתק סקשן"}
+                    </button>
+                  </div>
                   <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                     <table className="w-full text-sm">
                       <thead>
