@@ -195,7 +195,9 @@
       "stat2Value": "150+",
       "stat2Label": "Projects Completed",
       "stat3Value": "G1",
-      "stat3Label": "Registered Contractor"
+      "stat3Label": "Registered Contractor",
+      "founderQuote": "I don't just build walls; I build trust. Every project is my personal signature, and I ensure it remains stable, precise, and high-quality for decades to come.",
+      "founderTitle": "Founder & CEO, Binyan Eitan"
     },
     "he": {
       "overline": "המשרד",
@@ -224,7 +226,9 @@
       "stat2Value": "150+",
       "stat2Label": "פרויקטים שהושלמו",
       "stat3Value": "ג1",
-      "stat3Label": "קבלן רשום"
+      "stat3Label": "קבלן רשום",
+      "founderQuote": "אני לא בונה קירות, אני בונה אמון. כל פרויקט הוא החתימה האישית שלי, ואני מוודא שהיא תישאר יציבה, ישרה ואיכותית לאורך עשורים.",
+      "founderTitle": "מייסד ומנכ\"ל, בנין איתן"
     }
   },
   "portfolio": {
@@ -433,6 +437,50 @@
       "tip_he": "גמר יפה דוהה. תשתית איתנה עומדת בזמן. אנו משקיעים במה שלא תראה — כי תרגיש את זה כל יום.",
       "summary_en": "Quality starts where the eye cannot reach.",
       "summary_he": "איכות מתחילה היכן שהעין אינה מגיעה."
+    },
+    {
+      "id": "4",
+      "slug": "reading-a-professional-quote",
+      "title_en": "Beyond the Numbers: How to Spot a Professional Quote (and Avoid Costly Surprises)",
+      "title_he": "לא רק מספרים: כך תזהו הצעת מחיר מקצועית (ותימנעו מהפתעות בדרך)",
+      "intro_en": "Not every detailed quote is a professional one. When you receive three estimates for the same project, the differences go far beyond price — they reveal the contractor's professionalism, honesty, and the risk you're taking on.",
+      "intro_he": "לא כל הצעת מחיר מפורטת היא מקצועית. כשאתם מקבלים שלוש הצעות לאותו פרויקט, ההבדלים חורגים הרבה מעבר למחיר — הם חושפים את מקצועיות הקבלן, יושרתו ורמת הסיכון שאתם לוקחים על עצמכם.",
+      "s1_title_en": "Three Red Flags in Any Quote",
+      "s1_title_he": "שלושה דגלים אדומים בכל הצעת מחיר",
+      "s1_body_en": "First: vague scope. A quote that says 'renovation works' without specifying materials, quantities, and finishes leaves room for unlimited extras later. Second: no timeline. A professional contractor commits to completion dates in writing — a vague 'a few months' is a clear warning sign. Third: no mention of permits. If a quote doesn't address planning approvals and inspections, the cost and full responsibility could land entirely on you.",
+      "s1_body_he": "ראשית: היקף עבודה מעורפל. הצעה שכתוב בה 'עבודות שיפוץ' מבלי לפרט חומרים, כמויות וגמרים משאירה מקום לתוספות בלתי מוגבלות בהמשך. שנית: ללא לוח זמנים. קבלן מקצועי מתחייב לתאריכי סיום בכתב — 'כמה חודשים' מעורפל הוא אות אזהרה ברורה. שלישית: אין אזכור היתרים. אם הצעה לא מתייחסת לאישורי תכנון ובדיקות, העלות והאחריות המלאה עלולות ליפול לגמרי עליכם.",
+      "s2_title_en": "What a Trustworthy Quote Always Includes",
+      "s2_title_he": "מה כוללת תמיד הצעה אמינה",
+      "s2_body_en": "A professional estimate specifies: exact material grades and brands, quantities per work item, a phased payment schedule tied to milestones (not arbitrary dates), a clear statement of what is excluded, and a reference to the contractor's registration number and insurance. These aren't extras — they are the minimum standard of a contractor who stands behind their work.",
+      "s2_body_he": "הצעה מקצועית מפרטת: סוג ומותג חומרים מדויקים, כמויות לפי סעיף עבודה, לוח תשלומים שלבי הצמוד לאבני דרך ולא לתאריכים שרירותיים, הצהרה ברורה על מה לא כלול, ואזכור מספר רישיון הקבלן וביטוחו. אלה לא תוספות — זהו הסטנדרט המינימלי של קבלן שעומד מאחורי עבודתו.",
+      "table_data_en": "Scope:Itemized line items vs. general description|Timeline:Written milestone dates vs. vague estimate|Materials:Brand and grade specified vs. unspecified|Permits:Addressed in quote vs. left to client|Price changes:Change-order process defined vs. open-ended",
+      "table_data_he": "היקף:סעיפים מפורטים לעומת תיאור כללי|לוח זמנים:תאריכי אבני דרך כתובים לעומת הערכה מעורפלת|חומרים:מותג ואיכות מפורטים לעומת לא מוגדרים|היתרים:מטופלים בהצעה לעומת הועברים ללקוח|שינויי מחיר:תהליך תוספות מוגדר לעומת פתוח",
+      "tip_en": "The cheapest quote is rarely the best deal. A low price almost always reflects scope gaps that will cost you more in change orders than the original difference — often several times over.",
+      "tip_he": "ההצעה הזולה ביותר היא לעתים נדירות העסקה הטובה ביותר. מחיר נמוך כמעט תמיד משקף פערים בהיקף שיעלו לכם יותר בתוספות מהפרש המקורי — לעתים קרובות פי כמה.",
+      "summary_en": "A professional quote is a document of trust. Read it carefully — it tells you everything about who you are about to hire.",
+      "summary_he": "הצעת מחיר מקצועית היא מסמך אמון. קראו אותה בעיון — היא מספרת לכם הכל על מי שאתם עומדים לשכור."
+    },
+    {
+      "id": "5",
+      "slug": "after-handover",
+      "title_en": "The Handover: Why Your Home Needs a \"GPS\" Long After Construction Ends",
+      "title_he": "היום שאחרי המסירה: למה אתם חייבים את ה\"GPS\" של הבית שלכם?",
+      "intro_en": "The keys are handed over, the workers are gone — and now what? Most clients believe that handover day is the end of the process. In reality, it marks the beginning of the most important phase: ownership.",
+      "intro_he": "המפתחות נמסרו, הפועלים עזבו — ומה עכשיו? רוב הלקוחות מאמינים שיום המסירה הוא סוף התהליך. במציאות, הוא מסמן את תחילת השלב החשוב ביותר: הבעלות.",
+      "s1_title_en": "The AS-MADE File: Your Home's Blueprint",
+      "s1_title_he": "תיק AS-MADE: שרטוט הבית שלכם",
+      "s1_body_en": "Every Binyan Eitan project concludes with a comprehensive AS-MADE documentation package: updated structural drawings, electrical panel maps, plumbing routing diagrams, and waterproofing layer specifications. This file becomes your home's GPS — so that any contractor, inspector, or future buyer knows exactly what is behind every wall, under every floor, and above every ceiling.",
+      "s1_body_he": "כל פרויקט של בנין איתן מסתיים עם חבילת תיעוד AS-MADE מקיפה: תוכניות קונסטרוקציה מעודכנות, מפות לוח חשמל, תרשימי ניתוב אינסטלציה ומפרטי שכבות האיטום. הקובץ הזה הופך ל-GPS של הבית שלכם — כדי שכל קבלן, מפקח או קונה עתידי ידע בדיוק מה מוסתר מאחורי כל קיר, מתחת לכל רצפה ומעל לכל תקרה.",
+      "s2_title_en": "Your Warranty — and How to Use It",
+      "s2_title_he": "האחריות שלכם — וכיצד להשתמש בה",
+      "s2_body_en": "Binyan Eitan provides a structured warranty protocol at handover: 7 years on structural elements per Israeli law, 1 year on mechanical and finishing systems, and written notes on any special conditions tied to specific materials or installations. We walk you through every system in person — HVAC, water shut-off valves, electrical panels and circuit labels — so you are never left guessing when something needs attention.",
+      "s2_body_he": "בנין איתן מספק פרוטוקול אחריות מובנה במסירה: 7 שנים על אלמנטים קונסטרוקטיביים לפי החוק הישראלי, שנה על מערכות מכניות וגמרים, והערות כתובות על תנאים מיוחדים הקשורים לחומרים או התקנות ספציפיות. אנו מלווים אתכם בכל מערכת פנים אל פנים — מיזוג, ברזי ניתוק מים, לוחות חשמל ותוויות מעגלים — כדי שלעולם לא תישארו בספק כשמשהו זקוק לטיפול.",
+      "table_data_en": "Structural elements:7 years (law)|Mechanical systems:1 year|Waterproofing:Mapped and documented|Electrical:Panel labeled and diagrammed|Plumbing:Full routing plan provided",
+      "table_data_he": "אלמנטים קונסטרוקטיביים:7 שנים (חוק)|מערכות מכניות:שנה אחת|איטום:ממופה ומתועד|חשמל:לוח מסומן ומתורשם|אינסטלציה:תוכנית ניתוב מלאה מסופקת",
+      "tip_en": "Waterproofing problems almost never appear on Day 1. They emerge in the first rainy season — months after the contractor has moved on. That is exactly why we provide a full waterproofing layer map at handover, so you know precisely where every membrane is, who installed it, and who is responsible if it fails.",
+      "tip_he": "בעיות איטום כמעט לעולם לא מופיעות ביום הראשון. הן מתגלות בעונת הגשמים הראשונה — חודשים לאחר שהקבלן עבר הלאה. זו בדיוק הסיבה שאנו מספקים מפת שכבות איטום מלאה במסירה, כדי שתדעו בדיוק היכן כל ממברנה, מי התקין אותה ומי אחראי אם היא נכשלת.",
+      "summary_en": "Handover day marks the start of your home's story — not the end of ours.",
+      "summary_he": "יום המסירה מסמן את תחילת הסיפור של הבית שלכם — לא את סוף הסיפור שלנו."
     }
   ],
   "faqs": [
