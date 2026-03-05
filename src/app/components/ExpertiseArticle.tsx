@@ -15,37 +15,22 @@ interface Article {
   content_he: string;
 }
 
-interface Faq {
-  id: string;
-  question_en: string;
-  question_he: string;
-  answer_en: string;
-  answer_he: string;
-  link_href?: string;
-  link_text_en?: string;
-  link_text_he?: string;
-}
-
 const ui = {
   en: {
     overline: "Knowledge Base",
     heading: "Engineering\nInsights.",
     sub: "Professional articles on modern construction, engineering challenges, and project management.",
     articlesHeading: "Professional Articles",
-    faqHeading: "Common Questions",
     readMore: "Read Article",
-    emptyArticles: "No articles published yet.",
-    emptyFaq: "No FAQ entries yet.",
+    empty: "No articles published yet.",
   },
   he: {
     overline: "ידע מקצועי",
     heading: "תובנות\nהנדסיות.",
     sub: "מאמרים מקצועיים בנושאי בנייה מודרנית, אתגרים הנדסיים וניהול פרויקטים.",
     articlesHeading: "מאמרים מקצועיים",
-    faqHeading: "שאלות נפוצות",
     readMore: "קרא מאמר",
-    emptyArticles: "אין מאמרים פורסמו עדיין.",
-    emptyFaq: "אין שאלות נפוצות עדיין.",
+    empty: "אין מאמרים פורסמו עדיין.",
   },
 } as const;
 
@@ -56,22 +41,17 @@ export default function ExpertiseArticle() {
   const dir = lang === "he" ? "rtl" : "ltr";
 
   const [articles, setArticles] = useState<Article[]>([]);
-  const [faqs, setFaqs] = useState<Faq[]>([]);
   const [loading, setLoading] = useState(true);
-  const [openFaq, setOpenFaq] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/translations", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data?.articles)) setArticles(data.articles);
-        if (Array.isArray(data?.faqs)) setFaqs(data.faqs);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
-
-  const toggleFaq = (id: string) => setOpenFaq((prev) => (prev === id ? null : id));
 
   return (
     <main className="relative bg-bone" dir={dir}>
@@ -94,109 +74,46 @@ export default function ExpertiseArticle() {
 
       <div className="border-b border-warm-gray-light" />
 
-      {loading ? (
-        <section className="bg-bone py-24">
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent" />
-          </div>
-        </section>
-      ) : (
-        <>
-          {/* ── Professional Articles ── */}
-          <section id="articles" className="scroll-mt-24 bg-bone py-16 md:py-24">
-            <div className="mx-auto max-w-[860px] px-8">
-              <h2 className="font-heading text-2xl font-bold text-charcoal mb-10">
-                {c.articlesHeading}
-              </h2>
+      {/* Articles */}
+      <section className="bg-bone py-16 md:py-24">
+        <div className="mx-auto max-w-[860px] px-8">
+          <h2 className="font-heading text-2xl font-bold text-charcoal mb-10">
+            {c.articlesHeading}
+          </h2>
 
-              {articles.length === 0 ? (
-                <p className="text-charcoal/50 font-body text-lg text-center py-10">{c.emptyArticles}</p>
-              ) : (
-                <div className="divide-y divide-warm-gray-light">
-                  {articles.map((article) => {
-                    const title = lang === "en" ? article.title_en : article.title_he;
-                    const body = (lang === "en" ? article.content_en : article.content_he) ?? "";
-                    const excerpt =
-                      body.replace(/\n/g, " ").slice(0, 180) + (body.length > 180 ? "…" : "");
-                    return (
-                      <div key={article.id} className="py-10 group">
-                        <Link href={`/${lang}/expertise/${article.slug}`}>
-                          <h3 className="font-heading text-2xl font-bold text-charcoal group-hover:text-accent transition-colors duration-200 mb-3">
-                            {title}
-                          </h3>
-                          <p className="font-body text-base text-charcoal/60 leading-relaxed mb-5">
-                            {excerpt}
-                          </p>
-                          <span className="font-body text-sm font-semibold tracking-[0.18em] uppercase text-accent group-hover:text-accent-dark transition-colors duration-200">
-                            {c.readMore} →
-                          </span>
-                        </Link>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent" />
             </div>
-          </section>
-
-          <div className="border-b-2 border-warm-gray-light" />
-
-          {/* ── FAQ Accordion ── */}
-          <section id="faq" className="scroll-mt-24 bg-bone-dark py-16 md:py-24">
-            <div className="mx-auto max-w-[860px] px-8">
-              <h2 className="font-heading text-2xl font-bold text-charcoal mb-10">
-                {c.faqHeading}
-              </h2>
-
-              {faqs.length === 0 ? (
-                <p className="text-charcoal/50 font-body text-lg text-center py-10">{c.emptyFaq}</p>
-              ) : (
-                <div className="divide-y divide-warm-gray-light">
-                  {faqs.map((faq) => {
-                    const question = lang === "en" ? faq.question_en : faq.question_he;
-                    const answer = lang === "en" ? faq.answer_en : faq.answer_he;
-                    const isOpen = openFaq === faq.id;
-                    return (
-                      <div key={faq.id}>
-                        <button
-                          onClick={() => toggleFaq(faq.id)}
-                          className="w-full flex items-center justify-between gap-4 py-6 text-start group"
-                          aria-expanded={isOpen}
-                        >
-                          <span className="font-heading text-lg font-semibold text-charcoal group-hover:text-accent transition-colors duration-200">
-                            {question}
-                          </span>
-                          <span
-                            className="shrink-0 text-accent text-xl font-light transition-transform duration-200"
-                            style={{ transform: isOpen ? "rotate(45deg)" : "rotate(0deg)" }}
-                          >
-                            +
-                          </span>
-                        </button>
-                        {isOpen && (
-                          <div className="pb-6">
-                            <p className="font-body text-base text-charcoal/70 leading-relaxed">
-                              {answer}
-                            </p>
-                            {faq.link_href && (
-                              <Link
-                                href={`/${lang}${faq.link_href}`}
-                                className="inline-block mt-3 font-body text-sm font-semibold tracking-[0.12em] text-accent hover:text-accent-dark transition-colors duration-200"
-                              >
-                                {lang === "he" ? faq.link_text_he : faq.link_text_en}
-                              </Link>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+          ) : articles.length === 0 ? (
+            <p className="text-charcoal/50 font-body text-lg text-center py-10">{c.empty}</p>
+          ) : (
+            <div className="divide-y divide-warm-gray-light">
+              {articles.map((article) => {
+                const title = lang === "en" ? article.title_en : article.title_he;
+                const body = (lang === "en" ? article.content_en : article.content_he) ?? "";
+                const excerpt =
+                  body.replace(/\n/g, " ").slice(0, 180) + (body.length > 180 ? "…" : "");
+                return (
+                  <div key={article.id} className="py-10 group">
+                    <Link href={`/${lang}/expertise/${article.slug}`}>
+                      <h3 className="font-heading text-2xl font-bold text-charcoal group-hover:text-accent transition-colors duration-200 mb-3">
+                        {title}
+                      </h3>
+                      <p className="font-body text-base text-charcoal/60 leading-relaxed mb-5">
+                        {excerpt}
+                      </p>
+                      <span className="font-body text-sm font-semibold tracking-[0.18em] uppercase text-accent group-hover:text-accent-dark transition-colors duration-200">
+                        {c.readMore} →
+                      </span>
+                    </Link>
+                  </div>
+                );
+              })}
             </div>
-          </section>
-        </>
-      )}
+          )}
+        </div>
+      </section>
 
       <div className="border-b border-warm-gray-light" />
       <Footer />

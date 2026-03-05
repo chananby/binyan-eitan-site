@@ -19,16 +19,16 @@ const NAV_LABELS = {
   en: [
     { label: "Home", href: (lang: string) => `/${lang}` },
     { label: "The Firm", href: (lang: string) => `/${lang}/about` },
-    { label: "Expertise", href: (lang: string) => `/${lang}/expertise` },
-    { label: "Common Questions", href: (lang: string) => `/${lang}/expertise#faq` },
     { label: "Portfolio", href: (lang: string) => `/${lang}#portfolio` },
+    { label: "Articles", href: (lang: string) => `/${lang}/expertise` },
+    { label: "Common Questions", href: (lang: string) => `/${lang}/faq` },
   ],
   he: [
     { label: "דף הבית", href: (lang: string) => `/${lang}` },
     { label: "החברה", href: (lang: string) => `/${lang}/about` },
-    { label: "מומחיות", href: (lang: string) => `/${lang}/expertise` },
-    { label: "שאלות נפוצות", href: (lang: string) => `/${lang}/expertise#faq` },
     { label: "תיק פרויקטים", href: (lang: string) => `/${lang}#portfolio` },
+    { label: "מאמרים", href: (lang: string) => `/${lang}/expertise` },
+    { label: "שאלות נפוצות", href: (lang: string) => `/${lang}/faq` },
   ],
 } as const;
 

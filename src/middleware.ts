@@ -37,8 +37,6 @@ export function middleware(req: NextRequest) {
     "/he/building-from-afar": "/he/expertise/building-from-abroad",
     "/en/behind-the-walls":   "/en/expertise/behind-the-walls",
     "/he/behind-the-walls":   "/he/expertise/behind-the-walls",
-    "/en/faq":                "/en/expertise#faq",
-    "/he/faq":                "/he/expertise#faq",
   };
   for (const [from, to] of Object.entries(legacyRedirects)) {
     if (pathname === from || pathname.startsWith(from + "/")) {

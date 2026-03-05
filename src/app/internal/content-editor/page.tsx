@@ -83,7 +83,7 @@ type EditorMode = "content" | "media" | "articles";
 function getSafeValue(translations: any, defaultTrans: any, section: SectionKey, lang: "en" | "he", key: string): string {
   try {
     const v = translations?.[section]?.[lang]?.[key];
-    if (!v || v === "") return (defaultTrans[section]?.[lang]?.[key] as string) ?? "";
+    if (v === undefined || v === null) return (defaultTrans[section]?.[lang]?.[key] as string) ?? "";
     return v as string;
   } catch {
     return (defaultTrans[section]?.[lang]?.[key] as string) ?? "";
@@ -1169,7 +1169,7 @@ export default function ContentEditorPage() {
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h2 className="text-2xl font-bold text-gray-800">שאלות נפוצות</h2>
-                      <p className="text-sm text-gray-500 mt-1">שאלות ותשובות קצרות — מוצגות כאקורדיון בעמוד המומחיות.</p>
+                      <p className="text-sm text-gray-500 mt-1">שאלות ותשובות קצרות — מוצגות כאקורדיון בעמוד שאלות נפוצות (/faq).</p>
                     </div>
                     <button onClick={addFaq} className="px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-md hover:bg-[#7A6451] transition-colors shadow-sm">
                       + הוסף שאלה

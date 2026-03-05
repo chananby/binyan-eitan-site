@@ -86,6 +86,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       alternates: { languages: { he: `${BASE_URL}/he/expertise`, en: `${BASE_URL}/en/expertise` } },
     },
 
+    // ── FAQ pages ─────────────────────────────────────────────
+    {
+      url: `${BASE_URL}/he/faq`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+      alternates: { languages: { he: `${BASE_URL}/he/faq`, en: `${BASE_URL}/en/faq` } },
+    },
+    {
+      url: `${BASE_URL}/en/faq`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+      alternates: { languages: { he: `${BASE_URL}/he/faq`, en: `${BASE_URL}/en/faq` } },
+    },
+
     // ── Individual articles ───────────────────────────────────
     ...articleEntries,
   ];

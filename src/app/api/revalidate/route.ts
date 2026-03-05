@@ -16,6 +16,8 @@ export async function POST() {
     revalidatePath("/he/expertise/building-from-abroad");
     revalidatePath("/en/expertise/behind-the-walls");
     revalidatePath("/he/expertise/behind-the-walls");
+    revalidatePath("/en/faq");
+    revalidatePath("/he/faq");
     revalidatePath("/en/change-order");
     revalidatePath("/he/change-order");
     revalidatePath("/en/legal");

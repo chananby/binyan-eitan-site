@@ -42,9 +42,7 @@ export default function Navbar() {
   const navLinks: NavLink[] = [
     { label: t.home as string, href: `/${lang}` },
     { label: t.about as string, href: `/${lang}/about` },
-    { label: t.expertise as string, href: `/${lang}/expertise` },
     { label: t.projects as string, href: `/${lang}#portfolio` },
-    { label: t.faq as string, href: `/${lang}/expertise#faq` },
   ];
 
   // Hash-only links are never "active page" indicators
@@ -59,10 +57,10 @@ export default function Navbar() {
       {/* ── Sticky Bar ── */}
       <motion.header
         dir={dir}
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 backdrop-blur-md border-b ${
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 border-b ${
           scrolled
-            ? "glass border-charcoal/[0.10]"
-            : "bg-bone/92 border-charcoal/[0.07]"
+            ? "bg-bone/[0.96] backdrop-blur-md border-charcoal/[0.10]"
+            : "bg-bone border-charcoal/[0.07]"
         }`}
         initial={{ y: -80 }}
         animate={{ y: 0 }}
