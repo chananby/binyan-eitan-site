@@ -112,7 +112,7 @@ export default function ExpertiseArticle() {
                 <div className="divide-y divide-warm-gray-light">
                   {articles.map((article) => {
                     const title = lang === "en" ? article.title_en : article.title_he;
-                    const body = lang === "en" ? article.content_en : article.content_he;
+                    const body = (lang === "en" ? article.content_en : article.content_he) ?? "";
                     const excerpt =
                       body.replace(/\n/g, " ").slice(0, 180) + (body.length > 180 ? "…" : "");
                     return (
