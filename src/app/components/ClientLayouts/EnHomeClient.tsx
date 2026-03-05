@@ -9,6 +9,7 @@ import Hero from "../Hero";
 import Pillars from "../Pillars";
 import PortfolioGallery from "../PortfolioGallery";
 import EngineeringExcellence from "../EngineeringExcellence";
+import Testimonials from "../Testimonials";
 import ContactForm from "../ContactForm";
 import Footer from "../Footer";
 
@@ -31,6 +32,7 @@ export default function EnHomeClient() {
         <Pillars />
         <PortfolioGallery />
         <EngineeringExcellence />
+        <Testimonials />
         <ContactForm />
         <Footer />
       </main>

@@ -40,6 +40,18 @@ interface Faq {
   answer_he: string;
 }
 
+interface Testimonial {
+  id: string;
+  name: string;
+  city_he?: string;
+  city_en?: string;
+  text_he: string;
+  text_en: string;
+  rating: number;
+  year?: string;
+  source?: string;
+}
+
 // Image item with alt text
 interface ProjectImage {
   url: string;
@@ -77,7 +89,7 @@ const SECTIONS: { key: SectionKey; label: string }[] = [
   { key: "projects",    label: "פרויקטים" },
 ];
 
-type ActiveTab = SectionKey | "faqs";
+type ActiveTab = SectionKey | "faqs" | "testimonials";
 type EditorMode = "content" | "media" | "articles";
 
 function getSafeValue(translations: any, defaultTrans: any, section: SectionKey, lang: "en" | "he", key: string): string {
@@ -796,6 +808,7 @@ export default function ContentEditorPage() {
   const [translations, setTranslations] = useState<TranslationsData>(defaultTranslations);
   const [articles, setArticles] = useState<Article[]>([]);
   const [faqs, setFaqs] = useState<Faq[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -813,11 +826,13 @@ export default function ContentEditorPage() {
           setTranslations(data);
           setArticles(Array.isArray(data.articles) ? data.articles : (defaultTranslations.articles as Article[]));
           setFaqs(Array.isArray(data.faqs) ? data.faqs : (defaultTranslations.faqs as Faq[]));
+          setTestimonials(Array.isArray(data.testimonials) ? data.testimonials : []);
         }
       } catch {
         setTranslations(defaultTranslations);
         setArticles(defaultTranslations.articles as Article[]);
         setFaqs(defaultTranslations.faqs as Faq[]);
+        setTestimonials([]);
       } finally {
         setLoading(false);
       }
@@ -870,7 +885,7 @@ export default function ContentEditorPage() {
 
   // ── Translation field change (text editor) ────────────────────────────────
   const handleChange = useCallback((lang: "en" | "he", key: string, value: string) => {
-    if (activeTab === "faqs") return;
+    if (activeTab === "faqs" || activeTab === "testimonials") return;
     setTranslations((prev) => ({
       ...prev,
       [activeTab]: {
@@ -930,7 +945,7 @@ export default function ContentEditorPage() {
       const res = await fetch("/api/translations", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...translations, articles, faqs }),
+        body: JSON.stringify({ ...translations, articles, faqs, testimonials }),
       });
       if (res.ok) {
         setDirty(false);
@@ -984,9 +999,28 @@ export default function ContentEditorPage() {
     setDirty(true);
   };
 
+  // ── Testimonial CRUD ──────────────────────────────────────────────────────
+  const addTestimonial = () => {
+    setTestimonials((p) => [...p, {
+      id: Date.now().toString(),
+      name: "", city_he: "", city_en: "",
+      text_he: "", text_en: "",
+      rating: 5, year: "", source: "Google",
+    }]);
+    setDirty(true);
+  };
+  const updateTestimonial = (idx: number, field: keyof Testimonial, value: string | number) => {
+    setTestimonials((p) => p.map((t, i) => (i === idx ? { ...t, [field]: value } : t)));
+    setDirty(true);
+  };
+  const deleteTestimonial = (idx: number) => {
+    setTestimonials((p) => p.filter((_, i) => i !== idx));
+    setDirty(true);
+  };
+
   // ── Derived (above early return) ──────────────────────────────────────────
   const q = searchQuery.toLowerCase().trim();
-  const section = activeTab !== "faqs" ? (translations[activeTab as SectionKey] as any) : null;
+  const section = activeTab !== "faqs" && activeTab !== "testimonials" ? (translations[activeTab as SectionKey] as any) : null;
   const allKeys: string[] = section?.en && section?.he
     ? Array.from(new Set([...Object.keys(section.en), ...Object.keys(section.he)]))
     : [];
@@ -1156,6 +1190,19 @@ export default function ContentEditorPage() {
                 }`}>
                 שאלות נפוצות
               </button>
+              <button onClick={() => setActiveTab("testimonials")}
+                className={`w-full text-right px-5 py-3.5 text-sm font-bold border-b border-gray-100 transition-colors ${
+                  activeTab === "testimonials"
+                    ? "bg-[#8D775F]/10 text-[#8D775F] border-r-4 border-r-[#8D775F]"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}>
+                עדויות לקוחות
+                {testimonials.length > 0 && (
+                  <span className="float-left bg-[#8D775F]/20 text-[#8D775F] text-[10px] font-bold px-1.5 py-0.5 rounded-full mt-0.5">
+                    {testimonials.length}
+                  </span>
+                )}
+              </button>
             </div>
           </nav>
 
@@ -1227,8 +1274,100 @@ export default function ContentEditorPage() {
                 </div>
               )}
 
+              {/* Testimonials */}
+              {activeTab === "testimonials" && (
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-800">עדויות לקוחות</h2>
+                      <p className="text-sm text-gray-500 mt-1">ביקורות / פידבקים — מוצגות בדף הבית בין תיק הפרויקטים לטופס הצור קשר.</p>
+                    </div>
+                    <button onClick={addTestimonial} className="px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-md hover:bg-[#7A6451] transition-colors shadow-sm">
+                      + הוסף עדות
+                    </button>
+                  </div>
+                  {testimonials.length === 0 && (
+                    <div className="bg-white rounded-lg border border-gray-200 shadow-sm py-16 text-center">
+                      <p className="text-gray-500 text-sm">אין עדויות עדיין. לחץ &quot;+ הוסף עדות&quot; כדי להוסיף.</p>
+                    </div>
+                  )}
+                  <div className="space-y-6">
+                    {testimonials.map((t, idx) => (
+                      <div key={t.id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-200">
+                          <span className="font-mono text-xs text-gray-400">#{idx + 1}</span>
+                          <button onClick={() => deleteTestimonial(idx)} className="text-red-500 hover:text-red-700 text-sm font-bold px-3 py-1 rounded hover:bg-red-50 transition-colors">מחק</button>
+                        </div>
+                        <div className="p-5 space-y-5">
+                          {/* Name + location */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 mb-1.5">שם הלקוח</label>
+                              <input type="text" value={t.name} onChange={(e) => updateTestimonial(idx, "name", e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                                placeholder="ישראל ישראלי / Israel Cohen" />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 mb-1.5">עיר (עברית)</label>
+                              <input type="text" dir="rtl" value={t.city_he || ""} onChange={(e) => updateTestimonial(idx, "city_he", e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                                placeholder="ירושלים" />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 mb-1.5">City (English)</label>
+                              <input type="text" dir="ltr" value={t.city_en || ""} onChange={(e) => updateTestimonial(idx, "city_en", e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                                placeholder="Jerusalem" />
+                            </div>
+                          </div>
+                          {/* Text */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 mb-1.5">טקסט (עברית)</label>
+                              <textarea dir="rtl" rows={4} value={t.text_he} onChange={(e) => updateTestimonial(idx, "text_he", e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
+                                placeholder="כתוב את הביקורת בעברית..." />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 mb-1.5">Text (English)</label>
+                              <textarea dir="ltr" rows={4} value={t.text_en} onChange={(e) => updateTestimonial(idx, "text_en", e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
+                                placeholder="Write the review in English..." />
+                            </div>
+                          </div>
+                          {/* Rating + year + source */}
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 mb-1.5">דירוג (1–5)</label>
+                              <select value={t.rating} onChange={(e) => updateTestimonial(idx, "rating", Number(e.target.value))}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white">
+                                {[5,4,3,2,1].map((n) => <option key={n} value={n}>{"★".repeat(n)} ({n})</option>)}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 mb-1.5">שנה (לא חובה)</label>
+                              <input type="text" value={t.year || ""} onChange={(e) => updateTestimonial(idx, "year", e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
+                                placeholder="2024" />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold text-gray-500 mb-1.5">מקור</label>
+                              <select value={t.source || "Google"} onChange={(e) => updateTestimonial(idx, "source", e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white">
+                                <option value="Google">Google</option>
+                                <option value="">ידני</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Standard section table */}
-              {activeTab !== "faqs" && (
+              {activeTab !== "faqs" && activeTab !== "testimonials" && (
                 <div>
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-800">
