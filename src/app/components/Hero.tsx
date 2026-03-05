@@ -86,9 +86,9 @@ export default function Hero() {
             Fully transparent — text sits on the bone bg.
             No box, no shadow, no border.
             ────────────────────────────────────────────── */}
-        <div className="z-20 col-span-4 flex flex-col justify-center md:col-span-6 md:col-start-1 md:row-start-1">
+        <div className="z-20 col-span-4 flex flex-col justify-center md:col-span-6 md:col-start-1 md:row-start-1 overflow-visible">
           {/* Wrapper: no max-w here — heading breaks into image column deliberately */}
-          <div className="relative w-full">
+          <div className="relative w-full overflow-visible">
 
             {/* Accent corner marks — subtle structural detail */}
             <span className="pointer-events-none absolute top-0 start-0 h-12 w-px bg-accent/60" aria-hidden="true" />
@@ -103,13 +103,21 @@ export default function Hero() {
               {overline}
             </motion.p>
 
-            {/* ── Main Heading — full column width, intentionally bridges into image ── */}
+            {/* ── Main Heading — first line anchors in bone zone, second line
+                   deliberately crosses the image boundary (architectural bridge) ── */}
             <motion.h1
-              className="font-heading text-[clamp(2.6rem,5vw,5.6rem)] leading-[1.25] font-bold tracking-tight text-[#C5A059] text-start w-full [text-shadow:_0_2px_24px_rgba(0,0,0,0.28),_0_1px_6px_rgba(0,0,0,0.14)]"
+              className="font-heading text-[clamp(2.6rem,5vw,5.6rem)] leading-[1.25] font-bold tracking-tight text-[#C5A059] text-start w-full overflow-visible [text-shadow:_0_2px_24px_rgba(0,0,0,0.28),_0_1px_6px_rgba(0,0,0,0.14)]"
               variants={fadeUp(0.05)}
             >
               {heading.split("\n").map((line: string, i: number) => (
-                <span key={i} className="block">
+                <span
+                  key={i}
+                  className={
+                    i === 0
+                      ? "block"
+                      : "block md:w-[calc(100%+clamp(5rem,14vw,220px))] whitespace-nowrap"
+                  }
+                >
                   {line}
                 </span>
               ))}
@@ -211,9 +219,9 @@ export default function Hero() {
               priority
             />
 
-            {/* Bone veil — minimal: just a hairline fade at the very edge */}
+            {/* Bone veil — subtle fade at the overlap edge for text legibility */}
             <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-bone/[0.12] via-transparent via-20% to-transparent"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-bone/[0.18] via-transparent via-25% to-transparent"
               aria-hidden="true"
             />
 
