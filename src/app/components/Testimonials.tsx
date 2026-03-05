@@ -17,31 +17,34 @@ interface Testimonial {
   source?: string;
 }
 
-const ui = {
+// Fallback UI labels (overridden by translations.home[lang] when available)
+const DEFAULT_UI = {
   en: {
     overline: "Client Testimonials",
     heading: "What Our\nClients Say.",
-    sub: "Real feedback from homeowners, investors, and institutions who trusted us with their most valuable projects.",
-    badge: "Google Reviews",
-    empty: "",
+    sub: "Real feedback from homeowners, architects, and institutions.",
+    google_rating_text: "Rated 5.0 (18 Reviews on Google)",
+    read_more_google: "Read all reviews on Google",
+    google_url: "#",
   },
   he: {
     overline: "עדויות לקוחות",
     heading: "מה אומרים\nהלקוחות שלנו.",
-    sub: "פידבק אמיתי מבעלי בתים, משקיעים ומוסדות שסמכו עלינו עם הפרויקטים היקרים להם ביותר.",
-    badge: "Google Reviews",
-    empty: "",
+    sub: "פידבק אמיתי מבעלי בתים, אדריכלים ומוסדות שסמכו עלינו.",
+    google_rating_text: "ציון 5.0 (18 ביקורות בגוגל)",
+    read_more_google: "לכל הביקורות ב-Google",
+    google_url: "#",
   },
 } as const;
 
-function StarRating({ rating }: { rating: number }) {
+function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
     <div className="flex gap-0.5" aria-label={`${rating} out of 5 stars`}>
       {[1, 2, 3, 4, 5].map((s) => (
         <svg
           key={s}
-          width="14"
-          height="14"
+          width={size}
+          height={size}
           viewBox="0 0 14 14"
           fill={s <= rating ? "#8D775F" : "none"}
           stroke="#8D775F"
@@ -55,25 +58,13 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-function GoogleIcon() {
+function GoogleIcon({ size = 14 }: { size?: number }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-        fill="#4285F4"
-      />
-      <path
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-        fill="#34A853"
-      />
-      <path
-        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-        fill="#FBBC05"
-      />
-      <path
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-        fill="#EA4335"
-      />
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
     </svg>
   );
 }
@@ -81,21 +72,32 @@ function GoogleIcon() {
 export default function Testimonials() {
   type Lang = "en" | "he";
   const { lang } = useLang() as { lang: Lang };
-  const c = ui[lang];
   const dir = lang === "he" ? "rtl" : "ltr";
 
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [rawData, setRawData] = useState<Record<string, any> | null>(null);
 
   useEffect(() => {
     fetch("/api/translations", { cache: "no-store" })
       .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data?.testimonials) && data.testimonials.length > 0) {
-          setTestimonials(data.testimonials);
-        }
-      })
+      .then((data) => setRawData(data))
       .catch(() => {});
   }, []);
+
+  const testimonials: Testimonial[] =
+    Array.isArray(rawData?.testimonials) && rawData.testimonials.length > 0
+      ? rawData.testimonials
+      : [];
+
+  const d = DEFAULT_UI[lang];
+  const h = rawData?.home?.[lang] ?? {};
+  const labels = {
+    overline:            h.testimonials_overline  || d.overline,
+    heading:             h.testimonials_heading   || d.heading,
+    sub:                 h.testimonials_sub       || d.sub,
+    google_rating_text:  h.google_rating_text     || d.google_rating_text,
+    read_more_google:    h.read_more_google       || d.read_more_google,
+    google_url:          h.testimonials_google_url || d.google_url,
+  };
 
   if (testimonials.length === 0) return null;
 
@@ -103,23 +105,33 @@ export default function Testimonials() {
     <section id="testimonials" className="bg-bone py-24 md:py-32" dir={dir}>
       <div className="mx-auto max-w-[1280px] px-8">
 
-        {/* Header */}
+        {/* ── Section header ──────────────────────────────────────────── */}
         <SectionReveal>
-          <div className="mb-14 md:mb-16">
+          <div className="mb-14">
             <p className="overline-label mb-5 flex items-center gap-3">
-              <span className="inline-block h-px w-6 bg-accent align-middle" />
-              {c.overline}
+              <span className="inline-block h-px w-6 bg-accent" />
+              {labels.overline}
             </p>
             <h2 className="font-heading text-3xl font-bold leading-tight text-charcoal md:text-4xl lg:text-5xl whitespace-pre-line">
-              {c.heading}
+              {labels.heading}
             </h2>
-            <p className="mt-5 max-w-xl font-body text-base text-charcoal/60 leading-relaxed">
-              {c.sub}
+            <p className="mt-4 max-w-xl font-body text-base text-charcoal/60 leading-relaxed">
+              {labels.sub}
             </p>
+
+            {/* Aggregate rating chip */}
+            <div className="mt-8 inline-flex items-center gap-3 bg-white border border-warm-gray-light px-5 py-3 shadow-sm rounded-lg">
+              <GoogleIcon size={18} />
+              <StarRating rating={5} size={16} />
+              <span className="h-4 w-px bg-warm-gray-light mx-1" aria-hidden="true" />
+              <span className="font-body text-sm text-charcoal/60 leading-none">
+                {labels.google_rating_text}
+              </span>
+            </div>
           </div>
         </SectionReveal>
 
-        {/* Grid */}
+        {/* ── Grid ────────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {testimonials.map((t, i) => {
             const text = lang === "he" ? t.text_he : t.text_en;
@@ -127,10 +139,10 @@ export default function Testimonials() {
             return (
               <motion.div
                 key={t.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.55, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
                 className="flex flex-col bg-white border border-warm-gray-light p-7 shadow-sm hover:shadow-md transition-shadow duration-300"
               >
                 {/* Stars */}
@@ -143,7 +155,7 @@ export default function Testimonials() {
                   &ldquo;{text}&rdquo;
                 </blockquote>
 
-                {/* Footer */}
+                {/* Card footer */}
                 <div className="flex items-end justify-between gap-3 pt-5 border-t border-warm-gray-light">
                   <div>
                     <p className="font-heading text-sm font-bold text-charcoal leading-tight">{t.name}</p>
@@ -155,7 +167,7 @@ export default function Testimonials() {
                   </div>
                   {t.source === "Google" && (
                     <div className="shrink-0 inline-flex items-center gap-1.5 text-charcoal/30">
-                      <GoogleIcon />
+                      <GoogleIcon size={14} />
                       <span className="font-body text-[10px] font-semibold tracking-wide">Google</span>
                     </div>
                   )}
@@ -164,6 +176,22 @@ export default function Testimonials() {
             );
           })}
         </div>
+
+        {/* ── Google CTA ──────────────────────────────────────────────── */}
+        <SectionReveal>
+          <div className="mt-12 flex justify-center">
+            <a
+              href={labels.google_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 border border-accent text-accent px-7 py-3 text-sm font-semibold tracking-wide hover:bg-accent hover:text-bone transition-colors duration-300"
+            >
+              <GoogleIcon size={16} />
+              {labels.read_more_google}
+            </a>
+          </div>
+        </SectionReveal>
+
       </div>
     </section>
   );

@@ -25,14 +25,26 @@
       "description": "Our new site is under construction, showcasing our complex engineering and luxury projects. In the meantime, we are available for any inquiries.",
       "callUs": "Call Us:",
       "phone": "+972‑52‑500‑0447",
-      "whatsapp": "WhatsApp"
+      "whatsapp": "WhatsApp",
+      "testimonials_overline": "Client Testimonials",
+      "testimonials_heading": "What Our\nClients Say.",
+      "testimonials_sub": "Real feedback from homeowners, architects, and institutions.",
+      "google_rating_text": "Rated 5.0 (18 Reviews on Google)",
+      "read_more_google": "Read all reviews on Google",
+      "testimonials_google_url": ""
     },
     "he": {
       "heading": "בנין איתן - הנדסה ובנייה | בהובלת מוטי איתן",
       "description": "אנו בונים עבורכם אתר חדש שיציג את הפרויקטים המורכבים והיוקרתיים שלנו. בינתיים, אנחנו כאן לכל שאלה הנדסית או תכנונית.",
       "callUs": "התקשרו אלינו:",
       "phone": "+972‑52‑500‑0447",
-      "whatsapp": "WhatsApp"
+      "whatsapp": "WhatsApp",
+      "testimonials_overline": "עדויות לקוחות",
+      "testimonials_heading": "מה אומרים\nהלקוחות שלנו.",
+      "testimonials_sub": "פידבק אמיתי מבעלי בתים, אדריכלים ומוסדות שסמכו עלינו.",
+      "google_rating_text": "ציון 5.0 (18 ביקורות בגוגל)",
+      "read_more_google": "לכל הביקורות ב-Google",
+      "testimonials_google_url": ""
     }
   },
   "hero": {
@@ -516,5 +528,94 @@
       "proj_1_xray_after": ""
     }
   },
-  "testimonials": []
+  "testimonials": [
+    {
+      "id": "t1",
+      "name": "M. Karouby",
+      "city_he": "",
+      "city_en": "Architect",
+      "text_he": "עבדתי עם מוטי על פרויקטים מורכבים. הוא לא מתפשר על פרטים, עומד בלוחות הזמנים שנקבעו ומביא תוצאות שמדברות בעד עצמן. נדיר למצוא קבלן כזה.",
+      "text_en": "I've worked with Moti on complex projects. He doesn't cut corners, meets every deadline, and delivers results that speak for themselves. Rare to find a contractor of this caliber.",
+      "rating": 5,
+      "year": "2024",
+      "source": "Google"
+    },
+    {
+      "id": "t2",
+      "name": "Tzvi Herskowitz",
+      "city_he": "",
+      "city_en": "",
+      "text_he": "מקצועיות ויושר מעל ומעבר. מוטי מבצע את עבודתו ברמה הגבוהה ביותר ותמיד ישר ושקוף עם הלקוח. אמון מלא.",
+      "text_en": "Professionalism and honesty above and beyond. Moti performs at the highest level and is always fully transparent with the client. Complete trust.",
+      "rating": 5,
+      "year": "2024",
+      "source": "Google"
+    },
+    {
+      "id": "t3",
+      "name": "Marina K Paritzky",
+      "city_he": "",
+      "city_en": "",
+      "text_he": "הגישה האנושית והדיוק בביצוע עשו את כל ההבדל עבורי. הרגשתי שהבית שלי בידיים טובות לאורך כל הפרויקט.",
+      "text_en": "The empathy and precision in execution made all the difference. I felt my home was in the best hands throughout the entire project.",
+      "rating": 5,
+      "year": "2023",
+      "source": "Google"
+    },
+    {
+      "id": "t4",
+      "name": "Liran Eliyahu",
+      "city_he": "",
+      "city_en": "",
+      "text_he": "נתנו לי שקט נפשי מהיום הראשון. הסמכתי על מוטי לחלוטין ולא התאכזבתי. ממליץ בחום לכל מי שרוצה לישון טוב בלילה.",
+      "text_en": "Gave me complete peace of mind from day one. I trusted Moti fully and was not disappointed. Highly recommend to anyone who wants to sleep well at night.",
+      "rating": 5,
+      "year": "2024",
+      "source": "Google"
+    },
+    {
+      "id": "t5",
+      "name": "Avraham Lebel",
+      "city_he": "",
+      "city_en": "",
+      "text_he": "תשומת לב יוצאת דופן לגמרים ועקשנות על איכות — כך אני מתאר את בנין איתן. התוצאה מעבר לציפיות.",
+      "text_en": "Exceptional attention to finishes and relentless pursuit of quality — that's how I describe Binyan Eitan. The result exceeded all expectations.",
+      "rating": 5,
+      "year": "2023",
+      "source": "Google"
+    },
+    {
+      "id": "t6",
+      "name": "Yechiel Kahanovich",
+      "city_he": "",
+      "city_en": "",
+      "text_he": "שירות יוצא דופן ואתר בנייה מאורגן להפליא. כל שלב בוצע בסדר, בניקיון ובדיוק מרשים. ממליץ בחום.",
+      "text_en": "Exceptional service and an impressively organized site. Every stage was executed neatly, cleanly, and with impressive precision. Highly recommended.",
+      "rating": 5,
+      "year": "2024",
+      "source": "Google"
+    },
+    {
+      "id": "t7",
+      "name": "משפחת מרמרוש",
+      "city_he": "",
+      "city_en": "Marmarosh Family",
+      "text_he": "שווה כל שקל ויותר. מוטי לוקח אחריות אמיתית — לא מחפש תירוצים, מוצא פתרונות. מי שרוצה קבלן שאפשר לסמוך עליו — זה האיש.",
+      "text_en": "Worth every penny and more. Moti takes genuine responsibility — doesn't look for excuses, finds solutions. If you want a contractor you can truly rely on, he's your man.",
+      "rating": 5,
+      "year": "2023",
+      "source": "Google"
+    },
+    {
+      "id": "t8",
+      "name": "Neria Shimoni",
+      "city_he": "",
+      "city_en": "",
+      "text_he": "שירות עם חיוך וסבלנות אין-סופית. גם כשהיו שינויים ואתגרים בדרך, מוטי תמיד הגיע עם גישה חיובית ומקצועיות ברמה הגבוהה ביותר.",
+      "text_en": "Service with a smile and endless patience. Even when there were changes and challenges along the way, Moti always showed up with a positive attitude and the highest level of professionalism.",
+      "rating": 5,
+      "year": "2024",
+      "source": "Google"
+    }
+  ]
 }
