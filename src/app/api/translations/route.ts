@@ -24,7 +24,10 @@ export async function GET() {
   try {
     const stored = await kv.get(KV_KEY);
     if (!stored) return NextResponse.json(defaultTranslations, { headers: NO_CACHE });
-    return NextResponse.json(stored, { headers: NO_CACHE });
+    // Merge: defaults supply any top-level keys that KV doesn't have yet
+    // (e.g. newly added arrays like `testimonials`). KV always wins on conflicts.
+    const merged = { ...defaultTranslations, ...(stored as object) };
+    return NextResponse.json(merged, { headers: NO_CACHE });
   } catch (err) {
     console.error("[translations/GET] KV unavailable:", err);
     return NextResponse.json(defaultTranslations, { headers: NO_CACHE });
