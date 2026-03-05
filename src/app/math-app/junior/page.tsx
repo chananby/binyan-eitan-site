@@ -2,7 +2,7 @@
 
 import MathAppClient from "../MathAppClient";
 
-// Grade 3 Junior — Space theme only
+// Grade 3 Junior — Space theme, independent sub-app
 export default function JuniorPage() {
-  return <MathAppClient topicIds={["grade3"]} hideComingSoon />;
+  return <MathAppClient topicIds={["grade3"]} parentHref="/math-app/junior/parent" />;
 }

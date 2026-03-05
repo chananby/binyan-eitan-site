@@ -55,11 +55,6 @@ export const ALL_TOPICS: Topic[] = [
   },
 ];
 
-const COMING_SOON = [
-  { id: "geometry", emoji: "📐", title: "גיאומטריה", subtitle: "שטח, היקף ונפח" },
-  { id: "algebra",  emoji: "🔢", title: "אלגברה",    subtitle: "משוואות ופונקציות" },
-];
-
 const TIMER_SECS = 45;
 
 // ── Session ───────────────────────────────────────────────────────────────────
@@ -196,11 +191,11 @@ function JuniorSession({ topic, initialStats, onStatsUpdate, onBack }: JuniorSes
 interface DashboardProps {
   profile: Profile;
   topics: Topic[];
-  showComingSoon?: boolean;
+  parentHref?: string;
   onPickTopic: (t: Topic) => void;
 }
 
-function Dashboard({ profile, topics, showComingSoon = true, onPickTopic }: DashboardProps) {
+function Dashboard({ profile, topics, parentHref = "/math-app/parent", onPickTopic }: DashboardProps) {
   const total = profile.stats.totalCorrect + profile.stats.totalWrong;
 
   return (
@@ -252,25 +247,8 @@ function Dashboard({ profile, topics, showComingSoon = true, onPickTopic }: Dash
         })}
       </div>
 
-      {showComingSoon && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10 opacity-60">
-          {COMING_SOON.map((topic) => (
-            <div key={topic.id} className="rounded-2xl border p-6 text-right flex items-start gap-4 shadow-sm bg-slate-50 border-slate-100 cursor-not-allowed">
-              <span className="text-3xl flex-shrink-0">{topic.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-lg font-bold text-slate-700">{topic.title}</p>
-                  <span className="text-xs font-semibold bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full">בקרוב</span>
-                </div>
-                <p className="text-sm text-slate-400 mt-0.5">{topic.subtitle}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
       <div className="text-center">
-        <Link href="/math-app/parent" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-brand-600 transition-colors underline underline-offset-2">
+        <Link href={parentHref} className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-brand-600 transition-colors underline underline-offset-2">
           📊 לוח הורה / מורה ←
         </Link>
       </div>
@@ -285,9 +263,10 @@ interface ShellProps {
   activeProfile?: Profile;
   onSwitchProfile?: () => void;
   spaceMode?: boolean;
+  parentHref?: string;
 }
 
-export function Shell({ children, activeProfile, onSwitchProfile, spaceMode = false }: ShellProps) {
+export function Shell({ children, activeProfile, onSwitchProfile, spaceMode = false, parentHref = "/math-app/parent" }: ShellProps) {
   const bg         = spaceMode ? "bg-[#050d1f]" : "bg-gradient-to-br from-slate-50 to-brand-50";
   const logoText   = spaceMode ? "text-cyan-100" : "text-slate-800";
   const logoSub    = spaceMode ? "text-cyan-500/50" : "text-slate-400";
@@ -323,7 +302,7 @@ export function Shell({ children, activeProfile, onSwitchProfile, spaceMode = fa
                 <span className="opacity-50">⇄</span>
               </button>
             )}
-            <Link href="/math-app/parent" className={`text-xs transition-colors ${parentLink}`}>הורה / מורה</Link>
+            <Link href={parentHref} className={`text-xs transition-colors ${parentLink}`}>הורה / מורה</Link>
           </div>
         </header>
         {children}
@@ -335,13 +314,11 @@ export function Shell({ children, activeProfile, onSwitchProfile, spaceMode = fa
 // ── Main exported client component ────────────────────────────────────────────
 
 interface MathAppClientProps {
-  /** Pass topic IDs to restrict to a subset. Omit for all topics. */
   topicIds?: string[];
-  /** Hide "coming soon" cards (useful for focused single-grade pages) */
-  hideComingSoon?: boolean;
+  parentHref?: string;
 }
 
-export default function MathAppClient({ topicIds, hideComingSoon = false }: MathAppClientProps) {
+export default function MathAppClient({ topicIds, parentHref = "/math-app/parent" }: MathAppClientProps) {
   const topics = topicIds ? ALL_TOPICS.filter((t) => topicIds.includes(t.id)) : ALL_TOPICS;
   const singleTopic = topics.length === 1;
 
@@ -364,7 +341,7 @@ export default function MathAppClient({ topicIds, hideComingSoon = false }: Math
 
   if (!activeProfile) {
     return (
-      <Shell>
+      <Shell parentHref={parentHref}>
         <ProfileSelector
           profiles={profiles}
           syncing={syncing}
@@ -382,7 +359,7 @@ export default function MathAppClient({ topicIds, hideComingSoon = false }: Math
       : () => setActiveTopic(null);
 
     return (
-      <Shell activeProfile={activeProfile} onSwitchProfile={clearActiveProfile} spaceMode={spaceMode}>
+      <Shell activeProfile={activeProfile} onSwitchProfile={clearActiveProfile} spaceMode={spaceMode} parentHref={parentHref}>
         {activeTopic.junior ? (
           <JuniorSession
             topic={activeTopic}
@@ -403,11 +380,11 @@ export default function MathAppClient({ topicIds, hideComingSoon = false }: Math
   }
 
   return (
-    <Shell activeProfile={activeProfile} onSwitchProfile={clearActiveProfile}>
+    <Shell activeProfile={activeProfile} onSwitchProfile={clearActiveProfile} parentHref={parentHref}>
       <Dashboard
         profile={activeProfile}
         topics={topics}
-        showComingSoon={!hideComingSoon}
+        parentHref={parentHref}
         onPickTopic={setActiveTopic}
       />
     </Shell>
