@@ -31,6 +31,21 @@ export function middleware(req: NextRequest) {
     return response;
   }
 
+  // Redirect deleted static pages to unified expertise routes (301 permanent)
+  const legacyRedirects: Record<string, string> = {
+    "/en/building-from-afar": "/en/expertise/building-from-abroad",
+    "/he/building-from-afar": "/he/expertise/building-from-abroad",
+    "/en/behind-the-walls":   "/en/expertise/behind-the-walls",
+    "/he/behind-the-walls":   "/he/expertise/behind-the-walls",
+    "/en/faq":                "/en/expertise#faq",
+    "/he/faq":                "/he/expertise#faq",
+  };
+  for (const [from, to] of Object.entries(legacyRedirects)) {
+    if (pathname === from || pathname.startsWith(from + "/")) {
+      return NextResponse.redirect(new URL(to, req.url), 301);
+    }
+  }
+
   // redirect sections that are not yet live back to their respective home
   const redirectPattern = /^\/(en|he)\/(projects)(\/|$)/;
   if (redirectPattern.test(pathname)) {

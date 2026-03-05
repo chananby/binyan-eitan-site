@@ -399,6 +399,28 @@
       "tip_he": "המפתח לבנייה מרחוק מוצלחת הוא לא רק טכנולוגיה — זה לקבלן שלוקח אחריות אישית. המעורבות הישירה של מוטי איתן בכל פרויקט היא זו שמייחדת את בנין איתן.",
       "summary_en": "Distance is no longer a barrier. With Binyan Eitan, your Israeli property project is managed with the same precision and care whether you are in Jerusalem or New York.",
       "summary_he": "מרחק כבר אינו מחסום. עם בנין איתן, פרויקט הנכס שלכם בישראל מנוהל באותה דיוק ואכפתיות בין אם אתם בירושלים ובין אם בניו יורק."
+    },
+    {
+      "id": "3",
+      "slug": "behind-the-walls",
+      "title_en": "Behind the Walls: Infrastructure That Lasts",
+      "title_he": "מאחורי הקירות: תשתית שעומדת בזמן",
+      "intro_en": "The quality of a building is measured not by what you see, but by what's hidden inside the walls.",
+      "intro_he": "איכות הבנייה נמדדת לא במה שרואים, אלא במה שמוסתר בתוך הקירות.",
+      "s1_title_en": "Plumbing & Electrical Systems",
+      "s1_title_he": "אינסטלציה וחשמל",
+      "s1_body_en": "We design and install plumbing and electrical infrastructure to last decades — oversized conduits, redundant circuits, copper throughout. Every system is mapped, documented, and built to code with room to grow.",
+      "s1_body_he": "אנו מתכננים ומתקינים תשתיות אינסטלציה וחשמל שנועדו להחזיק עשרות שנים — צינורות גדולים, מעגלי גיבוי ונחושת לאורך כל הדרך. כל מערכת ממופה, מתועדת ובנויה לתקן עם מרווח לצמיחה.",
+      "s2_title_en": "Waterproofing & Insulation",
+      "s2_title_he": "איטום ובידוד",
+      "s2_body_en": "From roof membranes to bathroom tanking and thermal insulation — we treat every layer as a long-term commitment, not a cost-cutting opportunity. Moisture never has a chance.",
+      "s2_body_he": "ממעטפות גג ועד איטום חדרי רחצה ובידוד תרמי — אנו מתייחסים לכל שכבה כהתחייבות לטווח ארוך, לא כהזדמנות לחסוך. לחות אף פעם לא מוצאת דרך.",
+      "table_data_en": "Plumbing:Copper, oversized mains|Electrical:Redundant circuits, documented|Waterproofing:Membrane + tanking|Insulation:Thermal + acoustic|Documentation:Full as-built drawings",
+      "table_data_he": "אינסטלציה:נחושת, קוטר מוגדל|חשמל:מעגלי גיבוי, מתועד|איטום:ממברנה + טנקינג|בידוד:תרמי ואקוסטי|תיעוד:תוכניות as-built מלאות",
+      "tip_en": "Great finishes fade. Solid infrastructure endures. We invest in what you'll never see — because you'll feel it every day.",
+      "tip_he": "גמר יפה דוהה. תשתית איתנה עומדת בזמן. אנו משקיעים במה שלא תראה — כי תרגיש את זה כל יום.",
+      "summary_en": "Quality starts where the eye cannot reach.",
+      "summary_he": "איכות מתחילה היכן שהעין אינה מגיעה."
     }
   ],
   "faqs": [
@@ -422,6 +444,16 @@
       "question_he": "לקוחות מחו\"ל?",
       "answer_en": "Continuous reporting and HD documentation for full peace of mind — managed entirely from abroad.",
       "answer_he": "דיווח שוטף ותיעוד ב-HD לשקט נפשי מרחוק."
+    },
+    {
+      "id": "4",
+      "question_en": "Do you manage projects for clients living abroad?",
+      "question_he": "האם אתם מנהלים פרויקטים עבור לקוחות שגרים בחו״ל?",
+      "answer_en": "Yes — we specialize in full remote management for overseas clients. From daily photo reports and video calls to material coordination and municipal approvals, we handle everything so you don't have to fly in for every decision.",
+      "answer_he": "כן — אנו מתמחים בניהול מלא מרחוק עבור לקוחות מחו״ל. מדוחות יומיים עם תמונות ושיחות וידאו ועד תיאום חומרים ואישורי רישוי — אנחנו מטפלים בהכל כדי שלא תצטרכו לטוס על כל החלטה.",
+      "link_href": "/expertise/building-from-abroad",
+      "link_text_en": "Read: Building from Abroad →",
+      "link_text_he": "קרא: בנייה מרחוק ←"
     }
   ],
   "projects": {

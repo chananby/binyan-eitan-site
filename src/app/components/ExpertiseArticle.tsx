@@ -21,6 +21,9 @@ interface Faq {
   question_he: string;
   answer_en: string;
   answer_he: string;
+  link_href?: string;
+  link_text_en?: string;
+  link_text_he?: string;
 }
 
 const ui = {
@@ -171,9 +174,19 @@ export default function ExpertiseArticle() {
                           </span>
                         </button>
                         {isOpen && (
-                          <p className="pb-6 font-body text-base text-charcoal/70 leading-relaxed">
-                            {answer}
-                          </p>
+                          <div className="pb-6">
+                            <p className="font-body text-base text-charcoal/70 leading-relaxed">
+                              {answer}
+                            </p>
+                            {faq.link_href && (
+                              <Link
+                                href={`/${lang}${faq.link_href}`}
+                                className="inline-block mt-3 font-body text-sm font-semibold tracking-[0.12em] text-accent hover:text-accent-dark transition-colors duration-200"
+                              >
+                                {lang === "he" ? faq.link_text_he : faq.link_text_en}
+                              </Link>
+                            )}
+                          </div>
                         )}
                       </div>
                     );

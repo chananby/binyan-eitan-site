@@ -13,12 +13,11 @@ const REVALIDATE_PATHS = [
   "/en", "/he",
   "/en/about", "/he/about",
   "/en/expertise", "/he/expertise",
-  "/en/faq", "/he/faq",
-  "/en/projects", "/he/projects",
+  "/en/expertise/g1-contractor-certification", "/he/expertise/g1-contractor-certification",
+  "/en/expertise/building-from-abroad", "/he/expertise/building-from-abroad",
+  "/en/expertise/behind-the-walls", "/he/expertise/behind-the-walls",
   "/en/legal", "/he/legal",
   "/en/change-order", "/he/change-order",
-  "/en/building-from-afar", "/he/building-from-afar",
-  "/en/behind-the-walls", "/he/behind-the-walls",
 ];
 
 export async function GET() {

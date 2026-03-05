@@ -3,25 +3,22 @@ import { revalidateTag, revalidatePath } from "next/cache";
 
 export async function POST() {
   try {
-    // Revalidate all pages that use translations
     revalidateTag("translations");
     revalidatePath("/en");
     revalidatePath("/he");
     revalidatePath("/en/about");
-    revalidatePath("/en/projects");
-    revalidatePath("/en/expertise");
-    revalidatePath("/en/behind-the-walls");
-    revalidatePath("/en/building-from-afar");
-    revalidatePath("/en/faq");
-    revalidatePath("/en/change-order");
-    revalidatePath("/en/legal");
     revalidatePath("/he/about");
-    revalidatePath("/he/projects");
+    revalidatePath("/en/expertise");
     revalidatePath("/he/expertise");
-    revalidatePath("/he/behind-the-walls");
-    revalidatePath("/he/building-from-afar");
-    revalidatePath("/he/faq");
+    revalidatePath("/en/expertise/g1-contractor-certification");
+    revalidatePath("/he/expertise/g1-contractor-certification");
+    revalidatePath("/en/expertise/building-from-abroad");
+    revalidatePath("/he/expertise/building-from-abroad");
+    revalidatePath("/en/expertise/behind-the-walls");
+    revalidatePath("/he/expertise/behind-the-walls");
+    revalidatePath("/en/change-order");
     revalidatePath("/he/change-order");
+    revalidatePath("/en/legal");
     revalidatePath("/he/legal");
 
     return NextResponse.json({ ok: true, message: "Revalidation queued" });
