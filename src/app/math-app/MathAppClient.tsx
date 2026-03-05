@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MathCard from "./components/MathCard";
 import JuniorCard from "./components/JuniorCard";
+import MilestoneBanner from "./components/MilestoneBanner";
 import TimerBar from "./components/TimerBar";
 import ProfileSelector from "./components/ProfileSelector";
 import { useAdaptiveEngine } from "./hooks/useAdaptiveEngine";
+import { useFeedbackEvents } from "./hooks/useFeedbackEvents";
 import { useProfiles } from "./hooks/useProfiles";
 import { generateQuestion as generatePct  } from "./lib/engines/percentages";
 import { generateQuestion as generateFrac } from "./lib/engines/fractions";
@@ -74,6 +76,7 @@ function Session({ topic, initialStats, onStatsUpdate, onBack }: SessionProps) {
     onStatsUpdate,
     initialStats.highestLevel,
   );
+  const milestone = useFeedbackEvents(engine.stats);
 
   const [timerMode, setTimerMode] = useState(false);
   const [timeLeft, setTimeLeft]   = useState(TIMER_SECS);
@@ -125,6 +128,8 @@ function Session({ topic, initialStats, onStatsUpdate, onBack }: SessionProps) {
 
       {timerMode && !engine.stats.showHint && <TimerBar timeLeft={timeLeft} total={TIMER_SECS} />}
 
+      <MilestoneBanner event={milestone} spaceMode={spaceMode} />
+
       <MathCard
         question={engine.question}
         stats={engine.stats}
@@ -161,6 +166,7 @@ function JuniorSession({ topic, initialStats, onStatsUpdate, onBack }: JuniorSes
     initialStats.highestLevel,
     STREAK_TO_LEVEL_UP_JUNIOR,
   );
+  const milestone = useFeedbackEvents(engine.stats);
 
   const navBtn = "text-cyan-400/70 hover:text-cyan-300";
 
@@ -174,6 +180,8 @@ function JuniorSession({ topic, initialStats, onStatsUpdate, onBack }: JuniorSes
           אפס
         </button>
       </div>
+
+      <MilestoneBanner event={milestone} spaceMode />
 
       <JuniorCard
         question={engine.question}
