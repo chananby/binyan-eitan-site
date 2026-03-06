@@ -23,13 +23,14 @@ import {
   saveProfileStore,
   makeProfile,
   mergeStats,
+  STORE_KEY,
   type Profile,
   type ProfileStore,
 } from "../lib/profiles";
 import { cloudAdapter } from "../lib/syncAdapter";
 import type { StoredStats } from "../lib/types";
 
-export function useProfiles() {
+export function useProfiles(storageKey = STORE_KEY) {
   const [store, setStore] = useState<ProfileStore>({
     activeProfileId: null,
     profiles: [],
@@ -38,7 +39,9 @@ export function useProfiles() {
 
   // Hydrate from localStorage once (client-only)
   useEffect(() => {
-    setStore(loadProfileStore());
+    setStore(loadProfileStore(storageKey));
+  // storageKey is static per mount — intentional single run
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Keep a stable ref to store so callbacks don't close over stale state
@@ -47,8 +50,8 @@ export function useProfiles() {
 
   const persist = useCallback((next: ProfileStore) => {
     setStore(next);
-    saveProfileStore(next);
-  }, []);
+    saveProfileStore(next, storageKey);
+  }, [storageKey]);
 
   // ── Derived ────────────────────────────────────────────────────────────────
 

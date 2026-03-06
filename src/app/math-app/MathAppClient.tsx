@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import MathCard from "./components/MathCard";
 import JuniorCard from "./components/JuniorCard";
 import MilestoneBanner from "./components/MilestoneBanner";
@@ -255,11 +254,6 @@ function Dashboard({ profile, topics, parentHref = "/math-app/parent", onPickTop
         })}
       </div>
 
-      <div className="text-center">
-        <Link href={parentHref} className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-brand-600 transition-colors underline underline-offset-2">
-          📊 לוח הורה / מורה ←
-        </Link>
-      </div>
     </>
   );
 }
@@ -324,17 +318,17 @@ export function Shell({ children, activeProfile, onSwitchProfile, spaceMode = fa
 interface MathAppClientProps {
   topicIds?: string[];
   parentHref?: string;
+  storageKey?: string;
 }
 
-export default function MathAppClient({ topicIds, parentHref = "/math-app/parent" }: MathAppClientProps) {
+export default function MathAppClient({ topicIds, parentHref = "/math-app/parent", storageKey }: MathAppClientProps) {
   const topics = topicIds ? ALL_TOPICS.filter((t) => topicIds.includes(t.id)) : ALL_TOPICS;
   const singleTopic = topics.length === 1;
 
-  const router = useRouter();
   const {
     profiles, activeProfile, syncing,
     createProfile, selectProfile, clearActiveProfile, joinByKey, updateStats,
-  } = useProfiles();
+  } = useProfiles(storageKey);
 
   const [activeTopic, setActiveTopic] = useState<Topic | null>(null);
   const spaceMode = activeTopic?.theme === "space";
@@ -363,7 +357,7 @@ export default function MathAppClient({ topicIds, parentHref = "/math-app/parent
 
   if (activeTopic) {
     const handleBack = singleTopic
-      ? () => router.push("/math-app")
+      ? () => clearActiveProfile()
       : () => setActiveTopic(null);
 
     return (

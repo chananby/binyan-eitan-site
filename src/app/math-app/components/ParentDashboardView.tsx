@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useProfiles } from "../hooks/useProfiles";
-import { loadProfileStore, saveProfileStore } from "../lib/profiles";
+import { loadProfileStore, saveProfileStore, STORE_KEY } from "../lib/profiles";
 import { DIFFICULTY_LABELS, type Difficulty, type StoredStats } from "../lib/types";
 
 function formatDate(iso: string): string {
@@ -138,10 +138,12 @@ function ProfileStats({ stats, name, onDelete }: {
 interface ParentDashboardViewProps {
   /** Where the "← לתרגול" back link points — either /math-app/junior or /math-app/senior */
   backHref: string;
+  /** Which localStorage key to read from — must match the sub-app's storageKey */
+  storageKey?: string;
 }
 
-export default function ParentDashboardView({ backHref }: ParentDashboardViewProps) {
-  const { profiles, updateStats } = useProfiles();
+export default function ParentDashboardView({ backHref, storageKey = STORE_KEY }: ParentDashboardViewProps) {
+  const { profiles, updateStats } = useProfiles(storageKey);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleted, setDeleted] = useState<string | null>(null);
 
@@ -158,9 +160,9 @@ export default function ParentDashboardView({ backHref }: ParentDashboardViewPro
       highestLevel: 1, sessionsPlayed: 0,
       pointsTotal: 0, lastPlayed: "",
     };
-    const store = loadProfileStore();
+    const store = loadProfileStore(storageKey);
     const next = { ...store, profiles: store.profiles.map((p) => p.id === id ? { ...p, stats: empty } : p) };
-    saveProfileStore(next);
+    saveProfileStore(next, storageKey);
     if (store.activeProfileId === id) updateStats(empty);
     else window.location.reload();
 

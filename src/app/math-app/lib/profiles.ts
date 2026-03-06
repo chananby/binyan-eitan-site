@@ -76,11 +76,11 @@ export function makeProfile(
 export const STORE_KEY  = "bm_profiles";
 export const LEGACY_KEY = "barilan_math_stats";
 
-export function loadProfileStore(): ProfileStore {
+export function loadProfileStore(storeKey = STORE_KEY): ProfileStore {
   if (typeof window === "undefined") return { activeProfileId: null, profiles: [] };
 
-  // One-time migration from the old single-profile key
-  if (!localStorage.getItem(STORE_KEY)) {
+  // One-time migration from the old single-profile key (only for the default key)
+  if (storeKey === STORE_KEY && !localStorage.getItem(STORE_KEY)) {
     const legacyRaw = localStorage.getItem(LEGACY_KEY);
     if (legacyRaw) {
       try {
@@ -95,16 +95,16 @@ export function loadProfileStore(): ProfileStore {
   }
 
   try {
-    const raw = localStorage.getItem(STORE_KEY);
+    const raw = localStorage.getItem(storeKey);
     if (raw) return JSON.parse(raw) as ProfileStore;
   } catch { /* fall through */ }
 
   return { activeProfileId: null, profiles: [] };
 }
 
-export function saveProfileStore(store: ProfileStore): void {
+export function saveProfileStore(store: ProfileStore, storeKey = STORE_KEY): void {
   if (typeof window === "undefined") return;
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch { /* ignore */ }
+  try { localStorage.setItem(storeKey, JSON.stringify(store)); } catch { /* ignore */ }
 }
 
 // ── Stats merge (used by cloud sync) ─────────────────────────────────────────
