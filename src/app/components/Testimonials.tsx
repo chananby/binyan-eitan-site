@@ -159,9 +159,9 @@ export default function Testimonials() {
                 <div className="flex items-end justify-between gap-3 pt-5 border-t border-warm-gray-light">
                   <div>
                     <p className="font-heading text-sm font-bold text-charcoal leading-tight">{t.name}</p>
-                    {(city || t.year) && (
+                    {city && (
                       <p className="font-body text-xs text-charcoal/40 mt-0.5">
-                        {[city, t.year].filter(Boolean).join(" · ")}
+                        {city}
                       </p>
                     )}
                   </div>
