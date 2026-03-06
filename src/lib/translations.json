@@ -391,6 +391,8 @@
     {
       "id": "1",
       "slug": "g1-contractor-certification",
+      "category_en": "Licensing",
+      "category_he": "רישוי ובטיחות",
       "title_en": "Why G1 Certification Matters",
       "title_he": "למה סיווג ג1 חשוב",
       "intro_en": "Not all contractors are created equal. G1 certification is the gold standard in Israeli construction — and choosing it means choosing total professional accountability.",
@@ -413,6 +415,8 @@
     {
       "id": "2",
       "slug": "building-from-abroad",
+      "category_en": "Remote Management",
+      "category_he": "ניהול מרחוק",
       "title_en": "Building Your Israeli Property From Abroad",
       "title_he": "ניהול פרויקט בנייה בישראל מרחוק",
       "intro_en": "For many international residents, building or renovating a property in Israel from abroad is a long-held dream. At Binyan Eitan, we have built a process that makes that dream a seamless reality.",
@@ -437,6 +441,8 @@
     {
       "id": "3",
       "slug": "behind-the-walls",
+      "category_en": "Infrastructure",
+      "category_he": "תשתית",
       "title_en": "Behind the Walls: Infrastructure That Lasts",
       "title_he": "מאחורי הקירות: תשתית שעומדת בזמן",
       "intro_en": "The quality of a building is measured not by what you see, but by what's hidden inside the walls.",
@@ -459,6 +465,8 @@
     {
       "id": "4",
       "slug": "reading-a-professional-quote",
+      "category_en": "Professional Insights",
+      "category_he": "ידע מקצועי",
       "title_en": "Beyond the Numbers: How to Spot a Professional Quote (and Avoid Costly Surprises)",
       "title_he": "לא רק מספרים: כך תזהו הצעת מחיר מקצועית (ותימנעו מהפתעות בדרך)",
       "intro_en": "Not every detailed quote is a professional one. When you receive three estimates for the same project, the differences go far beyond price — they reveal the contractor's professionalism, honesty, and the risk you're taking on.",
@@ -481,6 +489,8 @@
     {
       "id": "5",
       "slug": "after-handover",
+      "category_en": "Project Management",
+      "category_he": "ניהול פרויקט",
       "title_en": "The Handover: Why Your Home Needs a \"GPS\" Long After Construction Ends",
       "title_he": "היום שאחרי המסירה: למה אתם חייבים את ה\"GPS\" של הבית שלכם?",
       "intro_en": "The keys are handed over, the workers are gone — and now what? Most clients believe that handover day is the end of the process. In reality, it marks the beginning of the most important phase: ownership.",

@@ -11,8 +11,22 @@ interface Article {
   slug: string;
   title_en: string;
   title_he: string;
+  category_en?: string;
+  category_he?: string;
   intro_en?: string;
   intro_he?: string;
+  s1_body_en?: string; s1_body_he?: string;
+  s2_body_en?: string; s2_body_he?: string;
+  tip_en?: string; tip_he?: string;
+  summary_en?: string; summary_he?: string;
+}
+
+function readingMinutes(article: Article, lang: "en" | "he"): number {
+  const fields = ["intro", "s1_body", "s2_body", "tip", "summary"] as const;
+  const text = fields.map((f) => (article[`${f}_${lang}` as keyof Article] as string) ?? "").join(" ");
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  const wpm = lang === "he" ? 200 : 238;
+  return Math.max(1, Math.round(words / wpm));
 }
 
 const ui = {
@@ -98,12 +112,25 @@ export default function ExpertiseArticle() {
             <div className="divide-y divide-warm-gray-light">
               {articles.map((article) => {
                 const title = lang === "en" ? article.title_en : article.title_he;
+                const category = lang === "en" ? article.category_en : article.category_he;
                 const body = (lang === "en" ? article.intro_en : article.intro_he) ?? "";
-                const excerpt =
-                  body.replace(/\n/g, " ").slice(0, 180) + (body.length > 180 ? "…" : "");
+                const excerpt = body.replace(/\n/g, " ").slice(0, 180) + (body.length > 180 ? "…" : "");
+                const mins = readingMinutes(article, lang);
+                const minLabel = lang === "he" ? `${mins} דקות קריאה` : `${mins} min read`;
                 return (
                   <div key={article.id} className="py-10 group">
                     <Link href={`/${lang}/expertise/${article.slug}`}>
+                      {/* Category + reading time row */}
+                      <div className="flex items-center gap-3 mb-4">
+                        {category && (
+                          <span className="font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase px-2.5 py-1 bg-accent/[0.08] text-accent border border-accent/20">
+                            {category}
+                          </span>
+                        )}
+                        <span className="font-body text-[0.65rem] text-charcoal/35 tracking-wider">
+                          {minLabel}
+                        </span>
+                      </div>
                       <h3 className="font-heading text-2xl font-bold text-charcoal group-hover:text-accent transition-colors duration-200 mb-3">
                         {title}
                       </h3>

@@ -5,6 +5,8 @@ const ARTICLE_SLUGS = [
   "g1-contractor-certification",
   "building-from-abroad",
   "behind-the-walls",
+  "reading-a-professional-quote",
+  "after-handover",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

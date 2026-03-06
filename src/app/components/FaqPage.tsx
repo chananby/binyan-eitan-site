@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useLang } from "./LangContext";
@@ -43,6 +43,7 @@ export default function FaqPage() {
   const [faqs, setFaqs] = useState<Faq[]>([]);
   const [loading, setLoading] = useState(true);
   const [openFaq, setOpenFaq] = useState<string | null>(null);
+  const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   useEffect(() => {
     fetch("/api/translations", { cache: "no-store" })
@@ -53,6 +54,15 @@ export default function FaqPage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  // Scroll to the newly opened FAQ item after it renders
+  useEffect(() => {
+    if (!openFaq) return;
+    const el = itemRefs.current.get(openFaq);
+    if (el) {
+      setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+    }
+  }, [openFaq]);
 
   const toggleFaq = (id: string) => setOpenFaq((prev) => (prev === id ? null : id));
 
@@ -102,7 +112,7 @@ export default function FaqPage() {
                 const answer = lang === "en" ? faq.answer_en : faq.answer_he;
                 const isOpen = openFaq === faq.id;
                 return (
-                  <div key={faq.id}>
+                  <div key={faq.id} ref={(el) => { if (el) itemRefs.current.set(faq.id, el); else itemRefs.current.delete(faq.id); }}>
                     <button
                       onClick={() => toggleFaq(faq.id)}
                       className="w-full flex items-center justify-between gap-4 py-6 text-start group"

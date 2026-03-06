@@ -1073,10 +1073,20 @@ export default function ContentEditorPage() {
             <h1 className="text-xl font-bold text-gray-900">עורך התוכן</h1>
             <p className="text-sm text-gray-500 mt-0.5">בנין איתן — ניהול תוכן האתר</p>
           </div>
-          <button onClick={handleSave} disabled={!dirty || saving}
-            className="px-6 py-2.5 bg-[#8D775F] text-white text-sm font-bold tracking-wide rounded-md disabled:opacity-40 hover:bg-[#7A6451] transition-colors shadow-sm">
-            {saving ? "שומר..." : dirty ? "💾 שמור שינויים" : "✓ נשמר"}
-          </button>
+          <div className="flex items-center gap-3">
+            <a
+              href="/api/admin/backup"
+              download
+              className="px-4 py-2.5 bg-gray-100 text-gray-600 text-sm font-semibold tracking-wide rounded-md hover:bg-gray-200 transition-colors border border-gray-200"
+              title="הורד גיבוי JSON"
+            >
+              ⬇ גיבוי
+            </a>
+            <button onClick={handleSave} disabled={!dirty || saving}
+              className="px-6 py-2.5 bg-[#8D775F] text-white text-sm font-bold tracking-wide rounded-md disabled:opacity-40 hover:bg-[#7A6451] transition-colors shadow-sm">
+              {saving ? "שומר..." : dirty ? "💾 שמור שינויים" : "✓ נשמר"}
+            </button>
+          </div>
         </div>
 
         {/* Mode tabs */}
