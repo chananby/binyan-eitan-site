@@ -8,12 +8,7 @@ import PrecisionGame from "./PrecisionGame";
 
 type Lang = "en" | "he";
 
-// ── Formspree ──────────────────────────────────────────────────────────────────
-// SETUP: Go to https://formspree.io, create a free account, create a new form
-// for office@binyaneitan.com, then replace the URL below with:
-//   https://formspree.io/f/<YOUR_FORM_ID>
-// Until then, submissions will fail and the WhatsApp fallback will be shown.
-const FORMSPREE_URL = "https://formspree.io/office@binyaneitan.com";
+const CONTACT_API = "/api/contact";
 
 const WHATSAPP_HE =
   "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%9E%D7%95%D7%98%D7%99%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%93%D7%A8%D7%9A%20%D7%98%D7%95%D7%A4%D7%A1%20%D7%94%D7%A7%D7%A9%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A9%D7%9E%D7%95%D7%A2%20%D7%A2%D7%95%D7%93...";
@@ -32,16 +27,15 @@ export default function ContactForm() {
     e.preventDefault();
     setStatus("sending");
     try {
-      const res = await fetch(FORMSPREE_URL, {
+      const res = await fetch(CONTACT_API, {
         method: "POST",
         body: new FormData(e.currentTarget),
-        headers: { Accept: "application/json" },
       });
       if (res.ok) {
         setStatus("success");
       } else {
         const body = await res.json().catch(() => ({}));
-        console.error("[ContactForm] Formspree error", res.status, body);
+        console.error("[ContactForm] API error", res.status, body);
         setStatus("error");
       }
     } catch (err) {
