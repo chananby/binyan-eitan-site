@@ -5,12 +5,13 @@ import { useLang } from "./LangContext";
 import SectionReveal from "./SectionReveal";
 
 export default function FounderQuote() {
-  const lang = useLang();
-  const t = useTranslations("about", lang);
+  const { lang } = useLang();
+  const l = lang as "en" | "he";
+  const t = useTranslations("about", l);
 
   const quote: string = (t as Record<string, string>).founderQuote ?? "";
-  const name: string  = (t as Record<string, string>).founderName  ?? (lang === "he" ? "מוטי איתן" : "Motti Eitan");
-  const title: string = (t as Record<string, string>).founderTitle ?? (lang === "he" ? "מייסד ומנכ\"ל, בנין איתן" : "Founder & CEO, Binyan Eitan");
+  const name: string  = (t as Record<string, string>).founderName  ?? (l === "he" ? "מוטי איתן" : "Motti Eitan");
+  const title: string = (t as Record<string, string>).founderTitle ?? (l === "he" ? "מייסד ומנכ\"ל, בנין איתן" : "Founder & CEO, Binyan Eitan");
 
   if (!quote) return null;
 

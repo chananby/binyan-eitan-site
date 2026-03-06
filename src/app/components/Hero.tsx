@@ -104,7 +104,7 @@ export default function Hero() {
 
             {/* Main Heading — contained within text column, no image overlap */}
             <motion.h1
-              className="font-heading text-[clamp(2.2rem,4vw,4.6rem)] leading-[1.25] font-bold tracking-tight text-[#C5A059] text-start"
+              className="font-heading text-[clamp(2.2rem,4vw,4.6rem)] leading-[1.25] font-bold tracking-tight text-accent text-start"
               variants={fadeUp(0.05)}
             >
               {heading.split("\n").map((line: string, i: number) => (

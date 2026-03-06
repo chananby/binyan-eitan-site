@@ -34,8 +34,8 @@ export default function HeHomeClient() {
         <PortfolioGallery />
         <EngineeringExcellence />
         <Testimonials />
-        <ContactForm />
         <FounderQuote />
+        <ContactForm />
         <Footer />
       </main>
     );

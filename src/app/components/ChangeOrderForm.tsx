@@ -7,9 +7,11 @@ import { CheckCircle, RotateCcw, PenLine, Camera, ArrowRight, ArrowLeft } from "
 import { useLang } from "./LangContext";
 
 // ── Formspree endpoint ─────────────────────────────────────────────────────────
-// Create a form at formspree.io/forms, then replace the ID below.
-// Example: https://formspree.io/f/xwkgpopq
-const FORMSPREE_URL = "https://formspree.io/f/office@binyaneitan.com";
+// SETUP: Go to https://formspree.io, create a free account, create a new form
+// for office@binyaneitan.com, then replace the URL below with:
+//   https://formspree.io/f/<YOUR_FORM_ID>
+// Until then, submissions will fail silently.
+const FORMSPREE_URL = "https://formspree.io/office@binyaneitan.com";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

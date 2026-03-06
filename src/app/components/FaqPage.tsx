@@ -85,8 +85,13 @@ export default function FaqPage() {
           </h2>
 
           {loading ? (
-            <div className="flex justify-center py-16">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent" />
+            <div className="divide-y divide-warm-gray-light">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="py-6 flex items-center justify-between gap-4">
+                  <div className="h-5 rounded-sm bg-charcoal/[0.07] animate-pulse" style={{ width: `${55 + (i * 7) % 30}%` }} />
+                  <div className="shrink-0 h-5 w-5 rounded-full bg-accent/20 animate-pulse" />
+                </div>
+              ))}
             </div>
           ) : faqs.length === 0 ? (
             <p className="text-charcoal/50 font-body text-lg text-center py-10">{c.empty}</p>

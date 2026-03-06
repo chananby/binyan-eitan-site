@@ -11,8 +11,8 @@ interface Article {
   slug: string;
   title_en: string;
   title_he: string;
-  content_en: string;
-  content_he: string;
+  intro_en?: string;
+  intro_he?: string;
 }
 
 const ui = {
@@ -82,8 +82,15 @@ export default function ExpertiseArticle() {
           </h2>
 
           {loading ? (
-            <div className="flex justify-center py-16">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent" />
+            <div className="divide-y divide-warm-gray-light">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="py-10 space-y-3">
+                  <div className="h-6 w-2/3 bg-charcoal/[0.07] animate-pulse rounded-sm" />
+                  <div className="h-4 w-full bg-charcoal/[0.05] animate-pulse rounded-sm" />
+                  <div className="h-4 w-4/5 bg-charcoal/[0.05] animate-pulse rounded-sm" />
+                  <div className="h-3 w-24 bg-accent/20 animate-pulse rounded-sm mt-2" />
+                </div>
+              ))}
             </div>
           ) : articles.length === 0 ? (
             <p className="text-charcoal/50 font-body text-lg text-center py-10">{c.empty}</p>
@@ -91,7 +98,7 @@ export default function ExpertiseArticle() {
             <div className="divide-y divide-warm-gray-light">
               {articles.map((article) => {
                 const title = lang === "en" ? article.title_en : article.title_he;
-                const body = (lang === "en" ? article.content_en : article.content_he) ?? "";
+                const body = (lang === "en" ? article.intro_en : article.intro_he) ?? "";
                 const excerpt =
                   body.replace(/\n/g, " ").slice(0, 180) + (body.length > 180 ? "…" : "");
                 return (

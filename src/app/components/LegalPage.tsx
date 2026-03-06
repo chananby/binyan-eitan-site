@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -331,6 +331,20 @@ export default function LegalPage() {
   };
   const { title, sub } = headings[l];
 
+  const VALID_TABS: Tab[] = ["terms", "privacy", "accessibility"];
+
+  // Read hash on mount to deep-link to the correct tab
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "") as Tab;
+    if (VALID_TABS.includes(hash)) setActive(hash);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const switchTab = useCallback((tab: Tab) => {
+    setActive(tab);
+    window.history.replaceState(null, "", `#${tab}`);
+  }, []);
+
   return (
     <main className="relative" dir={dir}>
       <Navbar />
@@ -358,7 +372,7 @@ export default function LegalPage() {
                 key={t.id}
                 role="tab"
                 aria-selected={active === t.id}
-                onClick={() => setActive(t.id)}
+                onClick={() => switchTab(t.id)}
                 className={`shrink-0 px-6 py-4 font-body text-xs font-semibold tracking-[0.18em] uppercase transition-colors duration-200 border-b-2 ${
                   active === t.id
                     ? "border-accent text-charcoal"

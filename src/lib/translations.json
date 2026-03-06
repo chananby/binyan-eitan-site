@@ -246,6 +246,8 @@
       "proj_1_title": "Bayit Vegan Estate",
       "proj_1_category": "Premium Renovation",
       "proj_1_cover": "/bayit-vegan.jpg",
+      "proj_1_challenge": "Full structural renovation of a heritage property requiring preservation of original architectural features while modernizing all building systems.",
+      "proj_1_solution": "Meticulous phased execution — preserving original stonework and ceiling features while replacing all electrical, plumbing, and insulation layers to modern spec.",
       "proj_2_title": "Ohel Avshalom Institutions",
       "proj_2_category": "Structural Engineering",
       "proj_2_cover": "/ohel-avshalom.jpg",
@@ -253,7 +255,9 @@
       "proj_2_solution": "Advanced anchoring systems and precision reinforced concrete pours to structural-grade spec.",
       "proj_3_title": "Ramat Eshkol Penthouse",
       "proj_3_category": "Luxury Construction",
-      "proj_3_cover": "/ramat-eshkol.jpg"
+      "proj_3_cover": "/ramat-eshkol.jpg",
+      "proj_3_challenge": "Complete top-floor luxury build with open-plan structural demands and high-spec mechanical systems across a complex roof footprint.",
+      "proj_3_solution": "Engineered structural openings, custom HVAC routing, and precision luxury finishes delivered on schedule with full client sign-off at every stage."
     },
     "he": {
       "overline": "עבודות נבחרות",
@@ -269,6 +273,8 @@
       "proj_1_title": "אחוזת בית וגן",
       "proj_1_category": "שיפוץ פרימיום",
       "proj_1_cover": "/bayit-vegan.jpg",
+      "proj_1_challenge": "שיפוץ מבני מלא של נכס מורשת, תוך שמירה על מאפיינים אדריכליים מקוריים ומודרניזציה של כל מערכות הבניין.",
+      "proj_1_solution": "ביצוע פאזלי קפדני — שמירה על אבן מקורית ותקרות עתיקות לצד החלפה מלאה של שכבות חשמל, אינסטלציה ובידוד לתקן עכשווי.",
       "proj_2_title": "מוסדות אוהל אבשלום",
       "proj_2_category": "הנדסת קונסטרוקציה",
       "proj_2_cover": "/ohel-avshalom.jpg",
@@ -276,7 +282,9 @@
       "proj_2_solution": "מערכות עיגון מתקדמות ויציקות בטון מזוין מדויקות בהתאם למפרטי קונסטרוקציה מחמירים.",
       "proj_3_title": "פנטהאוז רמת אשכול",
       "proj_3_category": "בניית יוקרה",
-      "proj_3_cover": "/ramat-eshkol.jpg"
+      "proj_3_cover": "/ramat-eshkol.jpg",
+      "proj_3_challenge": "בנייה יוקרתית מלאה של קומה עליונה עם דרישות קונסטרוקטיביות למרחב פתוח ומערכות מכניות בדרגה גבוהה על פני שטח גג מורכב.",
+      "proj_3_solution": "פתחים קונסטרוקטיביים מהונדסים, ניתוב מיזוג מותאם אישית וגמרי יוקרה מדויקים — שהושלמו בלוח זמנים עם אישור לקוח בכל שלב."
     }
   },
   "pillars": {

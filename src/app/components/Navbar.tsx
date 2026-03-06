@@ -253,17 +253,17 @@ export default function Navbar() {
                     <Phone size={20} strokeWidth={1.5} />
                   </a>
                 )}
-                {homeT.whatsapp && (
-                  <a
-                    href={`https://wa.me/${(homeT.whatsapp as string).replace(/\D/g, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="WhatsApp"
-                    className="text-charcoal/40 hover:text-accent transition-colors"
-                  >
-                    <MessageCircle size={20} strokeWidth={1.5} />
-                  </a>
-                )}
+                <a
+                  href={lang === "he"
+                    ? "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%9E%D7%95%D7%98%D7%99%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%93%D7%A8%D7%9A%20%D7%94%D7%90%D7%AA%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%94%D7%AA%D7%99%D7%99%D7%A2%D7%A5..."
+                    : "https://wa.me/972585008447?text=Hi%20Moti%2C%20I%20reached%20out%20via%20the%20website%20and%20would%20like%20to%20consult%20regarding%20a%20project..."}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="WhatsApp"
+                  className="text-charcoal/40 hover:text-accent transition-colors"
+                >
+                  <MessageCircle size={20} strokeWidth={1.5} />
+                </a>
               </div>
             </motion.div>
           </motion.div>

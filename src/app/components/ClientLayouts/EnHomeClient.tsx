@@ -34,8 +34,8 @@ export default function EnHomeClient() {
         <PortfolioGallery />
         <EngineeringExcellence />
         <Testimonials />
-        <ContactForm />
         <FounderQuote />
+        <ContactForm />
         <Footer />
       </main>
     );

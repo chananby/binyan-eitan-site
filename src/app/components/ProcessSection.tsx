@@ -54,21 +54,21 @@ export default function ProcessSection() {
         </motion.h2>
 
         {/* vertical timeline container */}
-        <div className="relative pl-8">
+        <div className="relative ps-8">
           {/* connecting line */}
-          <div className="absolute left-2 top-0 bottom-0 w-px bg-accent/30" />
+          <div className="absolute start-2 top-0 bottom-0 w-px bg-accent/30" />
 
           {c.phases.map((phase: { label: string; desc: string }, idx: number) => (
             <motion.div
               key={idx}
-              className="group relative mb-12 pl-8"
+              className="group relative mb-12 ps-8"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + idx * 0.1 }}
               viewport={{ once: true }}
             >
               {/* circle */}
-              <div className="absolute left-0 top-1">
+              <div className="absolute start-0 top-1">
                 <span className="block w-4 h-4 rounded-full bg-[#8D775F] transition-transform group-hover:scale-110" />
               </div>
 
