@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+const WHATSAPP_HE =
+  "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%9E%D7%95%D7%98%D7%99%2C%20%D7%A7%D7%A8%D7%90%D7%AA%D7%99%20%D7%90%D7%AA%20%D7%94%D7%9E%D7%90%D7%9E%D7%A8%20%D7%91%D7%90%D7%AA%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%93%D7%91%D7%A8%20%D7%A2%D7%9C%20%D7%A4%D7%A8%D7%95%D7%99%D7%A7%D7%98...";
+const WHATSAPP_EN =
+  "https://wa.me/972585008447?text=Hi%20Moti%2C%20I%20read%20your%20article%20and%20would%20like%20to%20discuss%20a%20project...";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useLang } from "./LangContext";
@@ -48,15 +53,15 @@ const ui = {
   en: {
     back: "← Back to Knowledge Base",
     notFound: "Article not found.",
-    ctaLabel: "Start your project",
-    contactHref: "#contact",
+    ctaLabel: "Contact Us for Consultation",
+    ctaSub: "Or call: 052-500-0447",
     tipTitle: "The Binyan Eitan Standard",
   },
   he: {
     back: "← חזרה לידע מקצועי",
     notFound: "המאמר לא נמצא.",
     ctaLabel: "פנו אלינו לייעוץ",
-    contactHref: "#contact",
+    ctaSub: "או התקשרו: 052-500-0447",
     tipTitle: "הביטחון של בנין איתן",
   },
 } as const;
@@ -221,13 +226,16 @@ export default function ArticleDetailPage({ slug }: Props) {
           )}
 
           {/* --- CTA Footer --- */}
-          <div className="mt-24 pt-16 text-center border-t border-warm-gray-light/50">
-            <Link
-              href={`/${lang}${t.contactHref}`}
+          <div className="mt-24 pt-16 text-center border-t border-warm-gray-light/50 space-y-4">
+            <a
+              href={lang === "he" ? WHATSAPP_HE : WHATSAPP_EN}
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-accent text-bone px-12 py-5 font-body text-sm font-bold tracking-[0.25em] uppercase transition-all duration-300 hover:bg-charcoal hover:shadow-lg inline-block"
             >
               {(lang === "en" ? article.cta_label_en : article.cta_label_he) ?? t.ctaLabel}
-            </Link>
+            </a>
+            <p className="font-body text-sm text-charcoal/40">{t.ctaSub}</p>
           </div>
           
         </div>

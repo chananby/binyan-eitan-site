@@ -24,9 +24,15 @@ export async function GET() {
   try {
     const stored = await kv.get(KV_KEY);
     if (!stored) return NextResponse.json(defaultTranslations, { headers: NO_CACHE });
-    // Merge: defaults supply any top-level keys that KV doesn't have yet
-    // (e.g. newly added arrays like `testimonials`). KV always wins on conflicts.
-    const merged = { ...defaultTranslations, ...(stored as object) };
+    // Merge: defaults supply any top-level keys that KV doesn't have yet.
+    // KV wins on conflicts — EXCEPT for arrays where defaults have grown longer
+    // (new articles/faqs added to source code should always be visible).
+    const merged = { ...defaultTranslations, ...(stored as object) } as Record<string, unknown>;
+    for (const key of ["articles", "faqs"] as const) {
+      const defArr    = (defaultTranslations as Record<string, unknown>)[key] as unknown[] ?? [];
+      const storedArr = (merged[key] as unknown[]) ?? [];
+      if (defArr.length > storedArr.length) merged[key] = defArr;
+    }
     return NextResponse.json(merged, { headers: NO_CACHE });
   } catch (err) {
     console.error("[translations/GET] KV unavailable:", err);

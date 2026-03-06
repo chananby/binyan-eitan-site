@@ -177,20 +177,22 @@ export default function Testimonials() {
           })}
         </div>
 
-        {/* ── Google CTA ──────────────────────────────────────────────── */}
-        <SectionReveal>
-          <div className="mt-12 flex justify-center">
-            <a
-              href={labels.google_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2.5 border border-accent text-accent px-7 py-3 text-sm font-semibold tracking-wide hover:bg-accent hover:text-bone transition-colors duration-300"
-            >
-              <GoogleIcon size={16} />
-              {labels.read_more_google}
-            </a>
-          </div>
-        </SectionReveal>
+        {/* ── Google CTA — only shown when a real URL is configured ── */}
+        {labels.google_url && labels.google_url !== "#" && (
+          <SectionReveal>
+            <div className="mt-12 flex justify-center">
+              <a
+                href={labels.google_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2.5 border border-accent text-accent px-7 py-3 text-sm font-semibold tracking-wide hover:bg-accent hover:text-bone transition-colors duration-300"
+              >
+                <GoogleIcon size={16} />
+                {labels.read_more_google}
+              </a>
+            </div>
+          </SectionReveal>
+        )}
 
       </div>
     </section>

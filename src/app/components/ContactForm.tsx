@@ -8,11 +8,17 @@ import PrecisionGame from "./PrecisionGame";
 
 type Lang = "en" | "he";
 
-// Formspree legacy endpoint — works without an account.
-// To upgrade: create a form at formspree.io, then replace with:
+// ── Formspree ──────────────────────────────────────────────────────────────────
+// SETUP: Go to https://formspree.io, create a free account, create a new form
+// for office@binyaneitan.com, then replace the URL below with:
 //   https://formspree.io/f/<YOUR_FORM_ID>
-// The email must be verified via the confirmation Formspree sends to office@binyaneitan.com.
+// Until then, submissions will fail and the WhatsApp fallback will be shown.
 const FORMSPREE_URL = "https://formspree.io/office@binyaneitan.com";
+
+const WHATSAPP_HE =
+  "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%9E%D7%95%D7%98%D7%99%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%93%D7%A8%D7%9A%20%D7%98%D7%95%D7%A4%D7%A1%20%D7%94%D7%A7%D7%A9%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A9%D7%9E%D7%95%D7%A2%20%D7%A2%D7%95%D7%93...";
+const WHATSAPP_EN =
+  "https://wa.me/972585008447?text=Hi%20Moti%2C%20I%20tried%20the%20contact%20form%20and%20would%20like%20to%20follow%20up...";
 
 type Status = "idle" | "sending" | "success" | "error";
 
@@ -20,6 +26,7 @@ export default function ContactForm() {
   const { lang } = useLang() as { lang: Lang };
   const content = useTranslations("contact", lang);
   const [status, setStatus] = useState<Status>("idle");
+  const whatsappUrl = lang === "he" ? WHATSAPP_HE : WHATSAPP_EN;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -143,7 +150,17 @@ export default function ContactForm() {
             </div>
 
             {status === "error" && (
-              <p className="font-body text-sm text-red-500 text-center">{content.error}</p>
+              <div className="text-center space-y-4">
+                <p className="font-body text-sm text-red-500">{content.error}</p>
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] px-6 py-2.5 transition-colors duration-200 text-xs font-semibold tracking-[0.14em] uppercase"
+                >
+                  {lang === "he" ? "שלחו לנו הודעה בוואטסאפ" : "Contact us via WhatsApp"}
+                </a>
+              </div>
             )}
 
             <div className="pt-8">
