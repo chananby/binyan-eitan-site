@@ -8,7 +8,7 @@ interface KeypadProps {
   spaceMode?: boolean;
 }
 
-const KEYS = ["7","8","9","4","5","6","1","2","3",".","0","⌫"];
+const KEYS = ["7","8","9","4","5","6","1","2","3","⌫","0","."];
 
 export default function Keypad({
   value,

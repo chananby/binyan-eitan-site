@@ -13,13 +13,13 @@ const ROWS = [
   ["1", "2", "3"],
   ["4", "5", "6"],
   ["7", "8", "9"],
-  ["C", "0", "✓"],
+  ["⌫", "0", "✓"],
 ];
 
 export default function JuniorKeypad({ value, onChange, onSubmit, disabled }: JuniorKeypadProps) {
   function handleKey(key: string) {
     if (disabled) return;
-    if (key === "C") { onChange(""); return; }
+    if (key === "⌫") { onChange(value.slice(0, -1)); return; }
     if (key === "✓") { onSubmit(); return; }
     // Max 4 digits
     if (value.length >= 4) return;
@@ -30,7 +30,7 @@ export default function JuniorKeypad({ value, onChange, onSubmit, disabled }: Ju
     <div className="grid grid-cols-3 gap-3 w-full max-w-xs mx-auto" dir="ltr">
       {ROWS.flat().map((key) => {
         const isSubmit = key === "✓";
-        const isClear  = key === "C";
+        const isClear  = key === "⌫";
         return (
           <motion.button
             key={key}
@@ -48,7 +48,7 @@ export default function JuniorKeypad({ value, onChange, onSubmit, disabled }: Ju
                 : "bg-white hover:bg-blue-50 border-slate-200 text-slate-700 shadow-sm",
               disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
             ].join(" ")}
-            aria-label={isSubmit ? "אישור" : isClear ? "מחק" : key}
+            aria-label={isSubmit ? "אישור" : isClear ? "מחק ספרה" : key}
           >
             {key}
           </motion.button>

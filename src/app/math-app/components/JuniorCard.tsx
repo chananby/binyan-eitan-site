@@ -20,15 +20,23 @@ const LEVEL_LABELS: Record<number, string> = { 1: "מתחיל 🌱", 2: "מתק�
 
 function toSpeakable(text: string): string {
   return text
-    .replace(/½\s*מ-?/g, "חצי מ-")
-    .replace(/¼\s*מ-?/g, "רבע מ-")
-    .replace(/¾\s*מ-?/g, "שלושה רבעי מ-")
+    .replace(/\n/g, ", ")
+    .replace(/—/g, ", ")
+    .replace(/(\d+)\/(\d+)\s*מ-?/g, (_, n, d) => {
+      const map: Record<string, string> = { "1/2": "חצי", "1/4": "רבע", "3/4": "שלושה רבעי" };
+      return (map[`${n}/${d}`] ?? `${n} חלקי ${d}`) + " מ";
+    })
+    .replace(/½\s*מ-?/g, "חצי מ")
+    .replace(/¼\s*מ-?/g, "רבע מ")
+    .replace(/¾\s*מ-?/g, "שלושה רבעי מ")
     .replace(/×/g, "כפול")
     .replace(/÷/g, "חלקי")
-    .replace(/\+/g, "ועוד")
-    .replace(/−/g, "פחות")
+    .replace(/\+/g, "פלוס")
+    .replace(/−/g, "מינוס")
     .replace(/=\s*\?/g, "שווה כמה?")
-    .replace(/ס״מ/g, "סנטימטר");
+    .replace(/ס״מ²/g, "סנטימטר בריבוע")
+    .replace(/ס״מ/g, "סנטימטר")
+    .replace(/₪/g, "שקל");
 }
 
 function readAloud(text: string) {
