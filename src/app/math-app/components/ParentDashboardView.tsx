@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useProfiles } from "../hooks/useProfiles";
 import { loadProfileStore, saveProfileStore, STORE_KEY } from "../lib/profiles";
 import { DIFFICULTY_LABELS, type Difficulty, type StoredStats } from "../lib/types";
+import { ALL_TOPICS } from "../MathAppClient";
 
 function formatDate(iso: string): string {
   if (!iso) return "—";
@@ -117,6 +118,42 @@ function ProfileStats({ stats, name, onDelete }: {
                 {lvl <= stats.highestLevel && <p className="text-base mt-1">✔</p>}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Per-topic breakdown */}
+      {stats.topicStats && Object.keys(stats.topicStats).length > 0 && (
+        <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
+          <p className="text-sm font-semibold text-slate-600 mb-3">פירוט לפי נושא</p>
+          <div className="flex flex-col divide-y divide-slate-100">
+            {ALL_TOPICS.filter((t) => stats.topicStats![t.id]).map((topic) => {
+              const ts = stats.topicStats![topic.id];
+              const tsTotal = ts.totalCorrect + ts.totalWrong;
+              const tsAcc = tsTotal > 0 ? Math.round((ts.totalCorrect / tsTotal) * 100) : null;
+              return (
+                <div key={topic.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                  <span className="text-xl w-7 text-center flex-shrink-0">{topic.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-700 truncate">{topic.title}</p>
+                    <p className="text-xs text-slate-400">
+                      {tsTotal === 0 ? "טרם תרגל" : `${ts.totalCorrect} נכון · ${ts.totalWrong} טעות${tsAcc !== null ? ` · ${tsAcc}% דיוק` : ""}`}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                    <span className={[
+                      "text-xs font-bold px-2 py-0.5 rounded-full border",
+                      ts.highestLevel === 3 ? "bg-red-50 border-red-200 text-red-600"
+                        : ts.highestLevel === 2 ? "bg-amber-50 border-amber-200 text-amber-600"
+                        : "bg-green-50 border-green-200 text-green-600",
+                    ].join(" ")}>
+                      רמה {ts.highestLevel}
+                    </span>
+                    <span className="text-xs text-amber-500 font-semibold">⭐ {ts.pointsTotal} נק׳</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

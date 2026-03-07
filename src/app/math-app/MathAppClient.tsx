@@ -99,11 +99,15 @@ interface SessionProps {
 
 function Session({ topic, initialStats, onStatsUpdate, onBack }: SessionProps) {
   const spaceMode = topic.theme === "space";
+  // Use topic-specific highestLevel as starting level (falls back to 1 for new topics)
+  const startLevel = (initialStats.topicStats?.[topic.id]?.highestLevel ?? 1) as import("./lib/types").Difficulty;
   const engine = useAdaptiveEngine(
     topic.generateFn,
     initialStats,
     onStatsUpdate,
-    initialStats.highestLevel,
+    startLevel,
+    3,
+    topic.id,
   );
   const milestone = useFeedbackEvents(engine.stats);
 
@@ -188,12 +192,15 @@ interface JuniorSessionProps {
 }
 
 function JuniorSession({ topic, initialStats, onStatsUpdate, onBack }: JuniorSessionProps) {
+  // Use topic-specific highestLevel as starting level (falls back to 1 for new topics)
+  const startLevel = (initialStats.topicStats?.[topic.id]?.highestLevel ?? 1) as import("./lib/types").Difficulty;
   const engine = useAdaptiveEngine(
     topic.generateFn,
     initialStats,
     onStatsUpdate,
-    initialStats.highestLevel,
+    startLevel,
     STREAK_TO_LEVEL_UP_JUNIOR,
+    topic.id,
   );
   const milestone = useFeedbackEvents(engine.stats);
 
@@ -296,9 +303,10 @@ interface ShellProps {
   onSwitchProfile?: () => void;
   spaceMode?: boolean;
   parentHref?: string;
+  subtitle?: string;
 }
 
-export function Shell({ children, activeProfile, onSwitchProfile, spaceMode = false, parentHref = "/math-app/parent" }: ShellProps) {
+export function Shell({ children, activeProfile, onSwitchProfile, spaceMode = false, parentHref = "/math-app/parent", subtitle }: ShellProps) {
   const bg         = spaceMode ? "bg-[#050d1f]" : "bg-gradient-to-br from-slate-50 to-brand-50";
   const logoText   = spaceMode ? "text-cyan-100" : "text-slate-800";
   const logoSub    = spaceMode ? "text-cyan-500/50" : "text-slate-400";
@@ -322,7 +330,7 @@ export function Shell({ children, activeProfile, onSwitchProfile, spaceMode = fa
             <span className="text-2xl">{spaceMode ? "🚀" : "🧮"}</span>
             <div>
               <p className={`font-extrabold text-lg leading-tight ${logoText}`}>{spaceMode ? "חלל מתמטי" : "מתמטיקה"}</p>
-              <p className={`text-xs ${logoSub}`}>{spaceMode ? "כיתה ג׳" : "כיתות ה׳–ו׳"}</p>
+              <p className={`text-xs ${logoSub}`}>{subtitle ?? (spaceMode ? "כיתה ג׳" : "כיתות ה׳–ו׳")}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -354,6 +362,8 @@ interface MathAppClientProps {
 export default function MathAppClient({ topicIds, parentHref = "/math-app/parent", storageKey }: MathAppClientProps) {
   const topics = topicIds ? ALL_TOPICS.filter((t) => topicIds.includes(t.id)) : ALL_TOPICS;
   const singleTopic = topics.length === 1;
+  // Derive subtitle from topic mix so Shell always shows the correct grade label
+  const shellSubtitle = topics.every((t) => t.junior) ? "כיתה ג׳–ד׳" : "כיתות ה׳–ו׳";
 
   const {
     profiles, activeProfile, syncing,
@@ -373,7 +383,7 @@ export default function MathAppClient({ topicIds, parentHref = "/math-app/parent
 
   if (!activeProfile) {
     return (
-      <Shell parentHref={parentHref}>
+      <Shell parentHref={parentHref} subtitle={shellSubtitle}>
         <ProfileSelector
           profiles={profiles}
           syncing={syncing}
@@ -391,7 +401,7 @@ export default function MathAppClient({ topicIds, parentHref = "/math-app/parent
       : () => setActiveTopic(null);
 
     return (
-      <Shell activeProfile={activeProfile} onSwitchProfile={clearActiveProfile} spaceMode={spaceMode} parentHref={parentHref}>
+      <Shell activeProfile={activeProfile} onSwitchProfile={clearActiveProfile} spaceMode={spaceMode} parentHref={parentHref} subtitle={shellSubtitle}>
         {activeTopic.junior ? (
           <JuniorSession
             topic={activeTopic}
@@ -412,7 +422,7 @@ export default function MathAppClient({ topicIds, parentHref = "/math-app/parent
   }
 
   return (
-    <Shell activeProfile={activeProfile} onSwitchProfile={clearActiveProfile} parentHref={parentHref}>
+    <Shell activeProfile={activeProfile} onSwitchProfile={clearActiveProfile} parentHref={parentHref} subtitle={shellSubtitle}>
       <Dashboard
         profile={activeProfile}
         topics={topics}

@@ -50,7 +50,10 @@ export default function MathCard({
       setShake(true);
       setTimeout(() => {
         setShake(false);
-        if (!showHintRef.current) setAnswered(false);
+        if (!showHintRef.current) {
+          setAnswered(false);
+          setInput(""); // clear wrong answer so user can type fresh
+        }
       }, 600);
     }
   }, [input, answered, onSubmit]);
@@ -213,7 +216,7 @@ export default function MathCard({
       {/* ── inline feedback ── */}
       {stats.lastAnswerCorrect === true && !stats.showHint && (
         <div className={`text-center font-bold text-lg animate-fadein ${feedbackCorrect}`}>
-          ✅ כל הכבוד!{stats.streak >= 3 ? " 🎉 עלית רמה!" : ""}
+          ✅ כל הכבוד!{stats.justLeveledUp ? " 🎉 עלית רמה!" : ""}
         </div>
       )}
       {stats.lastAnswerCorrect === false && !stats.showHint && !answered && (

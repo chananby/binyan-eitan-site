@@ -14,7 +14,21 @@ export interface MathQuestion {
   fullSolution: string[];
 }
 
-/** Cumulative stats for one user profile (persisted, topic-agnostic for now) */
+/** Per-topic accumulated stats (stored inside StoredStats.topicStats) */
+export interface TopicStats {
+  highestLevel: Difficulty;
+  totalCorrect: number;
+  totalWrong: number;
+  pointsTotal: number;
+  lastPlayed: string; // ISO date string
+}
+
+export const EMPTY_TOPIC_STATS: TopicStats = {
+  highestLevel: 1, totalCorrect: 0, totalWrong: 0,
+  pointsTotal: 0, lastPlayed: "",
+};
+
+/** Cumulative stats for one user profile (persisted) */
 export interface StoredStats {
   totalCorrect: number;
   totalWrong: number;
@@ -22,6 +36,8 @@ export interface StoredStats {
   sessionsPlayed: number;
   pointsTotal: number;
   lastPlayed: string;   // ISO date string
+  /** Per-topic breakdown — keyed by topic.id */
+  topicStats?: Record<string, TopicStats>;
 }
 
 export const EMPTY_STATS: StoredStats = {

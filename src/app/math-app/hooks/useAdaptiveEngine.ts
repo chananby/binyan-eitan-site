@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * useAdaptiveEngine(generateFn, initialStats, onStatsUpdate, startLevel)
- * ────────────────────────────────────────────────────────────────────────
+ * useAdaptiveEngine(generateFn, initialStats, onStatsUpdate, startLevel, streakToLevelUp, topicId)
+ * ──────────────────────────────────────────────────────────────────────────────────────────────
  * Topic-agnostic adaptive practice engine.
  * Storage is the caller's responsibility — handled via onStatsUpdate callback.
  *
@@ -12,11 +12,16 @@
  *   • 2 CONSECUTIVE wrong answers    → fullSolution shown + level DOWN (min 1)
  *   • 1 wrong answer                 → correctStreak resets, stays at current level
  *   • timeout()                      → counts as wrong, same adaptive logic
+ *
+ * Per-topic stats
+ * ───────────────
+ *   When topicId is provided, every flush also updates StoredStats.topicStats[topicId].
+ *   This lets each topic maintain its own highestLevel, so starting level is topic-specific.
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import type { Difficulty, MathQuestion, StoredStats } from "../lib/types";
-import { EMPTY_STATS } from "../lib/types";
+import type { Difficulty, MathQuestion, StoredStats, TopicStats } from "../lib/types";
+import { EMPTY_STATS, EMPTY_TOPIC_STATS } from "../lib/types";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -29,6 +34,7 @@ export interface SessionStats {
   level: Difficulty;
   showHint: boolean;
   lastAnswerCorrect: boolean | null;
+  justLeveledUp: boolean;
 }
 
 export interface AdaptiveEngine {
@@ -54,6 +60,7 @@ function freshSession(level: Difficulty): SessionStats {
   return {
     correct: 0, wrong: 0, streak: 0, wrongStreak: 0,
     points: 0, level, showHint: false, lastAnswerCorrect: null,
+    justLeveledUp: false,
   };
 }
 
@@ -65,6 +72,7 @@ export function useAdaptiveEngine(
   onStatsUpdate: (s: StoredStats) => void = () => {},
   startLevel: Difficulty = 1,
   streakToLevelUp: number = 3,
+  topicId?: string,
 ): AdaptiveEngine {
   // Keep callbacks in refs so they're never stale inside memoized callbacks
   const generateFnRef    = useRef(generateFn);
@@ -76,6 +84,20 @@ export function useAdaptiveEngine(
   const storedRef = useRef<StoredStats>(initialStats);
   useEffect(() => { storedRef.current = initialStats; }, [initialStats]);
 
+  // topicStatsRef mirrors the per-topic slice for the active topic
+  const topicStatsRef = useRef<TopicStats>(
+    (topicId && initialStats.topicStats?.[topicId])
+      ? initialStats.topicStats[topicId]
+      : { ...EMPTY_TOPIC_STATS },
+  );
+  useEffect(() => {
+    if (topicId) {
+      topicStatsRef.current = initialStats.topicStats?.[topicId] ?? { ...EMPTY_TOPIC_STATS };
+    }
+  // topicId is stable per session — intentional
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialStats]);
+
   const [stats, setStats]       = useState<SessionStats>(() => freshSession(startLevel));
   const [question, setQuestion] = useState<MathQuestion>(() => generateFn(startLevel));
 
@@ -85,20 +107,44 @@ export function useAdaptiveEngine(
   useEffect(() => { questionRef.current = question; }, [question]);
 
   // ── Flush a patch to cumulative stored stats ──────────────────────────────
-  const flushStored = useCallback((patch: Partial<StoredStats>) => {
+  const flushStored = useCallback((
+    patch: Partial<StoredStats>,
+    topicPatch?: Partial<TopicStats>,
+  ) => {
+    const now = new Date().toISOString();
     const next: StoredStats = {
       ...storedRef.current,
       ...patch,
-      lastPlayed: new Date().toISOString(),
+      lastPlayed: now,
     };
+
+    if (topicId && topicPatch) {
+      const updatedTopic: TopicStats = {
+        ...topicStatsRef.current,
+        ...topicPatch,
+        lastPlayed: now,
+      };
+      topicStatsRef.current = updatedTopic;
+      next.topicStats = {
+        ...storedRef.current.topicStats,
+        [topicId]: updatedTopic,
+      };
+    }
+
     storedRef.current = next;
     onStatsUpdateRef.current(next);
-  }, []);
+  }, [topicId]);
 
   // ── Advance to next question ──────────────────────────────────────────────
   const advanceTo = useCallback((level: Difficulty) => {
     setQuestion(generateFnRef.current(level));
-    setStats((prev) => ({ ...prev, level, showHint: false, lastAnswerCorrect: null }));
+    setStats((prev) => ({
+      ...prev,
+      level,
+      showHint: false,
+      lastAnswerCorrect: null,
+      justLeveledUp: false,
+    }));
   }, []);
 
   // ── Shared wrong-answer logic ─────────────────────────────────────────────
@@ -112,18 +158,19 @@ export function useAdaptiveEngine(
     showHint: boolean;
   } {
     const newWrongStreak = prev.wrongStreak + 1;
-    const showHint       = newWrongStreak >= 2;             // drop after 2 consecutive
+    const showHint       = newWrongStreak >= 2;
     const newLevel       = showHint ? clampLevel(prev.level - 1) : prev.level;
 
     return {
       newStats: {
         ...prev,
-        wrong:       prev.wrong + 1,
-        streak:      0,                                     // correct streak always resets
-        wrongStreak: showHint ? 0 : newWrongStreak,         // reset after penalty
-        level:       newLevel,
+        wrong:         prev.wrong + 1,
+        streak:        0,
+        wrongStreak:   showHint ? 0 : newWrongStreak,
+        level:         newLevel,
         showHint,
         lastAnswerCorrect: false,
+        justLeveledUp: false,
       },
       newLevel,
       showHint,
@@ -154,40 +201,51 @@ export function useAdaptiveEngine(
         level:       newLevel,
         showHint:    false,
         lastAnswerCorrect: true,
+        justLeveledUp: levelUp,
       });
 
-      flushStored({
-        totalCorrect: storedRef.current.totalCorrect + 1,
-        highestLevel: Math.max(storedRef.current.highestLevel, newLevel) as Difficulty,
-        pointsTotal:  storedRef.current.pointsTotal + earned,
-      });
+      flushStored(
+        {
+          totalCorrect: storedRef.current.totalCorrect + 1,
+          highestLevel: Math.max(storedRef.current.highestLevel, newLevel) as Difficulty,
+          pointsTotal:  storedRef.current.pointsTotal + earned,
+        },
+        topicId ? {
+          totalCorrect: topicStatsRef.current.totalCorrect + 1,
+          highestLevel: Math.max(topicStatsRef.current.highestLevel, newLevel) as Difficulty,
+          pointsTotal:  topicStatsRef.current.pointsTotal + earned,
+        } : undefined,
+      );
 
       setTimeout(() => advanceTo(newLevel), 700);
       return true;
     }
 
     // Wrong answer — apply grace-period logic
-    const { newStats, newLevel, showHint } = applyWrong(prev);
+    const { newStats, showHint } = applyWrong(prev);
     setStats(newStats);
-    flushStored({ totalWrong: storedRef.current.totalWrong + 1 });
+    flushStored(
+      { totalWrong: storedRef.current.totalWrong + 1 },
+      topicId ? { totalWrong: topicStatsRef.current.totalWrong + 1 } : undefined,
+    );
 
-    // If hint shown, user must click "next" manually.
-    // If single wrong (no hint), let the user retry — do NOT auto-advance.
     if (showHint) {
       // advanceTo is called by the `next` callback when user dismisses hint
     }
     return false;
-  }, [advanceTo, flushStored]);
+  }, [advanceTo, flushStored, streakToLevelUp, topicId]);
 
   // ── Timeout (timer ran out — counts as wrong) ─────────────────────────────
   const timeout = useCallback(() => {
     const prev = statsRef.current;
     const { newStats, newLevel, showHint } = applyWrong(prev);
     setStats(newStats);
-    flushStored({ totalWrong: storedRef.current.totalWrong + 1 });
-    // Auto-advance only when no hint needs to be shown
+    flushStored(
+      { totalWrong: storedRef.current.totalWrong + 1 },
+      topicId ? { totalWrong: topicStatsRef.current.totalWrong + 1 } : undefined,
+    );
     if (!showHint) setTimeout(() => advanceTo(newLevel), 500);
-  }, [advanceTo, flushStored]);
+  }, [advanceTo, flushStored, topicId]);
 
   // ── Dismiss hint / advance ────────────────────────────────────────────────
   const next = useCallback(() => {
