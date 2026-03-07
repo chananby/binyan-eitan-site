@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { X } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -49,6 +50,13 @@ interface GS {
   perfectFlash: number;
 }
 
+export interface PrecisionStackProps {
+  /** When provided: shows X close button, removes back-to-site link, uses modal height */
+  onClose?: () => void;
+  /** Compact inline mode: auto-starts, smaller height, no start screen */
+  compact?: boolean;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTANTS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -67,6 +75,52 @@ const BG2      = "#1f1a14";
 const BONE     = "rgba(243,242,238,";
 const BRONZE   = "rgba(141,119,95,";
 const GOLD     = "rgba(201,169,110,";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUDIO — Web Audio API (respects system silent mode automatically)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function playDrop(ctx: AudioContext) {
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type = "sine";
+  o.frequency.setValueAtTime(210, ctx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(88, ctx.currentTime + 0.11);
+  g.gain.setValueAtTime(0.18, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.13);
+  o.start(); o.stop(ctx.currentTime + 0.15);
+}
+
+function playPerfect(ctx: AudioContext) {
+  // Three-note ascending arpeggio: C5 → E5 → G5
+  ([523, 659, 784] as const).forEach((freq, i) => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = "sine";
+    o.frequency.value = freq;
+    const t = ctx.currentTime + i * 0.085;
+    g.gain.setValueAtTime(0.13, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+    o.start(t); o.stop(t + 0.42);
+  });
+}
+
+function playGameOver(ctx: AudioContext) {
+  // Two descending notes
+  ([220, 165] as const).forEach((freq, i) => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = "sine";
+    o.frequency.value = freq;
+    const t = ctx.currentTime + i * 0.27;
+    g.gain.setValueAtTime(0.14, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
+    o.start(t); o.stop(t + 0.48);
+  });
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PURE HELPERS
@@ -218,16 +272,34 @@ function render(ctx: CanvasRenderingContext2D, gs: GS, W: number, H: number) {
 // COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function PrecisionStack() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gsRef     = useRef<GS | null>(null);
-  const rafRef    = useRef(0);
-  const dimRef    = useRef({ W: 360, H: 600 });
+export default function PrecisionStack({ onClose, compact }: PrecisionStackProps = {}) {
+  const canvasRef   = useRef<HTMLCanvasElement>(null);
+  const gsRef       = useRef<GS | null>(null);
+  const rafRef      = useRef(0);
+  const dimRef      = useRef({ W: 360, H: 600 });
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
-  const [phase,   setPhase]   = useState<Phase>("start");
+  const [phase,   setPhase]   = useState<Phase>(compact ? "playing" : "start");
   const [score,   setScore]   = useState(0);
   const [best,    setBest]    = useState(0);
   const [perfect, setPerfect] = useState(false);
+
+  // Lazy AudioContext — created on first user gesture to satisfy browser policy
+  const getAudio = useCallback((): AudioContext | null => {
+    if (typeof window === "undefined") return null;
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (
+          window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+        )();
+      }
+      if (audioCtxRef.current.state === "suspended") audioCtxRef.current.resume();
+      return audioCtxRef.current;
+    } catch { return null; }
+  }, []);
+
+  // Container height
+  const containerH = onClose ? "580px" : compact ? "400px" : "100dvh";
 
   // ── Resize ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -256,6 +328,7 @@ export default function PrecisionStack() {
     const gs = gsRef.current;
     if (!gs || gs.phase !== "playing") return;
     const { W, H } = dimRef.current;
+    const audio = getAudio();
 
     const prev = gs.blocks[gs.blocks.length - 1];
     const bL   = gs.beamX,            bR = gs.beamX + gs.beamWidth;
@@ -272,6 +345,7 @@ export default function PrecisionStack() {
       setPhase("over");
       setScore(gs.score);
       setBest(b => Math.max(b, gs.score));
+      if (audio) playGameOver(audio);
       return;
     }
 
@@ -284,9 +358,11 @@ export default function PrecisionStack() {
       gs.perfectFlash = 22;
       setPerfect(true);
       setTimeout(() => setPerfect(false), 900);
+      if (audio) playPerfect(audio);
     } else {
       if (bL < oL) gs.falling.push({ x: bL, y: by, width: oL - bL, vy: 0, vx: -0.9, alpha: 1 });
       if (bR > oR) gs.falling.push({ x: oR, y: by, width: bR - oR, vy: 0, vx:  0.9, alpha: 1 });
+      if (audio) playDrop(audio);
     }
 
     gs.blocks.push({ x: finalX, width: finalW, isPerfect });
@@ -303,7 +379,7 @@ export default function PrecisionStack() {
     gs.beamX       = nextVel > 0 ? 0 : W - finalW;
 
     setScore(gs.score);
-  }, []);
+  }, [getAudio]);
 
   // ── Game loop ────────────────────────────────────────────────────────────
   const loop = useCallback(() => {
@@ -345,10 +421,12 @@ export default function PrecisionStack() {
   // ── Bootstrap ────────────────────────────────────────────────────────────
   useEffect(() => {
     const { W, H } = dimRef.current;
-    gsRef.current  = freshGS(W, H);
+    const gs = freshGS(W, H);
+    if (compact) gs.phase = "playing";
+    gsRef.current  = gs;
     rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [loop]);
+  }, [loop, compact]);
 
   // ── Start / restart ──────────────────────────────────────────────────────
   const startGame = useCallback(() => {
@@ -359,7 +437,8 @@ export default function PrecisionStack() {
     setPhase("playing");
     setScore(0);
     setPerfect(false);
-  }, []);
+    getAudio(); // init AudioContext on user gesture
+  }, [getAudio]);
 
   // ── Keyboard ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -377,8 +456,20 @@ export default function PrecisionStack() {
     <div
       dir="rtl"
       className="relative w-full select-none overflow-hidden"
-      style={{ height: "100dvh", background: BG1 }}
+      style={{ height: containerH, background: BG1 }}
     >
+      {/* ── X close button (modal mode) ─────────────────────────────────── */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-20 flex items-center justify-center w-8 h-8 rounded-full transition-colors hover:bg-white/10"
+          style={{ color: "rgba(243,242,238,0.45)" }}
+          aria-label="סגור"
+        >
+          <X size={18} />
+        </button>
+      )}
+
       {/* ── Canvas ─────────────────────────────────────────────────────── */}
       <canvas
         ref={canvasRef}
@@ -423,17 +514,17 @@ export default function PrecisionStack() {
           >
             <p className="text-[0.6rem] tracking-[0.3em] uppercase mb-0.5"
               style={{ color: "rgba(243,242,238,0.35)" }}>גובה</p>
-            <p className="text-5xl font-black tabular-nums leading-none"
+            <p className={`font-black tabular-nums leading-none ${compact ? "text-3xl" : "text-5xl"}`}
               style={{ color: "rgba(243,242,238,0.92)" }}>{score}</p>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* ─────────────────────────────────────────────────────────────────
-          START SCREEN
+          START SCREEN — not shown in compact mode
       ──────────────────────────────────────────────────────────────────── */}
       <AnimatePresence>
-        {phase === "start" && (
+        {phase === "start" && !compact && (
           <motion.div
             key="start"
             initial={{ opacity: 0 }}
@@ -503,21 +594,23 @@ export default function PrecisionStack() {
               לחץ · הקש · Space
             </motion.p>
 
-            {/* Back link */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="absolute bottom-8"
-            >
-              <Link
-                href="/he"
-                className="text-xs tracking-[0.22em] uppercase transition-opacity hover:opacity-60"
-                style={{ color: "rgba(243,242,238,0.28)" }}
+            {/* Back link — only in standalone page mode */}
+            {!onClose && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="absolute bottom-8"
               >
-                → חזרה לאתר
-              </Link>
-            </motion.div>
+                <Link
+                  href="/he"
+                  className="text-xs tracking-[0.22em] uppercase transition-opacity hover:opacity-60"
+                  style={{ color: "rgba(243,242,238,0.28)" }}
+                >
+                  → חזרה לאתר
+                </Link>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -546,7 +639,7 @@ export default function PrecisionStack() {
                 style={{ color: "#8D775F" }}>הגובה שלך</p>
               <p
                 className="font-heading font-black tabular-nums leading-none"
-                style={{ fontSize: "clamp(5rem,20vw,7rem)", color: "rgba(243,242,238,0.96)" }}
+                style={{ fontSize: compact ? "clamp(3.5rem,14vw,5rem)" : "clamp(5rem,20vw,7rem)", color: "rgba(243,242,238,0.96)" }}
               >
                 {score}
               </p>
@@ -578,50 +671,55 @@ export default function PrecisionStack() {
               </AnimatePresence>
             </motion.div>
 
-            {/* Brand message */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0  }}
-              transition={{ delay: 0.85 }}
-              className="mt-10 mb-10 max-w-sm"
-            >
-              <p className="text-sm leading-relaxed"
-                style={{ color: "rgba(243,242,238,0.45)" }}>
-                בבנייה אמיתית אין מקום לטעויות.
-              </p>
-              <p className="text-sm leading-relaxed mt-2 font-semibold"
-                style={{ color: "rgba(243,242,238,0.82)" }}>
-                בבנין איתן — אנחנו מדייקים בכל פעם.
-              </p>
-            </motion.div>
+            {/* Brand message — only in full / modal mode */}
+            {!compact && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0  }}
+                transition={{ delay: 0.85 }}
+                className="mt-10 mb-10 max-w-sm"
+              >
+                <p className="text-sm leading-relaxed"
+                  style={{ color: "rgba(243,242,238,0.45)" }}>
+                  בבנייה אמיתית אין מקום לטעויות.
+                </p>
+                <p className="text-sm leading-relaxed mt-2 font-semibold"
+                  style={{ color: "rgba(243,242,238,0.82)" }}>
+                  בבנין איתן — אנחנו מדייקים בכל פעם.
+                </p>
+              </motion.div>
+            )}
 
             {/* Action buttons */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0  }}
-              transition={{ delay: 1.05 }}
-              className="flex flex-col sm:flex-row gap-4 items-center"
+              transition={{ delay: compact ? 0.7 : 1.05 }}
+              className={`flex flex-col sm:flex-row gap-4 items-center ${compact ? "mt-6" : ""}`}
             >
               <motion.button
                 whileHover={{ scale: 1.04 }}
                 whileTap  ={{ scale: 0.97 }}
                 onClick={startGame}
-                className="px-12 py-4 text-sm font-bold tracking-[0.3em] uppercase"
+                className={`px-10 py-3 text-sm font-bold tracking-[0.3em] uppercase`}
                 style={{ background: "#8D775F", color: "#F3F2EE" }}
               >
                 שחק שוב
               </motion.button>
 
-              <Link
-                href="/he"
-                className="px-8 py-4 text-sm font-semibold tracking-[0.22em] uppercase border transition-opacity hover:opacity-70"
-                style={{
-                  borderColor: "rgba(243,242,238,0.20)",
-                  color: "rgba(243,242,238,0.58)",
-                }}
-              >
-                לאתר בנין איתן ←
-              </Link>
+              {/* Site link — only in standalone mode */}
+              {!onClose && !compact && (
+                <Link
+                  href="/he"
+                  className="px-8 py-4 text-sm font-semibold tracking-[0.22em] uppercase border transition-opacity hover:opacity-70"
+                  style={{
+                    borderColor: "rgba(243,242,238,0.20)",
+                    color: "rgba(243,242,238,0.58)",
+                  }}
+                >
+                  לאתר בנין איתן ←
+                </Link>
+              )}
             </motion.div>
           </motion.div>
         )}

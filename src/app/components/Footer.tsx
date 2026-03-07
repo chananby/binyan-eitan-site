@@ -6,7 +6,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
-import PrecisionGame from "./PrecisionGame";
+import PrecisionStack from "../play/PrecisionStack";
 
 type Lang = "en" | "he";
 
@@ -167,7 +167,7 @@ export default function Footer() {
               transition={{ duration: 0.25 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <PrecisionGame onClose={() => setLabOpen(false)} />
+              <PrecisionStack onClose={() => setLabOpen(false)} />
             </motion.div>
           </motion.div>
         )}
