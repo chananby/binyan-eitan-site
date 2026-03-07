@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import defaultTranslations from "@/src/lib/translations.json";
 import XRaySlider from "@/src/app/components/XRaySlider";
 
@@ -213,6 +213,71 @@ function ImageRow({
         <IconBtn onClick={onMoveDown} disabled={index === total - 1} title="הזז למטה"><SvgDown /></IconBtn>
         <IconBtn onClick={onDelete} title="הסר תמונה" danger><SvgTrash /></IconBtn>
       </div>
+    </div>
+  );
+}
+
+// ── Bold-capable textarea ─────────────────────────────────────────────────────
+// Wraps/unwraps **bold** markers around selected text.
+// Ctrl+B (or Cmd+B) is the keyboard shortcut; there's also a toolbar B button.
+// The onChange signature matches a standard textarea so it's a drop-in replacement.
+function BoldTextarea({
+  value = "",
+  onChange,
+  className = "",
+  ...rest
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { value: string }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  function applyBold() {
+    const el = ref.current;
+    if (!el || !onChange) return;
+    const s = el.selectionStart ?? 0;
+    const e = el.selectionEnd ?? 0;
+    const selected = value.slice(s, e);
+    const before = value.slice(0, s);
+    const after = value.slice(e);
+    const isBold = selected.startsWith("**") && selected.endsWith("**") && selected.length > 4;
+    const newVal = isBold
+      ? before + selected.slice(2, -2) + after
+      : before + "**" + (selected || "טקסט") + "**" + after;
+    onChange({ target: { value: newVal } } as React.ChangeEvent<HTMLTextAreaElement>);
+    const shift = isBold ? -4 : 4;
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(s + (isBold ? 0 : 2), Math.max(s + (isBold ? 0 : 2), e + shift));
+    }, 0);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+      e.preventDefault();
+      applyBold();
+    }
+    (rest.onKeyDown as ((e: React.KeyboardEvent<HTMLTextAreaElement>) => void) | undefined)?.(e);
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-1 mb-0.5">
+        <button
+          type="button"
+          onMouseDown={(e) => { e.preventDefault(); applyBold(); }}
+          title="הדגש טקסט נבחר (Ctrl+B)"
+          className="text-[11px] leading-none px-1.5 py-0.5 border border-gray-200 rounded bg-white hover:bg-gray-100 text-gray-600 select-none font-bold"
+        >
+          B
+        </button>
+        <span className="text-[9px] text-gray-300 select-none">Ctrl+B</span>
+      </div>
+      <textarea
+        ref={ref}
+        value={value}
+        onChange={onChange}
+        {...rest}
+        className={className}
+        onKeyDown={handleKeyDown}
+      />
     </div>
   );
 }
@@ -531,6 +596,29 @@ function ArticlesManager({
 }) {
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
 
+  function copyAllArticles() {
+    const row = (label: string, val: string | undefined) => val ? `${label}\n  ${val}` : "";
+    const lines: string[] = [];
+    articles.forEach((article, idx) => {
+      lines.push(
+        `════════════════════════════════════`,
+        `  מאמר #${String(idx + 1).padStart(2, "0")} — ${article.slug || "(ללא slug)"}`,
+        `════════════════════════════════════`, "",
+        row("כותרת עב:", article.title_he), row("Title EN:", article.title_en), "",
+        row("פתיח עב:", article.intro_he), row("Intro EN:", article.intro_en), "",
+        row("פרק 1 כותרת עב:", article.s1_title_he), row("S1 title EN:", article.s1_title_en),
+        row("פרק 1 גוף עב:", article.s1_body_he), row("S1 body EN:", article.s1_body_en), "",
+        row("פרק 2 כותרת עב:", article.s2_title_he), row("S2 title EN:", article.s2_title_en),
+        row("פרק 2 גוף עב:", article.s2_body_he), row("S2 body EN:", article.s2_body_en), "",
+        row("טיפ עב:", article.tip_he), row("Tip EN:", article.tip_en), "",
+        row("סיכום עב:", article.summary_he), row("Summary EN:", article.summary_en), "",
+      );
+    });
+    navigator.clipboard.writeText(lines.filter(Boolean).join("\n"));
+    setCopiedId("ALL");
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
   function copyArticle(article: Article, idx: number) {
     const row = (label: string, val: string | undefined) => val ? `${label}\n  ${val}` : "";
     const lines = [
@@ -575,13 +663,25 @@ function ArticlesManager({
           <h2 className="text-xl font-bold text-gray-900">ניהול מאמרים מקצועיים</h2>
           <p className="text-sm text-gray-500 mt-1">כל מאמר מקבל עמוד משלו בכתובת <span dir="ltr">/expertise/[slug]</span></p>
         </div>
-        <button onClick={onAdd}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#8D775F] hover:bg-[#7A6451] text-white text-sm font-bold rounded-lg transition-colors shadow-sm">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-            <path d="M7 1v12M1 7h12" />
-          </svg>
-          מאמר חדש
-        </button>
+        <div className="flex items-center gap-2">
+          {articles.length > 0 && (
+            <button
+              onClick={copyAllArticles}
+              className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg border transition-colors ${
+                copiedId === "ALL" ? "border-green-300 text-green-600 bg-green-50" : "border-gray-200 text-gray-500 hover:border-[#8D775F] hover:text-[#8D775F]"
+              }`}
+            >
+              {copiedId === "ALL" ? "✓ הועתק" : "📋 העתק הכל"}
+            </button>
+          )}
+          <button onClick={onAdd}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#8D775F] hover:bg-[#7A6451] text-white text-sm font-bold rounded-lg transition-colors shadow-sm">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+              <path d="M7 1v12M1 7h12" />
+            </svg>
+            מאמר חדש
+          </button>
+        </div>
       </div>
 
       {articles.length === 0 && (
@@ -670,12 +770,12 @@ function ArticlesManager({
               <div>
                 <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2.5">פתיח (Intro)</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <textarea dir="rtl" rows={3} value={article.intro_he || ""}
+                  <BoldTextarea dir="rtl" rows={3} value={article.intro_he || ""}
                     onChange={(e) => onUpdate(idx, "intro_he", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
                     placeholder="פסקת פתיח יוקרתית..."
                   />
-                  <textarea dir="ltr" rows={3} value={article.intro_en || ""}
+                  <BoldTextarea dir="ltr" rows={3} value={article.intro_en || ""}
                     onChange={(e) => onUpdate(idx, "intro_en", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
                     placeholder="Elegant opening paragraph..."
@@ -699,12 +799,12 @@ function ArticlesManager({
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <textarea dir="rtl" rows={4} value={article.s1_body_he || ""}
+                  <BoldTextarea dir="rtl" rows={4} value={article.s1_body_he || ""}
                     onChange={(e) => onUpdate(idx, "s1_body_he", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
                     placeholder="תוכן פרק 1..."
                   />
-                  <textarea dir="ltr" rows={4} value={article.s1_body_en || ""}
+                  <BoldTextarea dir="ltr" rows={4} value={article.s1_body_en || ""}
                     onChange={(e) => onUpdate(idx, "s1_body_en", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
                     placeholder="Section 1 body..."
@@ -728,12 +828,12 @@ function ArticlesManager({
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <textarea dir="rtl" rows={4} value={article.s2_body_he || ""}
+                  <BoldTextarea dir="rtl" rows={4} value={article.s2_body_he || ""}
                     onChange={(e) => onUpdate(idx, "s2_body_he", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
                     placeholder="תוכן פרק 2..."
                   />
-                  <textarea dir="ltr" rows={4} value={article.s2_body_en || ""}
+                  <BoldTextarea dir="ltr" rows={4} value={article.s2_body_en || ""}
                     onChange={(e) => onUpdate(idx, "s2_body_en", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
                     placeholder="Section 2 body..."
@@ -763,12 +863,12 @@ function ArticlesManager({
               <div>
                 <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2.5">הטיפ של מוטי (Tip Box)</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <textarea dir="rtl" rows={3} value={article.tip_he || ""}
+                  <BoldTextarea dir="rtl" rows={3} value={article.tip_he || ""}
                     onChange={(e) => onUpdate(idx, "tip_he", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
                     placeholder="הטיפ המקצועי של מוטי..."
                   />
-                  <textarea dir="ltr" rows={3} value={article.tip_en || ""}
+                  <BoldTextarea dir="ltr" rows={3} value={article.tip_en || ""}
                     onChange={(e) => onUpdate(idx, "tip_en", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
                     placeholder="Moti's professional tip..."
@@ -882,6 +982,30 @@ export default function ContentEditorPage() {
     setCopiedKey(`faq-${faq.id}`);
     setTimeout(() => setCopiedKey(null), 2000);
   }, []);
+
+  const copyAllFaqs = useCallback(() => {
+    const lines: string[] = [];
+    faqs.forEach((faq, idx) => {
+      lines.push(`════════════════════════════`, `  שאלה #${idx + 1}`, `════════════════════════════`, "");
+      lines.push(`  עב [question]: ${faq.question_he}`, `  EN [question]: ${faq.question_en}`, "");
+      lines.push(`  עב [answer]: ${faq.answer_he}`, `  EN [answer]: ${faq.answer_en}`, "");
+    });
+    navigator.clipboard.writeText(lines.join("\n"));
+    setCopiedKey("all-faqs");
+    setTimeout(() => setCopiedKey(null), 2000);
+  }, [faqs]);
+
+  const copyAllTestimonials = useCallback(() => {
+    const lines: string[] = [];
+    testimonials.forEach((t, idx) => {
+      lines.push(`════════════════════════════`, `  עדות #${idx + 1} — ${t.name}`, `════════════════════════════`, "");
+      lines.push(`  שם: ${t.name}`, `  עיר עב: ${t.city_he ?? ""}`, `  City EN: ${t.city_en ?? ""}`, "");
+      lines.push(`  עב: ${t.text_he}`, `  EN: ${t.text_en}`, "");
+    });
+    navigator.clipboard.writeText(lines.join("\n"));
+    setCopiedKey("all-testimonials");
+    setTimeout(() => setCopiedKey(null), 2000);
+  }, [testimonials]);
 
   // ── Translation field change (text editor) ────────────────────────────────
   const handleChange = useCallback((lang: "en" | "he", key: string, value: string) => {
@@ -1228,9 +1352,21 @@ export default function ContentEditorPage() {
                       <h2 className="text-2xl font-bold text-gray-800">שאלות נפוצות</h2>
                       <p className="text-sm text-gray-500 mt-1">שאלות ותשובות קצרות — מוצגות כאקורדיון בעמוד שאלות נפוצות (/faq).</p>
                     </div>
-                    <button onClick={addFaq} className="px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-md hover:bg-[#7A6451] transition-colors shadow-sm">
-                      + הוסף שאלה
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {faqs.length > 0 && (
+                        <button
+                          onClick={copyAllFaqs}
+                          className={`text-xs font-bold px-3 py-2 rounded-md border transition-colors ${
+                            copiedKey === "all-faqs" ? "border-green-300 text-green-600 bg-green-50" : "border-gray-200 text-gray-500 hover:border-[#8D775F] hover:text-[#8D775F]"
+                          }`}
+                        >
+                          {copiedKey === "all-faqs" ? "✓ הועתק" : "📋 העתק הכל"}
+                        </button>
+                      )}
+                      <button onClick={addFaq} className="px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-md hover:bg-[#7A6451] transition-colors shadow-sm">
+                        + הוסף שאלה
+                      </button>
+                    </div>
                   </div>
                   {faqs.length === 0 && (
                     <div className="bg-white rounded-lg border border-gray-200 shadow-sm py-16 text-center">
@@ -1270,11 +1406,11 @@ export default function ContentEditorPage() {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-xs font-bold text-gray-500 mb-1.5">תשובה (עברית)</label>
-                              <textarea dir="rtl" rows={4} value={faq.answer_he} onChange={(e) => updateFaq(idx, "answer_he", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" placeholder="תשובה לשאלה" />
+                              <BoldTextarea dir="rtl" rows={4} value={faq.answer_he} onChange={(e) => updateFaq(idx, "answer_he", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" placeholder="תשובה לשאלה" />
                             </div>
                             <div>
                               <label className="block text-xs font-bold text-gray-500 mb-1.5">Answer (English)</label>
-                              <textarea dir="ltr" rows={4} value={faq.answer_en} onChange={(e) => updateFaq(idx, "answer_en", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" placeholder="Answer to the question" />
+                              <BoldTextarea dir="ltr" rows={4} value={faq.answer_en} onChange={(e) => updateFaq(idx, "answer_en", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" placeholder="Answer to the question" />
                             </div>
                           </div>
                         </div>
@@ -1292,9 +1428,21 @@ export default function ContentEditorPage() {
                       <h2 className="text-2xl font-bold text-gray-800">עדויות לקוחות</h2>
                       <p className="text-sm text-gray-500 mt-1">ביקורות / פידבקים — מוצגות בדף הבית בין תיק הפרויקטים לטופס הצור קשר.</p>
                     </div>
-                    <button onClick={addTestimonial} className="px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-md hover:bg-[#7A6451] transition-colors shadow-sm">
-                      + הוסף עדות
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {testimonials.length > 0 && (
+                        <button
+                          onClick={copyAllTestimonials}
+                          className={`text-xs font-bold px-3 py-2 rounded-md border transition-colors ${
+                            copiedKey === "all-testimonials" ? "border-green-300 text-green-600 bg-green-50" : "border-gray-200 text-gray-500 hover:border-[#8D775F] hover:text-[#8D775F]"
+                          }`}
+                        >
+                          {copiedKey === "all-testimonials" ? "✓ הועתק" : "📋 העתק הכל"}
+                        </button>
+                      )}
+                      <button onClick={addTestimonial} className="px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-md hover:bg-[#7A6451] transition-colors shadow-sm">
+                        + הוסף עדות
+                      </button>
+                    </div>
                   </div>
                   {testimonials.length === 0 && (
                     <div className="bg-white rounded-lg border border-gray-200 shadow-sm py-16 text-center">
@@ -1334,13 +1482,13 @@ export default function ContentEditorPage() {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
                               <label className="block text-xs font-bold text-gray-500 mb-1.5">טקסט (עברית)</label>
-                              <textarea dir="rtl" rows={4} value={t.text_he} onChange={(e) => updateTestimonial(idx, "text_he", e.target.value)}
+                              <BoldTextarea dir="rtl" rows={4} value={t.text_he} onChange={(e) => updateTestimonial(idx, "text_he", e.target.value)}
                                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
                                 placeholder="כתוב את הביקורת בעברית..." />
                             </div>
                             <div>
                               <label className="block text-xs font-bold text-gray-500 mb-1.5">Text (English)</label>
-                              <textarea dir="ltr" rows={4} value={t.text_en} onChange={(e) => updateTestimonial(idx, "text_en", e.target.value)}
+                              <BoldTextarea dir="ltr" rows={4} value={t.text_en} onChange={(e) => updateTestimonial(idx, "text_en", e.target.value)}
                                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white"
                                 placeholder="Write the review in English..." />
                             </div>
@@ -1436,13 +1584,13 @@ export default function ContentEditorPage() {
                               </td>
                               <td className="px-5 py-4 align-top" dir="rtl">
                                 {isLong
-                                  ? <textarea value={heVal} onChange={(e) => handleChange("he", key, e.target.value)} rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" dir="rtl" />
+                                  ? <BoldTextarea value={heVal} onChange={(e) => handleChange("he", key, e.target.value)} rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" dir="rtl" />
                                   : <input type="text" value={heVal} onChange={(e) => handleChange("he", key, e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" dir="rtl" />
                                 }
                               </td>
                               <td className="px-5 py-4 align-top" dir="ltr">
                                 {isLong
-                                  ? <textarea value={enVal} onChange={(e) => handleChange("en", key, e.target.value)} rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" />
+                                  ? <BoldTextarea value={enVal} onChange={(e) => handleChange("en", key, e.target.value)} rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" />
                                   : <input type="text" value={enVal} onChange={(e) => handleChange("en", key, e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" />
                                 }
                               </td>

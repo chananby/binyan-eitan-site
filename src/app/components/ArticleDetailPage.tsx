@@ -47,6 +47,15 @@ interface Article {
   cta_label_he?: string;
 }
 
+/** Renders **bold** markdown markers as <strong> inline elements. */
+function renderBold(text: string): React.ReactNode {
+  const parts = text.split(/\*\*(.+?)\*\*/g);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i} className="font-bold">{part}</strong> : part
+  );
+}
+
 function readingMinutes(article: Article, lang: "en" | "he"): number {
   const fields = ["intro", "s1_body", "s2_body", "s3_body", "tip", "summary"] as const;
   const text = fields.map((f) => (article[`${f}_${lang}` as keyof Article] as string) ?? "").join(" ");
@@ -181,7 +190,7 @@ export default function ArticleDetailPage({ slug }: Props) {
           {/* פתיח יוקרתי (Intro) */}
           {intro && (
             <p className="font-body text-2xl md:text-3xl text-charcoal/70 mb-20 leading-relaxed italic font-light">
-              {intro}
+              {renderBold(intro)}
             </p>
           )}
 
@@ -202,7 +211,7 @@ export default function ArticleDetailPage({ slug }: Props) {
                 )}
                 {sBody && (
                   <p className="font-body text-lg leading-loose text-charcoal/80 whitespace-pre-wrap">
-                    {sBody}
+                    {renderBold(sBody)}
                   </p>
                 )}
               </section>

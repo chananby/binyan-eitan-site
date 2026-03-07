@@ -6,6 +6,17 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useLang } from "./LangContext";
 
+import React from "react";
+
+/** Renders **bold** markdown markers as <strong> inline elements. */
+function renderBold(text: string): React.ReactNode {
+  const parts = text.split(/\*\*(.+?)\*\*/g);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i} className="font-bold">{part}</strong> : part
+  );
+}
+
 interface Faq {
   id: string;
   question_en: string;
@@ -131,7 +142,7 @@ export default function FaqPage() {
                     {isOpen && (
                       <div className="pb-6">
                         <p className="font-body text-base text-charcoal/70 leading-relaxed">
-                          {answer}
+                          {renderBold(answer)}
                         </p>
                         {faq.link_href && (
                           <Link
