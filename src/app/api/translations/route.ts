@@ -20,19 +20,44 @@ const REVALIDATE_PATHS = [
   "/en/change-order", "/he/change-order",
 ];
 
+/** Deep-merge defaults with KV overrides.
+ *  - Objects: recursively merged so new keys added to defaults are never lost
+ *  - Arrays:  defaults win when longer (new articles/faqs added to source always show)
+ *  - Scalars: KV wins (editor changes are preserved)
+ */
+function deepMerge(
+  defaults: Record<string, unknown>,
+  overrides: Record<string, unknown>
+): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...defaults };
+  for (const key of Object.keys(overrides)) {
+    const dv = defaults[key];
+    const ov = overrides[key];
+    if (Array.isArray(ov) && Array.isArray(dv)) {
+      result[key] = dv.length > ov.length ? dv : ov;
+    } else if (
+      ov && typeof ov === "object" && !Array.isArray(ov) &&
+      dv && typeof dv === "object" && !Array.isArray(dv)
+    ) {
+      result[key] = deepMerge(
+        dv as Record<string, unknown>,
+        ov as Record<string, unknown>
+      );
+    } else {
+      result[key] = ov;
+    }
+  }
+  return result;
+}
+
 export async function GET() {
   try {
     const stored = await kv.get(KV_KEY);
     if (!stored) return NextResponse.json(defaultTranslations, { headers: NO_CACHE });
-    // Merge: defaults supply any top-level keys that KV doesn't have yet.
-    // KV wins on conflicts — EXCEPT for arrays where defaults have grown longer
-    // (new articles/faqs added to source code should always be visible).
-    const merged = { ...defaultTranslations, ...(stored as object) } as Record<string, unknown>;
-    for (const key of ["articles", "faqs"] as const) {
-      const defArr    = (defaultTranslations as Record<string, unknown>)[key] as unknown[] ?? [];
-      const storedArr = (merged[key] as unknown[]) ?? [];
-      if (defArr.length > storedArr.length) merged[key] = defArr;
-    }
+    const merged = deepMerge(
+      defaultTranslations as unknown as Record<string, unknown>,
+      stored as Record<string, unknown>
+    );
     return NextResponse.json(merged, { headers: NO_CACHE });
   } catch (err) {
     console.error("[translations/GET] KV unavailable:", err);
