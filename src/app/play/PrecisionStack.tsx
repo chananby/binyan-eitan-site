@@ -563,11 +563,38 @@ export default function PrecisionStack({ onClose, compact }: PrecisionStackProps
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0  }}
               transition={{ delay: 0.4 }}
-              className="text-base leading-relaxed mb-12 max-w-xs"
+              className="text-base leading-relaxed mb-8 max-w-xs"
               style={{ color: "rgba(243,242,238,0.42)" }}
             >
               כמה גבוה תצליח לבנות?
             </motion.p>
+
+            {/* Instructions */}
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0  }}
+              transition={{ delay: 0.48 }}
+              className="mb-10 w-full max-w-xs text-right space-y-3"
+            >
+              {([
+                { num: "01", he: "הקש, לחץ או Space להנחת הבלוק", en: "Tap, click, or press Space to drop" },
+                { num: "02", he: "כוון בדיוק מעל הערימה — דיוק מושלם = בונוס", en: "Align perfectly above the stack — a perfect drop earns a bonus" },
+                { num: "03", he: "החטאה מוחלטת? המשחק נגמר", en: "A full miss ends the game" },
+              ] as const).map(({ num, he, en }) => (
+                <div key={num} className="flex items-start gap-3">
+                  <span
+                    className="text-[0.55rem] font-bold tracking-widest mt-0.5 shrink-0"
+                    style={{ color: "#8D775F" }}
+                  >
+                    {num}
+                  </span>
+                  <div>
+                    <p className="text-sm leading-snug" style={{ color: "rgba(243,242,238,0.75)" }}>{he}</p>
+                    <p className="text-[0.65rem] leading-snug mt-0.5" style={{ color: "rgba(243,242,238,0.28)" }}>{en}</p>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
 
             {/* CTA button */}
             <motion.button
@@ -582,17 +609,6 @@ export default function PrecisionStack({ onClose, compact }: PrecisionStackProps
             >
               התחל לבנות
             </motion.button>
-
-            {/* Hint */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.0 }}
-              className="mt-5 text-xs tracking-wider"
-              style={{ color: "rgba(243,242,238,0.22)" }}
-            >
-              לחץ · הקש · Space
-            </motion.p>
 
             {/* Back link — only in standalone page mode */}
             {!onClose && (
