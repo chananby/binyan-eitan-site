@@ -7,12 +7,9 @@ import { CheckCircle, RotateCcw, PenLine, Camera, ArrowRight, ArrowLeft } from "
 import { useLang } from "./LangContext";
 
 // ── Formspree endpoint ─────────────────────────────────────────────────────────
-// Set NEXT_PUBLIC_FORMSPREE_FORM_ID in Vercel environment variables.
-// e.g.  NEXT_PUBLIC_FORMSPREE_FORM_ID=abcd1234
-const FORMSPREE_FORM_ID = process.env.NEXT_PUBLIC_FORMSPREE_FORM_ID ?? "";
-const FORMSPREE_URL = FORMSPREE_FORM_ID
-  ? `https://formspree.io/f/${FORMSPREE_FORM_ID}`
-  : "";
+const FORMSPREE_URL = `https://formspree.io/f/${
+  process.env.NEXT_PUBLIC_FORMSPREE_FORM_ID ?? "xkoqgylz"
+}`;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -314,10 +311,6 @@ export default function ChangeOrderForm() {
     }
     setSigErr(false);
     if (sigHiddenRef.current) sigHiddenRef.current.value = canvas.toDataURL("image/png");
-    if (!FORMSPREE_URL) {
-      setStatus("error");
-      return;
-    }
     setStatus("sending");
     try {
       const res = await fetch(FORMSPREE_URL, {
