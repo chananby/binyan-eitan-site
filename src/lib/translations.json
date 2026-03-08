@@ -61,7 +61,10 @@
       "stat1Value": "20+",
       "stat1Label": "Years of Experience",
       "stat2Value": "150+",
-      "stat2Label": "Projects Completed"
+      "stat2Label": "Projects Completed",
+      "stat3Value": "G1",
+      "stat3Label": "Licensed Contractor",
+      "whatsappCta": "WhatsApp Us"
     },
     "he": {
       "overline": "בנין איתן",
@@ -76,7 +79,10 @@
       "stat1Value": "20+",
       "stat1Label": "שנות ניסיון",
       "stat2Value": "150+",
-      "stat2Label": "פרויקטים שהושלמו"
+      "stat2Label": "פרויקטים שהושלמו",
+      "stat3Value": "ג1",
+      "stat3Label": "קבלן רשום",
+      "whatsappCta": "שלחו הודעה"
     }
   },
   "footer": {

@@ -182,13 +182,13 @@ export default function Footer() {
           </p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
             {[
-              { label: content.termsOfUse },
-              { label: content.privacyPolicy },
-              { label: content.accessibility },
+              { label: content.termsOfUse, anchor: "terms" },
+              { label: content.privacyPolicy, anchor: "privacy" },
+              { label: content.accessibility, anchor: "accessibility" },
             ].map((item) => (
               <Link
-                key={item.label}
-                href={`/${lang}/legal`}
+                key={item.anchor}
+                href={`/${lang}/legal#${item.anchor}`}
                 className="font-body text-[0.6rem] tracking-[0.14em] uppercase text-bone/30 hover:text-accent transition-colors duration-200"
               >
                 {item.label}

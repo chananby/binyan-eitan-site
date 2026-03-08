@@ -7,6 +7,8 @@ import { useTranslations } from "../TranslationsProvider";
 import Navbar from "../Navbar";
 import Hero from "../Hero";
 import Pillars from "../Pillars";
+import ProcessSection from "../ProcessSection";
+import TechnicalAnatomy from "../TechnicalAnatomy";
 import PortfolioGallery from "../PortfolioGallery";
 import EngineeringExcellence from "../EngineeringExcellence";
 import Testimonials from "../Testimonials";
@@ -31,6 +33,8 @@ export default function EnHomeClient() {
         <Navbar />
         <Hero />
         <Pillars />
+        <ProcessSection />
+        <TechnicalAnatomy />
         <PortfolioGallery />
         <EngineeringExcellence />
         <Testimonials />

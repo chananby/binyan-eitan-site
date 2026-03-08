@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useLang } from "./LangContext";
+import { useTranslationsRaw } from "./TranslationsProvider";
 
 import React from "react";
 
@@ -51,20 +52,10 @@ export default function FaqPage() {
   const c = ui[lang];
   const dir = lang === "he" ? "rtl" : "ltr";
 
-  const [faqs, setFaqs] = useState<Faq[]>([]);
-  const [loading, setLoading] = useState(true);
+  const rawData = useTranslationsRaw() as Record<string, any>;
+  const faqs: Faq[] = Array.isArray(rawData?.faqs) ? rawData.faqs : [];
   const [openFaq, setOpenFaq] = useState<string | null>(null);
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-
-  useEffect(() => {
-    fetch("/api/translations", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data?.faqs)) setFaqs(data.faqs);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
 
   // Scroll to the newly opened FAQ item after it renders
   useEffect(() => {
@@ -105,16 +96,7 @@ export default function FaqPage() {
             {c.faqHeading}
           </h2>
 
-          {loading ? (
-            <div className="divide-y divide-warm-gray-light">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="py-6 flex items-center justify-between gap-4">
-                  <div className="h-5 rounded-sm bg-charcoal/[0.07] animate-pulse" style={{ width: `${55 + (i * 7) % 30}%` }} />
-                  <div className="shrink-0 h-5 w-5 rounded-full bg-accent/20 animate-pulse" />
-                </div>
-              ))}
-            </div>
-          ) : faqs.length === 0 ? (
+          {faqs.length === 0 ? (
             <p className="text-charcoal/50 font-body text-lg text-center py-10">{c.empty}</p>
           ) : (
             <div className="divide-y divide-warm-gray-light">

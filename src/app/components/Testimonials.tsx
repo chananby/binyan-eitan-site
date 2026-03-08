@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useLang } from "./LangContext";
+import { useTranslationsRaw } from "./TranslationsProvider";
 import SectionReveal from "./SectionReveal";
 
 interface Testimonial {
@@ -74,14 +74,7 @@ export default function Testimonials() {
   const { lang } = useLang() as { lang: Lang };
   const dir = lang === "he" ? "rtl" : "ltr";
 
-  const [rawData, setRawData] = useState<Record<string, any> | null>(null);
-
-  useEffect(() => {
-    fetch("/api/translations", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data) => setRawData(data))
-      .catch(() => {});
-  }, []);
+  const rawData = useTranslationsRaw() as Record<string, any>;
 
   const testimonials: Testimonial[] =
     Array.isArray(rawData?.testimonials) && rawData.testimonials.length > 0

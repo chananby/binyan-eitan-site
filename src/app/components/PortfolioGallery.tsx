@@ -175,16 +175,22 @@ export default function PortfolioGallery() {
             </h2>
           </div>
 
-          {/* 3-column grid */}
-          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+          {/* Asymmetric bento grid: item 0 tall left, items 1-2 right column stacked, item 3 full-width */}
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-12">
             {PROJECTS.map((proj, index) => {
               const title = ut[`proj_${index}_title`] ?? "";
               const category = ut[`proj_${index}_category`] ?? "";
+              // col-span layout: 0=7cols tall, 1=5cols, 2=5cols, 3=12cols wide
+              const colClass =
+                index === 0 ? "sm:col-span-7 sm:row-span-2 aspect-[4/5] sm:aspect-auto" :
+                index === 1 ? "sm:col-span-5 aspect-[4/3]" :
+                index === 2 ? "sm:col-span-5 aspect-[4/3]" :
+                "sm:col-span-12 aspect-[16/7]";
               return (
                 <motion.button
                   key={proj.num}
                   onClick={() => openLightbox(index)}
-                  className="group relative aspect-[4/5] w-full overflow-hidden cursor-pointer block focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className={`group relative w-full overflow-hidden cursor-pointer block focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${colClass}`}
                   initial={{ opacity: 0, y: 24 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-60px" }}

@@ -70,3 +70,8 @@ export function useTranslations<S extends LocalizedSection>(
   const translations = useContext(TranslationsContext);
   return (translations[section] as any)?.[lang] ?? ({} as TranslationsData[S][LangKey]);
 }
+
+/** Returns the full raw translations object — use this to access arrays like testimonials, articles, faqs. */
+export function useTranslationsRaw(): TranslationsData {
+  return useContext(TranslationsContext);
+}

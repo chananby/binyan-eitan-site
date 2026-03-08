@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useLang } from "./LangContext";
+import { useTranslationsRaw } from "./TranslationsProvider";
 
 const WHATSAPP_HE =
   "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%9E%D7%95%D7%98%D7%99%2C%20%D7%A7%D7%A8%D7%90%D7%AA%D7%99%20%D7%90%D7%AA%20%D7%94%D7%9E%D7%90%D7%9E%D7%A8%20%D7%91%D7%90%D7%AA%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%93%D7%91%D7%A8%20%D7%A2%D7%9C%20%D7%A4%D7%A8%D7%95%D7%99%D7%A7%D7%98...";
@@ -95,29 +95,9 @@ export default function ArticleDetailPage({ slug }: Props) {
   const t = ui[lang];
   const dir = lang === "he" ? "rtl" : "ltr";
 
-  const [article, setArticle] = useState<Article | null | "loading">("loading");
-
-  // --- 2. משיכת הנתונים (Data Fetching) ---
-  useEffect(() => {
-    fetch("/api/translations", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data) => {
-        const found = (data?.articles as Article[] | undefined)?.find(
-          (a) => a.slug === slug
-        );
-        setArticle(found ?? null);
-      })
-      .catch(() => setArticle(null));
-  }, [slug]);
-
-  // מצב טעינה (Loading State)
-  if (article === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-bone">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent" />
-      </div>
-    );
-  }
+  const rawData = useTranslationsRaw() as Record<string, any>;
+  const article: Article | null =
+    (rawData?.articles as Article[] | undefined)?.find((a) => a.slug === slug) ?? null;
 
   // מצב שגיאה/לא נמצא (Not Found State)
   if (article === null) {
@@ -147,9 +127,7 @@ export default function ArticleDetailPage({ slug }: Props) {
   const mins = readingMinutes(article, lang);
 
   // WhatsApp share URL (article-specific)
-  const shareUrl = typeof window !== "undefined"
-    ? `https://wa.me/?text=${encodeURIComponent(`${title} — https://binyaneitan.com/${lang}/expertise/${article.slug}`)}`
-    : `https://wa.me/?text=${encodeURIComponent(`${title} — https://binyaneitan.com/${lang}/expertise/${article.slug}`)}`;
+  const shareUrl = `https://wa.me/?text=${encodeURIComponent(`${title} — https://binyaneitan.com/${lang}/expertise/${article.slug}`)}`;
 
 
   return (

@@ -126,6 +126,55 @@ export default function ContactForm() {
               </label>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-10">
+              <div className="relative">
+                <select
+                  id="project_type"
+                  name="project_type"
+                  className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent transition-colors appearance-none cursor-pointer"
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    {lang === "he" ? "סוג הפרויקט" : "Project Type"}
+                  </option>
+                  {lang === "he" ? (
+                    <>
+                      <option value="new_build">בנייה חדשה</option>
+                      <option value="renovation">שיפוץ ושדרוג</option>
+                      <option value="structural">שלד וקונסטרוקציה</option>
+                      <option value="finishing">גמר ועיצוב פנים</option>
+                      <option value="other">אחר</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="new_build">New Build</option>
+                      <option value="renovation">Renovation & Upgrade</option>
+                      <option value="structural">Structural Engineering</option>
+                      <option value="finishing">Interior Finishing</option>
+                      <option value="other">Other</option>
+                    </>
+                  )}
+                </select>
+                <span className="pointer-events-none absolute end-0 top-3.5 text-charcoal/30 text-xs">▾</span>
+              </div>
+
+              <div className="relative">
+                <input
+                  type="text"
+                  id="location"
+                  name="location"
+                  className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer transition-colors"
+                  placeholder=" "
+                />
+                <label
+                  htmlFor="location"
+                  className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
+                >
+                  {lang === "he" ? "מיקום הפרויקט" : "Project Location"}
+                </label>
+              </div>
+            </div>
+
             <div className="relative">
               <textarea
                 id="message"

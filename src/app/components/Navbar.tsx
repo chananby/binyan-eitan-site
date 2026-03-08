@@ -43,6 +43,8 @@ export default function Navbar() {
     { label: t.home as string, href: `/${lang}` },
     { label: t.about as string, href: `/${lang}/about` },
     { label: t.projects as string, href: `/${lang}#portfolio` },
+    { label: t.expertise as string, href: `/${lang}/expertise` },
+    { label: t.faq as string, href: `/${lang}/faq` },
   ];
 
   // Hash-only links are never "active page" indicators

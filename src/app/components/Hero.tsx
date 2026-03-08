@@ -50,6 +50,11 @@ export default function Hero() {
   const imageUrl = (t.imageUrl as string) || "/luxury-interior.jpg";
   const stat1 = { value: t.stat1Value, label: t.stat1Label };
   const stat2 = { value: t.stat2Value, label: t.stat2Label };
+  const stat3 = { value: t.stat3Value, label: t.stat3Label };
+  const whatsappCta = (t.whatsappCta as string) || (lang === "he" ? "שלחו הודעה" : "WhatsApp Us");
+  const whatsappUrl = lang === "he"
+    ? "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%9E%D7%95%D7%98%D7%99%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%93%D7%A8%D7%9A%20%D7%94%D7%90%D7%AA%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%94%D7%AA%D7%99%D7%99%D7%A2%D7%A5..."
+    : "https://wa.me/972585008447?text=Hi%20Moti%2C%20I%20reached%20out%20via%20the%20website%20and%20would%20like%20to%20consult%20regarding%20a%20project...";
   const Arrow = lang === "he" ? ArrowDownLeft : ArrowDownRight;
 
   const sectionRef = useRef<HTMLElement>(null);
@@ -133,7 +138,7 @@ export default function Hero() {
               </motion.div>
 
               {/* ── CTA ── */}
-              <motion.div className="mt-8 md:mt-10" variants={fadeUp(0.25)}>
+              <motion.div className="mt-8 md:mt-10 flex flex-wrap items-center gap-4" variants={fadeUp(0.25)}>
                 <Link
                   href={`/${lang}#contact`}
                   className="group inline-flex w-fit items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-4 hover:border-accent hover:text-accent"
@@ -145,6 +150,14 @@ export default function Hero() {
                     className="transition-transform duration-500 ease-[var(--ease-expo)] group-hover:translate-y-0.5"
                   />
                 </Link>
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 border border-charcoal/20 px-4 py-2 font-body text-xs font-semibold tracking-wider uppercase text-charcoal/60 transition-all duration-300 hover:border-accent hover:text-accent"
+                >
+                  {whatsappCta}
+                </a>
               </motion.div>
 
               {/* ── Stats — precision grid with thin borders ── */}
@@ -152,21 +165,29 @@ export default function Hero() {
                 className="mt-10 border border-charcoal/[0.08] md:mt-14"
                 variants={fadeUp(0.35)}
               >
-                <div className="grid grid-cols-2">
-                  <div className="px-6 py-5 border-e border-charcoal/[0.08]">
-                    <span className="block font-heading text-3xl font-extrabold text-charcoal leading-none md:text-[2.6rem]">
+                <div className="grid grid-cols-3">
+                  <div className="px-4 py-5 border-e border-charcoal/[0.08]">
+                    <span className="block font-heading text-2xl font-extrabold text-charcoal leading-none md:text-[2rem]">
                       {stat1.value}
                     </span>
-                    <span className="mt-2 block font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/45">
+                    <span className="mt-2 block font-body text-[0.55rem] font-semibold tracking-[0.18em] uppercase text-charcoal/45">
                       {stat1.label}
                     </span>
                   </div>
-                  <div className="px-6 py-5">
-                    <span className="block font-heading text-3xl font-extrabold text-charcoal leading-none md:text-[2.6rem]">
+                  <div className="px-4 py-5 border-e border-charcoal/[0.08]">
+                    <span className="block font-heading text-2xl font-extrabold text-charcoal leading-none md:text-[2rem]">
                       {stat2.value}
                     </span>
-                    <span className="mt-2 block font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/45">
+                    <span className="mt-2 block font-body text-[0.55rem] font-semibold tracking-[0.18em] uppercase text-charcoal/45">
                       {stat2.label}
+                    </span>
+                  </div>
+                  <div className="px-4 py-5">
+                    <span className="block font-heading text-2xl font-extrabold text-accent leading-none md:text-[2rem]">
+                      {stat3.value}
+                    </span>
+                    <span className="mt-2 block font-body text-[0.55rem] font-semibold tracking-[0.18em] uppercase text-charcoal/45">
+                      {stat3.label}
                     </span>
                   </div>
                 </div>

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useLang } from "./LangContext";
+import { useTranslationsRaw } from "./TranslationsProvider";
 
 interface Article {
   id: string;
@@ -54,18 +54,8 @@ export default function ExpertiseArticle() {
   const c = ui[lang];
   const dir = lang === "he" ? "rtl" : "ltr";
 
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/translations", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data?.articles)) setArticles(data.articles);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  const rawData = useTranslationsRaw() as Record<string, any>;
+  const articles: Article[] = Array.isArray(rawData?.articles) ? rawData.articles : [];
 
   return (
     <main className="relative bg-bone" dir={dir}>
@@ -95,18 +85,7 @@ export default function ExpertiseArticle() {
             {c.articlesHeading}
           </h2>
 
-          {loading ? (
-            <div className="divide-y divide-warm-gray-light">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="py-10 space-y-3">
-                  <div className="h-6 w-2/3 bg-charcoal/[0.07] animate-pulse rounded-sm" />
-                  <div className="h-4 w-full bg-charcoal/[0.05] animate-pulse rounded-sm" />
-                  <div className="h-4 w-4/5 bg-charcoal/[0.05] animate-pulse rounded-sm" />
-                  <div className="h-3 w-24 bg-accent/20 animate-pulse rounded-sm mt-2" />
-                </div>
-              ))}
-            </div>
-          ) : articles.length === 0 ? (
+          {articles.length === 0 ? (
             <p className="text-charcoal/50 font-body text-lg text-center py-10">{c.empty}</p>
           ) : (
             <div className="divide-y divide-warm-gray-light">

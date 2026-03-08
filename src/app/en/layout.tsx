@@ -1,5 +1,6 @@
 import { Assistant } from "next/font/google";
 import { LangProvider } from "../components/LangContext";
+import FloatingWhatsApp from "../components/FloatingWhatsApp";
 
 const assistant = Assistant({
   subsets: ["latin"],
@@ -11,7 +12,10 @@ const assistant = Assistant({
 export default function EnLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={assistant.variable}>
-      <LangProvider lang="en" dir="ltr">{children}</LangProvider>
+      <LangProvider lang="en" dir="ltr">
+        {children}
+        <FloatingWhatsApp />
+      </LangProvider>
     </div>
   );
 }

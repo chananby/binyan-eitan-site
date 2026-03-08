@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Assistant } from "next/font/google";
 import { LangProvider } from "../components/LangContext";
+import FloatingWhatsApp from "../components/FloatingWhatsApp";
 
 const assistant = Assistant({
   subsets: ["latin", "hebrew"],
@@ -17,7 +18,10 @@ export const metadata: Metadata = {
 export default function HeLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={assistant.variable}>
-      <LangProvider lang="he" dir="rtl">{children}</LangProvider>
+      <LangProvider lang="he" dir="rtl">
+        {children}
+        <FloatingWhatsApp />
+      </LangProvider>
     </div>
   );
 }

@@ -47,7 +47,7 @@ const jsonLd = {
   "name": "בנין איתן - הנדסה ובנייה",
   "description": "חברת בנייה והנדסה המתמחה בפרויקטים מורכבים, שלד, גמר וניהול פרויקטים ברמת פרימיום. קבלן רשום ג1.",
   "url": "https://www.binyaneitan.com",
-  "telephone": "+972-52-XXXXXXX",
+  "telephone": "+972-2-500-0447",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Jerusalem",
@@ -99,7 +99,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html suppressHydrationWarning className={`${assistant.variable} ${heebo.variable}`}>
+    <html suppressHydrationWarning lang="he" className={`${assistant.variable} ${heebo.variable}`}>
       <head>
         <meta name="robots" content="noindex, nofollow" />
         <script
