@@ -37,7 +37,6 @@ const PROJECTS = [
       "/amshinov-20.jpg",
       "/amshinov-21.jpg",
       "/amshinov-22.jpg",
-      "/amshinov-23.jpg",
     ],
   },
   {
@@ -92,8 +91,6 @@ const PROJECTS = [
     series: [
       "/ramat-eshkol-penthouse-1.jpg",
       "/ramat-eshkol-penthouse-2.jpg",
-      "/ramat-eshkol-penthouse-3.jpg",
-      "/ramat-eshkol-penthouse-4.jpg",
       "/ramat-eshkol-penthouse-5.jpg",
       "/ramat-eshkol-penthouse-6.jpg",
       "/ramat-eshkol-penthouse-7.jpg",
