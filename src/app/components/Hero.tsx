@@ -109,7 +109,7 @@ export default function Hero() {
 
             {/* Main Heading — contained within text column, no image overlap */}
             <motion.h1
-              className="font-heading text-[clamp(2.2rem,4vw,4.6rem)] leading-[1.25] font-bold tracking-tight text-accent text-start"
+              className="font-heading text-[clamp(2.2rem,4vw,4.6rem)] leading-[1.25] font-bold tracking-tight text-accent text-start text-balance"
               variants={fadeUp(0.05)}
             >
               {heading.split("\n").map((line: string, i: number) => (
@@ -231,7 +231,7 @@ export default function Hero() {
 
             {/* Bone veil — fade at overlap edge for text legibility */}
             <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-bone/[0.55] via-bone/[0.12] via-35% to-transparent"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-bone/[0.65] via-bone/[0.15] via-40% to-transparent"
               aria-hidden="true"
             />
 
