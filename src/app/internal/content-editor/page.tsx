@@ -72,7 +72,7 @@ const ENGINEERING_FALLBACKS = [
   "/structural-foundation-reinforcement.jpg",
   "/luxury-electrical-infrastructure-precision.jpg",
   "/expert-jerusalem-stone-facade-work.jpg",
-  "/professional-airless-painting-standards.jpg",
+  "/ramat-eshkol-penthouse-9.jpg",
 ];
 
 // Content sections for the text editor sidebar

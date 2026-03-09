@@ -14,7 +14,7 @@ const FALLBACK_SRCS = [
   "/structural-foundation-reinforcement.jpg",
   "/luxury-electrical-infrastructure-precision.jpg",
   "/expert-jerusalem-stone-facade-work.jpg",
-  "/professional-airless-painting-standards.jpg",
+  "/ramat-eshkol-penthouse-9.jpg",
   "/premium-marble-bathroom-detailing.jpg",
 ];
 
