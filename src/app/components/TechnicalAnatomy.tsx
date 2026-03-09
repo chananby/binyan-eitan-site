@@ -108,7 +108,7 @@ export default function TechnicalAnatomy() {
 
           <div className="relative z-10 aspect-[16/10] w-full overflow-hidden md:aspect-[16/9]">
             <Image
-              src="/ohel-avshalom-3.jpg"
+              src="/amshinov-20.jpg"
               alt={lang === "he" ? "תשתיות הנדסיות מתקדמות" : "Advanced engineering infrastructure"}
               fill
               className="object-cover"
