@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -15,6 +16,8 @@ const WHATSAPP_EN =
 interface Article {
   id: string;
   slug: string;
+
+  heroImage?: string;
 
   // שדות בעברית
   title_he: string;
@@ -160,6 +163,20 @@ export default function ArticleDetailPage({ slug }: Props) {
           </h1>
         </div>
       </section>
+
+      {/* --- Hero Image --- */}
+      {article.heroImage && (
+        <div className="relative w-full h-[320px] md:h-[480px] overflow-hidden bg-charcoal/10">
+          <Image
+            src={article.heroImage}
+            alt={title}
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+        </div>
+      )}
 
       {/* --- Article Body --- */}
       <article className="py-16 md:py-24">

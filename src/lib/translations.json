@@ -219,7 +219,7 @@
       "founderRole": "מנכ\"ל ומייסד, בנין איתן",
       "standardOverline": "הסטנדרט שלנו",
       "standardQuote": "האמון והשירות שאנו מעניקים עומדים במרכז העשייה שלנו, מתוך הבנה שבית בונים קודם כל עם אנשים.",
-      "expertiseOverline": "נקודות חוזק",
+      "expertiseOverline": "הסטנדרט שלנו",
       "expertiseHeading": "מה\nמייחד אותנו.",
       "expertise_0_title": "ניסיון\nרב-תחומי",
       "expertise_0_desc": "מהנדסת קונסטרוקציה ויציקות ועד גימורי יוקרה ואינטגרציה של מערכות — הכל בוצע בפיקוחנו הישיר, עם אחריות מלאה בכל שלב.",
@@ -259,11 +259,11 @@
       "proj_2_cover": "/ohel-avshalom.jpg",
       "proj_2_challenge": "Complex deep foundation work in challenging soil with strict municipal constraints.",
       "proj_2_solution": "Advanced anchoring systems and precision reinforced concrete pours to structural-grade spec.",
-      "proj_3_title": "Ramat Eshkol Penthouse",
-      "proj_3_category": "Luxury Construction",
-      "proj_3_cover": "/ramat-eshkol.jpg",
-      "proj_3_challenge": "Complete top-floor luxury build with open-plan structural demands and high-spec mechanical systems across a complex roof footprint.",
-      "proj_3_solution": "Engineered structural openings, custom HVAC routing, and precision luxury finishes delivered on schedule with full client sign-off at every stage."
+      "proj_3_title": "Jerusalem — Maier Sham",
+      "proj_3_category": "Complete Renovation",
+      "proj_3_cover": "/jerusalem-crane-delivery.jpg",
+      "proj_3_challenge": "Full gut renovation of a luxury Jerusalem apartment — active-occupancy building, zero tolerance for dust or damage to neighbours.",
+      "proj_3_solution": "Surgical protection of all finished surfaces before demolition, precision electrical and plumbing re-routes, and a meticulous bathroom rebuild from substrate up."
     },
     "he": {
       "overline": "עבודות נבחרות",
@@ -286,11 +286,11 @@
       "proj_2_cover": "/ohel-avshalom.jpg",
       "proj_2_challenge": "עבודות ביסוס עמוק מורכבות בתנאי קרקע מאתגרים עם מגבלות עירוניות מחמירות.",
       "proj_2_solution": "מערכות עיגון מתקדמות ויציקות בטון מזוין מדויקות בהתאם למפרטי קונסטרוקציה מחמירים.",
-      "proj_3_title": "פנטהאוז רמת אשכול",
-      "proj_3_category": "בניית יוקרה",
-      "proj_3_cover": "/ramat-eshkol.jpg",
-      "proj_3_challenge": "בנייה יוקרתית מלאה של קומה עליונה עם דרישות קונסטרוקטיביות למרחב פתוח ומערכות מכניות בדרגה גבוהה על פני שטח גג מורכב.",
-      "proj_3_solution": "פתחים קונסטרוקטיביים מהונדסים, ניתוב מיזוג מותאם אישית וגמרי יוקרה מדויקים — שהושלמו בלוח זמנים עם אישור לקוח בכל שלב."
+      "proj_3_title": "ירושלים — מאיר שחם",
+      "proj_3_category": "שיפוץ מלא",
+      "proj_3_cover": "/jerusalem-crane-delivery.jpg",
+      "proj_3_challenge": "שיפוץ מלא של דירת יוקרה בירושלים — בניין מאוכלס, אפס סבילות לאבק או נזק לשכנים.",
+      "proj_3_solution": "הגנה כירורגית על כל המשטחים הגמורים לפני הפירוק, ניתוב מחודש מדויק לחשמל ולאינסטלציה, ובנייה מחדש של חדר האמבטיה מהבסיס."
     }
   },
   "pillars": {
@@ -397,6 +397,7 @@
     {
       "id": "1",
       "slug": "g1-contractor-certification",
+      "heroImage": "/structural-remodeling-safety-standards.jpg",
       "category_en": "Licensing",
       "category_he": "רישוי ובטיחות",
       "title_en": "Why G1 Certification Matters",
@@ -421,6 +422,7 @@
     {
       "id": "2",
       "slug": "building-from-abroad",
+      "heroImage": "/interior-wall-framing-systems.jpg",
       "category_en": "Remote Management",
       "category_he": "ניהול מרחוק",
       "title_en": "Seamless Sovereignty: Building in Israel from Abroad",
@@ -449,6 +451,7 @@
     {
       "id": "3",
       "slug": "behind-the-walls",
+      "heroImage": "/advanced-underfloor-heating-israel.jpg",
       "category_en": "Infrastructure",
       "category_he": "תשתית",
       "title_en": "Behind the Walls: The Invisible Standard of Excellence",
@@ -479,6 +482,7 @@
     {
       "id": "4",
       "slug": "reading-a-professional-quote",
+      "heroImage": "/structural-foundation-reinforcement.jpg",
       "category_en": "Professional Insights",
       "category_he": "ידע מקצועי",
       "title_en": "Beyond the Price Tag: How to Evaluate a Professional Quote",
@@ -509,6 +513,7 @@
     {
       "id": "5",
       "slug": "after-handover",
+      "heroImage": "/luxury-apartment-renovation-view.jpg",
       "category_en": "Project Management",
       "category_he": "ניהול פרויקט",
       "title_en": "The Handover: Your Roadmap to Long-Term Peace of Mind",

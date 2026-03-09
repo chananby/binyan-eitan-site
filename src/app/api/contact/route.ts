@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "";
 const TO_EMAIL       = process.env.CONTACT_TO_EMAIL ?? "office@binyaneitan.com";
-// Use your verified Resend domain here once set up, e.g. "contact@binyaneitan.com"
-// Until domain is verified, Resend's sandbox sender works for testing.
-const FROM_EMAIL     = process.env.CONTACT_FROM_EMAIL ?? "Binyan Eitan <onboarding@resend.dev>";
+const FROM_EMAIL     = process.env.CONTACT_FROM_EMAIL ?? "Binyan Eitan <office@binyaneitan.com>";
 
 export async function POST(req: NextRequest) {
   if (!RESEND_API_KEY) {

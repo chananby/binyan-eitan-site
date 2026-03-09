@@ -105,7 +105,7 @@ export default function AboutPage() {
           {/* CTA link */}
           <FadeUp delay={0.34} className="mt-14">
             <Link
-              href={`/${lang}#contact`}
+              href="#contact"
               className="group inline-flex items-center gap-3 font-body text-sm font-semibold tracking-wide text-bone/60 hover:text-bone transition-colors duration-300"
             >
               <span className="relative">

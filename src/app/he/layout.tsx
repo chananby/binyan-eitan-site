@@ -15,10 +15,40 @@ export const metadata: Metadata = {
   description: "מומחים בבנייה ותשתיות",
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": "https://binyaneitan.com",
+  "name": "בנין איתן בע\"מ",
+  "alternateName": "Binyan Eitan Ltd.",
+  "url": "https://binyaneitan.com",
+  "logo": "https://binyaneitan.com/logo.png",
+  "image": "https://binyaneitan.com/jerusalem-crane-delivery.jpg",
+  "description": "קבלן בנייה מוסמך ג1, מתמחה בשיפוץ יוקרה, הנדסה קונסטרוקטיבית וגמר פרמיום בירושלים ובמרכז הארץ.",
+  "telephone": ["+97225000447", "+972585008447"],
+  "email": "office@binyaneitan.com",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "ירושלים",
+    "addressCountry": "IL",
+  },
+  "areaServed": ["ירושלים", "תל אביב", "מרכז הארץ"],
+  "priceRange": "$$$$",
+  "hasCredential": {
+    "@type": "EducationalOccupationalCredential",
+    "credentialCategory": "רישיון קבלן ג1",
+    "name": "קבלן רשום ג1 מס׳ 41805",
+  },
+};
+
 export default function HeLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={assistant.variable}>
       <LangProvider lang="he" dir="rtl">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         {children}
         <FloatingWhatsApp />
       </LangProvider>

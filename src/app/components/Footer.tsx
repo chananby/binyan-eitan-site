@@ -128,6 +128,14 @@ export default function Footer() {
               </li>
               <li>
                 <a
+                  href={`tel:${content.mobileTel}`}
+                  className="hover:text-accent transition-colors duration-200"
+                >
+                  <bdi>{content.mobile}</bdi>
+                </a>
+              </li>
+              <li>
+                <a
                   href={`mailto:${content.email}`}
                   className="hover:text-accent transition-colors duration-200 break-all"
                 >
