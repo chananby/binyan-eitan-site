@@ -183,7 +183,7 @@ export default function Hero() {
                     </span>
                   </div>
                   <div className="px-4 py-5">
-                    <span className="block font-heading text-2xl font-extrabold text-accent leading-none md:text-[2rem]">
+                    <span className="block font-heading text-2xl font-extrabold text-charcoal leading-none md:text-[2rem]">
                       {stat3.value}
                     </span>
                     <span className="mt-2 block font-body text-[0.55rem] font-semibold tracking-[0.18em] uppercase text-charcoal/45">
