@@ -20,31 +20,31 @@ interface Hotspot {
 
 const hotspots: Hotspot[] = [
   {
-    id: "electrical",
-    x: 22,
-    y: 35,
-    labelHe: "תשתיות מערכות חכמות",
-    labelEn: "Smart Infrastructure",
-    he: "תכנון מוקפד של מערכות חשמל ותקשורת, המבטיח שקט נפשי ואפס תקלות לעשורים קדימה.",
-    en: "Meticulous planning of electrical and communication systems, ensuring peace of mind and zero faults for decades.",
+    id: "conduit",
+    x: 65,
+    y: 22,
+    labelHe: "צנרת חשמל ואינסטלציה",
+    labelEn: "Electrical & Plumbing Conduit",
+    he: "צינורות חשמל ואינסטלציה מונחים לפני היציקה — תכנון מוקדם שחוסך פריצות עתידיות ומבטיח שנים של שקט.",
+    en: "Electrical and plumbing conduits laid before casting — advance planning that prevents future breakdowns and ensures years of quiet.",
   },
   {
-    id: "heating",
+    id: "columns",
+    x: 28,
+    y: 52,
+    labelHe: "שלד ועמודי קונסטרוקציה",
+    labelEn: "Structural Columns & Framework",
+    he: "עמודי בטון חשופים בשיפוץ מקיף — נבדקים, מחוזקים ומוסתרים מחדש מאחורי גמר מושלם.",
+    en: "Concrete columns exposed in full renovation — inspected, reinforced, and re-concealed behind a perfect finish.",
+  },
+  {
+    id: "subfloor",
     x: 55,
-    y: 72,
-    labelHe: "בקרת אקלים ובידוד",
-    labelEn: "Climate Control & Insulation",
-    he: "מערכות חימום תת-רצפתי ובידוד תרמי ואקוסטי בסטנדרט המחמיר ביותר לאיכות חיים מקסימלית.",
-    en: "Underfloor heating and thermal/acoustic insulation to the strictest standards for maximum quality of life.",
-  },
-  {
-    id: "structure",
-    x: 80,
-    y: 28,
-    labelHe: "קונסטרוקציה ושלד",
-    labelEn: "Structural Framework",
-    he: "יציקות מדויקות על המילימטר ושימוש בחומרי גלם פרימיום לבניית שלד עמיד ואיתן לדורות.",
-    en: "Millimeter-precise casting and premium raw materials to build a robust framework that lasts for generations.",
+    y: 82,
+    labelHe: "תשתית תת-רצפתית",
+    labelEn: "Sub-floor Infrastructure",
+    he: "שכבת חול ותשתיות תת-רצפתיות — חשמל, אינסטלציה וחימום. כל מה שלא נראה, ועושה את כל ההבדל.",
+    en: "Sand layer and sub-floor infrastructure — electrical, plumbing and heating. Everything invisible, making all the difference.",
   },
 ];
 
@@ -108,7 +108,7 @@ export default function TechnicalAnatomy() {
 
           <div className="relative z-10 aspect-[16/10] w-full overflow-hidden md:aspect-[16/9]">
             <Image
-              src="/amshinov-20.jpg"
+              src="/bayit-vegan-6.jpg"
               alt={lang === "he" ? "תשתיות הנדסיות מתקדמות" : "Advanced engineering infrastructure"}
               fill
               className="object-cover"
