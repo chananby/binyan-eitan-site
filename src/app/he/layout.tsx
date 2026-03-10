@@ -50,7 +50,21 @@ const jsonLd = {
   "logo": "https://binyaneitan.com/logo.png",
   "image": "https://binyaneitan.com/jerusalem-crane-delivery.jpg",
   "description": "קבלן בנייה מוסמך ג1, מתמחה בשיפוץ יוקרה, הנדסה קונסטרוקטיבית וגמר פרמיום בירושלים ובמרכז הארץ.",
-  "telephone": ["+97225000447", "+972585008447"],
+  "telephone": "02-500-0447",
+  "contactPoint": [
+    {
+      "@type": "ContactPoint",
+      "telephone": "+972-58-500-8447",
+      "contactType": "sales and management",
+      "availableLanguage": ["Hebrew", "English"]
+    },
+    {
+      "@type": "ContactPoint",
+      "telephone": "+972-53-321-4208",
+      "contactType": "project coordination",
+      "availableLanguage": ["Hebrew", "English"]
+    }
+  ],
   "email": "office@binyaneitan.com",
   "address": {
     "@type": "PostalAddress",

@@ -50,7 +50,21 @@ const jsonLd = {
   "logo": "https://binyaneitan.com/logo.png",
   "image": "https://binyaneitan.com/jerusalem-crane-delivery.jpg",
   "description": "G1-licensed construction contractor specializing in luxury renovation, structural engineering, and premium finishes across Jerusalem and central Israel.",
-  "telephone": ["+97225000447", "+972585008447"],
+  "telephone": "02-500-0447",
+  "contactPoint": [
+    {
+      "@type": "ContactPoint",
+      "telephone": "+972-58-500-8447",
+      "contactType": "sales and management",
+      "availableLanguage": ["Hebrew", "English"]
+    },
+    {
+      "@type": "ContactPoint",
+      "telephone": "+972-53-321-4208",
+      "contactType": "project coordination",
+      "availableLanguage": ["Hebrew", "English"]
+    }
+  ],
   "email": "office@binyaneitan.com",
   "address": {
     "@type": "PostalAddress",

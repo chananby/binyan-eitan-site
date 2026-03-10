@@ -47,10 +47,24 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ConstructionBusiness",
-  "name": "בנין איתן - הנדסה ובנייה",
+  "name": "בנין איתן - הנדסה וביצוע",
   "description": "חברת בנייה והנדסה המתמחה בפרויקטים מורכבים, שלד, גמר וניהול פרויקטים ברמת פרימיום. קבלן רשום ג1.",
-  "url": "https://www.binyaneitan.com",
-  "telephone": "+972-2-500-0447",
+  "url": "https://binyaneitan.com",
+  "telephone": "02-500-0447",
+  "contactPoint": [
+    {
+      "@type": "ContactPoint",
+      "telephone": "058-500-8447",
+      "contactType": "sales and management",
+      "availableLanguage": ["Hebrew", "English"]
+    },
+    {
+      "@type": "ContactPoint",
+      "telephone": "+972-53-321-4208",
+      "contactType": "project coordination",
+      "availableLanguage": ["Hebrew", "English"]
+    }
+  ],
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Jerusalem",
@@ -63,6 +77,7 @@ const jsonLd = {
   },
   "areaServed": "Israel",
   "sameAs": [
+    "https://share.google/mYYDjEprxPi7JdoSG",
     "https://www.linkedin.com/company/binyan-eitan",
     "https://www.facebook.com/binyaneitan",
     "https://www.gov.il/he/departments/general/registered-contractors"

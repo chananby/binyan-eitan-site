@@ -13,7 +13,7 @@ type Lang = "en" | "he";
 const WHATSAPP_HE =
   "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%9E%D7%95%D7%98%D7%99%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%94%D7%99%D7%99%20%D7%93%D7%A8%D7%9A%20%D7%94%D7%90%D7%AA%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%94%D7%AA%D7%99%D7%99%D7%A2%D7%A5%20%D7%9C%D7%92%D7%91%D7%99%20%D7%A4%D7%A8%D7%95%D7%99%D7%A7%D7%98...";
 const WHATSAPP_EN =
-  "https://wa.me/972585008447?text=Hi%20Moti%2C%20I%20reached%20out%20via%20the%20website%20and%20would%20like%20to%20consult%20regarding%20a%20project...";
+  "https://wa.me/972533214208?text=Hi%20Sam%2C%20I%20reached%20out%20via%20the%20website%20and%20would%20like%20to%20consult%20regarding%20a%20project...";
 
 const NAV_LABELS = {
   en: [
@@ -125,6 +125,7 @@ export default function Footer() {
                 >
                   <bdi>{content.officePhone}</bdi>
                 </a>
+                <span className="ms-2 text-[0.62rem] text-bone/35 uppercase tracking-wider">{content.officeLabel}</span>
               </li>
               <li>
                 <a
@@ -133,6 +134,33 @@ export default function Footer() {
                 >
                   <bdi>{content.mobile}</bdi>
                 </a>
+                <a
+                  href={`https://wa.me/${content.mobileTel?.replace("+", "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ms-2 inline-flex items-center gap-1 text-accent/60 hover:text-accent transition-colors duration-200 text-[0.7rem]"
+                  aria-label="WhatsApp"
+                >
+                  <WhatsAppIcon />
+                </a>
+              </li>
+              <li>
+                <a
+                  href={`tel:${content.mobileTel2}`}
+                  className="hover:text-accent transition-colors duration-200"
+                >
+                  <bdi>{content.mobile2}</bdi>
+                </a>
+                <a
+                  href={`https://wa.me/${content.mobileTel2?.replace("+", "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ms-2 inline-flex items-center gap-1 text-accent/60 hover:text-accent transition-colors duration-200 text-[0.7rem]"
+                  aria-label="WhatsApp"
+                >
+                  <WhatsAppIcon />
+                </a>
+                <span className="ms-1 text-[0.62rem] text-bone/35 uppercase tracking-wider">EN</span>
               </li>
               <li>
                 <a

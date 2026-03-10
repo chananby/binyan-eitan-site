@@ -103,8 +103,8 @@
       "email": "office@binyaneitan.com",
       "officePhone": "02-500-0447",
       "officePhoneTel": "+97225000447",
-      "mobile": "053-321-4208",
-      "mobileTel": "+972533214208",
+      "mobile": "058-500-8447",
+      "mobileTel": "+972585008447",
       "whatsappLabel": "WhatsApp",
       "officeLabel": "Office",
       "inquiry": "Inquiry",
@@ -113,7 +113,11 @@
       "termsOfUse": "Terms of Use",
       "privacyPolicy": "Privacy Policy",
       "accessibility": "Accessibility Statement",
-      "disclaimer": "All images are for illustration purposes only."
+      "disclaimer": "All images are for illustration purposes only.",
+      "mobileRole": "Management & Sales",
+      "mobile2": "053-321-4208",
+      "mobileTel2": "+972533214208",
+      "mobile2Role": "Project Coordination (EN)"
     },
     "he": {
       "desc": "הנדסה מהיסוד. איכות עד הפרט האחרון",
@@ -142,7 +146,11 @@
       "termsOfUse": "תנאי שימוש",
       "privacyPolicy": "מדיניות פרטיות",
       "accessibility": "הצהרת נגישות",
-      "disclaimer": "כל התמונות באתר הן לצרכי המחשה בלבד"
+      "disclaimer": "כל התמונות באתר הן לצרכי המחשה בלבד",
+      "mobileRole": "ניהול ומכירות",
+      "mobile2": "053-321-4208",
+      "mobileTel2": "+972533214208",
+      "mobile2Role": "תיאום פרויקטים (EN)"
     }
   },
   "contact": {
@@ -157,7 +165,16 @@
       "sending": "Sending...",
       "success": "Thank you, your message has been sent",
       "successSub": "We'll be in touch shortly",
-      "error": "Submission failed. Please try again"
+      "error": "Submission failed. Please try again",
+      "directHeading": "Or reach us directly",
+      "chananName": "Chanan",
+      "chananRole": "Management & Sales",
+      "chananPhone": "058-500-8447",
+      "chananTel": "+972585008447",
+      "samName": "Sam",
+      "samRole": "Project Coordination · English",
+      "samPhone": "053-321-4208",
+      "samTel": "+972533214208"
     },
     "he": {
       "overline": "יצירת קשר",
@@ -170,7 +187,16 @@
       "sending": "שולח...",
       "success": "תודה, פנייתך התקבלה",
       "successSub": "ניצור קשר בהקדם",
-      "error": "שגיאה בשליחה. אנא נסו שוב"
+      "error": "שגיאה בשליחה. אנא נסו שוב",
+      "directHeading": "או צרו קשר ישירות",
+      "chananName": "חנן",
+      "chananRole": "ניהול ומכירות",
+      "chananPhone": "058-500-8447",
+      "chananTel": "+972585008447",
+      "samName": "סם",
+      "samRole": "תיאום פרויקטים · אנגלית",
+      "samPhone": "053-321-4208",
+      "samTel": "+972533214208"
     }
   },
   "about": {
