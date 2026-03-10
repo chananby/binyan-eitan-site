@@ -136,7 +136,7 @@ export default function Testimonials() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.55, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-col bg-white border border-warm-gray-light p-7 shadow-sm hover:shadow-md transition-shadow duration-300"
+                className={`flex flex-col bg-white border border-warm-gray-light p-7 shadow-sm hover:shadow-md transition-shadow duration-300${index === 6 && testimonials.length % 3 === 2 ? " lg:col-start-2" : ""}`}
               >
                 {/* Stars */}
                 <div className="mb-4">
