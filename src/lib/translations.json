@@ -24,7 +24,7 @@
       "heading": "Binyan Eitan - Engineering & Construction | Led by Moti Eitan",
       "description": "Our new site is under construction, showcasing our complex engineering and luxury projects. In the meantime, we are available for any inquiries.",
       "callUs": "Call Us:",
-      "phone": "+972‑52‑500‑0447",
+      "phone": "058-500-8447",
       "whatsapp": "WhatsApp",
       "testimonials_overline": "Client Testimonials",
       "testimonials_heading": "What Our\nClients Say.",
@@ -37,7 +37,7 @@
       "heading": "בנין איתן - הנדסה ובנייה | בהובלת מוטי איתן",
       "description": "אנו בונים עבורכם אתר חדש שיציג את הפרויקטים המורכבים והיוקרתיים שלנו. בינתיים, אנחנו כאן לכל שאלה הנדסית או תכנונית.",
       "callUs": "התקשרו אלינו:",
-      "phone": "+972‑52‑500‑0447",
+      "phone": "058-500-8447",
       "whatsapp": "WhatsApp",
       "testimonials_overline": "עדויות לקוחות",
       "testimonials_heading": "מה אומרים\nהלקוחות שלנו.",
@@ -101,9 +101,9 @@
       "about": "The Firm",
       "rights": "All rights reserved to Binyan Eitan.",
       "email": "office@binyaneitan.com",
-      "officePhone": "02-5000447",
+      "officePhone": "02-500-0447",
       "officePhoneTel": "+97225000447",
-      "mobile": "058-5008447",
+      "mobile": "058-500-8447",
       "mobileTel": "+972585008447",
       "whatsappLabel": "WhatsApp",
       "officeLabel": "Office",
@@ -130,9 +130,9 @@
       "about": "מי אנחנו",
       "rights": "כל הזכויות שמורות לבניין איתן.",
       "email": "office@binyaneitan.com",
-      "officePhone": "02-5000447",
+      "officePhone": "02-500-0447",
       "officePhoneTel": "+97225000447",
-      "mobile": "058-5008447",
+      "mobile": "058-500-8447",
       "mobileTel": "+972585008447",
       "whatsappLabel": "WhatsApp",
       "officeLabel": "משרד",
@@ -263,7 +263,12 @@
       "proj_3_category": "Luxury Penthouse",
       "proj_3_cover": "/ramat-eshkol.jpg",
       "proj_3_challenge": "High-end penthouse renovation in a fully occupied building — zero tolerance for noise, dust, or disruption to residents.",
-      "proj_3_solution": "Precision scheduling and full surface protection throughout, with meticulous execution of luxury finishes from structure to final detail."
+      "proj_3_solution": "Precision scheduling and full surface protection throughout, with meticulous execution of luxury finishes from structure to final detail.",
+      "proj_4_title": "Jerusalem Luxury Apartment",
+      "proj_4_category": "Full Renovation",
+      "proj_4_cover": "/jerusalem-luxury-living-room.jpg",
+      "proj_4_challenge": "Full gut renovation of a high-end Jerusalem apartment — total infrastructure replacement while protecting an occupied building and preserving Jerusalem stone detailing.",
+      "proj_4_solution": "Surgical site management with full surface protection, precision stonework, and luxury fixture installation from stripped shell to move-in-ready condition."
     },
     "he": {
       "overline": "עבודות נבחרות",
@@ -290,7 +295,12 @@
       "proj_3_category": "פנטהאוז יוקרה",
       "proj_3_cover": "/ramat-eshkol.jpg",
       "proj_3_challenge": "שיפוץ פנטהאוז יוקרה בבניין מאוכלס — אפס סבילות לרעש, אבק, או הפרעה לדיירים.",
-      "proj_3_solution": "תזמון מדויק והגנה מלאה על כל המשטחים לאורך כל הביצוע, עם גמר יוקרה מהשלד ועד לפרט הסופי."
+      "proj_3_solution": "תזמון מדויק והגנה מלאה על כל המשטחים לאורך כל הביצוע, עם גמר יוקרה מהשלד ועד לפרט הסופי.",
+      "proj_4_title": "דירת יוקרה בירושלים",
+      "proj_4_category": "שיפוץ מלא",
+      "proj_4_cover": "/jerusalem-luxury-living-room.jpg",
+      "proj_4_challenge": "שיפוץ מלא של דירת יוקרה בירושלים — החלפת תשתיות מקיפה תוך הגנה על בניין מאוכלס ושמירה על פרטי האבן הירושלמית.",
+      "proj_4_solution": "ניהול אתר כירורגי עם הגנה מלאה על המשטחים, עבודות אבן מדויקות והתקנת אביזרי יוקרה — משלב הקריסה ועד למסירה."
     }
   },
   "pillars": {
@@ -397,7 +407,7 @@
     {
       "id": "1",
       "slug": "g1-contractor-certification",
-      "heroImage": "/structural-remodeling-safety-standards.jpg",
+      "heroImage": "/amshinov-12.jpg",
       "category_en": "Licensing",
       "category_he": "רישוי ובטיחות",
       "title_en": "Registered Contractor: What the Certificate on the Wall Actually Means",
@@ -426,7 +436,7 @@
     {
       "id": "2",
       "slug": "building-from-abroad",
-      "heroImage": "/interior-wall-framing-systems.jpg",
+      "heroImage": "/bayit-vegan-8.jpg",
       "category_en": "Remote Management",
       "category_he": "ניהול מרחוק",
       "title_en": "Seamless Sovereignty: Building in Israel from Abroad",
@@ -455,7 +465,7 @@
     {
       "id": "3",
       "slug": "behind-the-walls",
-      "heroImage": "/advanced-underfloor-heating-israel.jpg",
+      "heroImage": "/professional-airless-painting-standards.jpg",
       "category_en": "Infrastructure",
       "category_he": "תשתית",
       "title_en": "Behind the Walls: The Invisible Standard of Excellence",
@@ -486,7 +496,7 @@
     {
       "id": "4",
       "slug": "reading-a-professional-quote",
-      "heroImage": "/structural-foundation-reinforcement.jpg",
+      "heroImage": "/ohel-avshalom-8.jpg",
       "category_en": "Professional Insights",
       "category_he": "ידע מקצועי",
       "title_en": "Beyond the Price Tag: How to Evaluate a Professional Quote",
@@ -517,7 +527,7 @@
     {
       "id": "5",
       "slug": "after-handover",
-      "heroImage": "/luxury-apartment-renovation-view.jpg",
+      "heroImage": "/ramat-eshkol-penthouse-6.jpg",
       "category_en": "Project Management",
       "category_he": "ניהול פרויקט",
       "title_en": "The Handover: Your Roadmap to Long-Term Peace of Mind",

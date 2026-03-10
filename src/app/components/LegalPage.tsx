@@ -99,7 +99,7 @@ function PrivacyEN() {
       <p className="font-body text-xs text-charcoal/40 mb-10">Last updated: {UPDATED}</p>
 
       <Section title="1. Data Controller">
-        <P>Binyan Eitan Construction Ltd., operating from Jerusalem and Lod, Israel, is the data controller for any personal information collected through this Site. Contact: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a> | Tel: <a href="tel:+97225000447" className="text-accent hover:underline">02-5000447</a></P>
+        <P>Binyan Eitan Construction Ltd., operating from Jerusalem and Lod, Israel, is the data controller for any personal information collected through this Site. Contact: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a> | Tel: <a href="tel:+97225000447" className="text-accent hover:underline">02-500-0447</a></P>
       </Section>
 
       <Section title="2. Information We Collect">
@@ -175,7 +175,7 @@ function AccessibilityEN() {
           <p className="font-heading font-bold text-charcoal text-base mb-1">Moti Eitan</p>
           <p className="text-charcoal/50 text-xs mb-3">Accessibility Coordinator, Binyan Eitan Construction Ltd.</p>
           <p>Email: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a></p>
-          <p>Phone: <a href="tel:+97225000447" className="text-accent hover:underline">02-5000447</a></p>
+          <p>Phone: <a href="tel:+97225000447" className="text-accent hover:underline">02-500-0447</a></p>
         </div>
         <P>We aim to respond to accessibility inquiries within 5 business days.</P>
       </Section>
@@ -233,7 +233,7 @@ function PrivacyHE() {
       <p className="font-body text-xs text-charcoal/40 mb-10">עודכן לאחרונה: {UPDATED}</p>
 
       <Section title="1. בעל המידע">
-        <P>חברת בנין איתן בע"מ, הפועלת מירושלים ולוד, היא בעל המידע לכל מידע אישי הנאסף דרך אתר זה. ניתן ליצור קשר בכתובת: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a> | טל&#39;: <a href="tel:+97225000447" className="text-accent hover:underline">02-5000447</a></P>
+        <P>חברת בנין איתן בע"מ, הפועלת מירושלים ולוד, היא בעל המידע לכל מידע אישי הנאסף דרך אתר זה. ניתן ליצור קשר בכתובת: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a> | טל&#39;: <a href="tel:+97225000447" className="text-accent hover:underline">02-500-0447</a></P>
       </Section>
 
       <Section title="2. מידע הנאסף">
@@ -305,7 +305,7 @@ function AccessibilityHE() {
           <p className="font-heading font-bold text-charcoal text-base mb-1">מוטי איתן</p>
           <p className="text-charcoal/50 text-xs mb-3">רכז נגישות, חברת בנין איתן בע"מ</p>
           <p>דוא"ל: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a></p>
-          <p>טל&#39;: <a href="tel:+97225000447" className="text-accent hover:underline">02-5000447</a></p>
+          <p>טל&#39;: <a href="tel:+97225000447" className="text-accent hover:underline">02-500-0447</a></p>
         </div>
         <P>אנו שואפים להשיב לפניות נגישות תוך 5 ימי עסקים.</P>
       </Section>

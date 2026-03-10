@@ -96,7 +96,7 @@ export default function EnHomeClient() {
 
       <div className="flex flex-col sm:flex-row gap-4">
         <motion.a
-          href="tel:+972525000447"
+          href="tel:+972585008447"
           className="inline-flex w-full sm:w-auto items-center justify-center px-6 py-3 bg-accent text-bone rounded-lg font-semibold"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

@@ -101,6 +101,25 @@ const PROJECTS = [
       "/ramat-eshkol-penthouse-9.jpg",
     ],
   },
+  {
+    num: "05",
+    cover: "/jerusalem-luxury-living-room.jpg",
+    series: [
+      "/jerusalem-luxury-living-room.jpg",
+      "/jerusalem-black-sink-detail.jpg",
+      "/jerusalem-kitchen-protection.jpg",
+      "/jerusalem-balcony-view.jpg",
+      "/jerusalem-worker-precision-face.jpg",
+      "/jerusalem-floor-protection-hands.jpg",
+      "/jerusalem-stone-drilling-detail.jpg",
+      "/jerusalem-stone-demolition-jamb.jpg",
+      "/jerusalem-electrical-infrastructure.jpg",
+      "/jerusalem-plumbing-pipe-chase.jpg",
+      "/jerusalem-bathroom-gut-stripped.jpg",
+      "/jerusalem-site-inspection-motti.jpg",
+      "/jerusalem-crane-logistics.jpg",
+    ],
+  },
 ];
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -180,12 +199,13 @@ export default function PortfolioGallery() {
             {PROJECTS.map((proj, index) => {
               const title = ut[`proj_${index}_title`] ?? "";
               const category = ut[`proj_${index}_category`] ?? "";
-              // col-span layout: 0=7cols tall, 1=5cols, 2=5cols, 3=12cols wide
+              // col-span layout: 0=7cols tall, 1=5cols, 2=5cols, 3=7cols, 4=5cols tall
               const colClass =
                 index === 0 ? "sm:col-span-7 sm:row-span-2 aspect-[4/5] sm:aspect-auto" :
                 index === 1 ? "sm:col-span-5 aspect-[4/3]" :
                 index === 2 ? "sm:col-span-5 aspect-[4/3]" :
-                "sm:col-span-12 aspect-[16/7]";
+                index === 3 ? "sm:col-span-7 aspect-[16/9]" :
+                "sm:col-span-5 aspect-[4/3]";
               return (
                 <motion.button
                   key={proj.num}
