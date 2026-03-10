@@ -1,7 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-  <rect width="120" height="120" rx="20" fill="#1A1A1A"/>
-  <!-- Roofline / gable mark in brand gold -->
-  <path d="M22 52 L60 26 L98 52 L98 58 L60 32 L22 58 Z" fill="#C9A96E"/>
-  <!-- "BE" logotype -->
-  <text x="60" y="94" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="bold" fill="#FAF9F6" text-anchor="middle" letter-spacing="5">BE</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 90">
+  <!-- Left slope lines: dark slate, parallel to left slope -->
+  <line x1="50" y1="12" x2="4"    y2="78" stroke="#2D3A4A" stroke-width="4" stroke-linecap="butt"/>
+  <line x1="50" y1="23" x2="11.7" y2="78" stroke="#2D3A4A" stroke-width="4" stroke-linecap="butt"/>
+  <line x1="50" y1="34" x2="19.3" y2="78" stroke="#2D3A4A" stroke-width="4" stroke-linecap="butt"/>
+  <line x1="50" y1="45" x2="27"   y2="78" stroke="#2D3A4A" stroke-width="4" stroke-linecap="butt"/>
+  <line x1="50" y1="56" x2="34.7" y2="78" stroke="#2D3A4A" stroke-width="4" stroke-linecap="butt"/>
+  <line x1="50" y1="67" x2="42.3" y2="78" stroke="#2D3A4A" stroke-width="4" stroke-linecap="butt"/>
+  <!-- Right slope lines: red, parallel to right slope -->
+  <line x1="50" y1="12" x2="96"   y2="78" stroke="#C0392B" stroke-width="4" stroke-linecap="butt"/>
+  <line x1="50" y1="23" x2="88.3" y2="78" stroke="#C0392B" stroke-width="4" stroke-linecap="butt"/>
+  <line x1="50" y1="34" x2="80.7" y2="78" stroke="#C0392B" stroke-width="4" stroke-linecap="butt"/>
+  <line x1="50" y1="45" x2="73"   y2="78" stroke="#C0392B" stroke-width="4" stroke-linecap="butt"/>
+  <line x1="50" y1="56" x2="65.3" y2="78" stroke="#C0392B" stroke-width="4" stroke-linecap="butt"/>
+  <line x1="50" y1="67" x2="57.7" y2="78" stroke="#C0392B" stroke-width="4" stroke-linecap="butt"/>
 </svg>
