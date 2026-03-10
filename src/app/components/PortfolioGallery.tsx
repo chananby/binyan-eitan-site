@@ -107,15 +107,8 @@ const PROJECTS = [
     series: [
       "/jerusalem-luxury-living-room.jpg",
       "/jerusalem-black-sink-detail.jpg",
-      "/jerusalem-kitchen-protection.jpg",
       "/jerusalem-balcony-view.jpg",
-      "/jerusalem-worker-precision-face.jpg",
-      "/jerusalem-floor-protection-hands.jpg",
       "/jerusalem-stone-drilling-detail.jpg",
-      "/jerusalem-stone-demolition-jamb.jpg",
-      "/jerusalem-electrical-infrastructure.jpg",
-      "/jerusalem-plumbing-pipe-chase.jpg",
-      "/jerusalem-bathroom-gut-stripped.jpg",
       "/jerusalem-site-inspection-motti.jpg",
       "/jerusalem-crane-logistics.jpg",
     ],
@@ -205,7 +198,7 @@ export default function PortfolioGallery() {
                 index === 1 ? "sm:col-span-5 aspect-[4/3]" :
                 index === 2 ? "sm:col-span-5 aspect-[4/3]" :
                 index === 3 ? "sm:col-span-7 aspect-[16/9]" :
-                "sm:col-span-5 aspect-[4/3]";
+                "sm:col-span-5 aspect-[4/3] sm:aspect-auto";
               return (
                 <motion.button
                   key={proj.num}
