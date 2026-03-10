@@ -29,7 +29,7 @@
       "testimonials_overline": "Client Testimonials",
       "testimonials_heading": "What Our\nClients Say",
       "testimonials_sub": "Real feedback from homeowners, architects, and institutions",
-      "google_rating_text": "Rated 5.0 (18 Reviews on Google)",
+      "google_rating_text": "Rated 5.0 (19 Reviews on Google)",
       "read_more_google": "Read all reviews on Google",
       "testimonials_google_url": "https://www.google.com/search?q=%D7%91%D7%A0%D7%99%D7%99%D7%9F+%D7%90%D7%99%D7%AA%D7%9F+%D7%91%D7%A2%22%D7%9E+%7C+%D7%97%D7%91%D7%A8%D7%94+%D7%9C%D7%91%D7%A0%D7%99%D7%99%D7%94+%D7%95%D7%A9%D7%99%D7%A4%D7%95%D7%A6%D7%99%D7%9D&sourceid=chrome&ie=UTF-8#lrd=0xaa71495b07098917:0xdf68e31fbb9f5296,1,,,,"
     },
@@ -42,7 +42,7 @@
       "testimonials_overline": "עדויות לקוחות",
       "testimonials_heading": "מה אומרים\nהלקוחות שלנו",
       "testimonials_sub": "פידבק אמיתי מבעלי בתים, אדריכלים ומוסדות שסמכו עלינו",
-      "google_rating_text": "ציון 5.0 (18 ביקורות בגוגל)",
+      "google_rating_text": "ציון 5.0 (19 ביקורות בגוגל)",
       "read_more_google": "לכל הביקורות ב-Google",
       "testimonials_google_url": "https://www.google.com/search?q=%D7%91%D7%A0%D7%99%D7%99%D7%9F+%D7%90%D7%99%D7%AA%D7%9F+%D7%91%D7%A2%22%D7%9E+%7C+%D7%97%D7%91%D7%A8%D7%94+%D7%9C%D7%91%D7%A0%D7%99%D7%99%D7%94+%D7%95%D7%A9%D7%99%D7%A4%D7%95%D7%A6%D7%99%D7%9D&sourceid=chrome&ie=UTF-8#lrd=0xaa71495b07098917:0xdf68e31fbb9f5296,1,,,,"
     }
@@ -779,6 +779,18 @@
       "rating": 5,
       "year": "2024",
       "source": "Google"
+    },
+    {
+      "id": "t9",
+      "name": "מולי גרוסמן",
+      "city_he": "ירושלים",
+      "city_en": "Jerusalem",
+      "text_he": "מהירות תגובה, דייקנות, איכות, מקצועיות ורמת מחירים — הכל ברמה גבוהה.",
+      "text_en": "Responsiveness, punctuality, quality, professionalism and pricing — all at the highest level.",
+      "rating": 5,
+      "year": "2022",
+      "source": "google"
     }
-  ]
+  ],
+  "testimonials_section": {}
 }
