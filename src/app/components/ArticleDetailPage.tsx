@@ -76,7 +76,7 @@ const ui = {
     back: "← Back to Knowledge Base",
     notFound: "Article not found.",
     ctaLabel: "Contact Us for Consultation",
-    ctaSub: "Or call: 058-500-8447",
+    ctaSub: "Or call: 053-321-4208",
     tipTitle: "The Binyan Eitan Standard",
     share: "Share",
     minRead: (n: number) => `${n} min read`,
