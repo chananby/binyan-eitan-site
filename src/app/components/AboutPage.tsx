@@ -46,6 +46,7 @@ export default function AboutPage() {
     { num: "01", title: ct.expertise_0_title, desc: ct.expertise_0_desc },
     { num: "02", title: ct.expertise_1_title, desc: ct.expertise_1_desc },
     { num: "03", title: ct.expertise_2_title, desc: ct.expertise_2_desc },
+    { num: "04", title: ct.expertise_3_title, desc: ct.expertise_3_desc },
   ];
   const stats = [
     { value: c.stat1Value, label: c.stat1Label },
@@ -229,7 +230,7 @@ export default function AboutPage() {
             </FadeUp>
           </div>
 
-          <div className="grid grid-cols-1 gap-px bg-charcoal/[0.07] md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-px bg-charcoal/[0.07] md:grid-cols-2 lg:grid-cols-4">
             {expertise.map((item, i) => (
               <motion.div
                 key={item.num}
