@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Assistant } from "next/font/google";
 import { LangProvider } from "../components/LangContext";
 import FloatingWhatsApp from "../components/FloatingWhatsApp";
@@ -8,6 +9,36 @@ const assistant = Assistant({
   display: "swap",
   weight: ["300", "400", "600", "700", "800"],
 });
+
+export const metadata: Metadata = {
+  title: {
+    default: "Binyan Eitan | G1-Licensed Contractor — Engineering & Luxury Construction",
+    template: "%s | Binyan Eitan",
+  },
+  description:
+    "G1-registered contractor (#41805) specializing in luxury renovation, structural engineering, and premium finishes across Jerusalem and central Israel. Full transparency, uncompromising execution.",
+  openGraph: {
+    siteName: "Binyan Eitan",
+    type: "website",
+    locale: "en_US",
+    images: [
+      {
+        url: "/jerusalem-luxury-living-room.jpg",
+        width: 1200,
+        height: 800,
+        alt: "Binyan Eitan — Engineering & Luxury Construction",
+      },
+    ],
+  },
+  twitter: { card: "summary_large_image" },
+  alternates: {
+    canonical: "https://binyaneitan.com/en",
+    languages: {
+      "en-US": "https://binyaneitan.com/en",
+      "he-IL": "https://binyaneitan.com/he",
+    },
+  },
+};
 
 const jsonLd = {
   "@context": "https://schema.org",

@@ -11,8 +11,33 @@ const assistant = Assistant({
 });
 
 export const metadata: Metadata = {
-  title: "בנין איתן - פתרונות הנדסיים",
-  description: "מומחים בבנייה ותשתיות",
+  title: {
+    default: "בנין איתן | קבלן רשום ג1 — הנדסה ובנייה יוקרתית",
+    template: "%s | בנין איתן",
+  },
+  description:
+    "קבלן רשום ג1 (מס׳ 41805) המתמחה בשיפוץ יוקרה, הנדסת קונסטרוקציה וגמר פרימיום בירושלים ובמרכז הארץ. שקיפות מלאה, ביצוע ללא פשרות.",
+  openGraph: {
+    siteName: "בנין איתן",
+    type: "website",
+    locale: "he_IL",
+    images: [
+      {
+        url: "/jerusalem-luxury-living-room.jpg",
+        width: 1200,
+        height: 800,
+        alt: "בנין איתן — הנדסה ובנייה יוקרתית",
+      },
+    ],
+  },
+  twitter: { card: "summary_large_image" },
+  alternates: {
+    canonical: "https://binyaneitan.com/he",
+    languages: {
+      "he-IL": "https://binyaneitan.com/he",
+      "en-US": "https://binyaneitan.com/en",
+    },
+  },
 };
 
 const jsonLd = {

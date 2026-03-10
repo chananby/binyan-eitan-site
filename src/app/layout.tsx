@@ -101,7 +101,6 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning lang="he" className={`${assistant.variable} ${heebo.variable}`}>
       <head>
-        <meta name="robots" content="noindex, nofollow" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

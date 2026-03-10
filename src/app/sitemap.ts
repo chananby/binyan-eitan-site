@@ -7,6 +7,7 @@ const ARTICLE_SLUGS = [
   "behind-the-walls",
   "reading-a-professional-quote",
   "after-handover",
+  "floor-infrastructure",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
