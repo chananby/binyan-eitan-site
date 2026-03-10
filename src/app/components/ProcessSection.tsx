@@ -8,20 +8,44 @@ const content = {
     overline: "The Process",
     title: "4 Phases of Execution",
     phases: [
-      { label: "Audit", desc: "Site evaluation, planning, permit management." },
-      { label: "Structural", desc: "Engineering, foundations, steel, concrete." },
-      { label: "Finishing", desc: "Luxury interiors, systems, and details." },
-      { label: "Handover", desc: "Final inspection, documentation, and delivery." },
+      {
+        label: "Planning, Estimation & Coordination",
+        desc: "Infrastructure assessment, detailed cost estimation, and consolidation of plans and permits. We create a professional roadmap for efficient execution, ensuring transparency and minimizing unforeseen issues.",
+      },
+      {
+        label: "Infrastructure, Structure & Systems",
+        desc: "Electrical, plumbing, HVAC, and structural reinforcements. We build the core—the part you don't see, but is most crucial for longevity—with zero compromises and long-term reliability.",
+      },
+      {
+        label: "Finishes & Luxury Craftsmanship",
+        desc: "Precision tiling, meticulous painting, and installation of premium materials. This is where your vision comes to life with high-end quality, down to the very last finishing detail.",
+      },
+      {
+        label: "Quality Control & Handover",
+        desc: "Thorough testing of every outlet and fixture before completion. Site cleanup, delivery of an organized project file, and handing over the keys to a 100% move-in-ready home.",
+      },
     ],
   },
   he: {
     overline: "התהליך",
     title: "4 שלבי ביצוע",
     phases: [
-      { label: "בדיקה", desc: "הערכת אתר, תכנון, טיפול רישוי." },
-      { label: "קונסטרוקציה", desc: "הנדסה, יסודות, פלדה ובטון." },
-      { label: "גימור", desc: "פנימיות יוקרתיות, מערכות ופרטים." },
-      { label: "מסירה", desc: "בדיקה אחרונה, תיעוד, והעברה." },
+      {
+        label: "תכנון, אומדן וסנכרון",
+        desc: "בדיקת תשתיות, בניית אומדן מפורט וריכוז תוכניות ואישורים. אנחנו בונים מפת דרכים מקצועית לביצוע יעיל, בשקיפות מלאה ובשאיפה למינימום הפתעות במהלך העבודה.",
+      },
+      {
+        label: "תשתיות, שלד ומערכות",
+        desc: "חשמל, אינסטלציה, מיזוג וחיזוקים הנדסיים. כאן אנחנו בונים את הליבה שלא רואים אחר כך, אבל הכי חשוב שתחזיק לשנים – בלי תקלות ובלי פשרות.",
+      },
+      {
+        label: "עבודות גמר ויוקרה",
+        desc: "ריצוף מדויק, עבודות צבע מוקפדות והתקנת חומרים בסטנדרט הגבוה ביותר. כאן הבית מקבל את המראה והאיכות שחלמתם עליהם, עד לרמת הגימור של הבורג האחרון.",
+      },
+      {
+        label: "בקרת איכות ומסירה",
+        desc: "בדיקה יסודית של כל שקע וברז לפני היציאה מהשטח. ניקיון האתר, מסירת תיק פרויקט מסודר ומסירת מפתח לבית שמוכן למגורים ב-100% בראש שקט.",
+      },
     ],
   },
 } as const;
