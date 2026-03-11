@@ -21,20 +21,20 @@ const heebo = Heebo({
 export const metadata: Metadata = {
   metadataBase: new URL("https://binyaneitan.com"),
   title: {
-    default: "Binyan Eitan | Engineering Excellence & Luxury Construction",
+    default: "Binyan Eitan | Engineering Excellence & Uncompromising Execution",
     template: "%s | Binyan Eitan",
   },
   description:
-    "Precision you can measure, transparency you can trust. Binyan Eitan — G1-licensed contractor specializing in luxury builds, structural engineering, and premium finishes across Israel.",
+    "Two decades of engineering experience in construction, renovations, and complex project management in Jerusalem. Transforming technical plans into precise reality with full transparency.",
   openGraph: {
     siteName: "Binyan Eitan",
     type: "website",
     images: [
       {
-        url: "/amshinov-1.jpg",
-        width: 1200,
-        height: 800,
-        alt: "Binyan Eitan — Engineering Excellence & Luxury Construction",
+        url: "/luxury-interior-finish-transformation.jpg",
+        width: 1600,
+        height: 900,
+        alt: "Binyan Eitan — Engineering Excellence & Uncompromising Execution",
       },
     ],
   },

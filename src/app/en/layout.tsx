@@ -12,21 +12,21 @@ const assistant = Assistant({
 
 export const metadata: Metadata = {
   title: {
-    default: "Binyan Eitan | G1-Licensed Contractor — Engineering & Luxury Construction",
+    default: "Binyan Eitan | Engineering Excellence & Uncompromising Execution",
     template: "%s | Binyan Eitan",
   },
   description:
-    "G1-registered contractor (#41805) specializing in luxury renovation, structural engineering, and premium finishes across Jerusalem and central Israel. Full transparency, uncompromising execution.",
+    "Two decades of engineering experience in construction, renovations, and complex project management in Jerusalem. Transforming technical plans into precise reality with full transparency.",
   openGraph: {
     siteName: "Binyan Eitan",
     type: "website",
     locale: "en_US",
     images: [
       {
-        url: "/jerusalem-luxury-living-room.jpg",
-        width: 1200,
-        height: 800,
-        alt: "Binyan Eitan — Engineering & Luxury Construction",
+        url: "/luxury-interior-finish-transformation.jpg",
+        width: 1600,
+        height: 900,
+        alt: "Binyan Eitan — Engineering Excellence & Uncompromising Execution",
       },
     ],
   },
@@ -48,7 +48,7 @@ const jsonLd = {
   "alternateName": "בנין איתן בע\"מ",
   "url": "https://binyaneitan.com",
   "logo": "https://binyaneitan.com/logo.png",
-  "image": "https://binyaneitan.com/jerusalem-crane-delivery.jpg",
+  "image": "https://binyaneitan.com/luxury-interior-finish-transformation.jpg",
   "description": "G1-licensed construction contractor specializing in luxury renovation, structural engineering, and premium finishes across Jerusalem and central Israel.",
   "telephone": "02-500-0447",
   "contactPoint": [

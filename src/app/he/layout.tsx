@@ -12,21 +12,21 @@ const assistant = Assistant({
 
 export const metadata: Metadata = {
   title: {
-    default: "בנין איתן | קבלן רשום ג1 — הנדסה ובנייה יוקרתית",
+    default: "בנין איתן | מצוינות הנדסית וביצוע ללא פשרות",
     template: "%s | בנין איתן",
   },
   description:
-    "קבלן רשום ג1 (מס׳ 41805) המתמחה בשיפוץ יוקרה, הנדסת קונסטרוקציה וגמר פרימיום בירושלים ובמרכז הארץ. שקיפות מלאה, ביצוע ללא פשרות.",
+    "שני עשורים של ניסיון הנדסי בבנייה, שיפוצים וניהול פרויקטים מורכבים בירושלים. אנחנו הופכים תוכניות הנדסיות למציאות מדויקת בשטח, עם ליווי אישי ושקיפות מלאה לכל אורך הדרך.",
   openGraph: {
     siteName: "בנין איתן",
     type: "website",
     locale: "he_IL",
     images: [
       {
-        url: "/jerusalem-luxury-living-room.jpg",
-        width: 1200,
-        height: 800,
-        alt: "בנין איתן — הנדסה ובנייה יוקרתית",
+        url: "/luxury-interior-finish-transformation.jpg",
+        width: 1600,
+        height: 900,
+        alt: "בנין איתן — מצוינות הנדסית וביצוע ללא פשרות",
       },
     ],
   },
@@ -48,7 +48,7 @@ const jsonLd = {
   "alternateName": "Binyan Eitan Ltd.",
   "url": "https://binyaneitan.com",
   "logo": "https://binyaneitan.com/logo.png",
-  "image": "https://binyaneitan.com/jerusalem-crane-delivery.jpg",
+  "image": "https://binyaneitan.com/luxury-interior-finish-transformation.jpg",
   "description": "קבלן בנייה מוסמך ג1, מתמחה בשיפוץ יוקרה, הנדסה קונסטרוקטיבית וגמר פרמיום בירושלים ובמרכז הארץ.",
   "telephone": "02-500-0447",
   "contactPoint": [
