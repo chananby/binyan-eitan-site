@@ -172,6 +172,9 @@ export default function ContactForm() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-10">
               <div className="relative">
+                <label htmlFor="project_type" className="sr-only">
+                  {lang === "he" ? "סוג הפרויקט" : "Project Type"}
+                </label>
                 <select
                   id="project_type"
                   name="project_type"

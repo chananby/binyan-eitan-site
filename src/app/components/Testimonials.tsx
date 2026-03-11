@@ -50,6 +50,7 @@ function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
           stroke="#8D775F"
           strokeWidth={1.2}
           className="shrink-0"
+          aria-hidden="true"
         >
           <path d="M7 1l1.545 3.13L12 4.635l-2.5 2.435.59 3.43L7 8.885l-3.09 1.615.59-3.43L2 4.635l3.455-.505z" />
         </svg>

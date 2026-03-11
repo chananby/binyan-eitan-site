@@ -100,7 +100,7 @@ export default function Hero() {
 
             {/* Overline — kept narrow */}
             <motion.p
-              className="overline-label mb-6 text-charcoal/50 md:mb-8 max-w-[520px]"
+              className="overline-label mb-6 text-charcoal/70 md:mb-8 max-w-[520px]"
               variants={fadeUp()}
             >
               <span className="me-3 inline-block h-px w-8 bg-accent align-middle" />

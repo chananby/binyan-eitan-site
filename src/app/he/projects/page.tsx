@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     canonical: "https://binyaneitan.com/he/projects",
     languages: { en: "https://binyaneitan.com/en/projects" },
   },
-  robots: "noindex, nofollow",
+  robots: { index: true, follow: true },
 };
 
 const HeProjectsClient = dynamic(() => import("../../components/ClientLayouts/HeProjectsClient"), { ssr: false });

@@ -96,7 +96,7 @@ export default function Pillars() {
                       >
                         {content.title}
                       </h3>
-                      <p className="mt-1 font-body text-sm font-light text-charcoal/40 max-md:hidden">
+                      <p className="mt-1 font-body text-sm font-light text-charcoal/60 max-md:hidden">
                         {content.summary}
                       </p>
                     </div>

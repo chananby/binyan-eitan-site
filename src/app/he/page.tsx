@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "מצוינות הנדסית ובנייה יוקרתית",
   description:
     "דיוק שאפשר למדוד, שקיפות שאפשר לסמוך עליה. בניין איתן — קבלן רשום ג1. בנייה יוקרתית, הנדסת קונסטרוקציה, גמר פרימיום בחומר שחור. ירושלים וכל הארץ.",
-  robots: "noindex, nofollow",
+  robots: { index: true, follow: true },
   openGraph: {
     title: "בניין איתן | מצוינות הנדסית ובנייה יוקרתית",
     description:

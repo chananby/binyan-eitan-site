@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Engineering Excellence & Luxury Construction",
   description:
     "Precision you can measure, transparency you can trust. Binyan Eitan — G1-licensed contractor. Luxury builds, structural engineering, premium dark-material finishes. Jerusalem & across Israel.",
-  robots: "noindex, nofollow",
+  robots: { index: true, follow: true },
   openGraph: {
     title: "Binyan Eitan | Engineering Excellence & Luxury Construction",
     description:
