@@ -149,7 +149,7 @@ export default function EngineeringExcellence() {
 
       {/* ── Lightbox ── */}
       <AnimatePresence>
-        {activeIndex !== null && (
+        {activeIndex !== null && ITEMS[activeIndex] && (
           <motion.div
             className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 px-4"
             initial={{ opacity: 0 }}
@@ -197,7 +197,7 @@ export default function EngineeringExcellence() {
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={ITEMS[activeIndex].src}
-                  className="absolute inset-0"
+                  className="absolute inset-0 bg-charcoal/40"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}

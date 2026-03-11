@@ -94,7 +94,7 @@ function TestimonialCard({
             <p className="font-body text-xs text-charcoal/40 mt-0.5">{city}</p>
           )}
         </div>
-        {t.source === "Google" && (
+        {t.source?.toLowerCase() === "google" && (
           <div className="shrink-0 inline-flex items-center gap-1.5 text-charcoal/30">
             <GoogleIcon size={14} />
             <span className="font-body text-[10px] font-semibold tracking-wide">Google</span>

@@ -299,7 +299,7 @@ export default function PortfolioGallery() {
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={series[activeImage]}
-                  className="absolute inset-0"
+                  className="absolute inset-0 bg-charcoal/40"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
