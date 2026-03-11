@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { useLang } from "./LangContext";
 import { useTranslationsRaw } from "./TranslationsProvider";
 import SectionReveal from "./SectionReveal";
@@ -17,7 +18,6 @@ interface Testimonial {
   source?: string;
 }
 
-// Fallback UI labels (overridden by translations.home[lang] when available)
 const DEFAULT_UI = {
   en: {
     overline: "Client Testimonials",
@@ -70,6 +70,117 @@ function GoogleIcon({ size = 14 }: { size?: number }) {
   );
 }
 
+function TestimonialCard({
+  t,
+  lang,
+}: {
+  t: Testimonial;
+  lang: "en" | "he";
+}) {
+  const text = lang === "he" ? t.text_he : t.text_en;
+  const city = lang === "he" ? t.city_he : t.city_en;
+  return (
+    <div className="flex flex-col bg-white border border-warm-gray-light p-7 shadow-sm h-full">
+      <div className="mb-4">
+        <StarRating rating={t.rating ?? 5} />
+      </div>
+      <blockquote className="flex-1 font-body text-[0.9375rem] text-charcoal/80 leading-relaxed mb-6">
+        &ldquo;{text}&rdquo;
+      </blockquote>
+      <div className="flex items-end justify-between gap-3 pt-5 border-t border-warm-gray-light">
+        <div>
+          <p className="font-heading text-sm font-bold text-charcoal leading-tight">{t.name}</p>
+          {city && (
+            <p className="font-body text-xs text-charcoal/40 mt-0.5">{city}</p>
+          )}
+        </div>
+        {t.source === "Google" && (
+          <div className="shrink-0 inline-flex items-center gap-1.5 text-charcoal/30">
+            <GoogleIcon size={14} />
+            <span className="font-body text-[10px] font-semibold tracking-wide">Google</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MobileCarousel({
+  testimonials,
+  lang,
+  dir,
+}: {
+  testimonials: Testimonial[];
+  lang: "en" | "he";
+  dir: "ltr" | "rtl";
+}) {
+  const [current, setCurrent] = useState(0);
+  const total = testimonials.length;
+  const isRtl = dir === "rtl";
+
+  function advance(delta: number) {
+    setCurrent((c) => Math.min(Math.max(c + delta, 0), total - 1));
+  }
+
+  function onDragEnd(_: PointerEvent, info: PanInfo) {
+    const SWIPE_THRESHOLD = 50;
+    const { offset } = info;
+    // RTL swipe: left = next in LTR → previous in RTL
+    const raw = isRtl ? -offset.x : offset.x;
+    if (raw < -SWIPE_THRESHOLD) advance(1);
+    else if (raw > SWIPE_THRESHOLD) advance(-1);
+  }
+
+  // x% offset: in LTR slide left, in RTL slide right
+  const xPercent = isRtl ? current * 100 : -current * 100;
+
+  return (
+    <div>
+      {/* Track */}
+      <div className="overflow-hidden cursor-grab active:cursor-grabbing select-none">
+        <motion.div
+          className="flex"
+          animate={{ x: `${xPercent}%` }}
+          transition={{ type: "spring", stiffness: 320, damping: 32 }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.12}
+          onDragEnd={onDragEnd}
+        >
+          {testimonials.map((t) => (
+            <div key={t.id} className="min-w-full px-1">
+              <TestimonialCard t={t} lang={lang} />
+            </div>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Pagination dots */}
+      <div className="mt-6 flex justify-center gap-2" role="tablist" aria-label="Testimonial slides">
+        {testimonials.map((_, i) => (
+          <button
+            key={i}
+            role="tab"
+            aria-selected={i === current}
+            aria-label={`Go to testimonial ${i + 1}`}
+            onClick={() => setCurrent(i)}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i === current
+                ? "w-6 bg-accent"
+                : "w-1.5 bg-charcoal/20 hover:bg-charcoal/40"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Counter */}
+      <p className="mt-3 text-center font-body text-xs text-charcoal/40">
+        {current + 1} / {total}
+      </p>
+    </div>
+  );
+}
+
 export default function Testimonials() {
   type Lang = "en" | "he";
   const { lang } = useLang() as { lang: Lang };
@@ -85,12 +196,12 @@ export default function Testimonials() {
   const d = DEFAULT_UI[lang];
   const h = rawData?.home?.[lang] ?? {};
   const labels = {
-    overline:            h.testimonials_overline  || d.overline,
-    heading:             h.testimonials_heading   || d.heading,
-    sub:                 h.testimonials_sub       || d.sub,
-    google_rating_text:  h.google_rating_text     || d.google_rating_text,
-    read_more_google:    h.read_more_google       || d.read_more_google,
-    google_url:          h.testimonials_google_url || d.google_url,
+    overline:           h.testimonials_overline  || d.overline,
+    heading:            h.testimonials_heading   || d.heading,
+    sub:                h.testimonials_sub       || d.sub,
+    google_rating_text: h.google_rating_text     || d.google_rating_text,
+    read_more_google:   h.read_more_google       || d.read_more_google,
+    google_url:         h.testimonials_google_url || d.google_url,
   };
 
   if (testimonials.length === 0) return null;
@@ -99,7 +210,7 @@ export default function Testimonials() {
     <section id="testimonials" className="bg-bone py-24 md:py-32" dir={dir}>
       <div className="mx-auto max-w-[1280px] px-8">
 
-        {/* ── Section header ──────────────────────────────────────────── */}
+        {/* ── Section header ── */}
         <SectionReveal>
           <div className="mb-14">
             <p className="overline-label mb-5 flex items-center gap-3">
@@ -125,53 +236,28 @@ export default function Testimonials() {
           </div>
         </SectionReveal>
 
-        {/* ── Grid ────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((t, i) => {
-            const text = lang === "he" ? t.text_he : t.text_en;
-            const city = lang === "he" ? t.city_he : t.city_en;
-            return (
-              <motion.div
-                key={t.id}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.55, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-col bg-white border border-warm-gray-light p-7 shadow-sm hover:shadow-md transition-shadow duration-300"
-              >
-                {/* Stars */}
-                <div className="mb-4">
-                  <StarRating rating={t.rating ?? 5} />
-                </div>
-
-                {/* Quote */}
-                <blockquote className="flex-1 font-body text-[0.9375rem] text-charcoal/80 leading-relaxed mb-6">
-                  &ldquo;{text}&rdquo;
-                </blockquote>
-
-                {/* Card footer */}
-                <div className="flex items-end justify-between gap-3 pt-5 border-t border-warm-gray-light">
-                  <div>
-                    <p className="font-heading text-sm font-bold text-charcoal leading-tight">{t.name}</p>
-                    {city && (
-                      <p className="font-body text-xs text-charcoal/40 mt-0.5">
-                        {city}
-                      </p>
-                    )}
-                  </div>
-                  {t.source === "Google" && (
-                    <div className="shrink-0 inline-flex items-center gap-1.5 text-charcoal/30">
-                      <GoogleIcon size={14} />
-                      <span className="font-body text-[10px] font-semibold tracking-wide">Google</span>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
+        {/* ── Mobile: Carousel ── */}
+        <div className="md:hidden">
+          <MobileCarousel testimonials={testimonials} lang={lang} dir={dir} />
         </div>
 
-        {/* ── Google CTA — only shown when a real URL is configured ── */}
+        {/* ── Desktop: Grid ── */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6">
+          {testimonials.map((t, i) => (
+            <motion.div
+              key={t.id}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.55, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+              className="hover:shadow-md transition-shadow duration-300"
+            >
+              <TestimonialCard t={t} lang={lang} />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* ── Google CTA ── */}
         {labels.google_url && labels.google_url !== "#" && (
           <SectionReveal>
             <div className="mt-12 flex justify-center">
