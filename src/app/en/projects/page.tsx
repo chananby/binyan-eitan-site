@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
-  title: "Projects Portfolio | Luxury Construction & Engineering",
+  title: "Our Projects | Selected Portfolio of Premium Construction",
   description:
     "From institutional complexes to private luxury villas — every project built to engineering exactitude. Structural transparency, premium dark materials, precision you can walk through.",
   keywords: [

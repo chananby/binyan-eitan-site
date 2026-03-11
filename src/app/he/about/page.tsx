@@ -2,7 +2,7 @@ import AboutPage from "../../components/AboutPage";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "המשרד | בניין איתן — קבלן רשום ג1 | הנדסה ובנייה יוקרתית",
+  title: "מי אנחנו | הניסיון ההנדסי של מוטי איתן",
   description: 'מזה שני עשורים שחברת "בנין איתן" מובילה פרויקטים מורכבים ויוקרתיים בישראל. מוטי איתן, מייסד ובעלים — קבלן רשום C1 עם מעל 20 שנה של הנדסת קונסטרוקציה, פיקוח וניהול פרויקטים.',
   keywords: [
     "קבלן רשום ג1",
