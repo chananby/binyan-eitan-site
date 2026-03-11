@@ -167,7 +167,7 @@ export default function Navbar() {
         {mobileOpen && (
           <motion.div
             dir={dir}
-            className="fixed inset-0 z-50 flex flex-col bg-bone md:hidden"
+            className="fixed inset-0 z-[100] flex flex-col bg-bone md:hidden"
             initial={{ opacity: 0, y: "-4%" }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: "-4%" }}
