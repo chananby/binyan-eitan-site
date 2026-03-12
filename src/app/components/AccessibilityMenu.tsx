@@ -68,14 +68,14 @@ export default function AccessibilityMenu() {
 
   return (
     <div
-      className="fixed bottom-6 end-6 z-[200] flex flex-col items-end gap-3 print:hidden"
+      className="fixed bottom-[5.5rem] left-6 z-[200] flex flex-col items-start gap-3 print:hidden"
       role="complementary"
       aria-label="Accessibility menu"
     >
       {/* Panel */}
       {open && (
         <div
-          className="bg-charcoal text-bone border border-bone/10 shadow-2xl w-56 p-5 flex flex-col gap-4"
+          className="bg-charcoal/90 text-bone border border-bone/10 shadow-xl w-52 p-4 flex flex-col gap-3"
           role="dialog"
           aria-modal="false"
           aria-label="Accessibility options"
@@ -145,9 +145,9 @@ export default function AccessibilityMenu() {
       {/* Floating toggle button */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`size-12 flex items-center justify-center border shadow-xl transition-all duration-300 ${
+        className={`size-10 flex items-center justify-center border shadow-lg transition-all duration-300 opacity-60 hover:opacity-100 ${
           open
-            ? "bg-accent border-accent text-charcoal"
+            ? "bg-accent border-accent text-charcoal opacity-100"
             : "bg-charcoal border-bone/20 text-bone/70 hover:border-accent hover:text-accent"
         }`}
         aria-label="Toggle accessibility menu"
