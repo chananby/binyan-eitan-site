@@ -29,22 +29,14 @@ function nowLabel() {
   });
 }
 
-// Upload photo to Cloudinary and return the secure URL
-async function uploadToCloudinary(file: File): Promise<string> {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-  if (!cloudName || !preset) throw new Error("Cloudinary env vars missing");
+// Upload photo via internal API route → Vercel Blob → returns public URL
+async function uploadToBlob(file: File): Promise<string> {
   const fd = new FormData();
   fd.append("file", file);
-  fd.append("upload_preset", preset);
-  fd.append("folder", "binyan-eitan/change-orders");
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-    method: "POST",
-    body: fd,
-  });
-  if (!res.ok) throw new Error("Cloudinary upload failed");
+  const res = await fetch("/api/upload", { method: "POST", body: fd });
+  if (!res.ok) throw new Error("Upload failed");
   const data = await res.json();
-  return data.secure_url as string;
+  return data.url as string;
 }
 
 // ── Signature Pad ─────────────────────────────────────────────────────────────
@@ -292,7 +284,7 @@ export default function ChangeOrderForm() {
     setPhotoUploading(true);
     if (photoHiddenRef.current) photoHiddenRef.current.value = "";
     try {
-      const cloudUrl = await uploadToCloudinary(file);
+      const cloudUrl = await uploadToBlob(file);
       if (photoHiddenRef.current) photoHiddenRef.current.value = cloudUrl;
     } catch {
       setPhotoUploadErr(true);
