@@ -34,8 +34,8 @@ async function uploadToBlob(file: File): Promise<string> {
   const fd = new FormData();
   fd.append("file", file);
   const res = await fetch("/api/upload", { method: "POST", body: fd });
-  if (!res.ok) throw new Error("Upload failed");
   const data = await res.json();
+  if (!res.ok) throw new Error(data?.error ?? "Upload failed");
   return data.url as string;
 }
 
@@ -268,7 +268,7 @@ export default function ChangeOrderForm() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoName, setPhotoName] = useState<string | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
-  const [photoUploadErr, setPhotoUploadErr] = useState(false);
+  const [photoUploadErr, setPhotoUploadErr] = useState<string | null>(null);
   const [now] = useState(nowLabel);
 
   const ArrowBack = dir === "rtl" ? ArrowRight : ArrowLeft;
@@ -280,14 +280,14 @@ export default function ChangeOrderForm() {
     const localUrl = URL.createObjectURL(file);
     setPhotoPreview(localUrl);
     setPhotoName(file.name);
-    setPhotoUploadErr(false);
+    setPhotoUploadErr(null);
     setPhotoUploading(true);
     if (photoHiddenRef.current) photoHiddenRef.current.value = "";
     try {
       const cloudUrl = await uploadToBlob(file);
       if (photoHiddenRef.current) photoHiddenRef.current.value = cloudUrl;
-    } catch {
-      setPhotoUploadErr(true);
+    } catch (err) {
+      setPhotoUploadErr(err instanceof Error ? err.message : "שגיאה בהעלאה");
       setPhotoPreview(null);
       setPhotoName(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -299,7 +299,7 @@ export default function ChangeOrderForm() {
   const removePhoto = useCallback(() => {
     setPhotoPreview(null);
     setPhotoName(null);
-    setPhotoUploadErr(false);
+    setPhotoUploadErr(null);
     if (photoHiddenRef.current) photoHiddenRef.current.value = "";
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, []);
@@ -492,7 +492,7 @@ export default function ChangeOrderForm() {
               )}
               {photoUploadErr && (
                 <p className="font-body text-xs text-red-500">
-                  שגיאה בהעלאת התמונה — אנא נסה שוב.
+                  שגיאה: {photoUploadErr}
                 </p>
               )}
             </div>
