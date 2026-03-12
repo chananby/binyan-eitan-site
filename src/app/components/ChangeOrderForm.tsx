@@ -29,24 +29,22 @@ function nowLabel() {
   });
 }
 
-// Resize photo to max 900px wide before encoding to keep payload reasonable
-function resizeAndEncode(file: File, maxW = 900): Promise<string> {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const scale = Math.min(1, maxW / img.width);
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", 0.75));
-      };
-      img.src = ev.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+// Upload photo to Cloudinary and return the secure URL
+async function uploadToCloudinary(file: File): Promise<string> {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+  if (!cloudName || !preset) throw new Error("Cloudinary env vars missing");
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", preset);
+  fd.append("folder", "binyan-eitan/change-orders");
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    method: "POST",
+    body: fd,
   });
+  if (!res.ok) throw new Error("Cloudinary upload failed");
+  const data = await res.json();
+  return data.secure_url as string;
 }
 
 // ── Signature Pad ─────────────────────────────────────────────────────────────
@@ -277,6 +275,8 @@ export default function ChangeOrderForm() {
   const [sigErr, setSigErr] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoName, setPhotoName] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoUploadErr, setPhotoUploadErr] = useState(false);
   const [now] = useState(nowLabel);
 
   const ArrowBack = dir === "rtl" ? ArrowRight : ArrowLeft;
@@ -284,15 +284,30 @@ export default function ChangeOrderForm() {
   const handlePhotoChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     if (!file) return;
-    const dataUrl = await resizeAndEncode(file);
-    setPhotoPreview(dataUrl);
+    // Show local preview immediately
+    const localUrl = URL.createObjectURL(file);
+    setPhotoPreview(localUrl);
     setPhotoName(file.name);
-    if (photoHiddenRef.current) photoHiddenRef.current.value = dataUrl;
+    setPhotoUploadErr(false);
+    setPhotoUploading(true);
+    if (photoHiddenRef.current) photoHiddenRef.current.value = "";
+    try {
+      const cloudUrl = await uploadToCloudinary(file);
+      if (photoHiddenRef.current) photoHiddenRef.current.value = cloudUrl;
+    } catch {
+      setPhotoUploadErr(true);
+      setPhotoPreview(null);
+      setPhotoName(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } finally {
+      setPhotoUploading(false);
+    }
   }, []);
 
   const removePhoto = useCallback(() => {
     setPhotoPreview(null);
     setPhotoName(null);
+    setPhotoUploadErr(false);
     if (photoHiddenRef.current) photoHiddenRef.current.value = "";
     if (fileInputRef.current) fileInputRef.current.value = "";
   }, []);
@@ -448,7 +463,8 @@ export default function ChangeOrderForm() {
                 onChange={handlePhotoChange}
                 className="sr-only"
               />
-              <input type="hidden" name="site_photo_data" ref={photoHiddenRef} />
+              {/* URL set by Cloudinary upload — replaces base64 data field */}
+              <input type="hidden" name="site_photo_url" ref={photoHiddenRef} />
 
               {!photoPreview ? (
                 <label
@@ -466,15 +482,26 @@ export default function ChangeOrderForm() {
                   <img src={photoPreview} alt="תצוגה מקדימה" className="w-full object-cover max-h-64 block" />
                   <div className="flex items-center justify-between gap-3 border-t border-warm-gray-light bg-bone-dark px-4 py-2">
                     <span className="font-body text-[0.62rem] text-charcoal/40 truncate">{photoName}</span>
-                    <button
-                      type="button"
-                      onClick={removePhoto}
-                      className="shrink-0 font-body text-[0.62rem] text-charcoal/40 hover:text-red-500 transition-colors duration-200 uppercase tracking-wider"
-                    >
-                      הסר ×
-                    </button>
+                    {photoUploading ? (
+                      <span className="shrink-0 font-body text-[0.62rem] text-accent/70 tracking-wider animate-pulse">
+                        מעלה…
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={removePhoto}
+                        className="shrink-0 font-body text-[0.62rem] text-charcoal/40 hover:text-red-500 transition-colors duration-200 uppercase tracking-wider"
+                      >
+                        הסר ×
+                      </button>
+                    )}
                   </div>
                 </div>
+              )}
+              {photoUploadErr && (
+                <p className="font-body text-xs text-red-500">
+                  שגיאה בהעלאת התמונה — אנא נסה שוב.
+                </p>
               )}
             </div>
 
@@ -549,10 +576,10 @@ export default function ChangeOrderForm() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={status === "sending"}
+              disabled={status === "sending" || photoUploading}
               className="w-full bg-accent py-4 font-body text-sm font-semibold tracking-[0.2em] uppercase text-bone transition-colors duration-300 hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {status === "sending" ? "שולח…" : "שלח לאישור המשרד"}
+              {status === "sending" ? "שולח…" : photoUploading ? "ממתין להעלאת תמונה…" : "שלח לאישור המשרד"}
             </button>
           </form>
         </div>
