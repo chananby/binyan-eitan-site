@@ -6,6 +6,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
+import { useLightboxHistory } from "../hooks/useLightboxHistory";
 
 // ── Fallback image data ────────────────────────────────────────────────────────
 
@@ -81,6 +82,9 @@ export default function EngineeringExcellence() {
     document.body.style.overflow = activeIndex !== null ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [activeIndex]);
+
+  // Back button closes lightbox instead of navigating away
+  useLightboxHistory(activeIndex !== null, closeLightbox);
 
   return (
     <>

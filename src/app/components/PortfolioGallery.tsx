@@ -6,6 +6,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
+import { useLightboxHistory } from "../hooks/useLightboxHistory";
 
 // ── Project data ──────────────────────────────────────────────────────────────
 
@@ -167,6 +168,9 @@ export default function PortfolioGallery() {
     document.body.style.overflow = activeProject !== null ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [activeProject]);
+
+  // Back button closes lightbox instead of navigating away
+  useLightboxHistory(activeProject !== null, closeLightbox);
 
   return (
     <>
