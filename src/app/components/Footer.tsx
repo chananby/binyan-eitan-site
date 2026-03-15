@@ -230,6 +230,12 @@ export default function Footer() {
                 {item.label}
               </Link>
             ))}
+            <Link
+              href={`/${lang}/internal`}
+              className="font-body text-[0.6rem] tracking-[0.14em] uppercase text-bone/18 hover:text-bone/40 transition-colors duration-200"
+            >
+              {lang === "he" ? "אזור צוות" : "Staff Portal"}
+            </Link>
           </div>
         </div>
       </div>
