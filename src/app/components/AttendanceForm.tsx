@@ -24,10 +24,11 @@ export default function AttendanceForm() {
   const [phone, setPhone]           = useState("");
   const [coords, setCoords]         = useState<GeoCoords | null>(null);
   const [geoError, setGeoError]     = useState<string | null>(null);
-  const [workerName, setWorkerName] = useState<string | null>(null);
-  const [action, setAction]         = useState<"in" | "out" | null>(null);
-  const [errorMsg, setErrorMsg]     = useState<string | null>(null);
-  const [timestamp, setTimestamp]   = useState("");
+  const [workerName, setWorkerName]       = useState<string | null>(null);
+  const [action, setAction]               = useState<"in" | "out" | null>(null);
+  const [errorMsg, setErrorMsg]           = useState<string | null>(null);
+  const [timestamp, setTimestamp]         = useState("");
+  const [dailyMessage, setDailyMessage]   = useState<string | null>(null);
 
   // Step 1 → 2: request GPS
   const requestLocation = useCallback(() => {
@@ -79,6 +80,7 @@ export default function AttendanceForm() {
 
       if (data.success) {
         setWorkerName(data.name ?? null);
+        setDailyMessage(data.message ?? null);
         setStep("success");
       } else if (data.error === "phone_not_found") {
         setErrorMsg("מספר הטלפון לא נמצא ברשימת הצוות. פנה למנהל.");
@@ -101,31 +103,55 @@ export default function AttendanceForm() {
     setWorkerName(null);
     setAction(null);
     setErrorMsg(null);
+    setDailyMessage(null);
   };
 
   // ── Screens ───────────────────────────────────────────────────────────────
 
   // Success
   if (step === "success") {
+    const isIn = action === "in";
     return (
       <Screen>
-        <CheckCircle size={64} strokeWidth={1} className={action === "in" ? "text-green-500" : "text-red-400"} />
+        <CheckCircle
+          size={64}
+          strokeWidth={1}
+          className={isIn ? "text-green-500" : "text-red-400"}
+        />
+
+        {/* Greeting */}
         <div className="text-center space-y-1">
           <p className="font-heading text-2xl font-bold text-charcoal">
-            {action === "in" ? "✅ כניסה נרשמה" : "🔴 יציאה נרשמה"}
+            {isIn ? "כניסה נרשמה ✅" : "יציאה נרשמה 🔴"}
           </p>
           {workerName && (
-            <p className="font-body text-lg text-charcoal/70">{workerName}</p>
-          )}
-          <p className="font-body text-sm text-charcoal/40">{timestamp}</p>
-          {coords && (
-            <p className="font-body text-xs text-charcoal/30">
-              {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
+            <p className="font-heading text-xl text-charcoal/80">
+              שלום {workerName}
             </p>
           )}
+          <p className="font-body text-sm text-charcoal/40">{timestamp}</p>
         </div>
-        <button onClick={reset}
-          className="mt-4 w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
+
+        {/* Daily message box */}
+        {dailyMessage ? (
+          <div className="w-full rounded-sm border border-sky-200 bg-sky-50 px-5 py-4">
+            <p className="mb-1 font-body text-[0.6rem] font-bold tracking-[0.18em] uppercase text-sky-400">
+              הודעת היום
+            </p>
+            <p className="font-body text-base leading-relaxed text-charcoal/80">
+              {dailyMessage}
+            </p>
+          </div>
+        ) : (
+          <p className="font-body text-sm text-charcoal/30">
+            {isIn ? "עבודה טובה! 💪" : "שיהיה לך יום נעים 👋"}
+          </p>
+        )}
+
+        <button
+          onClick={reset}
+          className="mt-2 w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200"
+        >
           דיווח נוסף
         </button>
       </Screen>
