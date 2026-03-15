@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FileText, ClipboardList, Package, ArrowRight } from "lucide-react";
+import { FileText, ClipboardList, Package, Clock, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "אזור צוות | בנין איתן",
@@ -13,6 +13,13 @@ const tools = [
     icon: FileText,
     title: "טופס צו שינוי",
     desc: "דיווח על שינויים, עדכוני תוכנית ובקשות אישור מהשטח",
+    available: true,
+  },
+  {
+    href: "/he/internal/attendance",
+    icon: Clock,
+    title: "שעון נוכחות",
+    desc: "כניסה ויציאה מהאתר עם אימות טלפון ו-GPS",
     available: true,
   },
   {

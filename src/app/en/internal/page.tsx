@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FileText, ClipboardList, Package, ArrowRight } from "lucide-react";
+import { FileText, ClipboardList, Package, Clock, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Staff Portal | Binyan Eitan",
@@ -13,6 +13,13 @@ const tools = [
     icon: FileText,
     title: "Change Order Form",
     desc: "Report changes, plan updates, and approval requests from the field",
+    available: true,
+  },
+  {
+    href: "/en/internal/attendance",
+    icon: Clock,
+    title: "Attendance Clock",
+    desc: "Check in/out with phone verification and GPS logging",
     available: true,
   },
   {
