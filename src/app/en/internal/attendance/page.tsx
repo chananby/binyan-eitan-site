@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function AttendancePage() {
-  return <AttendanceForm />;
+  return <AttendanceForm lang="en" />;
 }

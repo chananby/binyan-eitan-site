@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { LogIn, LogOut, MapPin, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { LogIn, LogOut, MapPin, CheckCircle, AlertCircle, Loader2, ChevronRight } from "lucide-react";
 
 type Step = "phone" | "locating" | "ready" | "submitting" | "success" | "error";
 
@@ -19,7 +19,9 @@ function nowLabel() {
   });
 }
 
-export default function AttendanceForm() {
+export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) {
+  const portalHref = `/${lang}/internal`;
+  const backLabel  = lang === "he" ? "חזור לתפריט הראשי" : "Back to Portal";
   const [step, setStep]             = useState<Step>("phone");
   const [phone, setPhone]           = useState("");
   const [coords, setCoords]         = useState<GeoCoords | null>(null);
@@ -112,7 +114,7 @@ export default function AttendanceForm() {
   if (step === "success") {
     const isIn = action === "in";
     return (
-      <Screen>
+      <Screen backHref={portalHref} backLabel={backLabel}>
         <CheckCircle
           size={64}
           strokeWidth={1}
@@ -161,7 +163,7 @@ export default function AttendanceForm() {
   // Error
   if (step === "error") {
     return (
-      <Screen>
+      <Screen backHref={portalHref} backLabel={backLabel}>
         <AlertCircle size={56} strokeWidth={1} className="text-red-400" />
         <p className="font-body text-center text-sm text-charcoal/70 leading-relaxed max-w-xs">{errorMsg}</p>
         <button onClick={reset}
@@ -175,7 +177,7 @@ export default function AttendanceForm() {
   // Submitting
   if (step === "submitting") {
     return (
-      <Screen>
+      <Screen backHref={portalHref} backLabel={backLabel}>
         <Loader2 size={48} strokeWidth={1.5} className="text-accent animate-spin" />
         <p className="font-body text-sm text-charcoal/50 tracking-wider">שולח דיווח…</p>
       </Screen>
@@ -185,7 +187,7 @@ export default function AttendanceForm() {
   // Locating
   if (step === "locating") {
     return (
-      <Screen>
+      <Screen backHref={portalHref} backLabel={backLabel}>
         <MapPin size={48} strokeWidth={1.5} className="text-accent animate-pulse" />
         <p className="font-body text-sm text-charcoal/50 tracking-wider">מאתר מיקום…</p>
       </Screen>
@@ -195,7 +197,7 @@ export default function AttendanceForm() {
   // Ready: show IN / OUT buttons
   if (step === "ready" && coords) {
     return (
-      <Screen>
+      <Screen backHref={portalHref} backLabel={backLabel}>
         <div className="text-center space-y-1">
           <p className="font-body text-[0.6rem] font-bold tracking-[0.22em] uppercase text-accent/70">מיקום אושר ✓</p>
           <p className="font-body text-sm text-charcoal/50 dir-ltr tabular-nums">
@@ -226,7 +228,7 @@ export default function AttendanceForm() {
 
   // Phone entry (default)
   return (
-    <Screen>
+    <Screen backHref={portalHref} backLabel={backLabel}>
       <div className="text-center space-y-1">
         <p className="font-heading text-xl font-bold text-charcoal">שעון נוכחות</p>
         <p className="font-body text-xs text-charcoal/40">הזן מספר טלפון לזיהוי</p>
@@ -267,10 +269,31 @@ export default function AttendanceForm() {
 
 // ── Layout shell ──────────────────────────────────────────────────────────────
 
-function Screen({ children }: { children: React.ReactNode }) {
+function Screen({
+  children,
+  backHref,
+  backLabel,
+}: {
+  children: React.ReactNode;
+  backHref?: string;
+  backLabel?: string;
+}) {
   return (
-    <div className="min-h-screen bg-bone flex flex-col items-center justify-center px-6 py-12 gap-6" dir="rtl">
-      <Link href="/he/internal" className="mb-2">
+    <div className="relative min-h-screen bg-bone flex flex-col items-center justify-center px-6 py-16 gap-6" dir="rtl">
+      {/* Back button — top-right in RTL */}
+      {backHref && (
+        <div className="absolute top-5 end-5">
+          <Link
+            href={backHref}
+            className="flex items-center gap-1 font-body text-xs text-charcoal/35 hover:text-accent transition-colors duration-200"
+          >
+            <ChevronRight size={14} strokeWidth={1.5} />
+            <span>{backLabel}</span>
+          </Link>
+        </div>
+      )}
+
+      <Link href={backHref ?? "/he/internal"} className="mb-2">
         <Image src="/logo.png" alt="Binyan Eitan" width={110} height={32} className="h-8 w-auto brightness-0 opacity-60" />
       </Link>
       {children}

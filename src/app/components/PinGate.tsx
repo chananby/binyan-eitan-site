@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { Delete } from "lucide-react";
 
@@ -25,7 +26,9 @@ const T = {
 type Lang = keyof typeof T;
 
 export default function PinGate({ children, lang = "he" }: { children: React.ReactNode; lang?: Lang }) {
-  const t = T[lang];
+  const t        = T[lang];
+  const router   = useRouter();
+  const pathname = usePathname();
   const [authed, setAuthed]       = useState(false);
   const [ready, setReady]         = useState(false); // avoid SSR flash
   const [digits, setDigits]       = useState<string[]>([]);
@@ -49,6 +52,8 @@ export default function PinGate({ children, lang = "he" }: { children: React.Rea
       });
       if (res.ok) {
         sessionStorage.setItem(SESSION_KEY, "1");
+        // Replace current history entry so back button skips the PIN screen
+        router.replace(pathname);
         setAuthed(true);
       } else {
         setShaking(true);
