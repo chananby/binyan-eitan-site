@@ -7,7 +7,25 @@ import { Delete } from "lucide-react";
 const SESSION_KEY = "be_internal_auth";
 const PIN_LENGTH  = 4;
 
-export default function PinGate({ children }: { children: React.ReactNode }) {
+const T = {
+  he: {
+    title:    "אזור צוות",
+    subtitle: "הזן קוד לכניסה",
+    wrong:    "קוד שגוי",
+    footer:   "בנין איתן — גישה פנימית בלבד",
+  },
+  en: {
+    title:    "Staff Portal",
+    subtitle: "Enter PIN to continue",
+    wrong:    "Incorrect PIN",
+    footer:   "Binyan Eitan — Internal Access Only",
+  },
+} as const;
+
+type Lang = keyof typeof T;
+
+export default function PinGate({ children, lang = "he" }: { children: React.ReactNode; lang?: Lang }) {
+  const t = T[lang];
   const [authed, setAuthed]       = useState(false);
   const [ready, setReady]         = useState(false); // avoid SSR flash
   const [digits, setDigits]       = useState<string[]>([]);
@@ -67,7 +85,7 @@ export default function PinGate({ children }: { children: React.ReactNode }) {
   const keys = ["1","2","3","4","5","6","7","8","9","","0","del"];
 
   return (
-    <div className="min-h-screen bg-bone flex flex-col items-center justify-center px-6 py-12 gap-8" dir="ltr">
+    <div className="min-h-screen bg-bone flex flex-col items-center justify-center px-6 py-12 gap-8" dir={lang === "he" ? "rtl" : "ltr"}>
 
       {/* Logo */}
       <Image
@@ -80,8 +98,8 @@ export default function PinGate({ children }: { children: React.ReactNode }) {
 
       {/* Label */}
       <div className="text-center space-y-1">
-        <p className="font-heading text-lg font-bold text-charcoal tracking-wide">Staff Portal</p>
-        <p className="font-body text-xs text-charcoal/40 tracking-widest uppercase">Enter PIN to continue</p>
+        <p className="font-heading text-lg font-bold text-charcoal tracking-wide">{t.title}</p>
+        <p className="font-body text-xs text-charcoal/40 tracking-widest uppercase">{t.subtitle}</p>
       </div>
 
       {/* Dot indicators */}
@@ -104,7 +122,7 @@ export default function PinGate({ children }: { children: React.ReactNode }) {
       </div>
 
       {errored && (
-        <p className="font-body text-xs text-red-400 -mt-4 tracking-wide">Incorrect PIN</p>
+        <p className="font-body text-xs text-red-400 -mt-4 tracking-wide">{t.wrong}</p>
       )}
 
       {/* Keypad */}
@@ -140,7 +158,7 @@ export default function PinGate({ children }: { children: React.ReactNode }) {
       </div>
 
       <p className="font-body text-[0.55rem] tracking-[0.2em] uppercase text-charcoal/20 mt-2">
-        Binyan Eitan — Internal Access Only
+        {t.footer}
       </p>
 
       {/* Shake keyframes injected inline */}

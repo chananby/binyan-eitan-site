@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { FileText, ClipboardList, Package, Clock, ArrowRight } from "lucide-react";
-import PinGate from "./PinGate";
 
 const tools = [
   {
@@ -37,8 +36,7 @@ const tools = [
 
 export default function InternalPortalEn() {
   return (
-    <PinGate>
-      <main className="min-h-screen bg-bone" dir="ltr">
+    <main className="min-h-screen bg-bone" dir="ltr">
         <div className="mx-auto max-w-3xl px-6 py-16 md:py-24">
           <div className="mb-12">
             <p className="font-body text-[0.65rem] font-semibold tracking-[0.22em] uppercase text-accent mb-3">
@@ -93,6 +91,5 @@ export default function InternalPortalEn() {
           </div>
         </div>
       </main>
-    </PinGate>
   );
 }
