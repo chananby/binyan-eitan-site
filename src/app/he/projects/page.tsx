@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
-  title: "תיק עבודות | פרויקטים נבחרים בבנייה ושיפוץ",
+  title: "תיק עבודות",
   description:
     "ממתחמים ציבוריים ועד וילות פרטיות יוקרתיות — כל פרויקט בנוי לרמת דיוק הנדסי. שקיפות מבנית, חומר שחור פרימיום, דיוק שאפשר לעבור דרכו.",
   keywords: [

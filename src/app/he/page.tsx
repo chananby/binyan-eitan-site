@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
-  title: "בנין איתן | הנדסה וביצוע פרויקטים מורכבים בירושלים",
+  title: { absolute: "בנין איתן | הנדסה וביצוע פרויקטים מורכבים בירושלים" },
   description:
     "דיוק שאפשר למדוד, שקיפות שאפשר לסמוך עליה. בניין איתן — קבלן רשום ג1. בנייה יוקרתית, הנדסת קונסטרוקציה, גמר פרימיום בחומר שחור. ירושלים וכל הארץ.",
   robots: { index: true, follow: true },

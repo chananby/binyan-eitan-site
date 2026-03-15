@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
-  title: "Binyan Eitan | Engineering & Luxury Construction in Jerusalem",
+  title: { absolute: "Binyan Eitan | Engineering & Luxury Construction in Jerusalem" },
   description:
     "Precision you can measure, transparency you can trust. Binyan Eitan — G1-licensed contractor. Luxury builds, structural engineering, premium dark-material finishes. Jerusalem & across Israel.",
   robots: { index: true, follow: true },
