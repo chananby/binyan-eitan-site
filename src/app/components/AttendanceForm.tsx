@@ -90,8 +90,15 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
       } else if (data.error === "webhook_not_configured") {
         setErrorMsg("המערכת לא מוגדרת — פנה למנהל המערכת. (ATTENDANCE_WEBHOOK_URL חסר)");
         setStep("error");
-      } else if (data.error === "webhook_unreachable" || data.error === "webhook_error") {
-        setErrorMsg("שגיאה בחיבור לשרת הנוכחות — נסה שוב בעוד מספר דקות.");
+      } else if (data.error === "webhook_unreachable") {
+        setErrorMsg("לא ניתן להגיע לשרת הנוכחות — בדוק חיבור ונסה שוב.");
+        setStep("error");
+      } else if (data.error === "webhook_bad_response" || data.error === "webhook_error") {
+        const detail = (data as { detail?: string }).detail;
+        setErrorMsg(detail
+          ? `תגובה לא תקינה מהשרת: ${detail}`
+          : "תגובה לא תקינה מהשרת — פנה למנהל המערכת."
+        );
         setStep("error");
       } else {
         setErrorMsg("שגיאה לא ידועה — נסה שוב.");
