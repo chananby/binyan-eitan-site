@@ -18,11 +18,21 @@ type FilterKey = "all" | ProjectCategory;
 // ── Filter definitions ─────────────────────────────────────────────────────────
 
 const FILTERS: { key: FilterKey; he: string; en: string }[] = [
-  { key: "all",           he: "כולם",       en: "All" },
-  { key: "renovations",   he: "שיפוצים",    en: "Renovations" },
-  { key: "finish",        he: "עבודות גמר", en: "Finish Work" },
-  { key: "infrastructure",he: "תשתיות",     en: "Infrastructure" },
-  { key: "before-after",  he: "לפני ואחרי", en: "Before & After" },
+  { key: "all",           he: "כולם",           en: "All" },
+  { key: "construction",  he: "בינוי",           en: "Construction" },
+  { key: "renovations",   he: "שיפוצים",         en: "Renovations" },
+  { key: "finish",        he: "עבודות גמר",      en: "Finish Work" },
+  { key: "infrastructure",he: "תשתיות",          en: "Infrastructure" },
+  { key: "plastering",    he: "טיח",             en: "Plastering" },
+  { key: "painting",      he: "צבע",             en: "Painting" },
+  { key: "waterproofing", he: "איטום",           en: "Waterproofing" },
+  { key: "tiling",        he: "ריצוף וחיפוי",    en: "Tiling" },
+  { key: "aluminum",      he: "אלומיניום",       en: "Aluminum" },
+  { key: "drywall",       he: "גבס",             en: "Drywall" },
+  { key: "ac",            he: "מיזוג אוויר",     en: "AC" },
+  { key: "carpentry",     he: "נגרות",           en: "Carpentry" },
+  { key: "handover",      he: "ניקיון ומסירה",   en: "Handover" },
+  { key: "before-after",  he: "לפני ואחרי",      en: "Before & After" },
 ];
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -147,7 +157,7 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
       <div className="sticky top-16 z-30 bg-bone/95 backdrop-blur-sm border-b border-warm-gray/20">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div
-            className="flex gap-2 py-3 overflow-x-auto"
+            className="flex flex-nowrap gap-2 py-3 overflow-x-auto [&::-webkit-scrollbar]:hidden"
             style={{ scrollbarWidth: "none" }}
           >
             {FILTERS.map((f) => {

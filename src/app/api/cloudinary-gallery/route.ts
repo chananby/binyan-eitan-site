@@ -17,10 +17,22 @@
  *       (or any new project ID you add to PROJECT_META below)
  *
  *  2. CATEGORY TAG  — at least one filter category (set per image or per project):
- *       category:renovations
- *       category:finish
- *       category:infrastructure
- *       category:before-after
+ *       category:construction   → בינוי
+ *       category:renovations    → שיפוצים
+ *       category:finish         → עבודות גמר
+ *       category:infrastructure → תשתיות
+ *       category:plastering     → טיח
+ *       category:painting       → צבע
+ *       category:waterproofing  → איטום
+ *       category:tiling         → ריצוף וחיפוי
+ *       category:aluminum       → אלומיניום
+ *       category:drywall        → גבס
+ *       category:ac             → מיזוג אוויר
+ *       category:carpentry      → נגרות
+ *       category:handover       → ניקיון ומסירה
+ *       category:before-after   → לפני ואחרי
+ *
+ *       Tags are matched case-insensitively ("Category:Painting" = "category:painting").
  *
  *  3. COVER TAG (optional, one image per project):
  *       cover
@@ -237,7 +249,10 @@ export async function GET() {
   >();
 
   for (const resource of allResources) {
-    const projectTag = resource.tags?.find((t) => t.startsWith("project:"));
+    // Normalise all tags to lowercase before matching
+    const normalizedTags = (resource.tags ?? []).map((t) => t.toLowerCase());
+
+    const projectTag = normalizedTags.find((t) => t.startsWith("project:"));
     if (!projectTag) continue; // skip untagged images
 
     const projectId = projectTag.replace("project:", "");
@@ -249,8 +264,8 @@ export async function GET() {
     const entry = projectMap.get(projectId)!;
     entry.images.push(resource);
 
-    // Collect category tags from this image
-    for (const tag of resource.tags ?? []) {
+    // Collect category tags from this image (already lowercased)
+    for (const tag of normalizedTags) {
       if (tag.startsWith("category:")) {
         const cat = tag.replace("category:", "") as ProjectCategory;
         entry.categories.add(cat);
@@ -267,8 +282,8 @@ export async function GET() {
 
     // Sort: cover-tagged image first, then alphabetically by public_id
     const sorted = [...images].sort((a, b) => {
-      const aCover = a.tags?.includes("cover") ? 0 : 1;
-      const bCover = b.tags?.includes("cover") ? 0 : 1;
+      const aCover = a.tags?.some((t) => t.toLowerCase() === "cover") ? 0 : 1;
+      const bCover = b.tags?.some((t) => t.toLowerCase() === "cover") ? 0 : 1;
       if (aCover !== bCover) return aCover - bCover;
       return a.public_id.localeCompare(b.public_id);
     });

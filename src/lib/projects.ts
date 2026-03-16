@@ -14,7 +14,21 @@
 
 import { img } from "./cloudinary";
 
-export type ProjectCategory = "renovations" | "finish" | "infrastructure" | "before-after";
+export type ProjectCategory =
+  | "renovations"
+  | "finish"
+  | "infrastructure"
+  | "before-after"
+  | "construction"
+  | "plastering"
+  | "painting"
+  | "waterproofing"
+  | "tiling"
+  | "aluminum"
+  | "drywall"
+  | "ac"
+  | "carpentry"
+  | "handover";
 
 export interface GalleryProject {
   id: string;
