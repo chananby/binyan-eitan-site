@@ -8,7 +8,7 @@ import Link from "next/link";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useLightboxHistory } from "../hooks/useLightboxHistory";
-import { GALLERY_PROJECTS, type ProjectCategory } from "../../lib/projects";
+import { GALLERY_PROJECTS, type GalleryProject, type ProjectCategory } from "../../lib/projects";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -31,16 +31,30 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
   const dir = lang === "he" ? "rtl" : "ltr";
   const homeHref = lang === "he" ? "/he" : "/en";
 
+  // Start with static data (instant render), then hydrate from Cloudinary API
+  const [projects, setProjects] = useState<GalleryProject[]>(GALLERY_PROJECTS);
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
   const [openProject, setOpenProject] = useState<number | null>(null);
   const [activeImage, setActiveImage] = useState(0);
 
+  // Fetch live data from Cloudinary on mount — silently replaces static data
+  useEffect(() => {
+    fetch("/api/cloudinary-gallery")
+      .then((r) => r.json())
+      .then((data: GalleryProject[]) => {
+        if (Array.isArray(data) && data.length > 0) setProjects(data);
+      })
+      .catch(() => {
+        // silently keep static fallback data on any error
+      });
+  }, []);
+
   const filtered =
     activeFilter === "all"
-      ? GALLERY_PROJECTS
-      : GALLERY_PROJECTS.filter((p) => p.categories.includes(activeFilter as ProjectCategory));
+      ? projects
+      : projects.filter((p) => p.categories.includes(activeFilter as ProjectCategory));
 
-  const project = openProject !== null ? GALLERY_PROJECTS[openProject] : null;
+  const project = openProject !== null ? projects[openProject] : null;
   const series = project?.images ?? [];
   const totalImages = series.length;
 

@@ -22,6 +22,8 @@ export async function POST() {
     revalidatePath("/he/change-order");
     revalidatePath("/en/legal");
     revalidatePath("/he/legal");
+    revalidatePath("/en/projects");
+    revalidatePath("/he/projects");
 
     return NextResponse.json({ ok: true, message: "Revalidation queued" });
   } catch (err) {
