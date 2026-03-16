@@ -142,8 +142,8 @@ export default function PinGate({ children, lang = "he" }: { children: React.Rea
         <p className="font-body text-xs text-red-400 -mt-4 tracking-wide">{t.wrong}</p>
       )}
 
-      {/* Keypad */}
-      <div className="grid grid-cols-3 gap-3 w-full max-w-[240px]">
+      {/* Keypad — always LTR so digits render 1-2-3 left-to-right regardless of page dir */}
+      <div className="grid grid-cols-3 gap-3 w-full max-w-[240px]" dir="ltr">
         {keys.map((k, i) => {
           if (k === "") return <div key={i} />;
 
