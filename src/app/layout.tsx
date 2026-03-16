@@ -48,7 +48,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ConstructionBusiness",
   "name": "בנין איתן - הנדסה וביצוע",
-  "description": "חברת בנייה והנדסה המתמחה בפרויקטים מורכבים, שלד, גמר וניהול פרויקטים ברמת פרימיום. קבלן רשום ג1.",
+  "description": "קבלן שיפוצים ובנייה בירושלים ובנימין — עבודה עברית מקצועית. שיפוץ דירות, בנייה ושיפוצים, הנדסת קונסטרוקציה וגמר פרימיום. קבלן רשום ג1 מס׳ 41805.",
   "url": "https://binyaneitan.com",
   "telephone": "02-500-0447",
   "contactPoint": [
@@ -75,7 +75,7 @@ const jsonLd = {
     "latitude": "31.7683",
     "longitude": "35.2137"
   },
-  "areaServed": "Israel",
+  "areaServed": ["ירושלים", "בנימין", "מבשרת ציון", "גוש עציון", "בית שמש", "מרכז הארץ"],
   "sameAs": [
     "https://share.google/mYYDjEprxPi7JdoSG",
     "https://www.linkedin.com/company/binyan-eitan",
@@ -84,8 +84,24 @@ const jsonLd = {
   ],
   "hasOfferCatalog": {
     "@type": "OfferCatalog",
-    "name": "שירותי בנייה",
+    "name": "שירותי בנייה ושיפוצים",
     "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "קבלן שיפוצים בירושלים",
+          "description": "שיפוץ דירות ובתים בירושלים ובנימין — עבודה עברית מקצועית"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "בנייה ושיפוצים",
+          "description": "קבלן בנייה: שלד, תשתיות, גמר ופיקוח"
+        }
+      },
       {
         "@type": "Offer",
         "itemOffered": {
@@ -97,14 +113,14 @@ const jsonLd = {
         "@type": "Offer",
         "itemOffered": {
           "@type": "Service",
-          "name": "בניית וילות פרימיום"
+          "name": "בניית וילות פרימיום בירושלים"
         }
       },
       {
         "@type": "Offer",
         "itemOffered": {
           "@type": "Service",
-          "name": "השבחה ושיפוץ פרימיום"
+          "name": "שיפוץ יוקרה ירושלים"
         }
       }
     ]

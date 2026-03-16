@@ -12,11 +12,23 @@ const assistant = Assistant({
 
 export const metadata: Metadata = {
   title: {
-    default: "בנין איתן | מצוינות הנדסית וביצוע ללא פשרות",
+    default: "בנין איתן | קבלן שיפוצים ובנייה בירושלים",
     template: "%s | בנין איתן",
   },
   description:
-    "שני עשורים של ניסיון הנדסי בבנייה, שיפוצים וניהול פרויקטים מורכבים בירושלים. אנחנו הופכים תוכניות הנדסיות למציאות מדויקת בשטח, עם ליווי אישי ושקיפות מלאה לכל אורך הדרך.",
+    "קבלן שיפוצים ובנייה מוביל בירושלים ובנימין — עבודה עברית מקצועית עם ניסיון של 20 שנה. שיפוצי יוקרה, בנייה ושיפוצים, הנדסת קונסטרוקציה וגמר פרימיום. קבלן רשום ג1.",
+  keywords: [
+    "קבלן שיפוצים בירושלים",
+    "בנייה ושיפוצים ירושלים",
+    "עבודה עברית ירושלים",
+    "קבלן בנייה ירושלים",
+    "שיפוץ דירה ירושלים",
+    "קבלן שיפוצים בנימין",
+    "בנין איתן",
+    "קבלן רשום ג1",
+    "שיפוץ יוקרה ירושלים",
+    "הנדסת קונסטרוקציה ירושלים",
+  ],
   openGraph: {
     siteName: "בנין איתן",
     type: "website",
@@ -45,11 +57,11 @@ const jsonLd = {
   "@type": "LocalBusiness",
   "@id": "https://binyaneitan.com",
   "name": "בנין איתן בע\"מ",
-  "alternateName": "Binyan Eitan Ltd.",
+  "alternateName": ["Binyan Eitan Ltd.", "קבלן שיפוצים ובנייה בירושלים"],
   "url": "https://binyaneitan.com",
   "logo": "https://binyaneitan.com/logo.png",
   "image": "https://binyaneitan.com/luxury-interior-finish-transformation.jpg",
-  "description": "קבלן בנייה מוסמך ג1, מתמחה בשיפוץ יוקרה, הנדסה קונסטרוקטיבית וגמר פרמיום בירושלים ובמרכז הארץ.",
+  "description": "קבלן שיפוצים ובנייה מוביל בירושלים ובנימין. עבודה עברית מקצועית — שיפוץ דירות ווילות יוקרה, הנדסת קונסטרוקציה וגמר פרימיום. קבלן רשום ג1 מס׳ 41805.",
   "telephone": "02-500-0447",
   "contactPoint": [
     {
@@ -69,15 +81,74 @@ const jsonLd = {
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "ירושלים",
+    "addressRegion": "ירושלים והסביבה",
     "addressCountry": "IL",
   },
-  "areaServed": ["ירושלים", "תל אביב", "מרכז הארץ"],
+  "areaServed": [
+    { "@type": "City", "name": "ירושלים" },
+    { "@type": "AdministrativeArea", "name": "בנימין" },
+    { "@type": "City", "name": "מבשרת ציון" },
+    { "@type": "AdministrativeArea", "name": "גוש עציון" },
+    { "@type": "City", "name": "בית שמש" },
+    { "@type": "AdministrativeArea", "name": "מרכז הארץ" },
+  ],
   "priceRange": "$$$$",
   "hasCredential": {
     "@type": "EducationalOccupationalCredential",
     "credentialCategory": "רישיון קבלן ג1",
     "name": "קבלן רשום ג1 מס׳ 41805",
   },
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "שירותי בנייה ושיפוצים",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "קבלן שיפוצים בירושלים",
+          "description": "שיפוץ דירות ובתים בירושלים ובנימין — עבודה עברית מקצועית, גמר פרימיום"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "בנייה ושיפוצים",
+          "description": "קבלן בנייה מלא: שלד, תשתיות, גמר ופיקוח"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "הנדסת קונסטרוקציה ושלד",
+          "description": "ביצוע מבנים מורכבים, חיזוק יסודות ושיקום מבני"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "בניית וילות פרימיום",
+          "description": "בניית וילות יוקרה בירושלים ובנימין מהיסוד ועד הגמר"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "שיפוץ יוקרה",
+          "description": "שיפוץ מקיף של דירות ובתים פרטיים ברמת גמר פרימיום"
+        }
+      }
+    ]
+  },
+  "sameAs": [
+    "https://share.google/mYYDjEprxPi7JdoSG",
+    "https://www.linkedin.com/company/binyan-eitan",
+    "https://www.facebook.com/binyaneitan"
+  ],
 };
 
 export default function HeLayout({ children }: { children: React.ReactNode }) {

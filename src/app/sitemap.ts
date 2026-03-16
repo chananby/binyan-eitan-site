@@ -8,6 +8,7 @@ const ARTICLE_SLUGS = [
   "reading-a-professional-quote",
   "after-handover",
   "floor-infrastructure",
+  "how-to-avoid-renovation-mistakes",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -87,6 +88,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
       alternates: { languages: { he: `${BASE_URL}/he/expertise`, en: `${BASE_URL}/en/expertise` } },
+    },
+
+    // ── Projects pages ────────────────────────────────────────
+    {
+      url: `${BASE_URL}/he/projects`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+      alternates: { languages: { he: `${BASE_URL}/he/projects`, en: `${BASE_URL}/en/projects` } },
+    },
+    {
+      url: `${BASE_URL}/en/projects`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+      alternates: { languages: { he: `${BASE_URL}/he/projects`, en: `${BASE_URL}/en/projects` } },
     },
 
     // ── FAQ pages ─────────────────────────────────────────────

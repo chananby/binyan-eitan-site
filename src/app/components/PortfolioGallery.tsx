@@ -217,7 +217,7 @@ export default function PortfolioGallery() {
                   {/* Cover image */}
                   <Image
                     src={proj.cover}
-                    alt={title}
+                    alt={`${title} — ${category} | בנין איתן, קבלן שיפוצים ובנייה בירושלים`}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -311,7 +311,7 @@ export default function PortfolioGallery() {
                 >
                   <Image
                     src={series[activeImage]}
-                    alt={`${ut[`proj_${activeProject}_title`]} — ${activeImage + 1}`}
+                    alt={`${ut[`proj_${activeProject}_title`]} — ${ut[`proj_${activeProject}_category`]} | בנין איתן`}
                     fill
                     sizes="(max-width: 620px) 88vw, 620px"
                     className="object-contain"

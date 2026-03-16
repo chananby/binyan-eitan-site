@@ -84,6 +84,18 @@ export default function PinGate({ children, lang = "he" }: { children: React.Rea
     setErrored(false);
   }, []);
 
+  // Physical keyboard support
+  useEffect(() => {
+    if (authed || !ready) return;
+    const handler = (e: KeyboardEvent) => {
+      if (checking) return;
+      if (/^[0-9]$/.test(e.key)) press(e.key);
+      else if (e.key === "Backspace" || e.key === "Delete") del();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [authed, ready, checking, press, del]);
+
   if (!ready) return null;
   if (authed) return <>{children}</>;
 

@@ -88,7 +88,7 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
         setErrorMsg("מספר הטלפון לא נמצא ברשימת הצוות. פנה למנהל.");
         setStep("error");
       } else {
-        setErrorMsg(data.error ?? "שגיאה לא ידועה — נסה שוב.");
+        setErrorMsg("שגיאה לא ידועה — נסה שוב.");
         setStep("error");
       }
     } catch {
