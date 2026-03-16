@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   const webhookUrl = process.env.ATTENDANCE_WEBHOOK_URL;
   if (!webhookUrl) {
     return NextResponse.json(
-      { success: false, error: "ATTENDANCE_WEBHOOK_URL is not configured" },
+      { success: false, error: "webhook_not_configured" },
       { status: 500 }
     );
   }
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "invalid_request" }, { status: 400 });
   }
 
   try {
@@ -24,10 +24,18 @@ export async function POST(req: NextRequest) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+    if (!upstream.ok && upstream.status !== 200) {
+      // Non-2xx from Apps Script — try to parse body for error details
+      let errBody: unknown;
+      try { errBody = await upstream.json(); } catch { errBody = null; }
+      return NextResponse.json(
+        errBody ?? { success: false, error: "webhook_error" },
+        { status: 502 }
+      );
+    }
     const data = await upstream.json();
     return NextResponse.json(data);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Webhook unreachable";
-    return NextResponse.json({ success: false, error: message }, { status: 502 });
+  } catch {
+    return NextResponse.json({ success: false, error: "webhook_unreachable" }, { status: 502 });
   }
 }

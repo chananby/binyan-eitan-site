@@ -87,6 +87,12 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
       } else if (data.error === "phone_not_found") {
         setErrorMsg("מספר הטלפון לא נמצא ברשימת הצוות. פנה למנהל.");
         setStep("error");
+      } else if (data.error === "webhook_not_configured") {
+        setErrorMsg("המערכת לא מוגדרת — פנה למנהל המערכת. (ATTENDANCE_WEBHOOK_URL חסר)");
+        setStep("error");
+      } else if (data.error === "webhook_unreachable" || data.error === "webhook_error") {
+        setErrorMsg("שגיאה בחיבור לשרת הנוכחות — נסה שוב בעוד מספר דקות.");
+        setStep("error");
       } else {
         setErrorMsg("שגיאה לא ידועה — נסה שוב.");
         setStep("error");
