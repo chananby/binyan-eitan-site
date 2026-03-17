@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { createServerClient } from "../../../lib/supabase";
-import AdminDashboard from "../../components/AdminDashboard";
+import { createServerClient } from "../../lib/supabase";
+import AdminDashboard from "../components/AdminDashboard";
 
-// Force server-side rendering on every request.
-// Without this, Next.js may statically generate the page at build time
-// (when Supabase env vars are unavailable), producing a cached empty page.
+// Force SSR — never statically generated.
+// Without this, Next.js tries to render at build time when Supabase env vars
+// are absent, potentially producing a cached empty/broken route.
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {

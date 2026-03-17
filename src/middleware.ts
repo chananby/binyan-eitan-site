@@ -18,10 +18,11 @@ export function middleware(req: NextRequest) {
   }
 
   // ── Admin auth gate ──────────────────────────────────────────────────────
-  // Protect /he/admin (and all sub-paths) except the login page itself.
-  if (pathname.startsWith("/he/admin") && !pathname.startsWith("/he/admin/login")) {
+  // Protect /admin (and all sub-paths) except the login page itself.
+  // Lives outside locale folders to avoid all locale-prefix complications.
+  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
     if (!isAdminAuthedInMiddleware(req)) {
-      const loginUrl = new URL("/he/admin/login", req.url);
+      const loginUrl = new URL("/admin/login", req.url);
       return NextResponse.redirect(loginUrl);
     }
   }
@@ -74,5 +75,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/en/:path*", "/he/:path*", "/api/:path*", "/internal/:path*"],
+  matcher: ["/en/:path*", "/he/:path*", "/api/:path*", "/internal/:path*", "/admin", "/admin/:path*"],
 };

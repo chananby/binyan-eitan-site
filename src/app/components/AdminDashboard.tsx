@@ -125,7 +125,7 @@ export default function AdminDashboard({
   // ── Fetch helpers ──
   const refreshStaff = useCallback(async () => {
     const res = await fetch("/api/admin/staff");
-    if (res.status === 401) { router.replace("/he/admin/login"); return; }
+    if (res.status === 401) { router.replace("/admin/login"); return; }
     const data = await res.json();
     if (data.error) { setStaffError(data.error); return; }
     setStaff(data.staff);
@@ -197,7 +197,7 @@ export default function AdminDashboard({
   const handleLogout = async () => {
     setLoggingOut(true);
     await fetch("/api/admin-auth", { method: "DELETE" });
-    startTransition(() => router.replace("/he/admin/login"));
+    startTransition(() => router.replace("/admin/login"));
   };
 
   const activeCount   = staff.filter((s) => s.active).length;
