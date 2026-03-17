@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FileText, ClipboardList, Package, Clock, ArrowRight } from "lucide-react";
+import { FileText, ClipboardList, Package, Clock, ArrowRight, LayoutDashboard, BarChart2 } from "lucide-react";
 
 const tools = [
   {
@@ -16,6 +16,20 @@ const tools = [
     icon: Clock,
     title: "שעון נוכחות",
     desc: "כניסה ויציאה מהאתר עם אימות טלפון ו-GPS",
+    available: true,
+  },
+  {
+    href: "/he/internal/admin",
+    icon: LayoutDashboard,
+    title: "ניהול פרויקטים",
+    desc: "רשימת פרויקטים פעילים, לוחות זמנים ותקציב",
+    available: true,
+  },
+  {
+    href: "/he/internal/admin/dashboard",
+    icon: BarChart2,
+    title: "דשבורד",
+    desc: "דוח נוכחות שבועי וסיכום תקציב לעומת ביצוע",
     available: true,
   },
   {

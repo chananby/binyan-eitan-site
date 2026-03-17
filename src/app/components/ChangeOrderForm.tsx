@@ -6,10 +6,7 @@ import Link from "next/link";
 import { CheckCircle, RotateCcw, PenLine, Camera, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLang } from "./LangContext";
 
-// ── Formspree endpoint ─────────────────────────────────────────────────────────
-const FORMSPREE_URL = `https://formspree.io/f/${
-  process.env.NEXT_PUBLIC_FORMSPREE_FORM_ID ?? "xkoqgylz"
-}`;
+interface ProjectOption { id: string; name: string; status: string; }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -210,6 +207,15 @@ export default function ChangeOrderForm() {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoUploadErr, setPhotoUploadErr] = useState<string | null>(null);
   const [now]                             = useState(nowLabel);
+  const [projects, setProjects]           = useState<ProjectOption[]>([]);
+  const [projectId, setProjectId]         = useState("");
+
+  useEffect(() => {
+    fetch("/api/projects")
+      .then((r) => r.json())
+      .then((d) => { if (d.projects) setProjects(d.projects); })
+      .catch(() => {}); // non-critical — form still works, just no dropdown
+  }, []);
 
   const ArrowBack = dir === "rtl" ? ArrowRight : ArrowLeft;
 
@@ -252,15 +258,38 @@ export default function ChangeOrderForm() {
       return;
     }
     setSigErr(false);
-    if (sigHiddenRef.current) sigHiddenRef.current.value = canvas.toDataURL("image/png");
     setStatus("sending");
+
+    const fd = new FormData(e.currentTarget);
+    const fields = Object.fromEntries(fd.entries());
+
     try {
-      const res = await fetch(FORMSPREE_URL, {
+      const res = await fetch("/api/change-order", {
         method: "POST",
-        body: new FormData(e.currentTarget),
-        headers: { Accept: "application/json" },
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          project_id: projectId || null,
+          specific_location: fields.specific_location,
+          approver_name: fields.approver_name,
+          approver_email: fields.approver_email,
+          work_category: fields.work_category,
+          description: fields.description,
+          schedule_impact: fields.schedule_impact === "yes",
+          site_photo_url: fields.site_photo_url || null,
+          pricing_type: fields.pricing_type,
+          agreed_price: fields.agreed_price,
+          approval_status: fields.approval_status,
+          datetime: fields.datetime,
+          signature_data_url: canvas.toDataURL("image/png"),
+        }),
       });
-      setStatus(res.ok ? "success" : "error");
+      const data = await res.json();
+      if (data.success) {
+        setStatus("success");
+      } else {
+        console.error("[change-order]", data.error);
+        setStatus("error");
+      }
     } catch {
       setStatus("error");
     }
@@ -332,7 +361,28 @@ export default function ChangeOrderForm() {
 
             {/* ── Block 1: Project & Identity ── */}
             <Block num="01" title="פרטי הפרויקט והמאשר / Project & Identity">
-              <Field label="שם הפרויקט / Project Name" name="project_name" required />
+
+              {/* Project selector */}
+              <div className="relative">
+                <label htmlFor="project_select"
+                  className="block font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40 mb-2">
+                  פרויקט / Project *
+                </label>
+                <select
+                  id="project_select"
+                  required
+                  value={projectId}
+                  onChange={(e) => setProjectId(e.target.value)}
+                  className="w-full appearance-none bg-transparent border-b border-charcoal/20 py-3 font-body text-sm text-charcoal focus:outline-none focus:border-accent transition-colors duration-200 cursor-pointer"
+                >
+                  <option value="">— בחר פרויקט —</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute end-1 top-8 text-charcoal/30">▾</div>
+              </div>
+
               <Field label="מיקום ספציפי (קומה/חדר) / Specific Location" name="specific_location" />
               <Field label="שם המאשר / Approver Name" name="approver_name" required />
               <Field label="אימייל המאשר / Approver Email" name="approver_email" required type="email" />
