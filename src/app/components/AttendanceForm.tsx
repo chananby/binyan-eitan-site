@@ -53,7 +53,7 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
 
   const [newName, setNewName]   = useState("");
   const [newPhone, setNewPhone] = useState("");
-  const [newRole, setNewRole]   = useState("פועל");
+  const [newRole, setNewRole]   = useState("עובד");
   const [addLoading, setAddLoading] = useState(false);
   const [addMsg, setAddMsg]         = useState("");
 
@@ -144,7 +144,7 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
       const data = await res.json();
       if (res.ok) {
         setAddMsg("✓ " + newName + " נוסף");
-        setNewName(""); setNewPhone(""); setNewRole("פועל");
+        setNewName(""); setNewPhone(""); setNewRole("עובד");
         loadAdminData();
       } else {
         setAddMsg("שגיאה: " + (data.error ?? res.status));
@@ -330,10 +330,9 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
                   value={newRole} onChange={e => setNewRole(e.target.value)}
                   className="w-full border border-charcoal/15 bg-bone px-3 py-2.5 text-sm focus:border-accent focus:outline-none transition-colors"
                 >
-                  <option>פועל</option>
-                  <option>מנהל עבודה</option>
-                  <option>קבלן משנה</option>
-                  <option>מנהל</option>
+                  <option value="עובד">עובד</option>
+                  <option value="ממונה">ממונה</option>
+                  <option value="מנהל">מנהל</option>
                 </select>
               </div>
               <button
