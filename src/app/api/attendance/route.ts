@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
 
   // ── 1b. Auto-register first user if staff table is empty ───────────────────
   let resolvedStaff = staff;
+  let autoRegistered = false;
 
   if (!staff) {
     // Check if table is completely empty
@@ -71,6 +72,7 @@ export async function POST(req: NextRequest) {
       }
 
       resolvedStaff = newStaff;
+      autoRegistered = true;
       console.info("[attendance] auto-registered first staff member:", normalizedPhone);
     } else {
       return NextResponse.json({ success: false, error: "phone_not_found" }, { status: 404 });
@@ -114,5 +116,6 @@ export async function POST(req: NextRequest) {
     success: true,
     name: resolvedStaff!.name,
     message: dailyMessage,
+    auto_registered: autoRegistered,
   });
 }

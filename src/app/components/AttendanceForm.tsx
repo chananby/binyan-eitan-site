@@ -31,6 +31,7 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
   const [errorMsg, setErrorMsg]           = useState<string | null>(null);
   const [timestamp, setTimestamp]         = useState("");
   const [dailyMessage, setDailyMessage]   = useState<string | null>(null);
+  const [autoRegistered, setAutoRegistered] = useState(false);
 
   // Step 1 → 2: request GPS
   const requestLocation = useCallback(() => {
@@ -83,25 +84,13 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
       if (data.success) {
         setWorkerName(data.name ?? null);
         setDailyMessage(data.message ?? null);
+        setAutoRegistered(data.auto_registered ?? false);
         setStep("success");
       } else if (data.error === "phone_not_found") {
         setErrorMsg("מספר הטלפון לא נמצא ברשימת הצוות. פנה למנהל.");
         setStep("error");
-      } else if (data.error === "webhook_not_configured") {
-        setErrorMsg("המערכת לא מוגדרת — פנה למנהל המערכת. (ATTENDANCE_WEBHOOK_URL חסר)");
-        setStep("error");
-      } else if (data.error === "webhook_unreachable") {
-        setErrorMsg("לא ניתן להגיע לשרת הנוכחות — בדוק חיבור ונסה שוב.");
-        setStep("error");
-      } else if (data.error === "webhook_bad_response" || data.error === "webhook_error") {
-        const detail = (data as { detail?: string }).detail;
-        setErrorMsg(detail
-          ? `תגובה לא תקינה מהשרת: ${detail}`
-          : "תגובה לא תקינה מהשרת — פנה למנהל המערכת."
-        );
-        setStep("error");
       } else {
-        setErrorMsg("שגיאה לא ידועה — נסה שוב.");
+        setErrorMsg(data.error ?? "שגיאה לא ידועה — נסה שוב.");
         setStep("error");
       }
     } catch {
@@ -119,6 +108,7 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
     setAction(null);
     setErrorMsg(null);
     setDailyMessage(null);
+    setAutoRegistered(false);
   };
 
   // ── Screens ───────────────────────────────────────────────────────────────
@@ -146,6 +136,18 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
           )}
           <p className="font-body text-sm text-charcoal/40">{timestamp}</p>
         </div>
+
+        {/* Auto-register notice */}
+        {autoRegistered && (
+          <div className="w-full rounded-sm border border-amber-200 bg-amber-50 px-5 py-4">
+            <p className="mb-1 font-body text-[0.6rem] font-bold tracking-[0.18em] uppercase text-amber-500">
+              רישום אוטומטי
+            </p>
+            <p className="font-body text-sm leading-relaxed text-charcoal/80">
+              הטלפון נרשם כמשתמש ראשון במערכת. עדכן את שמך בדשבורד הניהולי.
+            </p>
+          </div>
+        )}
 
         {/* Daily message box */}
         {dailyMessage ? (
