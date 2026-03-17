@@ -1,30 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// ── Admin auth helper (inline — middleware cannot import from src/lib) ────────
-function isAdminAuthedInMiddleware(req: NextRequest): boolean {
-  const token = req.cookies.get("be_admin_token")?.value;
-  const pw    = process.env.ADMIN_PASSWORD;
-  if (!pw || !token) return false;
-  return token === Buffer.from(pw).toString("base64");
-}
-
 export function middleware(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
 
   // Never apply middleware to API routes or internal routes
   if (pathname.startsWith("/api") || pathname.startsWith("/internal")) {
     return NextResponse.next();
-  }
-
-  // ── Admin auth gate ──────────────────────────────────────────────────────
-  // Protect /admin (and all sub-paths) except the login page itself.
-  // Lives outside locale folders to avoid all locale-prefix complications.
-  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
-    if (!isAdminAuthedInMiddleware(req)) {
-      const loginUrl = new URL("/admin/login", req.url);
-      return NextResponse.redirect(loginUrl);
-    }
   }
 
   // preview mode bypass via query or cookie
@@ -75,5 +57,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/en/:path*", "/he/:path*", "/api/:path*", "/internal/:path*", "/admin", "/admin/:path*"],
+  matcher: ["/en/:path*", "/he/:path*", "/api/:path*", "/internal/:path*"],
 };
