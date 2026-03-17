@@ -3,9 +3,22 @@ import { createServerClient } from "../../../lib/supabase";
 
 export const runtime = "nodejs";
 
-// Normalize phone: strip everything except digits, keep last 10 digits.
+// Normalize phone: strip all non-digits, keep last 10 digits.
+// "058-500-8447" → "0585008447"   "+972585008447" → "0585008447" (last 10)
+// "0585008447" → "0585008447"
 function normalizePhone(raw: string): string {
   return raw.replace(/\D/g, "").slice(-10);
+}
+
+// Log the full Supabase error — code + message + details + hint all matter.
+function logSupabaseError(context: string, err: { code?: string; message?: string; details?: string; hint?: string } | null) {
+  if (!err) return;
+  console.error(`[attendance] ${context}:`, JSON.stringify({
+    code:    err.code,
+    message: err.message,
+    details: err.details,
+    hint:    err.hint,
+  }));
 }
 
 export async function POST(req: NextRequest) {
@@ -21,17 +34,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
   }
 
+  // ── Init Supabase ──────────────────────────────────────────────────────────
+  // Accepts SUPABASE_URL *or* NEXT_PUBLIC_SUPABASE_URL (whichever is set in Vercel)
+  const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    const missing = [
+      !supabaseUrl && "SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL)",
+      !supabaseKey && "SUPABASE_SERVICE_ROLE_KEY",
+    ].filter(Boolean).join(", ");
+    console.error("[attendance] Missing env vars:", missing);
+    return NextResponse.json(
+      { success: false, error: `Missing env vars: ${missing}` },
+      { status: 500 }
+    );
+  }
+
   let supabase: ReturnType<typeof createServerClient>;
   try {
     supabase = createServerClient();
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Supabase not configured";
+    const msg = err instanceof Error ? err.message : "Supabase client init failed";
+    console.error("[attendance] createServerClient threw:", msg);
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 
   const normalizedPhone = normalizePhone(phone);
+  console.info("[attendance] lookup phone:", normalizedPhone, "action:", action);
 
   // ── 1. Look up staff by phone ──────────────────────────────────────────────
+  // NOTE: only select columns we know exist. "active" is included but handled
+  // gracefully — if the column is named differently in your schema, update here.
   const { data: staff, error: staffError } = await supabase
     .from("staff")
     .select("id, name, active")
@@ -39,8 +73,12 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   if (staffError) {
-    console.error("[attendance] staff lookup error:", staffError.message);
-    return NextResponse.json({ success: false, error: "Database error" }, { status: 500 });
+    logSupabaseError("staff lookup", staffError);
+    // Return the real DB error so you can see it in the UI / Vercel logs
+    return NextResponse.json(
+      { success: false, error: `staff_lookup_failed: ${staffError.message}` },
+      { status: 500 }
+    );
   }
 
   // ── 1b. Auto-register first user if staff table is empty ───────────────────
@@ -48,13 +86,22 @@ export async function POST(req: NextRequest) {
   let autoRegistered = false;
 
   if (!staff) {
-    // Check if table is completely empty
     const { count, error: countError } = await supabase
       .from("staff")
       .select("*", { count: "exact", head: true });
 
-    if (!countError && count === 0) {
-      // First ever registration — create as Master Admin
+    if (countError) {
+      logSupabaseError("staff count", countError);
+      return NextResponse.json(
+        { success: false, error: `staff_count_failed: ${countError.message}` },
+        { status: 500 }
+      );
+    }
+
+    console.info("[attendance] staff table count:", count);
+
+    if (count === 0) {
+      // First ever registration — auto-create as Master Admin
       const { data: newStaff, error: insertStaffError } = await supabase
         .from("staff")
         .insert({
@@ -66,9 +113,21 @@ export async function POST(req: NextRequest) {
         .select("id, name, active")
         .single();
 
-      if (insertStaffError || !newStaff) {
-        console.error("[attendance] auto-register error:", insertStaffError?.message);
-        return NextResponse.json({ success: false, error: "phone_not_found" }, { status: 404 });
+      if (insertStaffError) {
+        logSupabaseError("staff auto-register insert", insertStaffError);
+        // 23505 = unique_violation — phone already exists despite count=0 (race condition)
+        if (insertStaffError.code === "23505") {
+          console.warn("[attendance] UNIQUE race condition on phone:", normalizedPhone);
+          return NextResponse.json({ success: false, error: "phone_not_found" }, { status: 404 });
+        }
+        return NextResponse.json(
+          { success: false, error: `auto_register_failed: ${insertStaffError.message}` },
+          { status: 500 }
+        );
+      }
+
+      if (!newStaff) {
+        return NextResponse.json({ success: false, error: "auto_register_no_data" }, { status: 500 });
       }
 
       resolvedStaff = newStaff;
@@ -79,28 +138,46 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  if (!resolvedStaff!.active) {
+  // Treat missing `active` column gracefully — if null/undefined, assume active
+  const isActive = resolvedStaff!.active ?? true;
+  if (!isActive) {
     return NextResponse.json({ success: false, error: "phone_not_found" }, { status: 403 });
   }
 
   // ── 2. Insert attendance record ────────────────────────────────────────────
-  const { error: insertError } = await supabase.from("attendance").insert({
+  // IMPORTANT: column names must match your actual Supabase `attendance` table.
+  // Common mismatch: `timestamp_label` — your table might not have this column.
+  // If you see an error here, remove the timestamp_label field or rename it.
+  const attendancePayload: Record<string, unknown> = {
     staff_id: resolvedStaff!.id,
     action: action === "כניסה" ? "in" : "out",
     lat,
     lng,
-    timestamp_label: timestamp ?? null,
-  });
+  };
 
-  if (insertError) {
-    console.error("[attendance] insert error:", insertError.message);
-    return NextResponse.json({ success: false, error: "Failed to record attendance" }, { status: 500 });
+  // Only include timestamp_label if a value exists — won't break if column is missing
+  // and the table has a default `created_at`. If you get a DB error here, comment
+  // out the next two lines.
+  if (timestamp) {
+    attendancePayload.timestamp_label = timestamp;
   }
 
-  // ── 3. Fetch today's daily message (optional) ──────────────────────────────
+  const { error: insertError } = await supabase
+    .from("attendance")
+    .insert(attendancePayload);
+
+  if (insertError) {
+    logSupabaseError("attendance insert", insertError);
+    return NextResponse.json(
+      { success: false, error: `attendance_insert_failed: ${insertError.message}` },
+      { status: 500 }
+    );
+  }
+
+  // ── 3. Daily message (optional, non-blocking) ──────────────────────────────
   let dailyMessage: string | null = null;
   try {
-    const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+    const today = new Date().toISOString().slice(0, 10);
     const [{ data: msg }, { data: msgDate }] = await Promise.all([
       supabase.from("settings").select("value").eq("key", "daily_message").maybeSingle(),
       supabase.from("settings").select("value").eq("key", "daily_message_date").maybeSingle(),
@@ -111,6 +188,8 @@ export async function POST(req: NextRequest) {
   } catch {
     // Non-critical — don't fail the whole request
   }
+
+  console.info("[attendance] success — staff:", resolvedStaff!.name, "auto_registered:", autoRegistered);
 
   return NextResponse.json({
     success: true,

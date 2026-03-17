@@ -1,15 +1,20 @@
 import { createClient } from "@supabase/supabase-js";
 
 // Server-only client — uses service role key, never imported in client components.
-// Required env vars:
-//   SUPABASE_URL          — Project URL from Supabase dashboard
-//   SUPABASE_SERVICE_ROLE_KEY — Secret key (Settings > API)
+// Required env vars (Vercel dashboard → Settings → Environment Variables):
+//   SUPABASE_URL  or  NEXT_PUBLIC_SUPABASE_URL — Project URL from Supabase dashboard
+//   SUPABASE_SERVICE_ROLE_KEY                  — Secret key (Supabase → Settings → API)
+//
+// RLS note: the service role key bypasses Row Level Security automatically.
+// You do NOT need to add permissive policies for server-side operations.
 
 export function createServerClient() {
-  const url = process.env.SUPABASE_URL;
+  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
-    throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set");
+    const missing = [!url && "SUPABASE_URL", !key && "SUPABASE_SERVICE_ROLE_KEY"]
+      .filter(Boolean).join(", ");
+    throw new Error(`Missing Supabase env vars: ${missing}`);
   }
   return createClient(url, key, {
     auth: { persistSession: false },
