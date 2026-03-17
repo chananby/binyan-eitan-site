@@ -156,6 +156,66 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
     }
   }
 
+  // ── Attendance callbacks (must be defined before any early returns) ─────────
+  const requestLocation = useCallback(() => {
+    if (!phone.trim() || phone.replace(/\D/g, "").length < 9) return;
+    setGeoError(null);
+    setStep("locating");
+    if (!navigator.geolocation) {
+      setGeoError("הדפדפן לא תומך בשיתוף מיקום");
+      setStep("phone");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setStep("ready");
+      },
+      () => {
+        setGeoError("גישה למיקום נדרשת לדיווח נוכחות — אנא אשר גישה ונסה שוב.");
+        setStep("phone");
+      },
+      { timeout: 12000, enableHighAccuracy: true }
+    );
+  }, [phone]);
+
+  const submit = useCallback(async (selectedAction: "in" | "out") => {
+    if (!coords) return;
+    setAction(selectedAction);
+    setStep("submitting");
+    const ts = nowLabel();
+    setTimestamp(ts);
+    try {
+      const res = await fetch("/api/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: phone.trim(),
+          action: selectedAction === "in" ? "כניסה" : "יציאה",
+          lat: coords.lat.toFixed(6),
+          lng: coords.lng.toFixed(6),
+          timestamp: ts,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setWorkerName(data.name ?? null);
+        setDailyMessage(data.message ?? null);
+        setAutoRegistered(data.auto_registered ?? false);
+        setStep("success");
+      } else if (data.error === "phone_not_found") {
+        setErrorMsg("מספר הטלפון לא נמצא ברשימת הצוות. פנה למנהל.");
+        setStep("error");
+      } else {
+        setErrorMsg(data.error ?? "שגיאה לא ידועה — נסה שוב.");
+        setStep("error");
+      }
+    } catch {
+      setErrorMsg("בעיית תקשורת — בדוק חיבור אינטרנט ונסה שוב.");
+      setStep("error");
+    }
+  }, [coords, phone]);
+
   // ── Admin: Password screen ────────────────────────────────────────────────
   if (adminView === "password") {
     return (
@@ -370,65 +430,6 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
   }
 
   // ── Attendance screens ────────────────────────────────────────────────────
-
-  const requestLocation = useCallback(() => {
-    if (!phone.trim() || phone.replace(/\D/g, "").length < 9) return;
-    setGeoError(null);
-    setStep("locating");
-    if (!navigator.geolocation) {
-      setGeoError("הדפדפן לא תומך בשיתוף מיקום");
-      setStep("phone");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setStep("ready");
-      },
-      () => {
-        setGeoError("גישה למיקום נדרשת לדיווח נוכחות — אנא אשר גישה ונסה שוב.");
-        setStep("phone");
-      },
-      { timeout: 12000, enableHighAccuracy: true }
-    );
-  }, [phone]);
-
-  const submit = useCallback(async (selectedAction: "in" | "out") => {
-    if (!coords) return;
-    setAction(selectedAction);
-    setStep("submitting");
-    const ts = nowLabel();
-    setTimestamp(ts);
-    try {
-      const res = await fetch("/api/attendance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: phone.trim(),
-          action: selectedAction === "in" ? "כניסה" : "יציאה",
-          lat: coords.lat.toFixed(6),
-          lng: coords.lng.toFixed(6),
-          timestamp: ts,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setWorkerName(data.name ?? null);
-        setDailyMessage(data.message ?? null);
-        setAutoRegistered(data.auto_registered ?? false);
-        setStep("success");
-      } else if (data.error === "phone_not_found") {
-        setErrorMsg("מספר הטלפון לא נמצא ברשימת הצוות. פנה למנהל.");
-        setStep("error");
-      } else {
-        setErrorMsg(data.error ?? "שגיאה לא ידועה — נסה שוב.");
-        setStep("error");
-      }
-    } catch {
-      setErrorMsg("בעיית תקשורת — בדוק חיבור אינטרנט ונסה שוב.");
-      setStep("error");
-    }
-  }, [coords, phone]);
 
   const reset = () => {
     setStep("phone");
