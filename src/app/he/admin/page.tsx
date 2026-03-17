@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import { createServerClient } from "../../../lib/supabase";
 import AdminDashboard from "../../components/AdminDashboard";
 
+// Force server-side rendering on every request.
+// Without this, Next.js may statically generate the page at build time
+// (when Supabase env vars are unavailable), producing a cached empty page.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "ניהול | בנין איתן",
   robots: { index: false, follow: false },
