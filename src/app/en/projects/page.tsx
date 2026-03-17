@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
-  title: "Our Projects",
+  title: "Our Projects | Selected Portfolio of Premium Construction",
   description:
     "From institutional complexes to private luxury villas — every project built to engineering exactitude. Structural transparency, premium dark materials, precision you can walk through.",
   keywords: [
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "בנייה פרטית וציבורית",
   ],
   openGraph: {
-    title: "Binyan Eitan | Projects — Built to Engineering Exactitude",
+    title: "Our Projects | Selected Portfolio of Premium Construction",
     description: "Institutional complexes, private villas, structural renovations. See what precision looks like.",
     url: "https://binyaneitan.com/en/projects",
     siteName: "Binyan Eitan",

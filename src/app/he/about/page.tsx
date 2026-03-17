@@ -2,7 +2,7 @@ import AboutPage from "../../components/AboutPage";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "מי אנחנו | מוטי איתן",
+  title: "מי אנחנו | הניסיון ההנדסי של מוטי איתן",
   description: 'מזה שני עשורים שחברת "בנין איתן" מובילה פרויקטים מורכבים ויוקרתיים בישראל. מוטי איתן, מייסד ובעלים — קבלן רשום C1 עם מעל 20 שנה של הנדסת קונסטרוקציה, פיקוח וניהול פרויקטים.',
   keywords: [
     "קבלן שיפוצים בירושלים",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     "G1 Registered Contractor Israel",
   ],
   openGraph: {
-    title: "המשרד | בניין איתן",
+    title: "מי אנחנו | הניסיון ההנדסי של מוטי איתן",
     description: "שני עשורים של בנייה מורכבת ויוקרתית בישראל. קבלן רשום ג1 בניהולו של מוטי איתן.",
     url: "https://binyaneitan.com/he/about",
     siteName: "בניין איתן",

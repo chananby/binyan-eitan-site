@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
-  title: "תיק עבודות",
+  title: "תיק עבודות | פרויקטים נבחרים בבנייה ושיפוץ",
   description:
     "ממתחמים ציבוריים ועד וילות פרטיות יוקרתיות — כל פרויקט בנוי לרמת דיוק הנדסי. שקיפות מבנית, חומר שחור פרימיום, דיוק שאפשר לעבור דרכו.",
   keywords: [
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "בנייה פרטית וציבורית",
   ],
   openGraph: {
-    title: "בניין איתן | פרויקטים — בנויים לרמת דיוק הנדסי",
+    title: "תיק עבודות | פרויקטים נבחרים בבנייה ושיפוץ",
     description: "מתחמים מוסדיים, וילות פרטיות, שיפוצים מבניים. ראו איך נראה דיוק אמיתי.",
     url: "https://binyaneitan.com/he/projects",
     siteName: "בניין איתן",

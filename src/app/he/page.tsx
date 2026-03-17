@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
-  title: { absolute: "בנין איתן | קבלן שיפוצים ובנייה בירושלים — עבודה עברית" },
+  title: { absolute: "בנין איתן | הנדסה וביצוע פרויקטים מורכבים בירושלים" },
   description:
     "קבלן שיפוצים ובנייה בירושלים ובנימין. עבודה עברית מקצועית, שיפוץ דירות ווילות, הנדסת קונסטרוקציה וגמר פרימיום. קבלן רשום ג1 מס׳ 41805 — דיוק שאפשר למדוד.",
   keywords: [
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   ],
   robots: { index: true, follow: true },
   openGraph: {
-    title: "בניין איתן | קבלן שיפוצים ובנייה בירושלים",
+    title: "בנין איתן | הנדסה וביצוע פרויקטים מורכבים בירושלים",
     description:
       "קבלן שיפוצים ובנייה בירושלים ובנימין — עבודה עברית מקצועית, שיפוץ יוקרה, גמר פרימיום. קבלן רשום ג1.",
     url: "https://binyaneitan.com/he",
