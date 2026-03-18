@@ -4,7 +4,7 @@ import loadDynamic from "next/dynamic";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Building Your Israeli Property From Abroad | Binyan Eitan",
+  title: "Building Your Israeli Property From Abroad",
   description:
     "The complete guide to building and renovating in Israel for overseas residents. Full transparency, regular updates, and expert remote project management with Moti Eitan.",
   alternates: {

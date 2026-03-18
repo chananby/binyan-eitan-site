@@ -4,7 +4,7 @@ import loadDynamic from "next/dynamic";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "יום המסירה והאחריות על הבית | בנין איתן",
+  title: "יום המסירה והאחריות על הבית",
   description:
     "מה קורה ביום שאחרי השיפוץ? המדריך של בנין איתן למסירה נכונה, תיעוד תשתיות (As-Made) ואחריות אישית לאורך זמן.",
   alternates: {

@@ -4,7 +4,7 @@ import loadDynamic from "next/dynamic";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "איך לקרוא הצעת מחיר לבנייה ושיפוץ | בנין איתן",
+  title: "איך לקרוא הצעת מחיר לבנייה ושיפוץ",
   description:
     "המדריך המלא לקריאת הצעת מחיר מקצועית. איך מזהים \"חורים\" בהצעות זולות, למה פירוט הוא ההגנה הכי טובה שלכם ומה חובה להופיע בחוזה.",
   alternates: {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import InternalPortalHe from "../../components/InternalPortalHe";
 
 export const metadata: Metadata = {
-  title: "אזור צוות | בנין איתן",
+  title: "אזור צוות",
   robots: { index: false, follow: false },
 };
 

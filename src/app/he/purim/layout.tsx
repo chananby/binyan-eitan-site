@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 // ── Purim-specific meta — overrides the global he/layout metadata ─────────────
 export const metadata: Metadata = {
-  title: "חידון פורים הגדול | בניין איתן",
+  title: "חידון פורים הגדול",
   description:
     "החידון הגדול בשני שלבים! בואו לבחון את הידע שלכם — מהבסיס ועד למדרשים העמוקים.",
   openGraph: {

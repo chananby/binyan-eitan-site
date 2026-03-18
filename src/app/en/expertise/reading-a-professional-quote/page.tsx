@@ -4,7 +4,7 @@ import loadDynamic from "next/dynamic";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Beyond the Price: How to Read a Construction Quote | Binyan Eitan",
+  title: "Beyond the Price: How to Read a Construction Quote",
   description:
     "The complete guide to reading a professional construction quote. How to spot 'gaps' in cheap proposals, why detail is your best protection, and what must appear in any contract.",
   alternates: {

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "בנין איתן | ידע מקצועי | בחירת קבלן לפרויקטים מורכבים",
+  title: "ידע מקצועי | בחירת קבלן לפרויקטים מורכבים",
   description:
     "איך בוחרים קבלן לפרויקט הנדסי מורכב? קראו את המדריך המקצועי של בנין איתן על סיווג ג1, קונסטרוקציות פלדה וניהול פרויקטים בסטנדרט פרימיום.",
   alternates: {

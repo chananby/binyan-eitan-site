@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AttendanceForm from "../../../components/AttendanceForm";
 
 export const metadata: Metadata = {
-  title: "Attendance Clock | Binyan Eitan",
+  title: "Attendance Clock",
   robots: { index: false, follow: false },
 };
 

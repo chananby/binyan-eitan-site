@@ -4,7 +4,7 @@ import loadDynamic from "next/dynamic";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "How to Avoid Renovation Mistakes | Binyan Eitan",
+  title: "How to Avoid Renovation Mistakes",
   description:
     "A practical guide to preventing common home renovation errors, managing your budget, and ensuring sound infrastructure.",
   alternates: {

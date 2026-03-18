@@ -4,7 +4,7 @@ import loadDynamic from "next/dynamic";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "מאחורי הקירות: איכות הבנייה הנסתרת | בנין איתן",
+  title: "מאחורי הקירות: איכות הבנייה הנסתרת",
   description:
     "למה התשתיות בבית הן החלק הכי חשוב בשיפוץ? המדריך של בנין איתן לאינסטלציה, חשמל ואיטום ברמה הגבוהה ביותר.",
   alternates: {

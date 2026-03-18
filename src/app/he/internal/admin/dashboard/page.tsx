@@ -4,7 +4,7 @@ import { createServerClient } from "../../../../../lib/supabase";
 import { ChevronLeft, Users, TrendingUp } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "דשבורד ניהולי | בנין איתן",
+  title: "דשבורד ניהולי",
   robots: { index: false, follow: false },
 };
 

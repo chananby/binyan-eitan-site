@@ -4,7 +4,7 @@ import loadDynamic from "next/dynamic";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "איך להימנע מטעויות בשיפוץ | בנין איתן",
+  title: "איך להימנע מטעויות בשיפוץ",
   description:
     "מדריך פרקטי למניעת טעויות נפוצות בשיפוץ הבית — שמירה על התקציב, ניהול תשתיות נכון ועבודה עברית מקצועית בירושלים ובנימין.",
   keywords: [

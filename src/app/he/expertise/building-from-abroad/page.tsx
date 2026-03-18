@@ -4,7 +4,7 @@ import loadDynamic from "next/dynamic";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "ניהול פרויקט בנייה בישראל מרחוק | בנין איתן",
+  title: "ניהול פרויקט בנייה בישראל מרחוק",
   description:
     "המדריך המלא לבנייה ושיפוץ בישראל עבור תושבי חוץ. שקיפות מלאה, דיווחים שוטפים וניהול מקצועי בשלט רחוק — עם מוטי איתן.",
   alternates: {

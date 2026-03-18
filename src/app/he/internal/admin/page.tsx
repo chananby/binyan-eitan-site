@@ -4,7 +4,7 @@ import { createServerClient, type ProjectRow } from "../../../../lib/supabase";
 import { ChevronLeft, MapPin, Calendar, User, LayoutDashboard } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "ניהול פרויקטים | בנין איתן",
+  title: "ניהול פרויקטים",
   robots: { index: false, follow: false },
 };
 

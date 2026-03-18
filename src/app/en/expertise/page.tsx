@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Binyan Eitan | Luxury Construction & Engineering in Israel",
+  title: "Luxury Construction & Engineering in Israel",
   description:
     "Building in Israel from abroad? Binyan Eitan is a G1 registered contractor bringing elite engineering and transparent project management to international clients.",
   alternates: {
