@@ -11,7 +11,7 @@ type AdminView = "none" | "password" | "dashboard";
 interface GeoCoords { lat: number; lng: number; }
 
 interface StaffMember {
-  id: string; name: string; phone: string; role: string; active: boolean;
+  id: string; name: string; phone: string; role: string; active: boolean; national_id?: string | null;
 }
 interface AttendanceRecord {
   id: string; action: string; timestamp_label: string; recorded_at: string;
@@ -51,11 +51,21 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
   const [todayLogs, setTodayLogs]         = useState<AttendanceRecord[]>([]);
   const [dataLoading, setDataLoading]     = useState(false);
 
-  const [newName, setNewName]   = useState("");
-  const [newPhone, setNewPhone] = useState("");
-  const [newRole, setNewRole]   = useState("עובד");
+  const [newName, setNewName]       = useState("");
+  const [newPhone, setNewPhone]     = useState("");
+  const [newRole, setNewRole]       = useState("עובד");
+  const [newNationalId, setNewNationalId] = useState("");
   const [addLoading, setAddLoading] = useState(false);
   const [addMsg, setAddMsg]         = useState("");
+
+  // Edit state
+  const [editingId, setEditingId]       = useState<string | null>(null);
+  const [editName, setEditName]         = useState("");
+  const [editPhone, setEditPhone]       = useState("");
+  const [editRole, setEditRole]         = useState("עובד");
+  const [editNationalId, setEditNationalId] = useState("");
+  const [editLoading, setEditLoading]   = useState(false);
+  const [editMsg, setEditMsg]           = useState("");
 
   // Restore admin session across page refreshes
   useEffect(() => {
@@ -139,12 +149,12 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
       const res = await fetch("/api/admin/staff", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName, phone: newPhone, role: newRole }),
+        body: JSON.stringify({ name: newName, phone: newPhone, role: newRole, national_id: newNationalId }),
       });
       const data = await res.json();
       if (res.ok) {
         setAddMsg("✓ " + newName + " נוסף");
-        setNewName(""); setNewPhone(""); setNewRole("עובד");
+        setNewName(""); setNewPhone(""); setNewRole("עובד"); setNewNationalId("");
         loadAdminData();
       } else {
         setAddMsg("שגיאה: " + (data.error ?? res.status));
@@ -153,6 +163,40 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
       setAddMsg("שגיאת רשת: " + String(err));
     } finally {
       setAddLoading(false);
+    }
+  }
+
+  function startEdit(s: StaffMember) {
+    setEditingId(s.id);
+    setEditName(s.name);
+    setEditPhone(s.phone);
+    setEditRole(s.role);
+    setEditNationalId(s.national_id ?? "");
+    setEditMsg("");
+  }
+
+  async function handleEditWorker(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingId) return;
+    setEditLoading(true);
+    setEditMsg("");
+    try {
+      const res = await fetch(`/api/admin/staff/${editingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName, phone: editPhone, role: editRole, national_id: editNationalId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEditingId(null);
+        loadAdminData();
+      } else {
+        setEditMsg("שגיאה: " + (data.error ?? res.status));
+      }
+    } catch (err) {
+      setEditMsg("שגיאת רשת: " + String(err));
+    } finally {
+      setEditLoading(false);
     }
   }
 
@@ -324,16 +368,30 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
                   />
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-[0.7rem] text-charcoal/50">תפקיד</label>
-                <select
-                  value={newRole} onChange={e => setNewRole(e.target.value)}
-                  className="w-full border border-charcoal/15 bg-bone px-3 py-2.5 text-sm focus:border-accent focus:outline-none transition-colors"
-                >
-                  <option value="עובד">עובד</option>
-                  <option value="ממונה">ממונה</option>
-                  <option value="מנהל">מנהל</option>
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[0.7rem] text-charcoal/50">תפקיד</label>
+                  <select
+                    value={newRole} onChange={e => setNewRole(e.target.value)}
+                    className="w-full border border-charcoal/15 bg-bone px-3 py-2.5 text-sm focus:border-accent focus:outline-none transition-colors"
+                  >
+                    <option value="עובד">עובד</option>
+                    <option value="ממונה">ממונה</option>
+                    <option value="מנהל">מנהל</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[0.7rem] text-charcoal/50">ת&quot;ז (אופציונלי)</label>
+                  <input
+                    value={newNationalId}
+                    onChange={e => setNewNationalId(e.target.value.replace(/\D/g, ""))}
+                    placeholder="123456789"
+                    inputMode="numeric"
+                    maxLength={9}
+                    className="w-full border border-charcoal/15 bg-bone px-3 py-2.5 text-sm focus:border-accent focus:outline-none transition-colors"
+                    dir="ltr"
+                  />
+                </div>
               </div>
               <button
                 type="submit" disabled={addLoading}
@@ -362,16 +420,83 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
             )}
             {!dataLoading && staff.length > 0 && (
               <div className="divide-y divide-charcoal/5">
-                {staff.map(s => (
-                  <div key={s.id} className={`flex items-center justify-between py-3 gap-3 ${!s.active ? "opacity-45" : ""}`}>
+                {staff.map(s => editingId === s.id ? (
+                  // ── Inline edit row ──────────────────────────────────────
+                  <form key={s.id} onSubmit={handleEditWorker} className="py-4 space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-0.5">
+                        <label className="text-[0.65rem] text-charcoal/40">שם</label>
+                        <input
+                          value={editName} onChange={e => setEditName(e.target.value)} required
+                          className="w-full border border-charcoal/15 bg-bone px-2.5 py-2 text-sm focus:border-accent focus:outline-none transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-0.5">
+                        <label className="text-[0.65rem] text-charcoal/40">טלפון</label>
+                        <input
+                          value={editPhone} onChange={e => setEditPhone(e.target.value)} required
+                          type="tel" dir="ltr"
+                          className="w-full border border-charcoal/15 bg-bone px-2.5 py-2 text-sm focus:border-accent focus:outline-none transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-0.5">
+                        <label className="text-[0.65rem] text-charcoal/40">תפקיד</label>
+                        <select
+                          value={editRole} onChange={e => setEditRole(e.target.value)}
+                          className="w-full border border-charcoal/15 bg-bone px-2.5 py-2 text-sm focus:border-accent focus:outline-none transition-colors"
+                        >
+                          <option value="עובד">עובד</option>
+                          <option value="ממונה">ממונה</option>
+                          <option value="מנהל">מנהל</option>
+                        </select>
+                      </div>
+                      <div className="space-y-0.5">
+                        <label className="text-[0.65rem] text-charcoal/40">ת&quot;ז</label>
+                        <input
+                          value={editNationalId}
+                          onChange={e => setEditNationalId(e.target.value.replace(/\D/g, ""))}
+                          placeholder="ספרות בלבד"
+                          inputMode="numeric" maxLength={9} dir="ltr"
+                          className="w-full border border-charcoal/15 bg-bone px-2.5 py-2 text-sm focus:border-accent focus:outline-none transition-colors"
+                        />
+                      </div>
+                    </div>
+                    {editMsg && <p className="text-xs text-red-500">{editMsg}</p>}
+                    <div className="flex gap-2">
+                      <button
+                        type="submit" disabled={editLoading}
+                        className="flex-1 bg-accent py-2 text-xs font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors"
+                      >
+                        {editLoading ? "שומר..." : "שמור"}
+                      </button>
+                      <button
+                        type="button" onClick={() => setEditingId(null)}
+                        className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/50 hover:border-accent hover:text-accent transition-colors"
+                      >
+                        ביטול
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  // ── Normal row ───────────────────────────────────────────
+                  <div key={s.id} className={`flex items-center justify-between py-3 gap-2 ${!s.active ? "opacity-45" : ""}`}>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-charcoal truncate">{s.name}</p>
                       <p className="text-[0.7rem] text-charcoal/40 tabular-nums" dir="ltr">{s.phone}</p>
+                      {s.national_id && (
+                        <p className="text-[0.65rem] text-charcoal/30 tabular-nums" dir="ltr">ת&quot;ז: {s.national_id}</p>
+                      )}
                     </div>
                     <span className="text-[0.65rem] text-charcoal/40 shrink-0">{s.role}</span>
                     <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>
                       {s.active ? "פעיל" : "לא פעיל"}
                     </span>
+                    <button
+                      onClick={() => startEdit(s)}
+                      className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0"
+                    >
+                      ערוך
+                    </button>
                     <button
                       onClick={() => toggleActive(s.id, s.active)}
                       className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0"

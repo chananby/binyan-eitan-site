@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("staff")
-    .select("id, name, phone, role, active")
+    .select("id, name, phone, role, active, national_id")
     .order("active", { ascending: false })
     .order("name", { ascending: true });
 
@@ -34,14 +34,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { name?: string; phone?: string; role?: string };
+  let body: { name?: string; phone?: string; role?: string; national_id?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { name, phone, role } = body;
+  const { name, phone, role, national_id } = body;
   if (!name?.trim() || !phone?.trim()) {
     return NextResponse.json({ error: "שם וטלפון הם שדות חובה" }, { status: 400 });
   }
@@ -56,11 +56,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "מספר טלפון לא תקין" }, { status: 400 });
   }
 
+  if (national_id && !/^\d+$/.test(national_id.trim())) {
+    return NextResponse.json({ error: "מספר ת\"ז חייב להכיל ספרות בלבד" }, { status: 400 });
+  }
+
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("staff")
-    .insert({ name: name.trim(), phone: normalizedPhone, role: role ?? "עובד", active: true })
-    .select("id, name, phone, role, active")
+    .insert({
+      name: name.trim(),
+      phone: normalizedPhone,
+      role: role ?? "עובד",
+      active: true,
+      national_id: national_id?.trim() || null,
+    })
+    .select("id, name, phone, role, active, national_id")
     .single();
 
   if (error) {

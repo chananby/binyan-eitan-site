@@ -4,7 +4,11 @@ import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 
-// PATCH — toggle active status (deactivate / reactivate)
+function normalizePhone(raw: string): string {
+  return raw.replace(/\D/g, "").slice(-10);
+}
+
+// PATCH — toggle active OR full edit (name, phone, role, national_id)
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -13,23 +17,48 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { active?: boolean };
+  let body: { active?: boolean; name?: string; phone?: string; role?: string; national_id?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  if (typeof body.active !== "boolean") {
-    return NextResponse.json({ error: "active field (boolean) is required" }, { status: 400 });
+  const update: Record<string, unknown> = {};
+
+  if (typeof body.active === "boolean") {
+    update.active = body.active;
+  }
+  if (body.name !== undefined) {
+    if (!body.name.trim()) return NextResponse.json({ error: "שם לא יכול להיות ריק" }, { status: 400 });
+    update.name = body.name.trim();
+  }
+  if (body.phone !== undefined) {
+    const normalized = normalizePhone(body.phone);
+    if (normalized.length < 9) return NextResponse.json({ error: "מספר טלפון לא תקין" }, { status: 400 });
+    update.phone = normalized;
+  }
+  if (body.role !== undefined) {
+    const validRoles = ["עובד", "ממונה", "מנהל"];
+    if (!validRoles.includes(body.role)) return NextResponse.json({ error: "תפקיד לא תקין" }, { status: 400 });
+    update.role = body.role;
+  }
+  if (body.national_id !== undefined) {
+    const id = body.national_id.trim();
+    if (id && !/^\d+$/.test(id)) return NextResponse.json({ error: "מספר ת\"ז חייב להכיל ספרות בלבד" }, { status: 400 });
+    update.national_id = id || null;
+  }
+
+  if (Object.keys(update).length === 0) {
+    return NextResponse.json({ error: "אין שדות לעדכון" }, { status: 400 });
   }
 
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("staff")
-    .update({ active: body.active })
+    .update(update)
     .eq("id", params.id)
-    .select("id, name, phone, role, active")
+    .select("id, name, phone, role, active, national_id")
     .single();
 
   if (error) {
