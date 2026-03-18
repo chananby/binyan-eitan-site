@@ -22,14 +22,14 @@ function logSupabaseError(context: string, err: { code?: string; message?: strin
 }
 
 export async function POST(req: NextRequest) {
-  let body: { phone?: string; action?: string; lat?: string; lng?: string; timestamp?: string };
+  let body: { phone?: string; action?: string; lat?: string; lng?: string; timestamp?: string; project_id?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { phone, action, lat, lng, timestamp } = body;
+  const { phone, action, lat, lng, timestamp, project_id } = body;
   if (!phone || !action || !lat || !lng) {
     return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
   }
@@ -155,12 +155,8 @@ export async function POST(req: NextRequest) {
     lng,
   };
 
-  // Only include timestamp_label if a value exists — won't break if column is missing
-  // and the table has a default `created_at`. If you get a DB error here, comment
-  // out the next two lines.
-  if (timestamp) {
-    attendancePayload.timestamp_label = timestamp;
-  }
+  if (timestamp)  attendancePayload.timestamp_label = timestamp;
+  if (project_id) attendancePayload.project_id = project_id;
 
   const { error: insertError } = await supabase
     .from("attendance")

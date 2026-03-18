@@ -6,7 +6,6 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
-import PrecisionStack from "../play/PrecisionStack";
 
 type Lang = "en" | "he";
 
@@ -203,7 +202,7 @@ export default function Footer() {
               transition={{ duration: 0.25 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <PrecisionStack onClose={() => setLabOpen(false)} />
+              {null /* Precision Lab removed */}
             </motion.div>
           </motion.div>
         )}

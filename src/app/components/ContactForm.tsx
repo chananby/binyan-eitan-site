@@ -4,7 +4,6 @@ import { useState } from "react";
 import { CheckCircle } from "lucide-react";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
-import PrecisionStack from "../play/PrecisionStack";
 
 type Lang = "en" | "he";
 
@@ -114,7 +113,7 @@ export default function ContactForm() {
                 </p>
               </div>
             </div>
-            <PrecisionStack compact />
+            {null}
           </div>
         ) : (
           <form onSubmit={handleSubmit} method="post" className="space-y-12">

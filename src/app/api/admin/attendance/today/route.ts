@@ -10,24 +10,21 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = createServerClient();
-
-  // "Today" = from midnight UTC. Israel is UTC+2/+3 so near-midnight edge cases
-  // are acceptable for a construction site attendance system.
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
   const { data, error } = await supabase
     .from("attendance")
-    .select("id, action, lat, lng, timestamp_label, recorded_at, staff:staff_id(id, name, phone)")
+    .select("id, action, lat, lng, timestamp_label, recorded_at, project_id, staff:staff_id(id, name, phone, role), project:project_id(id, name)")
     .gte("recorded_at", todayStart.toISOString())
     .order("recorded_at", { ascending: false });
 
   if (error) {
-    // "timestamp_label" column might not exist — retry without it
+    // Graceful fallback: retry without new columns if they don't exist yet (code 42703)
     if (error.code === "42703") {
       const { data: fallback, error: fallbackError } = await supabase
         .from("attendance")
-        .select("id, action, lat, lng, recorded_at, staff:staff_id(id, name, phone)")
+        .select("id, action, lat, lng, recorded_at, staff:staff_id(id, name, phone, role)")
         .gte("recorded_at", todayStart.toISOString())
         .order("recorded_at", { ascending: false });
 
