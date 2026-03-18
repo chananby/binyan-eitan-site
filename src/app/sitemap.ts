@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL = "https://binyaneitan.com";
+const BASE_URL = "https://binyaneitan.co.il";
 const ARTICLE_SLUGS = [
   "g1-contractor-certification",
   "building-from-abroad",

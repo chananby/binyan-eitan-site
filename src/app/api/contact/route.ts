@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "";
-const TO_EMAIL       = process.env.CONTACT_TO_EMAIL ?? "office@binyaneitan.com";
-const FROM_EMAIL     = process.env.CONTACT_FROM_EMAIL ?? "Binyan Eitan <office@binyaneitan.com>";
+const TO_EMAIL       = process.env.CONTACT_TO_EMAIL ?? "office@binyaneitan.co.il";
+const FROM_EMAIL     = process.env.CONTACT_FROM_EMAIL ?? "Binyan Eitan <office@binyaneitan.co.il>";
 
 export async function POST(req: NextRequest) {
   if (!RESEND_API_KEY) {
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
         </tr>
       </table>
       <p style="margin-top: 24px; font-size: 11px; color: #999;">
-        נשלח דרך טופס יצירת קשר באתר binyaneitan.com
+        נשלח דרך טופס יצירת קשר באתר binyaneitan.co.il
       </p>
     </div>
   `;

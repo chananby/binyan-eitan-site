@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   description:
     "למה התשתיות בבית הן החלק הכי חשוב בשיפוץ? המדריך של בנין איתן לאינסטלציה, חשמל ואיטום ברמה הגבוהה ביותר.",
   alternates: {
-    canonical: "https://binyaneitan.com/he/expertise/behind-the-walls",
+    canonical: "https://binyaneitan.co.il/he/expertise/behind-the-walls",
   },
   openGraph: {
     title: "מאחורי הקירות: איכות הבנייה הנסתרת | בנין איתן",
     description:
       "יוקרה אמיתית מתחילה מאחורי הקיר. המדריך של בנין איתן לתשתית שעומדת בזמן — אינסטלציה, חשמל, איטום ותיעוד רנטגן.",
-    url: "https://binyaneitan.com/he/expertise/behind-the-walls",
+    url: "https://binyaneitan.co.il/he/expertise/behind-the-walls",
     siteName: "בנין איתן",
     locale: "he_IL",
     type: "article",

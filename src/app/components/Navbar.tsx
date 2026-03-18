@@ -42,7 +42,7 @@ export default function Navbar() {
   const navLinks: NavLink[] = [
     { label: t.home as string, href: `/${lang}` },
     { label: t.about as string, href: `/${lang}/about` },
-    { label: t.projects as string, href: `/${lang}#portfolio` },
+    { label: t.projects as string, href: `/${lang}/projects` },
     { label: t.expertise as string, href: `/${lang}/expertise` },
     { label: t.faq as string, href: `/${lang}/faq` },
   ];

@@ -32,10 +32,10 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image" },
   alternates: {
-    canonical: "https://binyaneitan.com/en",
+    canonical: "https://binyaneitan.co.il/en",
     languages: {
-      "en-US": "https://binyaneitan.com/en",
-      "he-IL": "https://binyaneitan.com/he",
+      "en-US": "https://binyaneitan.co.il/en",
+      "he-IL": "https://binyaneitan.co.il/he",
     },
   },
 };
@@ -43,12 +43,12 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "@id": "https://binyaneitan.com",
+  "@id": "https://binyaneitan.co.il",
   "name": "Binyan Eitan Ltd.",
   "alternateName": "בנין איתן בע\"מ",
-  "url": "https://binyaneitan.com",
-  "logo": "https://binyaneitan.com/logo.png",
-  "image": "https://binyaneitan.com/luxury-interior-finish-transformation.jpg",
+  "url": "https://binyaneitan.co.il",
+  "logo": "https://binyaneitan.co.il/logo.png",
+  "image": "https://binyaneitan.co.il/luxury-interior-finish-transformation.jpg",
   "description": "G1-licensed construction contractor specializing in luxury renovation, structural engineering, and premium finishes across Jerusalem and central Israel.",
   "telephone": "02-500-0447",
   "contactPoint": [
@@ -65,7 +65,7 @@ const jsonLd = {
       "availableLanguage": ["Hebrew", "English"]
     }
   ],
-  "email": "office@binyaneitan.com",
+  "email": "office@binyaneitan.co.il",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Jerusalem",

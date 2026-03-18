@@ -138,7 +138,7 @@ export default function ArticleDetailPage({ slug }: Props) {
   const mins = readingMinutes(article, lang);
 
   // WhatsApp share URL (article-specific)
-  const shareUrl = `https://wa.me/?text=${encodeURIComponent(`${title} — https://binyaneitan.com/${lang}/expertise/${article.slug}`)}`;
+  const shareUrl = `https://wa.me/?text=${encodeURIComponent(`${title} — https://binyaneitan.co.il/${lang}/expertise/${article.slug}`)}`;
 
 
   return (

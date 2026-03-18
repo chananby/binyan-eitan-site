@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   description:
     "המדריך המלא לבנייה ושיפוץ בישראל עבור תושבי חוץ. שקיפות מלאה, דיווחים שוטפים וניהול מקצועי בשלט רחוק — עם מוטי איתן.",
   alternates: {
-    canonical: "https://binyaneitan.com/he/expertise/building-from-abroad",
+    canonical: "https://binyaneitan.co.il/he/expertise/building-from-abroad",
   },
   openGraph: {
     title: "לבנות בישראל בראש שקט – המדריך לניהול פרויקט מרחוק | בנין איתן",
     description:
       "המדריך המלא לבנייה ושיפוץ בישראל עבור תושבי חוץ. שקיפות מלאה, דיווחים שוטפים וניהול מקצועי בשלט רחוק.",
-    url: "https://binyaneitan.com/he/expertise/building-from-abroad",
+    url: "https://binyaneitan.co.il/he/expertise/building-from-abroad",
     siteName: "בנין איתן",
     locale: "he_IL",
     type: "article",

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     title: "חידון פורים — בניין איתן",
     description:
       "החידון הגדול בשני שלבים! בואו לבחון את הידע שלכם — מהבסיס ועד למדרשים העמוקים.",
-    url: "https://binyaneitan.com/he/purim",
+    url: "https://binyaneitan.co.il/he/purim",
     siteName: "בניין איתן",
     type: "website",
     images: [

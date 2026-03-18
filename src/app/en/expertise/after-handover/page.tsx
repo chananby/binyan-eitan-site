@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   description:
     "What happens the day after your renovation? Binyan Eitan's guide to a proper handover, As-Made infrastructure documentation, and lasting personal accountability.",
   alternates: {
-    canonical: "https://binyaneitan.com/en/expertise/after-handover",
+    canonical: "https://binyaneitan.co.il/en/expertise/after-handover",
   },
   openGraph: {
     title: "The Handover: Your Roadmap to Long-Term Peace of Mind | Binyan Eitan",
     description:
       "Handover day is just the beginning. Binyan Eitan's commitment to As-Made documentation, personal walkthroughs, and post-project support that lasts for years.",
-    url: "https://binyaneitan.com/en/expertise/after-handover",
+    url: "https://binyaneitan.co.il/en/expertise/after-handover",
     siteName: "Binyan Eitan",
     locale: "en_US",
     type: "article",

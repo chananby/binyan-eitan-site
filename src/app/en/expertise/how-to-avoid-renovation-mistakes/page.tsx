@@ -8,14 +8,14 @@ export const metadata: Metadata = {
   description:
     "A practical guide to preventing common home renovation errors, managing your budget, and ensuring sound infrastructure.",
   alternates: {
-    canonical: "https://binyaneitan.com/en/expertise/how-to-avoid-renovation-mistakes",
-    languages: { he: "https://binyaneitan.com/he/expertise/how-to-avoid-renovation-mistakes" },
+    canonical: "https://binyaneitan.co.il/en/expertise/how-to-avoid-renovation-mistakes",
+    languages: { he: "https://binyaneitan.co.il/he/expertise/how-to-avoid-renovation-mistakes" },
   },
   openGraph: {
     title: "How to Avoid Renovation Mistakes | Binyan Eitan",
     description:
       "A practical guide to preventing common home renovation errors, managing your budget, and ensuring sound infrastructure.",
-    url: "https://binyaneitan.com/en/expertise/how-to-avoid-renovation-mistakes",
+    url: "https://binyaneitan.co.il/en/expertise/how-to-avoid-renovation-mistakes",
     siteName: "Binyan Eitan",
     locale: "en_US",
     type: "article",

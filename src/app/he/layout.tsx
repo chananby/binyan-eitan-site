@@ -44,10 +44,10 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image" },
   alternates: {
-    canonical: "https://binyaneitan.com/he",
+    canonical: "https://binyaneitan.co.il/he",
     languages: {
-      "he-IL": "https://binyaneitan.com/he",
-      "en-US": "https://binyaneitan.com/en",
+      "he-IL": "https://binyaneitan.co.il/he",
+      "en-US": "https://binyaneitan.co.il/en",
     },
   },
 };
@@ -55,12 +55,12 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "@id": "https://binyaneitan.com",
+  "@id": "https://binyaneitan.co.il",
   "name": "בנין איתן בע\"מ",
   "alternateName": ["Binyan Eitan Ltd.", "קבלן שיפוצים ובנייה בירושלים"],
-  "url": "https://binyaneitan.com",
-  "logo": "https://binyaneitan.com/logo.png",
-  "image": "https://binyaneitan.com/luxury-interior-finish-transformation.jpg",
+  "url": "https://binyaneitan.co.il",
+  "logo": "https://binyaneitan.co.il/logo.png",
+  "image": "https://binyaneitan.co.il/luxury-interior-finish-transformation.jpg",
   "description": "קבלן שיפוצים ובנייה מוביל בירושלים ובנימין. עבודה עברית מקצועית — שיפוץ דירות ווילות יוקרה, הנדסת קונסטרוקציה וגמר פרימיום. קבלן רשום ג1 מס׳ 41805.",
   "telephone": "02-500-0447",
   "contactPoint": [
@@ -77,7 +77,7 @@ const jsonLd = {
       "availableLanguage": ["Hebrew", "English"]
     }
   ],
-  "email": "office@binyaneitan.com",
+  "email": "office@binyaneitan.co.il",
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "ירושלים",

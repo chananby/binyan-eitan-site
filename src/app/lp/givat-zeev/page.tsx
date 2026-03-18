@@ -6,13 +6,13 @@ export const metadata: Metadata = {
   description:
     "בונים את גבעת זאב עם קבלן מקומי. זמינות של שכן, אחריות אישית ומחויבות לקהילה. מוטי איתן והצוות כאן בשבילכם.",
   alternates: {
-    canonical: "https://binyaneitan.com/lp/givat-zeev",
+    canonical: "https://binyaneitan.co.il/lp/givat-zeev",
   },
   openGraph: {
     title: "קבלן בנייה מקומי בגבעת זאב | בנין איתן",
     description:
       "בונים את גבעת זאב עם קבלן מקומי. זמינות של שכן, אחריות אישית ומחויבות לקהילה. מוטי איתן והצוות כאן בשבילכם.",
-    url: "https://binyaneitan.com/lp/givat-zeev",
+    url: "https://binyaneitan.co.il/lp/givat-zeev",
     siteName: "בנין איתן",
     locale: "he_IL",
     type: "website",
