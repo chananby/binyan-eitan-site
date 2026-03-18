@@ -8,14 +8,14 @@ export const metadata: Metadata = {
   description:
     "Building in Israel from abroad? Binyan Eitan is a G1 registered contractor bringing elite engineering and transparent project management to international clients.",
   alternates: {
-    canonical: "https://binyaneitan.co.il/en/expertise",
-    languages: { he: "https://binyaneitan.co.il/he/expertise" },
+    canonical: "https://binyaneitan.com/en/expertise",
+    languages: { he: "https://binyaneitan.com/he/expertise" },
   },
   openGraph: {
     title: "Binyan Eitan | Building Your Israeli Property",
     description:
       "Building in Israel from abroad? Binyan Eitan is a G1 registered contractor bringing elite engineering and transparent project management to international clients.",
-    url: "https://binyaneitan.co.il/en/expertise",
+    url: "https://binyaneitan.com/en/expertise",
     siteName: "Binyan Eitan",
     locale: "en_US",
     type: "article",

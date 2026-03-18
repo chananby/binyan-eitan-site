@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   description:
     "המדריך המלא לקריאת הצעת מחיר מקצועית. איך מזהים \"חורים\" בהצעות זולות, למה פירוט הוא ההגנה הכי טובה שלכם ומה חובה להופיע בחוזה.",
   alternates: {
-    canonical: "https://binyaneitan.co.il/he/expertise/reading-a-professional-quote",
+    canonical: "https://binyaneitan.com/he/expertise/reading-a-professional-quote",
   },
   openGraph: {
     title: "איך לקרוא הצעת מחיר לבנייה ושיפוץ | בנין איתן",
     description:
       "הצעת מחיר מקצועית היא מפת דרכים הנדסית ומשפטית. המדריך של בנין איתן לזיהוי נורות אזהרה, הבנת כתב כמויות והגנה על ההשקעה שלכם.",
-    url: "https://binyaneitan.co.il/he/expertise/reading-a-professional-quote",
+    url: "https://binyaneitan.com/he/expertise/reading-a-professional-quote",
     siteName: "בנין איתן",
     locale: "he_IL",
     type: "article",

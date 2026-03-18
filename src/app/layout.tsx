@@ -19,7 +19,7 @@ const heebo = Heebo({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://binyaneitan.co.il"),
+  metadataBase: new URL("https://binyaneitan.com"),
   title: {
     default: "Binyan Eitan | Engineering Excellence & Uncompromising Execution",
     template: "%s | Binyan Eitan",
@@ -49,7 +49,7 @@ const jsonLd = {
   "@type": "ConstructionBusiness",
   "name": "בנין איתן - הנדסה וביצוע",
   "description": "קבלן שיפוצים ובנייה בירושלים ובנימין — עבודה עברית מקצועית. שיפוץ דירות, בנייה ושיפוצים, הנדסת קונסטרוקציה וגמר פרימיום. קבלן רשום ג1 מס׳ 41805.",
-  "url": "https://binyaneitan.co.il",
+  "url": "https://binyaneitan.com",
   "telephone": "02-500-0447",
   "contactPoint": [
     {
@@ -142,7 +142,7 @@ export default function RootLayout({
         {/* Plausible Analytics — privacy-first, no cookies */}
         <script
           defer
-          data-domain="binyaneitan.co.il"
+          data-domain="binyaneitan.com"
           src="https://plausible.io/js/script.js"
         />
       </head>

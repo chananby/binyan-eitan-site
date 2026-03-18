@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "מי אנחנו | הניסיון ההנדסי של מוטי איתן",
     description: "שני עשורים של בנייה מורכבת ויוקרתית בישראל. קבלן רשום ג1 בניהולו של מוטי איתן.",
-    url: "https://binyaneitan.co.il/he/about",
+    url: "https://binyaneitan.com/he/about",
     siteName: "בניין איתן",
     images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "בניין איתן — המשרד" }],
     locale: "he_IL",
@@ -33,8 +33,8 @@ export const metadata: Metadata = {
     images: ["/og-image.jpg"],
   },
   alternates: {
-    canonical: "https://binyaneitan.co.il/he/about",
-    languages: { en: "https://binyaneitan.co.il/en/about" },
+    canonical: "https://binyaneitan.com/he/about",
+    languages: { en: "https://binyaneitan.com/en/about" },
   },
 };
 

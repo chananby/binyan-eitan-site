@@ -6,13 +6,13 @@ export const metadata: Metadata = {
   description:
     "מומחים בשיפוצי פרימיום בירושלים עם אפס תלונות מלקוחות עבר, ניהול אתר מופתי ואחריות אישית של מוטי איתן.",
   alternates: {
-    canonical: "https://binyaneitan.co.il/lp/jerusalem",
+    canonical: "https://binyaneitan.com/lp/jerusalem",
   },
   openGraph: {
     title: "שיפוצי יוקרה בירושלים | בנין איתן",
     description:
       "מומחים בשיפוצי פרימיום בירושלים עם אפס תלונות מלקוחות עבר, ניהול אתר מופתי ואחריות אישית של מוטי איתן.",
-    url: "https://binyaneitan.co.il/lp/jerusalem",
+    url: "https://binyaneitan.com/lp/jerusalem",
     siteName: "בנין איתן",
     locale: "he_IL",
     type: "website",

@@ -8,14 +8,14 @@ export const metadata: Metadata = {
   description:
     "איך בוחרים קבלן לפרויקט הנדסי מורכב? קראו את המדריך המקצועי של בנין איתן על סיווג ג1, קונסטרוקציות פלדה וניהול פרויקטים בסטנדרט פרימיום.",
   alternates: {
-    canonical: "https://binyaneitan.co.il/he/expertise",
-    languages: { en: "https://binyaneitan.co.il/en/expertise" },
+    canonical: "https://binyaneitan.com/he/expertise",
+    languages: { en: "https://binyaneitan.com/en/expertise" },
   },
   openGraph: {
     title: "בנין איתן | ידע מקצועי | אתגרים הנדסיים בבנייה מודרנית",
     description:
       "איך בוחרים קבלן לפרויקט הנדסי מורכב? קראו את המדריך המקצועי של בנין איתן על סיווג ג1, קונסטרוקציות פלדה וניהול פרויקטים בסטנדרט פרימיום.",
-    url: "https://binyaneitan.co.il/he/expertise",
+    url: "https://binyaneitan.com/he/expertise",
     siteName: "בניין איתן",
     locale: "he_IL",
     type: "article",

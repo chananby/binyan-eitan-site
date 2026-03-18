@@ -16,15 +16,15 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Our Projects | Selected Portfolio of Premium Construction",
     description: "Institutional complexes, private villas, structural renovations. See what precision looks like.",
-    url: "https://binyaneitan.co.il/en/projects",
+    url: "https://binyaneitan.com/en/projects",
     siteName: "Binyan Eitan",
-    images: [{ url: "https://binyaneitan.co.il/amshinov-1.jpg", width: 1200, height: 800, alt: "Binyan Eitan — Engineering Projects Portfolio" }],
+    images: [{ url: "https://binyaneitan.com/amshinov-1.jpg", width: 1200, height: 800, alt: "Binyan Eitan — Engineering Projects Portfolio" }],
     locale: "en_IL",
     type: "website",
   },
   alternates: {
-    canonical: "https://binyaneitan.co.il/en/projects",
-    languages: { he: "https://binyaneitan.co.il/he/projects" },
+    canonical: "https://binyaneitan.com/en/projects",
+    languages: { he: "https://binyaneitan.com/he/projects" },
   },
   robots: { index: true, follow: true },
 };

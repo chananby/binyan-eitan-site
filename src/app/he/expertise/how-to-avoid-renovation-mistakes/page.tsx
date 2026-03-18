@@ -17,14 +17,14 @@ export const metadata: Metadata = {
     "בנין איתן",
   ],
   alternates: {
-    canonical: "https://binyaneitan.co.il/he/expertise/how-to-avoid-renovation-mistakes",
-    languages: { en: "https://binyaneitan.co.il/en/expertise/how-to-avoid-renovation-mistakes" },
+    canonical: "https://binyaneitan.com/he/expertise/how-to-avoid-renovation-mistakes",
+    languages: { en: "https://binyaneitan.com/en/expertise/how-to-avoid-renovation-mistakes" },
   },
   openGraph: {
     title: "איך להימנע מטעויות קריטיות בשיפוץ הבית | בנין איתן",
     description:
       "מדריך פרקטי: תקציב נסתר, בדיקת תשתיות, עבודה עברית ועוד — כל מה שצריך לדעת לפני שמתחילים שיפוץ.",
-    url: "https://binyaneitan.co.il/he/expertise/how-to-avoid-renovation-mistakes",
+    url: "https://binyaneitan.com/he/expertise/how-to-avoid-renovation-mistakes",
     siteName: "בנין איתן",
     locale: "he_IL",
     type: "article",

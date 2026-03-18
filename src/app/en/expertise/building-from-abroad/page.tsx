@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   description:
     "The complete guide to building and renovating in Israel for overseas residents. Full transparency, regular updates, and expert remote project management with Moti Eitan.",
   alternates: {
-    canonical: "https://binyaneitan.co.il/en/expertise/building-from-abroad",
+    canonical: "https://binyaneitan.com/en/expertise/building-from-abroad",
   },
   openGraph: {
     title: "Seamless Sovereignty: Building in Israel from Abroad | Binyan Eitan",
     description:
       "The complete guide to building and renovating in Israel for overseas residents. Full transparency, regular updates, and expert remote project management.",
-    url: "https://binyaneitan.co.il/en/expertise/building-from-abroad",
+    url: "https://binyaneitan.com/en/expertise/building-from-abroad",
     siteName: "Binyan Eitan",
     locale: "en_US",
     type: "article",

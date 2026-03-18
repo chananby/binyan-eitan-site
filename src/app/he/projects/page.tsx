@@ -16,15 +16,15 @@ export const metadata: Metadata = {
   openGraph: {
     title: "תיק עבודות | פרויקטים נבחרים בבנייה ושיפוץ",
     description: "מתחמים מוסדיים, וילות פרטיות, שיפוצים מבניים. ראו איך נראה דיוק אמיתי.",
-    url: "https://binyaneitan.co.il/he/projects",
+    url: "https://binyaneitan.com/he/projects",
     siteName: "בניין איתן",
-    images: [{ url: "https://binyaneitan.co.il/amshinov-1.jpg", width: 1200, height: 800, alt: "בניין איתן — תיקיית פרויקטים הנדסיים" }],
+    images: [{ url: "https://binyaneitan.com/amshinov-1.jpg", width: 1200, height: 800, alt: "בניין איתן — תיקיית פרויקטים הנדסיים" }],
     locale: "he_IL",
     type: "website",
   },
   alternates: {
-    canonical: "https://binyaneitan.co.il/he/projects",
-    languages: { en: "https://binyaneitan.co.il/en/projects" },
+    canonical: "https://binyaneitan.com/he/projects",
+    languages: { en: "https://binyaneitan.com/en/projects" },
   },
   robots: { index: true, follow: true },
 };

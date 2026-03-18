@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   description:
     "The complete guide to reading a professional construction quote. How to spot 'gaps' in cheap proposals, why detail is your best protection, and what must appear in any contract.",
   alternates: {
-    canonical: "https://binyaneitan.co.il/en/expertise/reading-a-professional-quote",
+    canonical: "https://binyaneitan.com/en/expertise/reading-a-professional-quote",
   },
   openGraph: {
     title: "Beyond the Price: How to Read a Construction Quote | Binyan Eitan",
     description:
       "A professional quote is an engineering and legal blueprint. Binyan Eitan's guide to spotting red flags, understanding BOQs, and protecting your investment.",
-    url: "https://binyaneitan.co.il/en/expertise/reading-a-professional-quote",
+    url: "https://binyaneitan.com/en/expertise/reading-a-professional-quote",
     siteName: "Binyan Eitan",
     locale: "en_US",
     type: "article",

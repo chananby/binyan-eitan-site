@@ -6,10 +6,10 @@ export const metadata: Metadata = {
   description:
     "תשובות לשאלות הנפוצות ביותר בנושאי פרויקטי בנייה, רישיון ג1, ניהול פרויקטים מרחוק ועוד.",
   alternates: {
-    canonical: "https://binyaneitan.co.il/he/faq",
+    canonical: "https://binyaneitan.com/he/faq",
     languages: {
-      he: "https://binyaneitan.co.il/he/faq",
-      en: "https://binyaneitan.co.il/en/faq",
+      he: "https://binyaneitan.com/he/faq",
+      en: "https://binyaneitan.com/en/faq",
     },
   },
 };

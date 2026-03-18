@@ -6,13 +6,13 @@ export const metadata: Metadata = {
   description:
     "Building your dream home in Israel from afar with total transparency, fixed budgets, and international standards.",
   alternates: {
-    canonical: "https://binyaneitan.co.il/lp/overseas",
+    canonical: "https://binyaneitan.com/lp/overseas",
   },
   openGraph: {
     title: "Build Your Dream Home in Israel | Binyan Eitan",
     description:
       "Building your dream home in Israel from afar with total transparency, fixed budgets, and international standards.",
-    url: "https://binyaneitan.co.il/lp/overseas",
+    url: "https://binyaneitan.com/lp/overseas",
     siteName: "Binyan Eitan",
     locale: "en_US",
     type: "website",

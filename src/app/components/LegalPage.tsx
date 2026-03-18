@@ -87,7 +87,7 @@ function TermsEN() {
       </Section>
 
       <Section title="9. Contact">
-        <P>For questions regarding these Terms, please contact us at: <a href="mailto:office@binyaneitan.co.il" className="text-accent hover:underline">office@binyaneitan.co.il</a></P>
+        <P>For questions regarding these Terms, please contact us at: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a></P>
       </Section>
     </>
   );
@@ -99,7 +99,7 @@ function PrivacyEN() {
       <p className="font-body text-xs text-charcoal/40 mb-10">Last updated: {UPDATED}</p>
 
       <Section title="1. Data Controller">
-        <P>Binyan Eitan Construction Ltd., operating from Jerusalem and Lod, Israel, is the data controller for any personal information collected through this Site. Contact: <a href="mailto:office@binyaneitan.co.il" className="text-accent hover:underline">office@binyaneitan.co.il</a> | Tel: <a href="tel:+97225000447" className="text-accent hover:underline">02-500-0447</a></P>
+        <P>Binyan Eitan Construction Ltd., operating from Jerusalem and Lod, Israel, is the data controller for any personal information collected through this Site. Contact: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a> | Tel: <a href="tel:+97225000447" className="text-accent hover:underline">02-500-0447</a></P>
       </Section>
 
       <Section title="2. Information We Collect">
@@ -119,7 +119,7 @@ function PrivacyEN() {
       </Section>
 
       <Section title="6. Your Rights">
-        <P>Under the Israeli Privacy Protection Law, 5741-1981 (as amended), you have the right to: access personal data we hold about you; correct inaccurate data; and request deletion of your data where legally permissible. To exercise these rights, contact us at <a href="mailto:office@binyaneitan.co.il" className="text-accent hover:underline">office@binyaneitan.co.il</a>.</P>
+        <P>Under the Israeli Privacy Protection Law, 5741-1981 (as amended), you have the right to: access personal data we hold about you; correct inaccurate data; and request deletion of your data where legally permissible. To exercise these rights, contact us at <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a>.</P>
       </Section>
 
       <Section title="7. Security">
@@ -174,7 +174,7 @@ function AccessibilityEN() {
         <div className="mt-4 p-5 border border-charcoal/10 bg-bone-dark text-start">
           <p className="font-heading font-bold text-charcoal text-base mb-1">Moti Eitan</p>
           <p className="text-charcoal/50 text-xs mb-3">Accessibility Coordinator, Binyan Eitan Construction Ltd.</p>
-          <p>Email: <a href="mailto:office@binyaneitan.co.il" className="text-accent hover:underline">office@binyaneitan.co.il</a></p>
+          <p>Email: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a></p>
           <p>Phone: <a href="tel:+97225000447" className="text-accent hover:underline">02-500-0447</a></p>
         </div>
         <P>We aim to respond to accessibility inquiries within 5 business days.</P>
@@ -221,7 +221,7 @@ function TermsHE() {
       </Section>
 
       <Section title="7. צור קשר">
-        <P>לשאלות בנוגע לתנאים אלו, פנה אלינו בכתובת: <a href="mailto:office@binyaneitan.co.il" className="text-accent hover:underline">office@binyaneitan.co.il</a></P>
+        <P>לשאלות בנוגע לתנאים אלו, פנה אלינו בכתובת: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a></P>
       </Section>
     </>
   );
@@ -233,7 +233,7 @@ function PrivacyHE() {
       <p className="font-body text-xs text-charcoal/40 mb-10">עודכן לאחרונה: {UPDATED}</p>
 
       <Section title="1. בעל המידע">
-        <P>חברת בנין איתן בע"מ, הפועלת מירושלים ולוד, היא בעל המידע לכל מידע אישי הנאסף דרך אתר זה. ניתן ליצור קשר בכתובת: <a href="mailto:office@binyaneitan.co.il" className="text-accent hover:underline">office@binyaneitan.co.il</a> | טל&#39;: <a href="tel:+97225000447" className="text-accent hover:underline">02-500-0447</a></P>
+        <P>חברת בנין איתן בע"מ, הפועלת מירושלים ולוד, היא בעל המידע לכל מידע אישי הנאסף דרך אתר זה. ניתן ליצור קשר בכתובת: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a> | טל&#39;: <a href="tel:+97225000447" className="text-accent hover:underline">02-500-0447</a></P>
       </Section>
 
       <Section title="2. מידע הנאסף">
@@ -253,7 +253,7 @@ function PrivacyHE() {
       </Section>
 
       <Section title="6. זכויותיך">
-        <P>בהתאם לחוק הגנת הפרטיות, תשמ"א-1981 ותיקוניו, יש לך זכות לעיין במידע האישי שאנו מחזיקים עליך, לתקן מידע שגוי ולבקש מחיקת המידע שלך ככל שהדבר מותר על-פי דין. לממוש זכויות אלו, פנה אלינו בכתובת <a href="mailto:office@binyaneitan.co.il" className="text-accent hover:underline">office@binyaneitan.co.il</a>.</P>
+        <P>בהתאם לחוק הגנת הפרטיות, תשמ"א-1981 ותיקוניו, יש לך זכות לעיין במידע האישי שאנו מחזיקים עליך, לתקן מידע שגוי ולבקש מחיקת המידע שלך ככל שהדבר מותר על-פי דין. לממוש זכויות אלו, פנה אלינו בכתובת <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a>.</P>
       </Section>
 
       <Section title="7. אבטחת מידע">
@@ -304,7 +304,7 @@ function AccessibilityHE() {
         <div className="mt-4 p-5 border border-charcoal/10 bg-bone-dark text-start">
           <p className="font-heading font-bold text-charcoal text-base mb-1">מוטי איתן</p>
           <p className="text-charcoal/50 text-xs mb-3">רכז נגישות, חברת בנין איתן בע"מ</p>
-          <p>דוא"ל: <a href="mailto:office@binyaneitan.co.il" className="text-accent hover:underline">office@binyaneitan.co.il</a></p>
+          <p>דוא"ל: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a></p>
           <p>טל&#39;: <a href="tel:+97225000447" className="text-accent hover:underline">02-500-0447</a></p>
         </div>
         <P>אנו שואפים להשיב לפניות נגישות תוך 5 ימי עסקים.</P>

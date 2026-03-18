@@ -6,10 +6,10 @@ export const metadata: Metadata = {
   description:
     "Answers to frequently asked questions about construction projects, G1 licensing, remote project management, and more.",
   alternates: {
-    canonical: "https://binyaneitan.co.il/en/faq",
+    canonical: "https://binyaneitan.com/en/faq",
     languages: {
-      he: "https://binyaneitan.co.il/he/faq",
-      en: "https://binyaneitan.co.il/en/faq",
+      he: "https://binyaneitan.com/he/faq",
+      en: "https://binyaneitan.com/en/faq",
     },
   },
 };

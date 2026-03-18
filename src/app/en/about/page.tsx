@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "About Us | The Engineering Expertise of Moti Eitan",
     description: "Two decades of complex, luxury construction across Israel. G1 Registered Contractor led by founder Moti Eitan.",
-    url: "https://binyaneitan.co.il/en/about",
+    url: "https://binyaneitan.com/en/about",
     siteName: "Binyan Eitan",
     images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Binyan Eitan — The Firm" }],
     locale: "en_IL",
@@ -28,8 +28,8 @@ export const metadata: Metadata = {
     images: ["/og-image.jpg"],
   },
   alternates: {
-    canonical: "https://binyaneitan.co.il/en/about",
-    languages: { he: "https://binyaneitan.co.il/he/about" },
+    canonical: "https://binyaneitan.com/en/about",
+    languages: { he: "https://binyaneitan.com/he/about" },
   },
 };
 

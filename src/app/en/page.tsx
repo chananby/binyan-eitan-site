@@ -7,20 +7,20 @@ export const metadata: Metadata = {
     "G1-registered contractor — complex project execution in Jerusalem & the Benjamin region. Civil engineering, luxury construction, premium finishes. Binyan Eitan: precision you can measure.",
   robots: { index: true, follow: true },
   alternates: {
-    canonical: "https://binyaneitan.co.il/en",
-    languages: { he: "https://binyaneitan.co.il/he" },
+    canonical: "https://binyaneitan.com/en",
+    languages: { he: "https://binyaneitan.com/he" },
   },
   openGraph: {
     title: "Binyan Eitan | Engineering & Luxury Construction in Jerusalem",
     description:
       "Every joint is calculated. Every finish is intentional. See the precision behind the walls.",
-    url: "https://binyaneitan.co.il/en",
+    url: "https://binyaneitan.com/en",
     siteName: "Binyan Eitan",
     type: "website",
     locale: "en_IL",
     images: [
       {
-        url: "https://binyaneitan.co.il/amshinov-1.jpg",
+        url: "https://binyaneitan.com/amshinov-1.jpg",
         width: 1200,
         height: 800,
         alt: "Binyan Eitan — Luxury Construction & Engineering",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Binyan Eitan | Engineering Excellence",
     description: "Precision you can measure, transparency you can trust.",
-    images: ["https://binyaneitan.co.il/amshinov-1.jpg"],
+    images: ["https://binyaneitan.com/amshinov-1.jpg"],
   },
 };
 
@@ -42,7 +42,7 @@ const enLocalBusiness = {
   "alternateName": "בנין איתן",
   "founder": { "@type": "Person", "name": "Moti Eitan", "jobTitle": "G1 Registered Contractor & Founder" },
   "description": "G1-registered contractor #41805. Complex project execution in Jerusalem — civil engineering, structural construction, luxury renovations, and premium finish work.",
-  "url": "https://binyaneitan.co.il",
+  "url": "https://binyaneitan.com",
   "telephone": "+972-2-500-0447",
   "address": { "@type": "PostalAddress", "addressLocality": "Jerusalem", "addressCountry": "IL" },
   "geo": { "@type": "GeoCoordinates", "latitude": "31.7683", "longitude": "35.2137" },
