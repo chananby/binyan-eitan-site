@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useFeedback } from "../hooks/useFeedback";
+import SuccessFlash from "./SuccessFlash";
 import {
   LogIn, LogOut, MapPin, CheckCircle, AlertCircle, Loader2,
   ChevronRight, RefreshCw, UserPlus, Lock, Building2,
@@ -72,6 +74,9 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
   const [timestamp, setTimestamp]           = useState("");
   const [dailyMessage, setDailyMessage]     = useState<string | null>(null);
   const [autoRegistered, setAutoRegistered] = useState(false);
+  const [showFlash,  setShowFlash]  = useState(false);
+  const [flashVariant, setFlashVariant] = useState<"in" | "out">("in");
+  const feedback = useFeedback();
 
   // ── Project selection (worker flow) ─────────────────────────────────────
   const [projects, setProjects]                   = useState<Project[]>([]);
@@ -447,13 +452,19 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
       const data = await res.json();
       if (data.success) {
         setWorkerName(data.name ?? null); setDailyMessage(data.message ?? null);
-        setAutoRegistered(data.auto_registered ?? false); setStep("success");
+        setAutoRegistered(data.auto_registered ?? false);
+        setFlashVariant(selectedAction === "in" ? "in" : "out");
+        setShowFlash(true);
+        feedback.success();
+        setStep("success");
       } else if (data.error === "phone_not_found") {
+        feedback.error();
         setErrorMsg("מספר הטלפון לא נמצא ברשימת הצוות. פנה למנהל."); setStep("error");
       } else {
+        feedback.error();
         setErrorMsg(data.error ?? "שגיאה לא ידועה — נסה שוב."); setStep("error");
       }
-    } catch { setErrorMsg("בעיית תקשורת — בדוק חיבור אינטרנט ונסה שוב."); setStep("error"); }
+    } catch { feedback.error(); setErrorMsg("בעיית תקשורת — בדוק חיבור אינטרנט ונסה שוב."); setStep("error"); }
   }, [coords, phone, selectedProjectId]);
 
   const reset = () => {
@@ -1140,6 +1151,8 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
     const isIn = action === "in";
     const selectedProject = projects.find(p => p.id === selectedProjectId);
     return (
+      <>
+      <SuccessFlash show={showFlash} onDone={() => setShowFlash(false)} variant={flashVariant} />
       <Screen backHref={portalHref} backLabel={backLabel}>
         <CheckCircle size={64} strokeWidth={1} className={isIn ? "text-green-500" : "text-red-400"} />
         <div className="text-center space-y-1">
@@ -1171,6 +1184,7 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
           דיווח נוסף
         </button>
       </Screen>
+      </>
     );
   }
 

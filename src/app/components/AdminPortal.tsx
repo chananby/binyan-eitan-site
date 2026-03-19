@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useFeedback } from "../hooks/useFeedback";
+import SuccessFlash from "./SuccessFlash";
 import Image from "next/image";
 import {
   LogIn, Building2, Package, BarChart2, LayoutDashboard, Hammer,
@@ -97,6 +99,10 @@ export default function AdminPortal() {
   const [password, setPassword] = useState("");
   const [loginErr, setLoginErr] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+
+  // Tactile / audio feedback
+  const feedback  = useFeedback();
+  const [showFlash, setShowFlash] = useState(false);
 
   // Core data
   const [staff,         setStaff]         = useState<StaffMember[]>([]);
@@ -327,8 +333,8 @@ export default function AdminPortal() {
     try {
       const res  = await fetch("/api/foreman-auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: submittedPin }) });
       const data = await res.json();
-      if (data.ok) { setForemanName(data.name ?? null); setAuthState("foreman"); }
-      else { setLoginErr("קוד שגוי"); setPin(""); }
+      if (data.ok) { feedback.success(); setShowFlash(true); setForemanName(data.name ?? null); setAuthState("foreman"); }
+      else { feedback.error(); setLoginErr("קוד שגוי"); setPin(""); }
     } catch { setLoginErr("שגיאת רשת"); }
     finally { setLoginLoading(false); }
   }
@@ -338,8 +344,8 @@ export default function AdminPortal() {
     try {
       const res  = await fetch("/api/admin-auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
       const data = await res.json();
-      if (data.ok) setAuthState("admin");
-      else { setLoginErr("סיסמה שגויה"); setPassword(""); }
+      if (data.ok) { feedback.success(); setShowFlash(true); setAuthState("admin"); }
+      else { feedback.error(); setLoginErr("סיסמה שגויה"); setPassword(""); }
     } catch { setLoginErr("שגיאת רשת"); }
     finally { setLoginLoading(false); }
   }
@@ -431,8 +437,8 @@ export default function AdminPortal() {
       const res  = await fetch("/api/admin/materials", { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ project_id: matProjectId, material_name: matName, quantity: parseFloat(matQty) || 1, unit: matUnit, supplier: matSupplier, cost: matCost ? parseFloat(matCost) : null, category: matCategory }) });
       const data = await res.json();
-      if (res.ok) { setMatMsg("✓ " + matName + " נרשם"); setMatName(""); setMatQty("1"); setMatSupplier(""); setMatCost(""); loadMaterials(); }
-      else        { setMatMsg("שגיאה: " + (data.error ?? res.status)); }
+      if (res.ok) { feedback.success(); setMatMsg("✓ " + matName + " נרשם"); setMatName(""); setMatQty("1"); setMatSupplier(""); setMatCost(""); loadMaterials(); }
+      else        { feedback.error(); setMatMsg("שגיאה: " + (data.error ?? res.status)); }
     } catch (err) { setMatMsg("שגיאת רשת: " + String(err)); }
     finally { setMatLoading(false); }
   }
@@ -537,8 +543,8 @@ export default function AdminPortal() {
       const res  = await fetch("/api/admin/daily-reports", { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ project_id: reportProjectId, date: reportDate, weather: reportWeather, summary: reportSummary, special_events: reportSpecial }) });
       const data = await res.json();
-      if (res.ok) { setReportMsg("✓ דוח נשמר"); setReportSummary(""); setReportSpecial(""); setReportWeather(""); loadReports(); }
-      else        { setReportMsg("שגיאה: " + (data.error ?? res.status)); }
+      if (res.ok) { feedback.success(); setReportMsg("✓ דוח נשמר"); setReportSummary(""); setReportSpecial(""); setReportWeather(""); loadReports(); }
+      else        { feedback.error(); setReportMsg("שגיאה: " + (data.error ?? res.status)); }
     } catch (err) { setReportMsg("שגיאת רשת: " + String(err)); }
     finally { setReportLoading(false); }
   }
@@ -555,6 +561,8 @@ export default function AdminPortal() {
   // ── Render: login ──────────────────────────────────────────────────────────
   if (authState === "unauthenticated") {
     return (
+      <>
+      <SuccessFlash show={showFlash} onDone={() => setShowFlash(false)} />
       <div className="min-h-screen bg-bone flex flex-col items-center justify-center px-6 gap-8" dir="rtl">
         <Image src="/logo.png" alt="Binyan Eitan" width={120} height={36} className="h-9 w-auto brightness-0 opacity-60" />
 
@@ -619,6 +627,7 @@ export default function AdminPortal() {
           בנין איתן — פורטל ניהול פנימי
         </p>
       </div>
+      </>
     );
   }
 
@@ -641,6 +650,8 @@ export default function AdminPortal() {
   const activeProjects = projects.filter(p => p.status === "active");
 
   return (
+    <>
+    <SuccessFlash show={showFlash} onDone={() => setShowFlash(false)} />
     <div dir="rtl" className="min-h-screen bg-bone px-4 py-8 font-body text-charcoal">
       <div className="mx-auto max-w-2xl space-y-5">
 
@@ -1572,6 +1583,7 @@ export default function AdminPortal() {
         </p>
       </div>
     </div>
+    </>
   );
 }
 
