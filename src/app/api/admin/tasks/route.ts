@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   let query = supabase
     .from("tasks")
-    .select("id, project_id, task_name, start_date, end_date, contractor, status, notes, created_at, project:project_id(id, name)")
+    .select("id, project_id, milestone_id, task_name, start_date, end_date, contractor, status, notes, created_at, project:project_id(id, name)")
     .order("start_date", { ascending: true })
     .order("created_at", { ascending: true });
 
@@ -29,10 +29,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   if (!isAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: { project_id?: string; task_name?: string; start_date?: string; end_date?: string; contractor?: string; notes?: string };
+  let body: { project_id?: string; milestone_id?: string; task_name?: string; start_date?: string; end_date?: string; contractor?: string; notes?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
-  const { project_id, task_name, start_date, end_date, contractor, notes } = body;
+  const { project_id, milestone_id, task_name, start_date, end_date, contractor, notes } = body;
   if (!project_id || !task_name?.trim()) {
     return NextResponse.json({ error: "project_id ושם משימה הם שדות חובה" }, { status: 400 });
   }
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     .from("tasks")
     .insert({
       project_id,
+      milestone_id: milestone_id || null,
       task_name: task_name.trim(),
       start_date: start_date || null,
       end_date: end_date || null,
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
       notes: notes?.trim() || null,
       status: "planned",
     })
-    .select("id, project_id, task_name, start_date, end_date, contractor, status, notes, created_at")
+    .select("id, project_id, milestone_id, task_name, start_date, end_date, contractor, status, notes, created_at")
     .single();
 
   if (error) {
