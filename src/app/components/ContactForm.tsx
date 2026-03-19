@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CheckCircle } from "lucide-react";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
+import PrecisionStack from "../play/PrecisionStack";
 
 type Lang = "en" | "he";
 
@@ -21,6 +22,16 @@ export default function ContactForm() {
   const content = useTranslations("contact", lang);
   const [status, setStatus] = useState<Status>("idle");
   const whatsappUrl = lang === "he" ? WHATSAPP_HE : WHATSAPP_EN;
+  const gameRef = useRef<HTMLDivElement>(null);
+
+  // Scroll the game into view when form succeeds
+  useEffect(() => {
+    if (status === "success" && gameRef.current) {
+      setTimeout(() => {
+        gameRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+    }
+  }, [status]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -113,7 +124,9 @@ export default function ContactForm() {
                 </p>
               </div>
             </div>
-            {null}
+            <div ref={gameRef}>
+              <PrecisionStack compact />
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} method="post" className="space-y-12">
