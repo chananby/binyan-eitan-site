@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { CheckCircle } from "lucide-react";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
-import PrecisionStack from "../play/PrecisionStack";
-
 type Lang = "en" | "he";
 
 const CONTACT_API = "/api/contact";
@@ -22,16 +20,6 @@ export default function ContactForm() {
   const content = useTranslations("contact", lang);
   const [status, setStatus] = useState<Status>("idle");
   const whatsappUrl = lang === "he" ? WHATSAPP_HE : WHATSAPP_EN;
-  const gameRef = useRef<HTMLDivElement>(null);
-
-  // Scroll the game into view when form succeeds
-  useEffect(() => {
-    if (status === "success" && gameRef.current) {
-      setTimeout(() => {
-        gameRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 300);
-    }
-  }, [status]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -113,19 +101,11 @@ export default function ContactForm() {
         </div>
 
         {status === "success" ? (
-          <div>
-            <div className="flex flex-col items-center gap-5 py-10 mb-6 border border-accent/20 bg-accent/[0.02] text-center">
-              <CheckCircle size={40} strokeWidth={1.5} className="text-accent" />
-              <div>
-                <p className="font-heading text-xl font-bold text-charcoal">{content.success}</p>
-                <p className="mt-2 font-body text-sm text-charcoal/50">{content.successSub}</p>
-                <p className="mt-4 font-body text-[0.7rem] text-charcoal/30 tracking-wider">
-                  {lang === "he" ? "בינתיים — בדקו את הדיוק שלכם:" : "While you wait — test your precision:"}
-                </p>
-              </div>
-            </div>
-            <div ref={gameRef}>
-              <PrecisionStack compact />
+          <div className="flex flex-col items-center gap-5 py-10 border border-accent/20 bg-accent/[0.02] text-center">
+            <CheckCircle size={40} strokeWidth={1.5} className="text-accent" />
+            <div>
+              <p className="font-heading text-xl font-bold text-charcoal">{content.success}</p>
+              <p className="mt-2 font-body text-sm text-charcoal/50">{content.successSub}</p>
             </div>
           </div>
         ) : (
