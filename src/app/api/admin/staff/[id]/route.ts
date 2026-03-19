@@ -17,7 +17,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { active?: boolean; name?: string; phone?: string; role?: string; national_id?: string; hourly_rate?: number | null; daily_rate?: number | null };
+  let body: { active?: boolean; name?: string; phone?: string; role?: string; national_id?: string; hourly_rate?: number | null; daily_rate?: number | null; pin?: string | null };
   try {
     body = await req.json();
   } catch {
@@ -51,6 +51,12 @@ export async function PATCH(
 
   if (body.hourly_rate !== undefined) update.hourly_rate = body.hourly_rate ?? null;
   if (body.daily_rate  !== undefined) update.daily_rate  = body.daily_rate  ?? null;
+  if (body.pin !== undefined) {
+    if (body.pin && !/^\d{4,8}$/.test(body.pin.trim())) {
+      return NextResponse.json({ error: "PIN חייב להיות 4–8 ספרות" }, { status: 400 });
+    }
+    update.pin = body.pin?.trim() || null;
+  }
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "אין שדות לעדכון" }, { status: 400 });
@@ -61,14 +67,15 @@ export async function PATCH(
     .from("staff")
     .update(update)
     .eq("id", params.id)
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, pin")
     .single();
 
   if (error) {
     console.error("[admin/staff PATCH]", JSON.stringify(error));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ staff: data });
+  const { pin: _pin, ...rest } = data;
+  return NextResponse.json({ staff: { ...rest, has_pin: !!_pin } });
 }
 
 // DELETE — hard delete (only if no attendance records linked)

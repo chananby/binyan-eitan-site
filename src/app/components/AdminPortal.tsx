@@ -16,6 +16,7 @@ type LoginMode = "pin" | "password";
 interface StaffMember {
   id: string; name: string; phone: string; role: string; active: boolean;
   national_id?: string | null; hourly_rate?: number | null; daily_rate?: number | null;
+  has_pin?: boolean;
 }
 interface AttendanceRecord {
   id: string; action: string; timestamp_label: string; recorded_at: string;
@@ -73,9 +74,10 @@ function getWeekDays(): { date: string; label: string; short: string }[] {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function AdminPortal() {
-  const [authState, setAuthState] = useState<AuthState>("loading");
-  const [loginMode, setLoginMode] = useState<LoginMode>("pin");
-  const [tab, setTab]             = useState<AdminTab>("dashboard");
+  const [authState,    setAuthState]    = useState<AuthState>("loading");
+  const [loginMode,    setLoginMode]    = useState<LoginMode>("pin");
+  const [tab,          setTab]          = useState<AdminTab>("dashboard");
+  const [foremanName,  setForemanName]  = useState<string | null>(null);
 
   // Login state
   const [pin,      setPin]      = useState("");
@@ -102,6 +104,7 @@ export default function AdminPortal() {
   const [newNationalId, setNewNationalId] = useState("");
   const [newHourlyRate, setNewHourlyRate] = useState("");
   const [newDailyRate,  setNewDailyRate]  = useState("");
+  const [newPin,        setNewPin]        = useState("");
   const [addLoading, setAddLoading] = useState(false);
   const [addMsg,     setAddMsg]     = useState("");
   const [editingId,       setEditingId]       = useState<string | null>(null);
@@ -111,6 +114,7 @@ export default function AdminPortal() {
   const [editNationalId,  setEditNationalId]  = useState("");
   const [editHourlyRate,  setEditHourlyRate]  = useState("");
   const [editDailyRate,   setEditDailyRate]   = useState("");
+  const [editPin,         setEditPin]         = useState("");
   const [editLoading, setEditLoading] = useState(false);
   const [editMsg,     setEditMsg]     = useState("");
 
@@ -224,7 +228,10 @@ export default function AdminPortal() {
   useEffect(() => {
     fetch("/api/admin/whoami")
       .then(r => r.json())
-      .then(d => { setAuthState(d.role ?? "unauthenticated"); })
+      .then(d => {
+        setAuthState(d.role ?? "unauthenticated");
+        if (d.name) setForemanName(d.name);
+      })
       .catch(() => setAuthState("unauthenticated"));
   }, []);
 
@@ -292,7 +299,7 @@ export default function AdminPortal() {
     try {
       const res  = await fetch("/api/foreman-auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: submittedPin }) });
       const data = await res.json();
-      if (data.ok) setAuthState("foreman");
+      if (data.ok) { setForemanName(data.name ?? null); setAuthState("foreman"); }
       else { setLoginErr("קוד שגוי"); setPin(""); }
     } catch { setLoginErr("שגיאת רשת"); }
     finally { setLoginLoading(false); }
@@ -312,6 +319,7 @@ export default function AdminPortal() {
   async function handleLogout() {
     await fetch(authState === "foreman" ? "/api/foreman-auth" : "/api/admin-auth", { method: "DELETE" });
     setAuthState("unauthenticated");
+    setForemanName(null);
     setStaff([]); setTodayLogs([]); setProjects([]); setTasks([]);
     setMaterials([]); setBudget([]); setIncome([]); setReports([]);
   }
@@ -332,9 +340,10 @@ export default function AdminPortal() {
       const res  = await fetch("/api/admin/staff", { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName, phone: newPhone, role: newRole, national_id: newNationalId,
           hourly_rate: newHourlyRate ? parseFloat(newHourlyRate) : null,
-          daily_rate: newDailyRate   ? parseFloat(newDailyRate)  : null }) });
+          daily_rate: newDailyRate   ? parseFloat(newDailyRate)  : null,
+          pin: newPin || undefined }) });
       const data = await res.json();
-      if (res.ok) { setAddMsg("✓ " + newName + " נוסף"); setNewName(""); setNewPhone(""); setNewNationalId(""); setNewHourlyRate(""); setNewDailyRate(""); reload(); }
+      if (res.ok) { setAddMsg("✓ " + newName + " נוסף"); setNewName(""); setNewPhone(""); setNewNationalId(""); setNewHourlyRate(""); setNewDailyRate(""); setNewPin(""); reload(); }
       else        { setAddMsg("שגיאה: " + (data.error ?? res.status)); }
     } catch (err) { setAddMsg("שגיאת רשת: " + String(err)); }
     finally { setAddLoading(false); }
@@ -345,6 +354,7 @@ export default function AdminPortal() {
     setEditNationalId(s.national_id ?? "");
     setEditHourlyRate(s.hourly_rate != null ? String(s.hourly_rate) : "");
     setEditDailyRate(s.daily_rate   != null ? String(s.daily_rate)  : "");
+    setEditPin(""); // always blank — admin sets a new PIN explicitly
     setEditMsg("");
   }
 
@@ -352,10 +362,11 @@ export default function AdminPortal() {
     e.preventDefault(); if (!editingId) return;
     setEditLoading(true); setEditMsg("");
     try {
-      const res  = await fetch(`/api/admin/staff/${editingId}`, { method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName, phone: editPhone, role: editRole, national_id: editNationalId,
-          hourly_rate: editHourlyRate ? parseFloat(editHourlyRate) : null,
-          daily_rate:  editDailyRate  ? parseFloat(editDailyRate)  : null }) });
+      const body: Record<string, unknown> = { name: editName, phone: editPhone, role: editRole, national_id: editNationalId,
+        hourly_rate: editHourlyRate ? parseFloat(editHourlyRate) : null,
+        daily_rate:  editDailyRate  ? parseFloat(editDailyRate)  : null };
+      if (editPin) body.pin = editPin; // only send if a new PIN was entered
+      const res  = await fetch(`/api/admin/staff/${editingId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
       if (res.ok) { setEditingId(null); reload(); }
       else        { setEditMsg("שגיאה: " + (data.error ?? res.status)); }
@@ -575,7 +586,7 @@ export default function AdminPortal() {
           <div>
             <p className="text-[0.6rem] font-bold tracking-[0.2em] uppercase text-accent/60">בנין איתן</p>
             <h1 className="font-heading text-2xl font-bold text-charcoal">
-              {isAdmin ? "ממשק מנהל" : "ממשק מנהל עבודה"}
+              {isAdmin ? "ממשק מנהל" : foremanName ? `ברוך הבא, ${foremanName}` : "ממשק מנהל עבודה"}
             </h1>
           </div>
           <button onClick={handleLogout}
@@ -886,6 +897,11 @@ export default function AdminPortal() {
                   <Field label="שכר שעתי (₪)"><input value={newHourlyRate} onChange={e => setNewHourlyRate(e.target.value)} type="number" min="0" step="0.5" placeholder="45.00" dir="ltr" className={INPUT} /></Field>
                   <Field label="שכר יומי (₪)"><input value={newDailyRate}  onChange={e => setNewDailyRate(e.target.value)}  type="number" min="0" step="1"   placeholder="350"   dir="ltr" className={INPUT} /></Field>
                 </div>
+                {newRole === "ממונה" && (
+                  <Field label="PIN לכניסה לפורטל (4–8 ספרות)">
+                    <input value={newPin} onChange={e => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 8))} type="text" inputMode="numeric" maxLength={8} placeholder="1234" dir="ltr" className={INPUT} />
+                  </Field>
+                )}
                 <Btn loading={addLoading}>הוסף עובד</Btn>
                 {addMsg && <p className={`text-xs ${addMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{addMsg}</p>}
               </form>
@@ -914,6 +930,11 @@ export default function AdminPortal() {
                       <Field label="שכר שעתי (₪)"><input value={editHourlyRate} onChange={e => setEditHourlyRate(e.target.value)} type="number" min="0" step="0.5" dir="ltr" className={INPUT} /></Field>
                       <Field label="שכר יומי (₪)"><input value={editDailyRate}  onChange={e => setEditDailyRate(e.target.value)}  type="number" min="0" step="1"   dir="ltr" className={INPUT} /></Field>
                     </div>
+                    {editRole === "ממונה" && (
+                      <Field label="PIN חדש (השאר ריק לשמירת הנוכחי)">
+                        <input value={editPin} onChange={e => setEditPin(e.target.value.replace(/\D/g, "").slice(0, 8))} type="text" inputMode="numeric" maxLength={8} placeholder="4–8 ספרות" dir="ltr" className={INPUT} />
+                      </Field>
+                    )}
                     {editMsg && <p className="text-xs text-red-500">{editMsg}</p>}
                     <div className="flex gap-2">
                       <button type="submit" disabled={editLoading} className="flex-1 bg-accent py-2 text-xs font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">{editLoading ? "שומר..." : "שמור"}</button>
@@ -931,7 +952,14 @@ export default function AdminPortal() {
                         </p>
                       )}
                     </div>
-                    <span className="text-[0.65rem] text-charcoal/40 shrink-0">{s.role}</span>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="text-[0.65rem] text-charcoal/40">{s.role}</span>
+                      {s.role === "ממונה" && (
+                        <span className={`text-[0.55rem] px-1.5 py-0.5 ${s.has_pin ? "bg-accent/10 text-accent" : "bg-red-50 text-red-400"}`}>
+                          {s.has_pin ? "PIN מוגדר" : "ללא PIN"}
+                        </span>
+                      )}
+                    </div>
                     <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
                     <button onClick={() => startEdit(s)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">ערוך</button>
                     <button onClick={() => toggleActive(s.id, s.active)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{s.active ? "השבת" : "הפעל"}</button>

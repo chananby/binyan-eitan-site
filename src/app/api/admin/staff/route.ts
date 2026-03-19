@@ -8,7 +8,7 @@ function normalizePhone(raw: string): string {
   return raw.replace(/\D/g, "").slice(-10);
 }
 
-// GET — list all staff
+// GET — list all staff (pin is never returned — only has_pin flag)
 export async function GET(req: NextRequest) {
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,15 +17,18 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("staff")
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, pin")
     .order("active", { ascending: false })
-    .order("name", { ascending: true });
+    .order("name",   { ascending: true });
 
   if (error) {
     console.error("[admin/staff GET]", JSON.stringify(error));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ staff: data ?? [] });
+
+  // Mask PIN — return has_pin indicator only
+  const staff = (data ?? []).map(({ pin, ...rest }) => ({ ...rest, has_pin: !!pin }));
+  return NextResponse.json({ staff });
 }
 
 // POST — add new worker
@@ -34,14 +37,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { name?: string; phone?: string; role?: string; national_id?: string; hourly_rate?: number; daily_rate?: number };
+  let body: { name?: string; phone?: string; role?: string; national_id?: string; hourly_rate?: number; daily_rate?: number; pin?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { name, phone, role, national_id, hourly_rate, daily_rate } = body;
+  const { name, phone, role, national_id, hourly_rate, daily_rate, pin } = body;
   if (!name?.trim() || !phone?.trim()) {
     return NextResponse.json({ error: "שם וטלפון הם שדות חובה" }, { status: 400 });
   }
@@ -60,6 +63,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "מספר ת\"ז חייב להכיל ספרות בלבד" }, { status: 400 });
   }
 
+  if (pin && !/^\d{4,8}$/.test(pin.trim())) {
+    return NextResponse.json({ error: "PIN חייב להיות 4–8 ספרות" }, { status: 400 });
+  }
+
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("staff")
@@ -68,9 +75,12 @@ export async function POST(req: NextRequest) {
       phone: normalizedPhone,
       role: role ?? "עובד",
       active: true,
-      national_id: national_id?.trim() || null, hourly_rate: hourly_rate ?? null, daily_rate: daily_rate ?? null,
+      national_id: national_id?.trim() || null,
+      hourly_rate: hourly_rate ?? null,
+      daily_rate: daily_rate ?? null,
+      pin: pin?.trim() || null,
     })
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, pin")
     .single();
 
   if (error) {
@@ -81,5 +91,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ staff: data }, { status: 201 });
+  const { pin: _pin, ...rest } = data;
+  return NextResponse.json({ staff: { ...rest, has_pin: !!_pin } }, { status: 201 });
 }
