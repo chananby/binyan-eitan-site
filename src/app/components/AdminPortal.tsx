@@ -1,0 +1,1388 @@
+"use client";
+
+import { useState, useEffect, useMemo, useCallback } from "react";
+import Image from "next/image";
+import {
+  LogIn, Building2, Package, BarChart2, LayoutDashboard, Hammer,
+  ClipboardList, UserPlus, RefreshCw, Pencil, Loader2,
+  AlertCircle, TrendingUp, DollarSign,
+} from "lucide-react";
+
+// ── Types ──────────────────────────────────────────────────────────────────────
+type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
+type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "income" | "reports";
+type LoginMode = "pin" | "password";
+
+interface StaffMember {
+  id: string; name: string; phone: string; role: string; active: boolean;
+  national_id?: string | null; hourly_rate?: number | null; daily_rate?: number | null;
+}
+interface AttendanceRecord {
+  id: string; action: string; timestamp_label: string; recorded_at: string;
+  staff: { id: string; name: string; phone: string; role?: string } | null;
+  project: { id: string; name: string } | null;
+}
+interface Project { id: string; name: string; status?: string; }
+interface Task {
+  id: string; project_id: string; task_name: string; start_date: string | null;
+  end_date: string | null; contractor: string | null;
+  status: "planned" | "in_progress" | "completed";
+  notes: string | null; project?: { id: string; name: string } | null;
+}
+interface Material {
+  id: string; project_id: string; material_name: string; quantity: number;
+  unit: string; supplier: string | null; cost: number | null; category?: string; created_at: string;
+}
+interface BudgetLine { project_id: string; project_name: string; total: number; }
+interface IncomeRecord {
+  id: string; project_id: string; amount: number; description: string | null;
+  received_date: string; created_at: string; project?: { id: string; name: string } | null;
+}
+interface DailyReport {
+  id: string; project_id: string; date: string; weather: string | null;
+  summary: string | null; special_events: string | null; created_at: string;
+  project: { id: string; name: string } | null;
+}
+
+const EXPENSE_CATEGORIES = ["חומרים", "קבלן משנה", "הזמנות", "כלי עבודה"];
+const UNITS = ["יחידות", "קוב", 'מ"ר', 'מ"א', "טון", 'ק"ג', "ליטר"];
+const WEATHER_OPTIONS = ["☀️ בהיר", "⛅ מעונן חלקית", "☁️ מעונן", "🌧️ גשום", "🌩️ סוערת", "🌬️ רוחות חזקות"];
+const STATUS_HE: Record<string, string> = { planned: "מתוכנן", in_progress: "בביצוע", completed: "הושלם" };
+const STATUS_CLS: Record<string, string> = {
+  planned:     "bg-charcoal/5 text-charcoal/60",
+  in_progress: "bg-amber-50 text-amber-700",
+  completed:   "bg-green-50 text-green-700",
+};
+const DAYS_HE = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+
+function getWeekDays(): { date: string; label: string; short: string }[] {
+  const today     = new Date();
+  const dayOfWeek = today.getDay(); // 0=Sun
+  const sunday    = new Date(today);
+  sunday.setDate(today.getDate() - dayOfWeek);
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(sunday);
+    d.setDate(sunday.getDate() + i);
+    return {
+      date:  d.toISOString().slice(0, 10),
+      label: DAYS_HE[i],
+      short: d.toLocaleDateString("he-IL", { day: "numeric", month: "numeric" }),
+    };
+  });
+}
+
+// ── Main Component ─────────────────────────────────────────────────────────────
+export default function AdminPortal() {
+  const [authState, setAuthState] = useState<AuthState>("loading");
+  const [loginMode, setLoginMode] = useState<LoginMode>("pin");
+  const [tab, setTab]             = useState<AdminTab>("dashboard");
+
+  // Login state
+  const [pin,      setPin]      = useState("");
+  const [password, setPassword] = useState("");
+  const [loginErr, setLoginErr] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  // Core data
+  const [staff,         setStaff]         = useState<StaffMember[]>([]);
+  const [todayLogs,     setTodayLogs]     = useState<AttendanceRecord[]>([]);
+  const [projects,      setProjects]      = useState<Project[]>([]);
+  const [tasks,         setTasks]         = useState<Task[]>([]);
+  const [materials,     setMaterials]     = useState<Material[]>([]);
+  const [budget,        setBudget]        = useState<BudgetLine[]>([]);
+  const [income,        setIncome]        = useState<IncomeRecord[]>([]);
+  const [incomeTotals,  setIncomeTotals]  = useState<Record<string, number>>({});
+  const [reports,       setReports]       = useState<DailyReport[]>([]);
+  const [dataLoading,   setDataLoading]   = useState(false);
+
+  // Workers UI
+  const [newName, setNewName]   = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newRole, setNewRole]   = useState("עובד");
+  const [newNationalId, setNewNationalId] = useState("");
+  const [newHourlyRate, setNewHourlyRate] = useState("");
+  const [newDailyRate,  setNewDailyRate]  = useState("");
+  const [addLoading, setAddLoading] = useState(false);
+  const [addMsg,     setAddMsg]     = useState("");
+  const [editingId,       setEditingId]       = useState<string | null>(null);
+  const [editName,        setEditName]        = useState("");
+  const [editPhone,       setEditPhone]       = useState("");
+  const [editRole,        setEditRole]        = useState("עובד");
+  const [editNationalId,  setEditNationalId]  = useState("");
+  const [editHourlyRate,  setEditHourlyRate]  = useState("");
+  const [editDailyRate,   setEditDailyRate]   = useState("");
+  const [editLoading, setEditLoading] = useState(false);
+  const [editMsg,     setEditMsg]     = useState("");
+
+  // Projects UI
+  const [newProjectName,    setNewProjectName]    = useState("");
+  const [projectAddLoading, setProjectAddLoading] = useState(false);
+  const [projectAddMsg,     setProjectAddMsg]     = useState("");
+
+  // Expenses UI
+  const [matProjectId, setMatProjectId] = useState("");
+  const [matCategory,  setMatCategory]  = useState("חומרים");
+  const [matName,      setMatName]      = useState("");
+  const [matQty,       setMatQty]       = useState("1");
+  const [matUnit,      setMatUnit]      = useState("יחידות");
+  const [matSupplier,  setMatSupplier]  = useState("");
+  const [matCost,      setMatCost]      = useState("");
+  const [matLoading,   setMatLoading]   = useState(false);
+  const [matMsg,       setMatMsg]       = useState("");
+  const [matFilter,    setMatFilter]    = useState("");
+
+  // Planning UI
+  const [taskFilter,        setTaskFilter]        = useState("");
+  const [newTaskProjectId,  setNewTaskProjectId]  = useState("");
+  const [newTaskName,       setNewTaskName]        = useState("");
+  const [newTaskStart,      setNewTaskStart]       = useState("");
+  const [newTaskEnd,        setNewTaskEnd]         = useState("");
+  const [newTaskContractor, setNewTaskContractor]  = useState("");
+  const [taskAddLoading,    setTaskAddLoading]     = useState(false);
+  const [taskAddMsg,        setTaskAddMsg]         = useState("");
+
+  // Attendance edit UI
+  const [editAttId,        setEditAttId]        = useState<string | null>(null);
+  const [editAttAction,    setEditAttAction]    = useState("כניסה");
+  const [editAttProject,   setEditAttProject]   = useState("");
+  const [editAttTimestamp, setEditAttTimestamp] = useState("");
+  const [editAttLoading,   setEditAttLoading]   = useState(false);
+  const [editAttMsg,       setEditAttMsg]        = useState("");
+
+  // Income UI
+  const [incProjectId, setIncProjectId] = useState("");
+  const [incAmount,    setIncAmount]    = useState("");
+  const [incDesc,      setIncDesc]      = useState("");
+  const [incDate,      setIncDate]      = useState(new Date().toISOString().slice(0, 10));
+  const [incLoading,   setIncLoading]   = useState(false);
+  const [incMsg,       setIncMsg]       = useState("");
+
+  // Reports UI
+  const [reportProjectId, setReportProjectId] = useState("");
+  const [reportDate,      setReportDate]      = useState(new Date().toISOString().slice(0, 10));
+  const [reportWeather,   setReportWeather]   = useState("");
+  const [reportSummary,   setReportSummary]   = useState("");
+  const [reportSpecial,   setReportSpecial]   = useState("");
+  const [reportLoading,   setReportLoading]   = useState(false);
+  const [reportMsg,       setReportMsg]       = useState("");
+
+  // ── Derived values ─────────────────────────────────────────────────────────
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const weekDays = useMemo(() => getWeekDays(), []);
+
+  const { onSite, laborEstimate } = useMemo(() => {
+    const seen = new Set<string>();
+    const list: Array<{ record: AttendanceRecord; worker?: StaffMember }> = [];
+    for (const log of todayLogs) {
+      const sid = log.staff?.id;
+      if (!sid || seen.has(sid)) continue;
+      seen.add(sid);
+      if (log.action === "כניסה" || log.action === "in") {
+        list.push({ record: log, worker: staff.find(s => s.id === sid) });
+      }
+    }
+    const now = Date.now();
+    let labor = 0;
+    for (const { record, worker } of list) {
+      if (!worker) continue;
+      if (worker.daily_rate) {
+        labor += worker.daily_rate;
+      } else if (worker.hourly_rate) {
+        const hrs = (now - new Date(record.recorded_at).getTime()) / 3_600_000;
+        labor += Math.max(0, hrs) * worker.hourly_rate;
+      }
+    }
+    return { onSite: list, laborEstimate: labor };
+  }, [todayLogs, staff]);
+
+  const todayExpensesTotal = useMemo(
+    () => materials.filter(m => m.created_at.startsWith(todayStr)).reduce((s, m) => s + (m.cost ?? 0), 0),
+    [materials, todayStr]
+  );
+
+  const todayTasks = useMemo(
+    () => tasks.filter(t => {
+      if (t.status === "completed") return false;
+      if (t.start_date && t.start_date > todayStr) return false;
+      if (t.end_date   && t.end_date   < todayStr) return false;
+      return true;
+    }),
+    [tasks, todayStr]
+  );
+
+  const roleMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const log of todayLogs) {
+      if (log.action !== "כניסה" && log.action !== "in") continue;
+      const role = log.staff?.role ?? "עובד";
+      map[role] = (map[role] ?? 0) + 1;
+    }
+    return map;
+  }, [todayLogs]);
+
+  // ── Auth check on mount ────────────────────────────────────────────────────
+  useEffect(() => {
+    fetch("/api/admin/whoami")
+      .then(r => r.json())
+      .then(d => { setAuthState(d.role ?? "unauthenticated"); })
+      .catch(() => setAuthState("unauthenticated"));
+  }, []);
+
+  useEffect(() => {
+    if (authState === "admin" || authState === "foreman") {
+      setTab("dashboard");
+      loadData(authState);
+    }
+  }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if ((authState === "admin" || authState === "foreman") && tab === "expenses") loadMaterials();
+  }, [tab, matFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (authState === "admin" && tab === "reports") loadReports();
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (authState === "admin" && tab === "income") loadIncome();
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Data loaders ───────────────────────────────────────────────────────────
+  async function loadData(role: "admin" | "foreman") {
+    setDataLoading(true);
+    try {
+      const calls: Promise<Response>[] = [
+        fetch("/api/admin/attendance/today"),
+        fetch("/api/admin/projects"),
+        fetch("/api/admin/tasks"),
+      ];
+      if (role === "admin") calls.push(fetch("/api/admin/staff"));
+
+      const results = await Promise.allSettled(calls);
+      const [logsR, projR, tasksR, staffR] = results;
+
+      if (logsR.status  === "fulfilled" && logsR.value.ok)  { const d = await logsR.value.json();  setTodayLogs(d.records ?? []); }
+      if (projR.status  === "fulfilled" && projR.value.ok)  { const d = await projR.value.json();  setProjects(d.projects ?? []); }
+      if (tasksR.status === "fulfilled" && tasksR.value.ok) { const d = await tasksR.value.json(); setTasks(d.tasks ?? []); }
+      if (staffR && staffR.status === "fulfilled" && staffR.value.ok) { const d = await staffR.value.json(); setStaff(d.staff ?? []); }
+    } finally { setDataLoading(false); }
+  }
+
+  async function loadMaterials() {
+    const url = matFilter ? `/api/admin/materials?project_id=${matFilter}` : "/api/admin/materials";
+    const res = await fetch(url);
+    if (res.ok) { const d = await res.json(); setMaterials(d.materials ?? []); setBudget(d.budget ?? []); }
+  }
+
+  async function loadReports() {
+    const res = await fetch("/api/admin/daily-reports");
+    if (res.ok) { const d = await res.json(); setReports(d.reports ?? []); }
+  }
+
+  async function loadIncome() {
+    const res = await fetch("/api/admin/income");
+    if (res.ok) { const d = await res.json(); setIncome(d.income ?? []); setIncomeTotals(d.totals ?? {}); }
+  }
+
+  function reload() { if (authState === "admin" || authState === "foreman") loadData(authState); }
+
+  // ── Login handlers ─────────────────────────────────────────────────────────
+  async function handlePinLogin(submittedPin: string) {
+    setLoginLoading(true); setLoginErr("");
+    try {
+      const res  = await fetch("/api/foreman-auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: submittedPin }) });
+      const data = await res.json();
+      if (data.ok) setAuthState("foreman");
+      else { setLoginErr("קוד שגוי"); setPin(""); }
+    } catch { setLoginErr("שגיאת רשת"); }
+    finally { setLoginLoading(false); }
+  }
+
+  async function handlePasswordLogin(e: React.FormEvent) {
+    e.preventDefault(); setLoginLoading(true); setLoginErr("");
+    try {
+      const res  = await fetch("/api/admin-auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
+      const data = await res.json();
+      if (data.ok) setAuthState("admin");
+      else { setLoginErr("סיסמה שגויה"); setPassword(""); }
+    } catch { setLoginErr("שגיאת רשת"); }
+    finally { setLoginLoading(false); }
+  }
+
+  async function handleLogout() {
+    await fetch(authState === "foreman" ? "/api/foreman-auth" : "/api/admin-auth", { method: "DELETE" });
+    setAuthState("unauthenticated");
+    setStaff([]); setTodayLogs([]); setProjects([]); setTasks([]);
+    setMaterials([]); setBudget([]); setIncome([]); setReports([]);
+  }
+
+  // ── PIN digit entry ────────────────────────────────────────────────────────
+  function handlePinKey(digit: string) {
+    const next = pin + digit;
+    if (next.length <= 6) {
+      setPin(next);
+      if (next.length >= 4) handlePinLogin(next);
+    }
+  }
+
+  // ── Worker CRUD ────────────────────────────────────────────────────────────
+  async function handleAddWorker(e: React.FormEvent) {
+    e.preventDefault(); setAddLoading(true); setAddMsg("");
+    try {
+      const res  = await fetch("/api/admin/staff", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName, phone: newPhone, role: newRole, national_id: newNationalId,
+          hourly_rate: newHourlyRate ? parseFloat(newHourlyRate) : null,
+          daily_rate: newDailyRate   ? parseFloat(newDailyRate)  : null }) });
+      const data = await res.json();
+      if (res.ok) { setAddMsg("✓ " + newName + " נוסף"); setNewName(""); setNewPhone(""); setNewNationalId(""); setNewHourlyRate(""); setNewDailyRate(""); reload(); }
+      else        { setAddMsg("שגיאה: " + (data.error ?? res.status)); }
+    } catch (err) { setAddMsg("שגיאת רשת: " + String(err)); }
+    finally { setAddLoading(false); }
+  }
+
+  function startEdit(s: StaffMember) {
+    setEditingId(s.id); setEditName(s.name); setEditPhone(s.phone); setEditRole(s.role);
+    setEditNationalId(s.national_id ?? "");
+    setEditHourlyRate(s.hourly_rate != null ? String(s.hourly_rate) : "");
+    setEditDailyRate(s.daily_rate   != null ? String(s.daily_rate)  : "");
+    setEditMsg("");
+  }
+
+  async function handleEditWorker(e: React.FormEvent) {
+    e.preventDefault(); if (!editingId) return;
+    setEditLoading(true); setEditMsg("");
+    try {
+      const res  = await fetch(`/api/admin/staff/${editingId}`, { method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName, phone: editPhone, role: editRole, national_id: editNationalId,
+          hourly_rate: editHourlyRate ? parseFloat(editHourlyRate) : null,
+          daily_rate:  editDailyRate  ? parseFloat(editDailyRate)  : null }) });
+      const data = await res.json();
+      if (res.ok) { setEditingId(null); reload(); }
+      else        { setEditMsg("שגיאה: " + (data.error ?? res.status)); }
+    } catch (err) { setEditMsg("שגיאת רשת: " + String(err)); }
+    finally { setEditLoading(false); }
+  }
+
+  async function toggleActive(id: string, current: boolean) {
+    await fetch(`/api/admin/staff/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active: !current }) });
+    reload();
+  }
+
+  // ── Project CRUD ───────────────────────────────────────────────────────────
+  async function handleAddProject(e: React.FormEvent) {
+    e.preventDefault(); setProjectAddLoading(true); setProjectAddMsg("");
+    try {
+      const res  = await fetch("/api/admin/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newProjectName }) });
+      const data = await res.json();
+      if (res.ok) { setProjectAddMsg("✓ " + newProjectName + " נוסף"); setNewProjectName(""); reload(); }
+      else        { setProjectAddMsg("שגיאה: " + (data.error ?? res.status)); }
+    } catch (err) { setProjectAddMsg("שגיאת רשת: " + String(err)); }
+    finally { setProjectAddLoading(false); }
+  }
+
+  async function toggleProjectStatus(id: string, current: string) {
+    await fetch(`/api/admin/projects/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: current === "active" ? "inactive" : "active" }) });
+    reload();
+  }
+
+  // ── Expense CRUD ───────────────────────────────────────────────────────────
+  async function handleAddMaterial(e: React.FormEvent) {
+    e.preventDefault(); setMatLoading(true); setMatMsg("");
+    try {
+      const res  = await fetch("/api/admin/materials", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project_id: matProjectId, material_name: matName, quantity: parseFloat(matQty) || 1, unit: matUnit, supplier: matSupplier, cost: matCost ? parseFloat(matCost) : null, category: matCategory }) });
+      const data = await res.json();
+      if (res.ok) { setMatMsg("✓ " + matName + " נרשם"); setMatName(""); setMatQty("1"); setMatSupplier(""); setMatCost(""); loadMaterials(); }
+      else        { setMatMsg("שגיאה: " + (data.error ?? res.status)); }
+    } catch (err) { setMatMsg("שגיאת רשת: " + String(err)); }
+    finally { setMatLoading(false); }
+  }
+
+  // ── Task CRUD ──────────────────────────────────────────────────────────────
+  async function handleAddTask(e: React.FormEvent) {
+    e.preventDefault(); setTaskAddLoading(true); setTaskAddMsg("");
+    try {
+      const res  = await fetch("/api/admin/tasks", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project_id: newTaskProjectId, task_name: newTaskName, start_date: newTaskStart || null, end_date: newTaskEnd || null, contractor: newTaskContractor }) });
+      const data = await res.json();
+      if (res.ok) { setTaskAddMsg("✓ " + newTaskName + " נוסף"); setNewTaskName(""); setNewTaskStart(""); setNewTaskEnd(""); setNewTaskContractor(""); reload(); }
+      else        { setTaskAddMsg("שגיאה: " + (data.error ?? res.status)); }
+    } catch (err) { setTaskAddMsg("שגיאת רשת: " + String(err)); }
+    finally { setTaskAddLoading(false); }
+  }
+
+  const setTaskStatus = useCallback(async (id: string, status: string) => {
+    await fetch(`/api/admin/tasks/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
+    reload();
+  }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const assignTaskDay = useCallback(async (id: string, date: string | null) => {
+    await fetch(`/api/admin/tasks/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ start_date: date ?? "" }) });
+    reload();
+  }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Attendance retroactive edit ────────────────────────────────────────────
+  function startEditAtt(r: AttendanceRecord) {
+    setEditAttId(r.id);
+    setEditAttAction(r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action);
+    setEditAttProject(r.project?.id ?? "");
+    setEditAttTimestamp(r.timestamp_label ?? "");
+    setEditAttMsg("");
+  }
+
+  async function handleEditAtt(e: React.FormEvent) {
+    e.preventDefault(); if (!editAttId) return;
+    setEditAttLoading(true); setEditAttMsg("");
+    try {
+      const res  = await fetch(`/api/admin/attendance/${editAttId}`, { method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: editAttAction, project_id: editAttProject || null, timestamp_label: editAttTimestamp }) });
+      const data = await res.json();
+      if (res.ok) { setEditAttId(null); reload(); }
+      else        { setEditAttMsg("שגיאה: " + (data.error ?? res.status)); }
+    } catch (err) { setEditAttMsg("שגיאת רשת: " + String(err)); }
+    finally { setEditAttLoading(false); }
+  }
+
+  // ── Income CRUD ────────────────────────────────────────────────────────────
+  async function handleAddIncome(e: React.FormEvent) {
+    e.preventDefault(); setIncLoading(true); setIncMsg("");
+    try {
+      const res  = await fetch("/api/admin/income", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project_id: incProjectId, amount: parseFloat(incAmount), description: incDesc, received_date: incDate }) });
+      const data = await res.json();
+      if (res.ok) { setIncMsg("✓ תשלום נרשם"); setIncAmount(""); setIncDesc(""); loadIncome(); }
+      else        { setIncMsg("שגיאה: " + (data.error ?? res.status)); }
+    } catch (err) { setIncMsg("שגיאת רשת: " + String(err)); }
+    finally { setIncLoading(false); }
+  }
+
+  // ── Daily report ───────────────────────────────────────────────────────────
+  async function handleAddReport(e: React.FormEvent) {
+    e.preventDefault(); setReportLoading(true); setReportMsg("");
+    try {
+      const res  = await fetch("/api/admin/daily-reports", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project_id: reportProjectId, date: reportDate, weather: reportWeather, summary: reportSummary, special_events: reportSpecial }) });
+      const data = await res.json();
+      if (res.ok) { setReportMsg("✓ דוח נשמר"); setReportSummary(""); setReportSpecial(""); setReportWeather(""); loadReports(); }
+      else        { setReportMsg("שגיאה: " + (data.error ?? res.status)); }
+    } catch (err) { setReportMsg("שגיאת רשת: " + String(err)); }
+    finally { setReportLoading(false); }
+  }
+
+  // ── Render: loading ────────────────────────────────────────────────────────
+  if (authState === "loading") {
+    return (
+      <div className="min-h-screen bg-bone flex items-center justify-center">
+        <Loader2 size={32} strokeWidth={1.5} className="text-accent animate-spin" />
+      </div>
+    );
+  }
+
+  // ── Render: login ──────────────────────────────────────────────────────────
+  if (authState === "unauthenticated") {
+    return (
+      <div className="min-h-screen bg-bone flex flex-col items-center justify-center px-6 gap-8" dir="rtl">
+        <Image src="/logo.png" alt="Binyan Eitan" width={120} height={36} className="h-9 w-auto brightness-0 opacity-60" />
+
+        {/* Mode tabs */}
+        <div className="flex border-b border-charcoal/10 w-full max-w-xs">
+          {([["pin", "מנהל עבודה", "PIN"], ["password", "מנהל ראשי", "סיסמה"]] as [LoginMode, string, string][]).map(([mode, label, sub]) => (
+            <button key={mode} onClick={() => { setLoginMode(mode); setPin(""); setPassword(""); setLoginErr(""); }}
+              className={`flex-1 py-3 text-center transition-colors border-b-2 ${loginMode === mode ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/60"}`}>
+              <p className="text-sm font-semibold">{label}</p>
+              <p className="text-[0.6rem] tracking-widest uppercase text-charcoal/30">{sub}</p>
+            </button>
+          ))}
+        </div>
+
+        <div className="w-full max-w-xs space-y-6">
+          {loginMode === "pin" ? (
+            <>
+              {/* PIN display */}
+              <div className="flex justify-center gap-3">
+                {Array.from({ length: 6 }, (_, i) => (
+                  <div key={i} className={`w-8 h-8 rounded-full border-2 transition-colors flex items-center justify-center ${i < pin.length ? "border-accent bg-accent" : "border-charcoal/20 bg-white"}`}>
+                    {i < pin.length && <div className="w-2 h-2 rounded-full bg-white" />}
+                  </div>
+                ))}
+              </div>
+              {/* Keypad */}
+              <div className="grid grid-cols-3 gap-2">
+                {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((k, i) => (
+                  <button key={i} disabled={loginLoading || !k}
+                    onClick={() => k === "⌫" ? setPin(p => p.slice(0, -1)) : k && handlePinKey(k)}
+                    className={`h-14 text-xl font-semibold border transition-all active:scale-95 ${
+                      !k ? "invisible" :
+                      k === "⌫" ? "border-charcoal/10 text-charcoal/40 hover:border-accent hover:text-accent" :
+                      "border-charcoal/15 bg-white text-charcoal hover:border-accent hover:text-accent"
+                    } disabled:opacity-40`}>
+                    {k}
+                  </button>
+                ))}
+              </div>
+              {loginLoading && (
+                <div className="flex items-center justify-center gap-2 text-accent text-sm">
+                  <Loader2 size={16} className="animate-spin" /> מאמת...
+                </div>
+              )}
+            </>
+          ) : (
+            <form onSubmit={handlePasswordLogin} className="space-y-4">
+              <input type="password" autoFocus value={password} onChange={e => setPassword(e.target.value)} placeholder="סיסמת מנהל"
+                className="w-full border border-charcoal/20 bg-white px-5 py-4 text-center font-body text-lg tracking-[0.3em] text-charcoal placeholder-charcoal/20 focus:border-accent focus:outline-none transition-colors" />
+              <Btn loading={loginLoading} disabled={!password.trim()}><LogIn size={14} className="inline me-1.5" />כניסה</Btn>
+            </form>
+          )}
+
+          {loginErr && (
+            <div className="flex items-center justify-center gap-2 text-red-500 text-sm">
+              <AlertCircle size={14} strokeWidth={1.5} />{loginErr}
+            </div>
+          )}
+        </div>
+
+        <p className="font-body text-[0.55rem] tracking-widest uppercase text-charcoal/20">
+          בנין איתן — פורטל ניהול פנימי
+        </p>
+      </div>
+    );
+  }
+
+  // ── Render: portal ─────────────────────────────────────────────────────────
+  const isAdmin   = authState === "admin";
+  const isForeman = authState === "foreman";
+
+  type TabDef = { key: AdminTab; label: string; icon: React.ReactNode; adminOnly?: boolean };
+  const TABS: TabDef[] = [
+    { key: "dashboard",  label: "דשבורד",   icon: <LayoutDashboard size={13} /> },
+    { key: "attendance", label: "נוכחות",    icon: <ClipboardList size={13} />,  adminOnly: true },
+    { key: "workers",    label: "עובדים",    icon: <UserPlus size={13} />,       adminOnly: true },
+    { key: "projects",   label: "פרויקטים",  icon: <Building2 size={13} />,      adminOnly: true },
+    { key: "expenses",   label: "הוצאות",    icon: <Package size={13} /> },
+    { key: "planning",   label: "תכנון",      icon: <Hammer size={13} /> },
+    { key: "income",     label: "הכנסות",    icon: <DollarSign size={13} />,     adminOnly: true },
+    { key: "reports",    label: "דוחות",      icon: <BarChart2 size={13} />,      adminOnly: true },
+  ].filter(t => !t.adminOnly || isAdmin) as TabDef[];
+
+  const activeProjects = projects.filter(p => p.status === "active");
+
+  return (
+    <div dir="rtl" className="min-h-screen bg-bone px-4 py-8 font-body text-charcoal">
+      <div className="mx-auto max-w-2xl space-y-5">
+
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[0.6rem] font-bold tracking-[0.2em] uppercase text-accent/60">בנין איתן</p>
+            <h1 className="font-heading text-2xl font-bold text-charcoal">
+              {isAdmin ? "ממשק מנהל" : "ממשק מנהל עבודה"}
+            </h1>
+          </div>
+          <button onClick={handleLogout}
+            className="border border-charcoal/20 px-3 py-1.5 text-xs text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
+            יציאה
+          </button>
+        </div>
+
+        {/* Stats strip */}
+        <div className={`grid gap-2 ${isAdmin ? "grid-cols-4" : "grid-cols-3"}`}>
+          {isAdmin && (
+            <>
+              {[
+                { label: "עובדים פעילים", value: staff.filter(s => s.active).length, color: "text-green-600" },
+                { label: "באתר כרגע",     value: onSite.length,                       color: "text-accent" },
+                { label: "כניסות היום",   value: todayLogs.filter(r => r.action === "כניסה" || r.action === "in").length, color: "text-charcoal/60" },
+                { label: "פרויקטים",      value: activeProjects.length,               color: "text-charcoal/50" },
+              ].map(s => (
+                <div key={s.label} className="bg-white border border-warm-gray-light p-3 text-center">
+                  <div className={`font-heading text-2xl font-bold ${s.color}`}>{s.value}</div>
+                  <div className="text-[0.6rem] text-charcoal/40 mt-0.5 leading-tight">{s.label}</div>
+                </div>
+              ))}
+            </>
+          )}
+          {isForeman && (
+            <>
+              {[
+                { label: "באתר כרגע",    value: onSite.length,                        color: "text-accent" },
+                { label: "משימות פעילות", value: tasks.filter(t => t.status === "in_progress").length, color: "text-amber-600" },
+                { label: "פרויקטים",     value: activeProjects.length,                color: "text-charcoal/60" },
+              ].map(s => (
+                <div key={s.label} className="bg-white border border-warm-gray-light p-3 text-center">
+                  <div className={`font-heading text-2xl font-bold ${s.color}`}>{s.value}</div>
+                  <div className="text-[0.6rem] text-charcoal/40 mt-0.5 leading-tight">{s.label}</div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+
+        {/* Tab bar */}
+        <div className="flex border-b border-charcoal/10 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none" }}>
+          {TABS.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/70"}`}>
+              {t.icon} {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── DASHBOARD ─────────────────────────────────────────────────────── */}
+        {tab === "dashboard" && (
+          <div className="space-y-4">
+
+            {/* On-site */}
+            <Card title="⚡ מי באתר כרגע">
+              {onSite.length === 0 ? (
+                <p className="text-sm text-charcoal/30 text-center py-2">אין עובדים מדווחים כרגע</p>
+              ) : (
+                <div className="divide-y divide-charcoal/5">
+                  {onSite.map(({ record, worker }) => {
+                    const t = record.timestamp_label
+                      ? record.timestamp_label.split(" ")[1]
+                      : new Date(record.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+                    return (
+                      <div key={record.id} className="flex items-center justify-between py-2.5 gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">{record.staff?.name ?? "—"}</p>
+                          <p className="text-[0.65rem] text-charcoal/40">{record.staff?.role ?? ""}</p>
+                        </div>
+                        {record.project && (
+                          <div className="flex items-center gap-1 text-[0.65rem] text-charcoal/50">
+                            <Building2 size={10} strokeWidth={1.5} />
+                            <span className="truncate max-w-[80px]">{record.project.name}</span>
+                          </div>
+                        )}
+                        {isAdmin && worker?.daily_rate && (
+                          <span className="text-[0.65rem] text-accent/70 shrink-0">₪{worker.daily_rate}/יום</span>
+                        )}
+                        <span className="text-[0.7rem] text-green-600 tabular-nums shrink-0">מ-{t}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+
+            {/* Admin: daily spend */}
+            {isAdmin && (
+              <Card title="💰 עלויות היום">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center py-1.5 border-b border-charcoal/5">
+                    <span className="text-sm text-charcoal/60">שכר עובדים (אומדן)</span>
+                    <span className="text-sm font-semibold tabular-nums">₪{Math.round(laborEstimate).toLocaleString("he-IL")}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1.5 border-b border-charcoal/5">
+                    <span className="text-sm text-charcoal/60">הוצאות שנרשמו היום</span>
+                    <span className="text-sm font-semibold tabular-nums">₪{Math.round(todayExpensesTotal).toLocaleString("he-IL")}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1">
+                    <span className="text-sm font-bold">סה&quot;כ</span>
+                    <span className="text-base font-bold text-accent tabular-nums">
+                      ₪{Math.round(laborEstimate + todayExpensesTotal).toLocaleString("he-IL")}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {/* Foreman: project costs */}
+            {isForeman && activeProjects.length > 0 && (
+              <Card title="📊 עלויות לפי פרויקט">
+                <div className="divide-y divide-charcoal/5">
+                  {activeProjects.map(p => {
+                    const expTotal = budget.find(b => b.project_id === p.id)?.total ?? 0;
+                    const taskCount = tasks.filter(t => t.project_id === p.id && t.status !== "completed").length;
+                    return (
+                      <div key={p.id} className="flex items-center justify-between py-2.5 gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">{p.name}</p>
+                          <p className="text-[0.65rem] text-charcoal/40">{taskCount} משימות פעילות</p>
+                        </div>
+                        <span className="text-sm font-bold text-accent tabular-nums shrink-0">
+                          {expTotal > 0 ? `₪${expTotal.toLocaleString("he-IL")}` : "—"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
+
+            {/* Admin: profitability */}
+            {isAdmin && activeProjects.length > 0 && Object.keys(incomeTotals).length > 0 && (
+              <Card title="📈 רווחיות לפי פרויקט">
+                <div className="divide-y divide-charcoal/5">
+                  {activeProjects.map(p => {
+                    const exp    = budget.find(b => b.project_id === p.id)?.total ?? 0;
+                    const inc    = incomeTotals[p.id] ?? 0;
+                    const profit = inc - exp;
+                    return (
+                      <div key={p.id} className="py-2.5 space-y-1">
+                        <p className="text-sm font-semibold">{p.name}</p>
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div className="text-center">
+                            <p className="text-[0.6rem] text-charcoal/40">הכנסות</p>
+                            <p className="font-bold text-green-600 tabular-nums">₪{inc.toLocaleString("he-IL")}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-[0.6rem] text-charcoal/40">הוצאות</p>
+                            <p className="font-bold text-red-500 tabular-nums">₪{exp.toLocaleString("he-IL")}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-[0.6rem] text-charcoal/40">רווח נקי</p>
+                            <p className={`font-bold tabular-nums ${profit >= 0 ? "text-green-600" : "text-red-500"}`}>
+                              {profit >= 0 ? "+" : ""}₪{profit.toLocaleString("he-IL")}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
+
+            {/* Today's tasks */}
+            <Card title="📋 משימות היום">
+              {todayTasks.length === 0 ? (
+                <p className="text-sm text-charcoal/30 text-center py-2">אין משימות פעילות להיום</p>
+              ) : (
+                <div className="divide-y divide-charcoal/5">
+                  {todayTasks.map(t => {
+                    const proj = projects.find(p => p.id === t.project_id);
+                    return (
+                      <div key={t.id} className="flex items-center justify-between py-2.5 gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">{t.task_name}</p>
+                          <div className="flex items-center gap-1 text-[0.65rem] text-charcoal/40 mt-0.5">
+                            {proj && <><Building2 size={9} strokeWidth={1.5} /><span>{proj.name}</span></>}
+                            {t.contractor && <span className="ms-1">· {t.contractor}</span>}
+                          </div>
+                        </div>
+                        <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
+                        {t.status !== "in_progress" && (
+                          <button onClick={() => setTaskStatus(t.id, "in_progress")} className="text-[0.65rem] border border-amber-300 px-2 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">הפעל</button>
+                        )}
+                        {t.status !== "completed" && (
+                          <button onClick={() => setTaskStatus(t.id, "completed")} className="text-[0.65rem] border border-green-300 px-2 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">סיים</button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+
+            {/* Role breakdown (admin) */}
+            {isAdmin && Object.keys(roleMap).length > 0 && (
+              <Card title="נוכחות לפי תפקיד">
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(roleMap).map(([role, count]) => (
+                    <div key={role} className="flex items-center gap-2 bg-bone px-3 py-1.5 border border-charcoal/10">
+                      <span className="text-sm font-bold text-accent">{count}</span>
+                      <span className="text-xs text-charcoal/60">{role}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* ── ATTENDANCE (admin only) ────────────────────────────────────────── */}
+        {tab === "attendance" && isAdmin && (
+          <div className="space-y-5">
+            <Card>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-heading text-base font-bold">יומן היום</h2>
+                <button onClick={reload} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors">
+                  <RefreshCw size={12} strokeWidth={1.5} /> רענן
+                </button>
+              </div>
+              {dataLoading && <p className="text-sm text-charcoal/40 text-center py-4">טוען...</p>}
+              {!dataLoading && todayLogs.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין דיווחים היום</p>}
+              {!dataLoading && todayLogs.length > 0 && (
+                <div className="divide-y divide-charcoal/5">
+                  {todayLogs.map(r => editAttId === r.id ? (
+                    <form key={r.id} onSubmit={handleEditAtt} className="py-3 space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <Field label="פעולה">
+                          <select value={editAttAction} onChange={e => setEditAttAction(e.target.value)} className={INPUT}>
+                            <option value="כניסה">כניסה</option>
+                            <option value="יציאה">יציאה</option>
+                          </select>
+                        </Field>
+                        <Field label="שעה (תצוגה)">
+                          <input value={editAttTimestamp} onChange={e => setEditAttTimestamp(e.target.value)} placeholder="08:30" className={INPUT} dir="ltr" />
+                        </Field>
+                      </div>
+                      <Field label="אתר">
+                        <select value={editAttProject} onChange={e => setEditAttProject(e.target.value)} className={INPUT}>
+                          <option value="">ללא אתר</option>
+                          {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </Field>
+                      {editAttMsg && <p className="text-xs text-red-500">{editAttMsg}</p>}
+                      <div className="flex gap-2">
+                        <button type="submit" disabled={editAttLoading} className="flex-1 bg-accent py-2 text-xs font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">{editAttLoading ? "שומר..." : "שמור"}</button>
+                        <button type="button" onClick={() => setEditAttId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/50 hover:border-accent transition-colors">ביטול</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div key={r.id} className="py-2.5 space-y-0.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">{r.staff?.name ?? "—"}</p>
+                          <p className="text-[0.65rem] text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
+                        </div>
+                        <span className={`text-xs font-semibold shrink-0 ${r.action === "כניסה" || r.action === "in" ? "text-green-600" : "text-red-400"}`}>
+                          {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
+                        </span>
+                        <span className="text-[0.7rem] text-charcoal/35 tabular-nums shrink-0" dir="ltr">
+                          {r.timestamp_label || new Date(r.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                        <button onClick={() => startEditAtt(r)} className="text-charcoal/30 hover:text-accent transition-colors shrink-0 p-0.5">
+                          <Pencil size={11} strokeWidth={1.5} />
+                        </button>
+                      </div>
+                      {r.project && (
+                        <div className="flex items-center gap-1 text-[0.65rem] text-charcoal/40">
+                          <Building2 size={10} strokeWidth={1.5} /><span>{r.project.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {/* ── WORKERS (admin only) ───────────────────────────────────────────── */}
+        {tab === "workers" && isAdmin && (
+          <div className="space-y-5">
+            <Card>
+              <div className="flex items-center gap-2 mb-3">
+                <UserPlus size={16} strokeWidth={1.5} className="text-accent" />
+                <h2 className="font-heading text-base font-bold">הוספת עובד</h2>
+              </div>
+              <form onSubmit={handleAddWorker} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="שם מלא"><input value={newName} onChange={e => setNewName(e.target.value)} required placeholder="ישראל ישראלי" className={INPUT} /></Field>
+                  <Field label="טלפון"><input value={newPhone} onChange={e => setNewPhone(e.target.value)} required placeholder="05X-XXXXXXX" type="tel" dir="ltr" className={INPUT} /></Field>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="תפקיד">
+                    <select value={newRole} onChange={e => setNewRole(e.target.value)} className={INPUT}>
+                      <option value="עובד">עובד</option><option value="ממונה">ממונה</option><option value="מנהל">מנהל</option>
+                    </select>
+                  </Field>
+                  <Field label='ת"ז (אופציונלי)'>
+                    <input value={newNationalId} onChange={e => setNewNationalId(e.target.value.replace(/\D/g, ""))} placeholder="123456789" inputMode="numeric" maxLength={9} dir="ltr" className={INPUT} />
+                  </Field>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="שכר שעתי (₪)"><input value={newHourlyRate} onChange={e => setNewHourlyRate(e.target.value)} type="number" min="0" step="0.5" placeholder="45.00" dir="ltr" className={INPUT} /></Field>
+                  <Field label="שכר יומי (₪)"><input value={newDailyRate}  onChange={e => setNewDailyRate(e.target.value)}  type="number" min="0" step="1"   placeholder="350"   dir="ltr" className={INPUT} /></Field>
+                </div>
+                <Btn loading={addLoading}>הוסף עובד</Btn>
+                {addMsg && <p className={`text-xs ${addMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{addMsg}</p>}
+              </form>
+            </Card>
+
+            <Card>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-heading text-base font-bold">עובדים ({staff.length})</h2>
+                <button onClick={reload} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors">
+                  <RefreshCw size={12} strokeWidth={1.5} /> רענן
+                </button>
+              </div>
+              {staff.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין עובדים רשומים</p>}
+              <div className="divide-y divide-charcoal/5">
+                {staff.map(s => editingId === s.id ? (
+                  <form key={s.id} onSubmit={handleEditWorker} className="py-4 space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="שם"><input value={editName} onChange={e => setEditName(e.target.value)} required className={INPUT} /></Field>
+                      <Field label="טלפון"><input value={editPhone} onChange={e => setEditPhone(e.target.value)} required type="tel" dir="ltr" className={INPUT} /></Field>
+                      <Field label="תפקיד">
+                        <select value={editRole} onChange={e => setEditRole(e.target.value)} className={INPUT}>
+                          <option value="עובד">עובד</option><option value="ממונה">ממונה</option><option value="מנהל">מנהל</option>
+                        </select>
+                      </Field>
+                      <Field label='ת"ז'><input value={editNationalId} onChange={e => setEditNationalId(e.target.value.replace(/\D/g, ""))} inputMode="numeric" maxLength={9} dir="ltr" className={INPUT} /></Field>
+                      <Field label="שכר שעתי (₪)"><input value={editHourlyRate} onChange={e => setEditHourlyRate(e.target.value)} type="number" min="0" step="0.5" dir="ltr" className={INPUT} /></Field>
+                      <Field label="שכר יומי (₪)"><input value={editDailyRate}  onChange={e => setEditDailyRate(e.target.value)}  type="number" min="0" step="1"   dir="ltr" className={INPUT} /></Field>
+                    </div>
+                    {editMsg && <p className="text-xs text-red-500">{editMsg}</p>}
+                    <div className="flex gap-2">
+                      <button type="submit" disabled={editLoading} className="flex-1 bg-accent py-2 text-xs font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">{editLoading ? "שומר..." : "שמור"}</button>
+                      <button type="button" onClick={() => setEditingId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/50 hover:border-accent transition-colors">ביטול</button>
+                    </div>
+                  </form>
+                ) : (
+                  <div key={s.id} className={`flex items-center justify-between py-3 gap-2 ${!s.active ? "opacity-45" : ""}`}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{s.name}</p>
+                      <p className="text-[0.7rem] text-charcoal/40 tabular-nums" dir="ltr">{s.phone}</p>
+                      {(s.hourly_rate || s.daily_rate) && (
+                        <p className="text-[0.65rem] text-accent/70">
+                          {s.hourly_rate ? `₪${s.hourly_rate}/ש׳` : ""}{s.hourly_rate && s.daily_rate ? " · " : ""}{s.daily_rate ? `₪${s.daily_rate}/יום` : ""}
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-[0.65rem] text-charcoal/40 shrink-0">{s.role}</span>
+                    <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
+                    <button onClick={() => startEdit(s)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">ערוך</button>
+                    <button onClick={() => toggleActive(s.id, s.active)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{s.active ? "השבת" : "הפעל"}</button>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* ── PROJECTS (admin only) ──────────────────────────────────────────── */}
+        {tab === "projects" && isAdmin && (
+          <div className="space-y-5">
+            <Card>
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 size={16} strokeWidth={1.5} className="text-accent" />
+                <h2 className="font-heading text-base font-bold">הוספת פרויקט</h2>
+              </div>
+              <form onSubmit={handleAddProject} className="space-y-3">
+                <Field label="שם הפרויקט / אתר">
+                  <input value={newProjectName} onChange={e => setNewProjectName(e.target.value)} required placeholder="פרויקט רחוב הרצל 12" className={INPUT} />
+                </Field>
+                <Btn loading={projectAddLoading}>הוסף פרויקט</Btn>
+                {projectAddMsg && <p className={`text-xs ${projectAddMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{projectAddMsg}</p>}
+              </form>
+            </Card>
+            <Card>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-heading text-base font-bold">פרויקטים ({projects.length})</h2>
+                <button onClick={reload} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /> רענן</button>
+              </div>
+              {projects.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין פרויקטים</p>}
+              <div className="divide-y divide-charcoal/5">
+                {projects.map(p => (
+                  <div key={p.id} className={`flex items-center justify-between py-3 gap-2 ${p.status !== "active" ? "opacity-45" : ""}`}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{p.name}</p>
+                      <p className="text-[0.65rem] text-charcoal/30">{tasks.filter(t => t.project_id === p.id && t.status !== "completed").length} משימות פעילות</p>
+                    </div>
+                    <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${p.status === "active" ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{p.status === "active" ? "פעיל" : "לא פעיל"}</span>
+                    <button onClick={() => toggleProjectStatus(p.id, p.status ?? "active")} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{p.status === "active" ? "השבת" : "הפעל"}</button>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* ── EXPENSES ──────────────────────────────────────────────────────── */}
+        {tab === "expenses" && (
+          <div className="space-y-5">
+            <Card>
+              <div className="flex items-center gap-2 mb-3">
+                <Package size={16} strokeWidth={1.5} className="text-accent" />
+                <h2 className="font-heading text-base font-bold">רישום הוצאה</h2>
+              </div>
+              <form onSubmit={handleAddMaterial} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="פרויקט">
+                    <select value={matProjectId} onChange={e => setMatProjectId(e.target.value)} required className={INPUT}>
+                      <option value="">בחר פרויקט...</option>
+                      {activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="קטגוריה">
+                    <select value={matCategory} onChange={e => setMatCategory(e.target.value)} className={INPUT}>
+                      {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </Field>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="תיאור / פריט"><input value={matName} onChange={e => setMatName(e.target.value)} required placeholder="בטון, שרברב..." className={INPUT} /></Field>
+                  <Field label="ספק"><input value={matSupplier} onChange={e => setMatSupplier(e.target.value)} placeholder="שם הספק" className={INPUT} /></Field>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <Field label="כמות"><input value={matQty} onChange={e => setMatQty(e.target.value)} type="number" min="0" step="any" className={INPUT} dir="ltr" /></Field>
+                  <Field label="יחידה">
+                    <select value={matUnit} onChange={e => setMatUnit(e.target.value)} className={INPUT}>
+                      {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="עלות (₪)"><input value={matCost} onChange={e => setMatCost(e.target.value)} type="number" min="0" step="any" placeholder="0.00" className={INPUT} dir="ltr" /></Field>
+                </div>
+                <Btn loading={matLoading} disabled={!matProjectId}>רשום הוצאה</Btn>
+                {matMsg && <p className={`text-xs ${matMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{matMsg}</p>}
+              </form>
+            </Card>
+
+            {materials.length > 0 && (
+              <Card title="סיכום לפי קטגוריה">
+                <div className="divide-y divide-charcoal/5">
+                  {EXPENSE_CATEGORIES.map(cat => {
+                    const total = materials.filter(m => (m.category ?? "חומרים") === cat).reduce((s, m) => s + (m.cost ?? 0), 0);
+                    if (!total) return null;
+                    return (
+                      <div key={cat} className="flex justify-between items-center py-2">
+                        <span className="text-sm text-charcoal/60">{cat}</span>
+                        <span className="text-sm font-semibold tabular-nums">₪{total.toLocaleString("he-IL")}</span>
+                      </div>
+                    );
+                  })}
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-sm font-bold">סה&quot;כ</span>
+                    <span className="text-base font-bold text-accent tabular-nums">₪{budget.reduce((s, b) => s + b.total, 0).toLocaleString("he-IL")}</span>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            <Card>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-heading text-sm font-bold">יומן הוצאות</h2>
+                <div className="flex items-center gap-2">
+                  <select value={matFilter} onChange={e => setMatFilter(e.target.value)} className="text-xs border border-charcoal/15 bg-bone px-2 py-1 focus:border-accent focus:outline-none">
+                    <option value="">כל הפרויקטים</option>
+                    {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                  <button onClick={loadMaterials} className="text-charcoal/40 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /></button>
+                </div>
+              </div>
+              {materials.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין הוצאות רשומות</p>}
+              <div className="divide-y divide-charcoal/5">
+                {materials.map(m => (
+                  <div key={m.id} className="py-2.5 flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{m.material_name}</p>
+                      <p className="text-[0.7rem] text-charcoal/40">
+                        {m.category && <span className="bg-charcoal/5 px-1.5 py-0.5 me-1.5">{m.category}</span>}
+                        {m.quantity} {m.unit}{m.supplier ? ` · ${m.supplier}` : ""}
+                      </p>
+                    </div>
+                    {m.cost != null && <span className="text-sm font-bold text-accent tabular-nums shrink-0">₪{m.cost.toLocaleString("he-IL")}</span>}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* ── PLANNING ──────────────────────────────────────────────────────── */}
+        {tab === "planning" && (
+          <div className="space-y-5">
+
+            {/* Add task */}
+            <Card>
+              <div className="flex items-center gap-2 mb-3">
+                <Hammer size={16} strokeWidth={1.5} className="text-accent" />
+                <h2 className="font-heading text-base font-bold">הוספת משימה</h2>
+              </div>
+              <form onSubmit={handleAddTask} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="פרויקט">
+                    <select value={newTaskProjectId} onChange={e => setNewTaskProjectId(e.target.value)} required className={INPUT}>
+                      <option value="">בחר פרויקט...</option>
+                      {activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="קבלן / צוות">
+                    <input value={newTaskContractor} onChange={e => setNewTaskContractor(e.target.value)} placeholder="שם קבלן / צוות" className={INPUT} />
+                  </Field>
+                </div>
+                <Field label="שם המשימה">
+                  <input value={newTaskName} onChange={e => setNewTaskName(e.target.value)} required placeholder="התקנת תקרת גבס, ריצוף..." className={INPUT} />
+                </Field>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="תאריך התחלה"><input type="date" value={newTaskStart} onChange={e => setNewTaskStart(e.target.value)} className={INPUT} dir="ltr" /></Field>
+                  <Field label="תאריך סיום">  <input type="date" value={newTaskEnd}   onChange={e => setNewTaskEnd(e.target.value)}   className={INPUT} dir="ltr" /></Field>
+                </div>
+                <Btn loading={taskAddLoading} disabled={!newTaskProjectId}>הוסף משימה</Btn>
+                {taskAddMsg && <p className={`text-xs ${taskAddMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{taskAddMsg}</p>}
+              </form>
+            </Card>
+
+            {/* Weekly look-ahead */}
+            <Card>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-heading text-sm font-bold">לוח שבועי — שבוע נוכחי</h2>
+                <button onClick={reload} className="text-charcoal/40 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /></button>
+              </div>
+
+              {/* Unscheduled tasks */}
+              {(() => {
+                const weekDateSet = new Set(weekDays.map(d => d.date));
+                const unscheduled = tasks.filter(t => t.status !== "completed" && (!t.start_date || !weekDateSet.has(t.start_date)));
+                if (!unscheduled.length) return null;
+                return (
+                  <div className="mb-4">
+                    <p className="text-[0.65rem] font-bold tracking-widest uppercase text-charcoal/30 mb-2">ללא לו&quot;ז לשבוע זה</p>
+                    <div className="space-y-2">
+                      {unscheduled.map(t => (
+                        <div key={t.id} className="bg-bone border border-charcoal/10 p-2.5 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs font-semibold flex-1 truncate">{t.task_name}</p>
+                            <span className={`text-[0.6rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {weekDays.map(d => (
+                              <button key={d.date} onClick={() => assignTaskDay(t.id, d.date)}
+                                className={`text-[0.6rem] px-2 py-1 border transition-colors ${d.date === todayStr ? "border-accent text-accent" : "border-charcoal/15 text-charcoal/50 hover:border-accent hover:text-accent"}`}>
+                                {d.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Days */}
+              <div className="space-y-3">
+                {weekDays.map(day => {
+                  const dayTasks = tasks.filter(t => t.start_date === day.date && t.status !== "completed");
+                  const isToday  = day.date === todayStr;
+                  return (
+                    <div key={day.date} className={`border rounded-none ${isToday ? "border-accent/40 bg-accent/[0.02]" : "border-charcoal/10"}`}>
+                      <div className={`flex items-center justify-between px-3 py-2 ${isToday ? "bg-accent/[0.04]" : "bg-charcoal/[0.02]"}`}>
+                        <span className={`text-xs font-bold ${isToday ? "text-accent" : "text-charcoal/60"}`}>{day.label}</span>
+                        <span className="text-[0.6rem] text-charcoal/30 tabular-nums" dir="ltr">{day.short}</span>
+                      </div>
+                      {dayTasks.length === 0 ? (
+                        <p className="text-[0.65rem] text-charcoal/25 text-center py-2">אין משימות</p>
+                      ) : (
+                        <div className="divide-y divide-charcoal/5">
+                          {dayTasks.map(t => (
+                            <div key={t.id} className="flex items-center gap-2 px-3 py-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold truncate">{t.task_name}</p>
+                                {t.contractor && <p className="text-[0.6rem] text-charcoal/40">{t.contractor}</p>}
+                              </div>
+                              <span className={`text-[0.6rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
+                              {t.status === "planned" && (
+                                <button onClick={() => setTaskStatus(t.id, "in_progress")} className="text-[0.6rem] border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">▶</button>
+                              )}
+                              <button onClick={() => assignTaskDay(t.id, null)} className="text-[0.6rem] text-charcoal/25 hover:text-red-400 transition-colors shrink-0" title="הסר מיום זה">✕</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
+            {/* Macro plan (full task list) */}
+            <Card>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-heading text-sm font-bold">תוכנית מאקרו ({tasks.filter(t => !taskFilter || t.project_id === taskFilter).length})</h2>
+                <select value={taskFilter} onChange={e => setTaskFilter(e.target.value)} className="text-xs border border-charcoal/15 bg-bone px-2 py-1 focus:border-accent focus:outline-none">
+                  <option value="">כל הפרויקטים</option>
+                  {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              {tasks.filter(t => !taskFilter || t.project_id === taskFilter).length === 0 ? (
+                <p className="text-sm text-charcoal/30 text-center py-4">אין משימות</p>
+              ) : (
+                <div className="divide-y divide-charcoal/5">
+                  {tasks.filter(t => !taskFilter || t.project_id === taskFilter).map(t => {
+                    const proj = projects.find(p => p.id === t.project_id);
+                    return (
+                      <div key={t.id} className={`py-3 space-y-2 ${t.status === "completed" ? "opacity-50" : ""}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold">{t.task_name}</p>
+                            <div className="flex flex-wrap items-center gap-x-2 text-[0.65rem] text-charcoal/40 mt-0.5">
+                              {proj && <span><Building2 size={9} className="inline me-0.5" strokeWidth={1.5} />{proj.name}</span>}
+                              {t.contractor && <span>· {t.contractor}</span>}
+                              {t.start_date && <span dir="ltr">· {t.start_date}{t.end_date ? ` → ${t.end_date}` : ""}</span>}
+                            </div>
+                          </div>
+                          <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
+                        </div>
+                        {t.status !== "completed" && (
+                          <div className="flex gap-2">
+                            {t.status === "planned" && (
+                              <button onClick={() => setTaskStatus(t.id, "in_progress")} className="text-[0.65rem] border border-amber-300 px-3 py-1 text-amber-700 hover:bg-amber-50 transition-colors">▶ הפעל</button>
+                            )}
+                            {t.status === "in_progress" && (
+                              <button onClick={() => setTaskStatus(t.id, "planned")} className="text-[0.65rem] border border-charcoal/20 px-3 py-1 text-charcoal/50 hover:border-accent hover:text-accent transition-colors">⏸ עצור</button>
+                            )}
+                            <button onClick={() => setTaskStatus(t.id, "completed")} className="text-[0.65rem] border border-green-300 px-3 py-1 text-green-700 hover:bg-green-50 transition-colors">✓ סיים</button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {/* ── INCOME (admin only) ────────────────────────────────────────────── */}
+        {tab === "income" && isAdmin && (
+          <div className="space-y-5">
+            <Card>
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp size={16} strokeWidth={1.5} className="text-accent" />
+                <h2 className="font-heading text-base font-bold">רישום תשלום</h2>
+              </div>
+              <form onSubmit={handleAddIncome} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="פרויקט">
+                    <select value={incProjectId} onChange={e => setIncProjectId(e.target.value)} required className={INPUT}>
+                      <option value="">בחר פרויקט...</option>
+                      {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="תאריך קבלה"><input type="date" value={incDate} onChange={e => setIncDate(e.target.value)} className={INPUT} dir="ltr" /></Field>
+                </div>
+                <Field label="סכום (₪)"><input value={incAmount} onChange={e => setIncAmount(e.target.value)} required type="number" min="1" step="any" placeholder="10,000" dir="ltr" className={INPUT} /></Field>
+                <Field label="תיאור / הערה"><input value={incDesc} onChange={e => setIncDesc(e.target.value)} placeholder="מקדמה ראשונה, תשלום סופי..." className={INPUT} /></Field>
+                <Btn loading={incLoading} disabled={!incProjectId || !incAmount}>רשום תשלום</Btn>
+                {incMsg && <p className={`text-xs ${incMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{incMsg}</p>}
+              </form>
+            </Card>
+
+            {income.length > 0 && (
+              <>
+                <Card title="סיכום הכנסות לפי פרויקט">
+                  <div className="divide-y divide-charcoal/5">
+                    {Object.entries(incomeTotals).map(([projId, total]) => {
+                      const proj = projects.find(p => p.id === projId);
+                      return (
+                        <div key={projId} className="flex justify-between items-center py-2">
+                          <span className="text-sm text-charcoal/60 truncate flex-1">{proj?.name ?? projId}</span>
+                          <span className="text-sm font-semibold tabular-nums text-green-600">₪{total.toLocaleString("he-IL")}</span>
+                        </div>
+                      );
+                    })}
+                    <div className="flex justify-between items-center pt-2">
+                      <span className="text-sm font-bold">סה&quot;כ הכנסות</span>
+                      <span className="text-base font-bold text-green-600 tabular-nums">
+                        ₪{Object.values(incomeTotals).reduce((a, b) => a + b, 0).toLocaleString("he-IL")}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card title="יומן תשלומים">
+                  <div className="divide-y divide-charcoal/5">
+                    {income.map(r => (
+                      <div key={r.id} className="py-2.5 flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">
+                            {(r.project as { name?: string } | null)?.name ?? projects.find(p => p.id === r.project_id)?.name ?? "—"}
+                          </p>
+                          {r.description && <p className="text-[0.7rem] text-charcoal/40">{r.description}</p>}
+                          <p className="text-[0.65rem] text-charcoal/30 tabular-nums" dir="ltr">{r.received_date}</p>
+                        </div>
+                        <span className="text-sm font-bold text-green-600 tabular-nums shrink-0">+₪{r.amount.toLocaleString("he-IL")}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── REPORTS (admin only) ───────────────────────────────────────────── */}
+        {tab === "reports" && isAdmin && (
+          <div className="space-y-5">
+            <Card>
+              <div className="flex items-center gap-2 mb-3">
+                <ClipboardList size={16} strokeWidth={1.5} className="text-accent" />
+                <h2 className="font-heading text-base font-bold">הגשת דוח יומי</h2>
+              </div>
+              <form onSubmit={handleAddReport} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="פרויקט">
+                    <select value={reportProjectId} onChange={e => setReportProjectId(e.target.value)} required className={INPUT}>
+                      <option value="">בחר פרויקט...</option>
+                      {activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="תאריך"><input type="date" value={reportDate} onChange={e => setReportDate(e.target.value)} className={INPUT} dir="ltr" /></Field>
+                </div>
+                <Field label="מזג אוויר">
+                  <select value={reportWeather} onChange={e => setReportWeather(e.target.value)} className={INPUT}>
+                    <option value="">בחר...</option>
+                    {WEATHER_OPTIONS.map(w => <option key={w} value={w}>{w}</option>)}
+                  </select>
+                </Field>
+                <Field label="סיכום עבודה">
+                  <textarea value={reportSummary} onChange={e => setReportSummary(e.target.value)} placeholder="תאר את עבודת היום..." rows={4} className={`${INPUT} resize-none`} />
+                </Field>
+                <Field label="אירועים מיוחדים">
+                  <textarea value={reportSpecial} onChange={e => setReportSpecial(e.target.value)} placeholder="תקלות, ביקורת, הנחיות..." rows={2} className={`${INPUT} resize-none`} />
+                </Field>
+                <Btn loading={reportLoading} disabled={!reportProjectId}>שמור דוח</Btn>
+                {reportMsg && <p className={`text-xs ${reportMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{reportMsg}</p>}
+              </form>
+            </Card>
+
+            {reports.length > 0 && (
+              <Card title="דוחות אחרונים">
+                <div className="divide-y divide-charcoal/5">
+                  {reports.slice(0, 10).map(r => (
+                    <div key={r.id} className="py-3 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold">{(r.project as { name?: string } | null)?.name ?? r.project_id}</p>
+                        <span className="text-[0.7rem] text-charcoal/40 tabular-nums">{r.date}</span>
+                      </div>
+                      {r.weather        && <p className="text-xs text-charcoal/50">{r.weather}</p>}
+                      {r.summary        && <p className="text-xs text-charcoal/70 line-clamp-2">{r.summary}</p>}
+                      {r.special_events && <p className="text-xs text-amber-600 line-clamp-1">⚠️ {r.special_events}</p>}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
+
+        <p className="text-center font-body text-[0.55rem] tracking-widest uppercase text-charcoal/20 pt-2">
+          בנין איתן — פורטל ניהול פנימי
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+const INPUT = "w-full border border-charcoal/15 bg-bone px-3 py-2.5 text-sm focus:border-accent focus:outline-none transition-colors";
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1">
+      <label className="text-[0.7rem] text-charcoal/50">{label}</label>
+      {children}
+    </div>
+  );
+}
+
+function Btn({ loading, disabled, children }: { loading: boolean; disabled?: boolean; children: React.ReactNode }) {
+  return (
+    <button type="submit" disabled={loading || disabled}
+      className="w-full bg-accent py-3 text-sm font-semibold tracking-wider uppercase text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors duration-200">
+      {loading ? "שומר..." : children}
+    </button>
+  );
+}
+
+function Card({ title, children }: { title?: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-white border border-warm-gray-light p-5 space-y-3">
+      {title && <h2 className="font-heading text-sm font-bold">{title}</h2>}
+      {children}
+    </div>
+  );
+}

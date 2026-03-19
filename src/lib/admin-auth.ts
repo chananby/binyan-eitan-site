@@ -1,49 +1,72 @@
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 
-const COOKIE_NAME = "be_admin_token";
+const ADMIN_COOKIE   = "be_admin_token";
+const FOREMAN_COOKIE = "be_foreman_token";
 
-// Derive the expected cookie token from the ADMIN_PASSWORD env var.
-// Simple base64 — sufficient for an internal tool behind HTTPS.
-function expectedToken(): string | null {
+export type AdminRole = "admin" | "foreman" | null;
+
+function adminToken(): string | null {
   const pw = process.env.ADMIN_PASSWORD;
-  if (!pw) return null;
-  return Buffer.from(pw).toString("base64");
+  return pw ? Buffer.from(pw).toString("base64") : null;
 }
 
-// ── Server-component helper (reads via next/headers) ──────────────────────────
-export function isAdminAuthed(): boolean {
-  const token = cookies().get(COOKIE_NAME)?.value;
-  const expected = expectedToken();
-  return !!expected && !!token && token === expected;
+function foremanToken(): string | null {
+  const pin = process.env.FOREMAN_PIN;
+  return pin ? Buffer.from(pin).toString("base64") : null;
 }
 
-// ── API-route helper (reads from the Request object) ──────────────────────────
+// ── Role detection ────────────────────────────────────────────────────────────
+export function getRoleFromRequest(req: NextRequest): AdminRole {
+  const at = req.cookies.get(ADMIN_COOKIE)?.value;
+  const ft = req.cookies.get(FOREMAN_COOKIE)?.value;
+  const ae = adminToken();
+  const fe = foremanToken();
+  if (ae && at === ae) return "admin";
+  if (fe && ft === fe) return "foreman";
+  return null;
+}
+
+/** Both admin and foreman are authed */
+export function isAuthedFromRequest(req: NextRequest): boolean {
+  return getRoleFromRequest(req) !== null;
+}
+
+/** Admin only */
 export function isAdminAuthedFromRequest(req: NextRequest): boolean {
-  const token = req.cookies.get(COOKIE_NAME)?.value;
-  const expected = expectedToken();
+  const at = req.cookies.get(ADMIN_COOKIE)?.value;
+  const ae = adminToken();
+  return !!ae && at === ae;
+}
+
+// ── Server-component helper ────────────────────────────────────────────────────
+export function isAdminAuthed(): boolean {
+  const token    = cookies().get(ADMIN_COOKIE)?.value;
+  const expected = adminToken();
   return !!expected && !!token && token === expected;
 }
 
 // ── Cookie builders ────────────────────────────────────────────────────────────
-export function buildAuthCookie(): { name: string; value: string; options: object } {
+export function buildAuthCookie() {
   return {
-    name: COOKIE_NAME,
-    value: expectedToken() ?? "",
-    options: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict" as const,
-      maxAge: 60 * 60 * 8, // 8 hours
-      path: "/",
-    },
+    name: ADMIN_COOKIE,
+    value: adminToken() ?? "",
+    options: { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict" as const, maxAge: 60 * 60 * 8, path: "/" },
   };
 }
 
-export function buildClearCookie(): { name: string; value: string; options: object } {
+export function buildClearCookie() {
+  return { name: ADMIN_COOKIE, value: "", options: { httpOnly: true, path: "/", maxAge: 0 } };
+}
+
+export function buildForemanAuthCookie() {
   return {
-    name: COOKIE_NAME,
-    value: "",
-    options: { httpOnly: true, path: "/", maxAge: 0 },
+    name: FOREMAN_COOKIE,
+    value: foremanToken() ?? "",
+    options: { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict" as const, maxAge: 60 * 60 * 8, path: "/" },
   };
+}
+
+export function buildForemanClearCookie() {
+  return { name: FOREMAN_COOKIE, value: "", options: { httpOnly: true, path: "/", maxAge: 0 } };
 }

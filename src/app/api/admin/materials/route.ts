@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
-import { isAdminAuthedFromRequest } from "../../../../lib/admin-auth";
+import { isAuthedFromRequest } from "../../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 
@@ -8,7 +8,7 @@ const VALID_UNITS = ["קוב", 'מ"ר', 'מ"א', "יחידות", "טון", 'ק"�
 const VALID_CATEGORIES = ["חומרים", "קבלן משנה", "הזמנות", "כלי עבודה"];
 
 export async function GET(req: NextRequest) {
-  if (!isAdminAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get("project_id");
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!isAdminAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let body: { project_id?: string; daily_report_id?: string; material_name?: string; quantity?: number; unit?: string; supplier?: string; cost?: number; category?: string; };
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }

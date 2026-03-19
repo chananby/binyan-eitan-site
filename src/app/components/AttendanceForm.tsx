@@ -1302,11 +1302,6 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
           אשר מיקום והמשך
         </button>
       </div>
-      <button onClick={() => setAdminView("password")}
-        className="mt-4 flex items-center gap-1.5 font-body text-[0.65rem] tracking-widest uppercase text-charcoal/20 hover:text-charcoal/50 transition-colors duration-200">
-        <Lock size={10} strokeWidth={1.5} />
-        ניהול
-      </button>
     </Screen>
   );
 }

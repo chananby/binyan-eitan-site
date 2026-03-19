@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
-import { isAdminAuthedFromRequest } from "../../../../lib/admin-auth";
+import { isAdminAuthedFromRequest, isAuthedFromRequest } from "../../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 
-// GET — list all projects (admin view, all statuses)
+// GET — list all projects (admin + foreman)
 export async function GET(req: NextRequest) {
-  if (!isAdminAuthedFromRequest(req)) {
+  if (!isAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const supabase = createServerClient();

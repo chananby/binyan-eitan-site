@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
-import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
+import { isAdminAuthedFromRequest, isAuthedFromRequest } from "../../../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 
@@ -8,7 +8,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  if (!isAdminAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let body: { status?: string; task_name?: string; start_date?: string; end_date?: string; contractor?: string; notes?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
