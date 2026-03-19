@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("staff")
-    .select("id, name, phone, role, active, national_id")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate")
     .order("active", { ascending: false })
     .order("name", { ascending: true });
 
@@ -34,14 +34,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { name?: string; phone?: string; role?: string; national_id?: string };
+  let body: { name?: string; phone?: string; role?: string; national_id?: string; hourly_rate?: number; daily_rate?: number };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { name, phone, role, national_id } = body;
+  const { name, phone, role, national_id, hourly_rate, daily_rate } = body;
   if (!name?.trim() || !phone?.trim()) {
     return NextResponse.json({ error: "שם וטלפון הם שדות חובה" }, { status: 400 });
   }
@@ -68,9 +68,9 @@ export async function POST(req: NextRequest) {
       phone: normalizedPhone,
       role: role ?? "עובד",
       active: true,
-      national_id: national_id?.trim() || null,
+      national_id: national_id?.trim() || null, hourly_rate: hourly_rate ?? null, daily_rate: daily_rate ?? null,
     })
-    .select("id, name, phone, role, active, national_id")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate")
     .single();
 
   if (error) {

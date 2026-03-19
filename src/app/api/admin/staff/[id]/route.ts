@@ -17,7 +17,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { active?: boolean; name?: string; phone?: string; role?: string; national_id?: string };
+  let body: { active?: boolean; name?: string; phone?: string; role?: string; national_id?: string; hourly_rate?: number | null; daily_rate?: number | null };
   try {
     body = await req.json();
   } catch {
@@ -49,6 +49,9 @@ export async function PATCH(
     update.national_id = id || null;
   }
 
+  if (body.hourly_rate !== undefined) update.hourly_rate = body.hourly_rate ?? null;
+  if (body.daily_rate  !== undefined) update.daily_rate  = body.daily_rate  ?? null;
+
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "אין שדות לעדכון" }, { status: 400 });
   }
@@ -58,7 +61,7 @@ export async function PATCH(
     .from("staff")
     .update(update)
     .eq("id", params.id)
-    .select("id, name, phone, role, active, national_id")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate")
     .single();
 
   if (error) {
