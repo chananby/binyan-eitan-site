@@ -25,7 +25,7 @@ interface AttendanceRecord {
   staff: { id: string; name: string; phone: string; role?: string } | null;
   project: { id: string; name: string } | null;
 }
-interface Project { id: string; name: string; address: string | null; status?: string; }
+interface Project { id: string; name: string; status?: string; }
 interface DailyReport {
   id: string; project_id: string; date: string; weather: string | null;
   summary: string | null; special_events: string | null; created_at: string;
@@ -98,7 +98,6 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
   // Admin — projects
   const [adminProjects, setAdminProjects]       = useState<Project[]>([]);
   const [newProjectName, setNewProjectName]     = useState("");
-  const [newProjectAddress, setNewProjectAddress] = useState("");
   const [projectAddLoading, setProjectAddLoading] = useState(false);
   const [projectAddMsg, setProjectAddMsg]       = useState("");
 
@@ -244,9 +243,9 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
   async function handleAddProject(e: React.FormEvent) {
     e.preventDefault(); setProjectAddLoading(true); setProjectAddMsg("");
     try {
-      const res  = await fetch("/api/admin/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newProjectName, address: newProjectAddress }) });
+      const res  = await fetch("/api/admin/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newProjectName }) });
       const data = await res.json();
-      if (res.ok) { setProjectAddMsg("✓ " + newProjectName + " נוסף"); setNewProjectName(""); setNewProjectAddress(""); loadAdminData(); }
+      if (res.ok) { setProjectAddMsg("✓ " + newProjectName + " נוסף"); setNewProjectName(""); loadAdminData(); }
       else        { setProjectAddMsg("שגיאה: " + (data.error ?? res.status)); }
     } catch (err) { setProjectAddMsg("שגיאת רשת: " + String(err)); }
     finally { setProjectAddLoading(false); }
@@ -583,9 +582,6 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
                   <Field label="שם הפרויקט / אתר">
                     <input value={newProjectName} onChange={e => setNewProjectName(e.target.value)} required placeholder="פרויקט רחוב הרצל 12" className={INPUT} />
                   </Field>
-                  <Field label="כתובת / מיקום (אופציונלי)">
-                    <input value={newProjectAddress} onChange={e => setNewProjectAddress(e.target.value)} placeholder="רחוב הרצל 12, ירושלים" className={INPUT} />
-                  </Field>
                   <Btn loading={projectAddLoading}>הוסף פרויקט</Btn>
                   {projectAddMsg && <p className={`text-xs ${projectAddMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{projectAddMsg}</p>}
                 </form>
@@ -607,7 +603,6 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
                       <div key={p.id} className={`flex items-start justify-between py-3 gap-2 ${p.status !== "active" ? "opacity-45" : ""}`}>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-charcoal truncate">{p.name}</p>
-                          {p.address && <p className="text-[0.7rem] text-charcoal/40 truncate">{p.address}</p>}
                         </div>
                         <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${p.status === "active" ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>
                           {p.status === "active" ? "פעיל" : "לא פעיל"}
@@ -925,7 +920,6 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
                   <Building2 size={18} strokeWidth={1.5} className="shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-heading text-sm font-semibold truncate">{p.name}</p>
-                    {p.address && <p className="font-body text-[0.7rem] text-charcoal/40 truncate">{p.address}</p>}
                   </div>
                 </button>
               ))}

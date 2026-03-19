@@ -12,7 +12,7 @@ export async function PATCH(
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  let body: { status?: string; name?: string; address?: string };
+  let body: { status?: string; name?: string };
   try { body = await req.json(); } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
@@ -22,7 +22,7 @@ export async function PATCH(
     .from("projects")
     .update(body)
     .eq("id", params.id)
-    .select("id, name, address, status")
+    .select("id, name, status")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

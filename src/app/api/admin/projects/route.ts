@@ -12,8 +12,8 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("projects")
-    .select("id, name, address, status")
-    .order("status", { ascending: true })   // active first
+    .select("id, name, status")
+    .order("status", { ascending: true })
     .order("name",   { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { name, address } = body;
+  const { name } = body;
   if (!name?.trim()) {
     return NextResponse.json({ error: "שם הפרויקט הוא שדה חובה" }, { status: 400 });
   }
@@ -38,8 +38,8 @@ export async function POST(req: NextRequest) {
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("projects")
-    .insert({ name: name.trim(), address: address?.trim() || null, status: "active" })
-    .select("id, name, address, status")
+    .insert({ name: name.trim(), status: "active" })
+    .select("id, name, status")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
