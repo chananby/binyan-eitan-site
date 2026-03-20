@@ -360,11 +360,15 @@ export default function AdminPortal() {
 
   // ── PIN digit entry ────────────────────────────────────────────────────────
   function handlePinKey(digit: string) {
+    if (loginLoading) return;
+    setLoginErr("");
     const next = pin + digit;
-    if (next.length <= 6) {
-      setPin(next);
-      if (next.length >= 4) handlePinLogin(next);
-    }
+    if (next.length <= 8) setPin(next);
+  }
+
+  function handlePinBackspace() {
+    setLoginErr("");
+    setPin(p => p.slice(0, -1));
   }
 
   // ── Worker CRUD ────────────────────────────────────────────────────────────
@@ -580,10 +584,12 @@ export default function AdminPortal() {
         <div className="w-full max-w-xs space-y-6">
           {loginMode === "pin" ? (
             <>
-              {/* PIN display */}
-              <div className="flex justify-center gap-3">
-                {Array.from({ length: 6 }, (_, i) => (
-                  <div key={i} className={`w-8 h-8 rounded-full border-2 transition-colors flex items-center justify-center ${i < pin.length ? "border-accent bg-accent" : "border-charcoal/20 bg-white"}`}>
+              {/* PIN display — 8 circles, max PIN length */}
+              <div className="flex justify-center gap-2">
+                {Array.from({ length: 8 }, (_, i) => (
+                  <div key={i} className={`w-7 h-7 rounded-full border-2 transition-all duration-150 flex items-center justify-center ${
+                    i < pin.length ? "border-accent bg-accent scale-110" : "border-charcoal/15 bg-white"
+                  }`}>
                     {i < pin.length && <div className="w-2 h-2 rounded-full bg-white" />}
                   </div>
                 ))}
@@ -592,7 +598,7 @@ export default function AdminPortal() {
               <div className="grid grid-cols-3 gap-2">
                 {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((k, i) => (
                   <button key={i} disabled={loginLoading || !k}
-                    onClick={() => k === "⌫" ? setPin(p => p.slice(0, -1)) : k && handlePinKey(k)}
+                    onClick={() => k === "⌫" ? handlePinBackspace() : k && handlePinKey(k)}
                     className={`h-14 text-xl font-semibold border transition-all active:scale-95 ${
                       !k ? "invisible" :
                       k === "⌫" ? "border-charcoal/10 text-charcoal/40 hover:border-accent hover:text-accent" :
@@ -602,11 +608,16 @@ export default function AdminPortal() {
                   </button>
                 ))}
               </div>
-              {loginLoading && (
-                <div className="flex items-center justify-center gap-2 text-accent text-sm">
-                  <Loader2 size={16} className="animate-spin" /> מאמת...
-                </div>
-              )}
+              {/* Confirm button — visible once ≥4 digits entered */}
+              <button
+                onClick={() => handlePinLogin(pin)}
+                disabled={pin.length < 4 || loginLoading}
+                className="w-full bg-accent py-3.5 font-body text-sm font-semibold tracking-[0.18em] uppercase text-bone hover:bg-accent-dark disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
+              >
+                {loginLoading
+                  ? <><Loader2 size={15} className="animate-spin" /> מאמת...</>
+                  : <><LogIn size={15} /> כניסה</>}
+              </button>
             </>
           ) : (
             <form onSubmit={handlePasswordLogin} className="space-y-4">
