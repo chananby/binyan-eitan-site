@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
@@ -106,6 +107,15 @@ export default function Footer() {
                   <span className="text-[0.6rem]" aria-hidden="true">⊕</span>
                   {lang === "he" ? "מעבדת הדיוק" : "Precision Lab"}
                 </button>
+              </li>
+              <li className="pt-3 border-t border-bone/[0.07] mt-2">
+                <Link
+                  href="/admin"
+                  className="font-body text-sm text-bone/45 hover:text-accent transition-colors duration-200 flex items-center gap-2"
+                >
+                  <Lock size={13} strokeWidth={1.5} className="shrink-0 opacity-70" />
+                  {lang === "he" ? "כניסת צוות" : "Staff Login"}
+                </Link>
               </li>
             </ul>
           </div>

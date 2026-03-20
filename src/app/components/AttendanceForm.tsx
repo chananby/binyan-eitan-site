@@ -1316,6 +1316,13 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
           אשר מיקום והמשך
         </button>
       </div>
+      <Link
+        href="/admin"
+        className="mt-4 flex items-center gap-1.5 font-body text-[0.65rem] tracking-wide text-charcoal/25 hover:text-accent/70 transition-colors duration-200"
+      >
+        <Lock size={11} strokeWidth={1.5} className="shrink-0" />
+        מעבר לממשק ניהול
+      </Link>
     </Screen>
   );
 }
