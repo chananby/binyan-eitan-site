@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useFeedback } from "../hooks/useFeedback";
 import SuccessFlash from "./SuccessFlash";
+import ForemanPortal from "./ForemanPortal";
 import Image from "next/image";
 import {
   LogIn, Building2, Package, BarChart2, LayoutDashboard, Hammer,
@@ -89,10 +90,11 @@ function getWeekDays(): { date: string; label: string; short: string }[] {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function AdminPortal() {
-  const [authState,    setAuthState]    = useState<AuthState>("loading");
-  const [loginMode,    setLoginMode]    = useState<LoginMode>("pin");
-  const [tab,          setTab]          = useState<AdminTab>("dashboard");
-  const [foremanName,  setForemanName]  = useState<string | null>(null);
+  const [authState,      setAuthState]      = useState<AuthState>("loading");
+  const [loginMode,      setLoginMode]      = useState<LoginMode>("pin");
+  const [tab,            setTab]            = useState<AdminTab>("dashboard");
+  const [foremanName,    setForemanName]    = useState<string | null>(null);
+  const [foremanStaffId, setForemanStaffId] = useState<string | null>(null);
 
   // Login state
   const [pin,      setPin]      = useState("");
@@ -261,7 +263,8 @@ export default function AdminPortal() {
       .then(r => r.json())
       .then(d => {
         setAuthState(d.role ?? "unauthenticated");
-        if (d.name) setForemanName(d.name);
+        if (d.name)    setForemanName(d.name);
+        if (d.staffId) setForemanStaffId(d.staffId);
       })
       .catch(() => setAuthState("unauthenticated"));
   }, []);
@@ -333,7 +336,7 @@ export default function AdminPortal() {
     try {
       const res  = await fetch("/api/foreman-auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: submittedPin }) });
       const data = await res.json();
-      if (data.ok) { feedback.success(); setShowFlash(true); setForemanName(data.name ?? null); setAuthState("foreman"); }
+      if (data.ok) { feedback.success(); setShowFlash(true); setForemanName(data.name ?? null); setForemanStaffId(data.staffId ?? null); setAuthState("foreman"); }
       else { feedback.error(); setLoginErr("קוד שגוי"); setPin(""); }
     } catch { setLoginErr("שגיאת רשת"); }
     finally { setLoginLoading(false); }
@@ -642,9 +645,20 @@ export default function AdminPortal() {
     );
   }
 
-  // ── Render: portal ─────────────────────────────────────────────────────────
+  // ── Render: foreman portal (dedicated mobile UX) ───────────────────────────
+  if (authState === "foreman") {
+    return (
+      <ForemanPortal
+        staffId={foremanStaffId ?? ""}
+        foremanName={foremanName ?? "ממונה"}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // ── Render: admin portal ────────────────────────────────────────────────────
   const isAdmin   = authState === "admin";
-  const isForeman = authState === "foreman";
+  const isForeman = false; // kept for any remaining references
 
   type TabDef = { key: AdminTab; label: string; icon: React.ReactNode; adminOnly?: boolean };
   const TABS: TabDef[] = [
@@ -1078,16 +1092,41 @@ export default function AdminPortal() {
               </div>
               {projects.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין פרויקטים</p>}
               <div className="divide-y divide-charcoal/5">
-                {projects.map(p => (
-                  <div key={p.id} className={`flex items-center justify-between py-3 gap-2 ${p.status !== "active" ? "opacity-45" : ""}`}>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">{p.name}</p>
-                      <p className="text-[0.65rem] text-charcoal/30">{tasks.filter(t => t.project_id === p.id && t.status !== "completed").length} משימות פעילות</p>
+                {projects.map((p: Project & { foreman_id?: string | null }) => {
+                  const assignedForeman = staff.find(s => s.id === p.foreman_id);
+                  return (
+                  <div key={p.id} className={`py-3 space-y-2 ${p.status !== "active" ? "opacity-45" : ""}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">{p.name}</p>
+                        <p className="text-[0.65rem] text-charcoal/30">{tasks.filter(t => t.project_id === p.id && t.status !== "completed").length} משימות פעילות</p>
+                      </div>
+                      <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${p.status === "active" ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{p.status === "active" ? "פעיל" : "לא פעיל"}</span>
+                      <button onClick={() => toggleProjectStatus(p.id, p.status ?? "active")} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{p.status === "active" ? "השבת" : "הפעל"}</button>
                     </div>
-                    <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${p.status === "active" ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{p.status === "active" ? "פעיל" : "לא פעיל"}</span>
-                    <button onClick={() => toggleProjectStatus(p.id, p.status ?? "active")} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{p.status === "active" ? "השבת" : "הפעל"}</button>
+                    {/* Foreman assignment */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[0.65rem] text-charcoal/40 shrink-0">ממונה:</span>
+                      <select
+                        value={p.foreman_id ?? ""}
+                        onChange={async e => {
+                          await fetch(`/api/admin/projects/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ foreman_id: e.target.value || null }) });
+                          reload();
+                        }}
+                        className="flex-1 text-[0.65rem] border border-charcoal/10 bg-bone px-2 py-1 focus:border-accent focus:outline-none"
+                      >
+                        <option value="">— ללא ממונה —</option>
+                        {staff.filter(s => s.role === "ממונה" && s.active).map(s => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                      {assignedForeman && (
+                        <span className="text-[0.6rem] bg-accent/10 text-accent px-1.5 py-0.5 shrink-0">{assignedForeman.name}</span>
+                      )}
+                    </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </Card>
           </div>

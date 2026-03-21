@@ -12,17 +12,27 @@ export async function PATCH(
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  let body: { status?: string; name?: string };
+  let body: { status?: string; name?: string; foreman_id?: string | null };
   try { body = await req.json(); } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  // Only allow updating known fields
+  const update: Record<string, unknown> = {};
+  if (body.status     !== undefined) update.status     = body.status;
+  if (body.name       !== undefined) update.name       = body.name?.trim() || null;
+  if (body.foreman_id !== undefined) update.foreman_id = body.foreman_id || null;
+
+  if (Object.keys(update).length === 0) {
+    return NextResponse.json({ error: "No fields to update" }, { status: 400 });
   }
 
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("projects")
-    .update(body)
+    .update(update)
     .eq("id", params.id)
-    .select("id, name, status")
+    .select("id, name, status, foreman_id")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
