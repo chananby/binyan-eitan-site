@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Lock } from "lucide-react";
+import { Clock, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
@@ -108,14 +108,27 @@ export default function Footer() {
                   {lang === "he" ? "מעבדת הדיוק" : "Precision Lab"}
                 </button>
               </li>
-              <li className="pt-3 border-t border-bone/[0.07] mt-2">
-                <Link
-                  href="/admin"
-                  className="font-body text-sm text-bone/45 hover:text-accent transition-colors duration-200 flex items-center gap-2"
-                >
-                  <Lock size={13} strokeWidth={1.5} className="shrink-0 opacity-70" />
-                  {lang === "he" ? "כניסת צוות" : "Staff Login"}
-                </Link>
+              <li className="pt-3 mt-2 border-t border-bone/[0.07]">
+                <p className="font-body text-[0.58rem] font-bold tracking-[0.18em] uppercase text-bone/25 mb-2.5">
+                  {lang === "he" ? "כניסת צוות" : "Staff Access"}
+                </p>
+                <div className="flex items-center gap-3">
+                  <Link
+                    href="/attendance"
+                    className="font-body text-[0.7rem] text-bone/50 hover:text-accent transition-colors duration-200 flex items-center gap-1.5 group"
+                  >
+                    <Clock size={11} strokeWidth={1.5} className="shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
+                    {lang === "he" ? "שעון נוכחות" : "Attendance"}
+                  </Link>
+                  <span className="text-bone/15 text-xs select-none">|</span>
+                  <Link
+                    href="/admin"
+                    className="font-body text-[0.7rem] text-bone/50 hover:text-accent transition-colors duration-200 flex items-center gap-1.5 group"
+                  >
+                    <ShieldCheck size={11} strokeWidth={1.5} className="shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
+                    {lang === "he" ? "מערכת ניהול" : "Management"}
+                  </Link>
+                </div>
               </li>
             </ul>
           </div>
