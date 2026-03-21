@@ -1,12 +1,37 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
 
   // Never apply middleware to API routes or internal routes
   if (pathname.startsWith("/api") || pathname.startsWith("/internal")) {
     return NextResponse.next();
+  }
+
+  // ── Maintenance mode ───────────────────────────────────────────────────────
+  // Skip: admin workspace, the maintenance page itself, static assets
+  const isAdminRoute       = pathname.startsWith("/admin");
+  const isMaintenancePage  = pathname.startsWith("/maintenance");
+  if (!isAdminRoute && !isMaintenancePage) {
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (supabaseUrl && supabaseKey) {
+        const res = await fetch(
+          `${supabaseUrl}/rest/v1/settings?key=eq.maintenance_mode&select=value&limit=1`,
+          { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
+        );
+        if (res.ok) {
+          const rows: { value: string }[] = await res.json();
+          if (rows[0]?.value === "true") {
+            return NextResponse.redirect(new URL("/maintenance", req.url));
+          }
+        }
+      }
+    } catch {
+      // If the check fails, never block the user — fail open
+    }
   }
 
   // preview mode bypass via query or cookie
@@ -57,5 +82,12 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/en/:path*", "/he/:path*", "/api/:path*", "/internal/:path*"],
+  matcher: [
+    "/en/:path*",
+    "/he/:path*",
+    "/api/:path*",
+    "/internal/:path*",
+    "/attendance",
+    "/",
+  ],
 };

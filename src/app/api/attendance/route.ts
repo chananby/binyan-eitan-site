@@ -30,9 +30,11 @@ export async function POST(req: NextRequest) {
   }
 
   const { phone, action, lat, lng, timestamp, project_id } = body;
-  if (!phone || !action || !lat || !lng) {
-    return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
+  if (!phone || !action) {
+    return NextResponse.json({ success: false, error: "Missing required fields: phone, action" }, { status: 400 });
   }
+  // GPS is optional — record without coordinates if unavailable
+  const hasGps = !!(lat && lng);
 
   // ── Init Supabase ──────────────────────────────────────────────────────────
   // Accepts SUPABASE_URL *or* NEXT_PUBLIC_SUPABASE_URL (whichever is set in Vercel)
@@ -148,13 +150,18 @@ export async function POST(req: NextRequest) {
   // IMPORTANT: column names must match your actual Supabase `attendance` table.
   // Common mismatch: `timestamp_label` — your table might not have this column.
   // If you see an error here, remove the timestamp_label field or rename it.
+  const normalizedAction = action === "כניסה" ? "in" : action === "יציאה" ? "out" : action;
+  if (!["in", "out"].includes(normalizedAction)) {
+    return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
+  }
+
   const attendancePayload: Record<string, unknown> = {
     staff_id: resolvedStaff!.id,
-    action: action === "כניסה" ? "in" : "out",
-    lat,
-    lng,
+    action:   normalizedAction,
   };
 
+  // GPS is optional — include only when available
+  if (hasGps) { attendancePayload.lat = lat; attendancePayload.lng = lng; }
   if (timestamp)  attendancePayload.timestamp_label = timestamp;
   if (project_id) attendancePayload.project_id = project_id;
 
@@ -173,7 +180,8 @@ export async function POST(req: NextRequest) {
   // ── 3. Daily message (optional, non-blocking) ──────────────────────────────
   let dailyMessage: string | null = null;
   try {
-    const today = new Date().toISOString().slice(0, 10);
+    // Use Israel timezone for date — avoids UTC/midnight mismatch (IL is UTC+2/+3)
+    const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
     const [{ data: msg }, { data: msgDate }] = await Promise.all([
       supabase.from("settings").select("value").eq("key", "daily_message").maybeSingle(),
       supabase.from("settings").select("value").eq("key", "daily_message_date").maybeSingle(),

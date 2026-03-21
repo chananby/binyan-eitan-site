@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import {
   CheckCircle2, XCircle, AlertTriangle, Activity,
   RefreshCw, ChevronLeft, Loader2, Clock, Database,
-  Server, ShieldCheck, Home,
+  Server, ShieldCheck, Home, Zap, PowerOff, Power,
 } from "lucide-react";
 
 type CheckStatus = "ok" | "fail" | "warn";
@@ -18,6 +18,7 @@ interface CheckResult {
   fix?: string;
   ms?: number;
 }
+interface AttStep { name: string; ok: boolean; detail: string; ms: number; }
 
 const API_PINGS = [
   { id: "ping_projects",   name: "/api/admin/projects",  url: "/api/admin/projects" },
@@ -42,16 +43,16 @@ function StatusIcon({ status }: { status: CheckStatus | "idle" | "running" }) {
   return                           <AlertTriangle size={24} className="text-amber-400" />;
 }
 
-function statusColor(s: CheckStatus | "idle" | "running") {
-  if (s === "ok")      return "border-emerald-500/30 bg-emerald-500/5";
-  if (s === "fail")    return "border-red-500/30 bg-red-500/5";
-  if (s === "warn")    return "border-amber-500/30 bg-amber-500/5";
+function statusBorder(s: CheckStatus | "idle" | "running") {
+  if (s === "ok")   return "border-emerald-500/30 bg-emerald-500/5";
+  if (s === "fail") return "border-red-500/30 bg-red-500/5";
+  if (s === "warn") return "border-amber-500/30 bg-amber-500/5";
   return "border-white/8 bg-white/[0.02]";
 }
 
 function CheckCard({ r }: { r: CheckResult }) {
   return (
-    <div className={`flex items-start gap-3 px-4 py-3 border ${statusColor(r.status)} transition-colors`}>
+    <div className={`flex items-start gap-3 px-4 py-3 border ${statusBorder(r.status)} transition-colors`}>
       <div className="pt-0.5 shrink-0"><StatusIcon status={r.status} /></div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
@@ -78,7 +79,6 @@ function SectionBlock({ sectionKey, results }: { sectionKey: string; results: Ch
   const meta   = SECTION_META[sectionKey];
   const failed = results.filter(r => r.status === "fail").length;
   const warned = results.filter(r => r.status === "warn").length;
-
   return (
     <div>
       <div className="flex items-center gap-2 mb-2 px-1">
@@ -95,19 +95,31 @@ function SectionBlock({ sectionKey, results }: { sectionKey: string; results: Ch
 }
 
 export default function HealthPage() {
-  const [results,    setResults]    = useState<CheckResult[]>([]);
-  const [running,    setRunning]    = useState(false);
-  const [checkedAt,  setCheckedAt]  = useState<string | null>(null);
-  const [authError,  setAuthError]  = useState(false);
+  const [results,       setResults]       = useState<CheckResult[]>([]);
+  const [running,       setRunning]       = useState(false);
+  const [checkedAt,     setCheckedAt]     = useState<string | null>(null);
+  const [authError,     setAuthError]     = useState(false);
+
+  // Live attendance test
+  const [attRunning,    setAttRunning]    = useState(false);
+  const [attSteps,      setAttSteps]      = useState<AttStep[] | null>(null);
+  const [attOk,         setAttOk]         = useState<boolean | null>(null);
+
+  // Maintenance mode
+  const [maintenance,   setMaintenance]   = useState<boolean | null>(null);
+  const [maintLoading,  setMaintLoading]  = useState(false);
+
+  // Load maintenance status on mount
+  useEffect(() => {
+    fetch("/api/admin/maintenance")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setMaintenance(d.maintenance); })
+      .catch(() => {});
+  }, []);
 
   const runDiagnostics = useCallback(async () => {
-    setRunning(true);
-    setResults([]);
-    setCheckedAt(null);
-    setAuthError(false);
-
+    setRunning(true); setResults([]); setCheckedAt(null); setAuthError(false);
     try {
-      // 1. Server-side checks
       const res = await fetch("/api/admin/health");
       if (res.status === 401) { setAuthError(true); setRunning(false); return; }
       const data = await res.json();
@@ -115,20 +127,13 @@ export default function HealthPage() {
       setResults(serverResults);
       setCheckedAt(data.checkedAt ?? null);
 
-      // 2. API pings (client-side, measured from browser)
       const pingResults: CheckResult[] = await Promise.all(
         API_PINGS.map(async ({ id, name, url }) => {
           const t0 = Date.now();
           try {
             const r = await fetch(url);
             const ms = Date.now() - t0;
-            return {
-              id, section: "api", name,
-              status: (r.ok ? (ms < 1500 ? "ok" : "warn") : "fail") as CheckStatus,
-              detail: r.ok ? `HTTP ${r.status}` : `HTTP ${r.status} — שגיאה`,
-              ms,
-              fix: !r.ok ? `בדוק את ה-API endpoint ${url}` : undefined,
-            };
+            return { id, section: "api", name, status: (r.ok ? (ms < 1500 ? "ok" : "warn") : "fail") as CheckStatus, detail: r.ok ? `HTTP ${r.status}` : `HTTP ${r.status} — שגיאה`, ms, fix: !r.ok ? `בדוק את ה-endpoint ${url}` : undefined };
           } catch (e) {
             return { id, section: "api", name, status: "fail" as CheckStatus, detail: String(e), ms: Date.now() - t0, fix: `ה-endpoint ${url} לא מגיב` };
           }
@@ -142,14 +147,38 @@ export default function HealthPage() {
     }
   }, []);
 
-  // Group by section
-  const sections = ["env", "db", "schema", "data", "api"];
-  const grouped  = sections.map(s => ({ key: s, items: results.filter(r => r.section === s) })).filter(g => g.items.length > 0);
+  const runAttendanceTest = useCallback(async () => {
+    setAttRunning(true); setAttSteps(null); setAttOk(null);
+    try {
+      const res = await fetch("/api/admin/health/test-attendance", { method: "POST" });
+      if (res.status === 401) { setAuthError(true); return; }
+      const data = await res.json();
+      setAttSteps(data.steps ?? []);
+      setAttOk(data.ok ?? false);
+    } catch (e) {
+      setAttSteps([{ name: "שגיאת רשת", ok: false, detail: String(e), ms: 0 }]);
+      setAttOk(false);
+    } finally {
+      setAttRunning(false);
+    }
+  }, []);
 
-  const total  = results.length;
-  const failed = results.filter(r => r.status === "fail").length;
-  const warned = results.filter(r => r.status === "warn").length;
-  const passed = results.filter(r => r.status === "ok").length;
+  const toggleMaintenance = useCallback(async () => {
+    if (maintenance === null) return;
+    setMaintLoading(true);
+    try {
+      const res = await fetch("/api/admin/maintenance", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: !maintenance }) });
+      if (res.ok) { const d = await res.json(); setMaintenance(d.maintenance); }
+    } catch { /* ignore */ }
+    finally { setMaintLoading(false); }
+  }, [maintenance]);
+
+  const sections  = ["env", "db", "schema", "data", "api"];
+  const grouped   = sections.map(s => ({ key: s, items: results.filter(r => r.section === s) })).filter(g => g.items.length > 0);
+  const total     = results.length;
+  const failed    = results.filter(r => r.status === "fail").length;
+  const warned    = results.filter(r => r.status === "warn").length;
+  const passed    = results.filter(r => r.status === "ok").length;
   const overallOk = total > 0 && failed === 0;
 
   return (
@@ -166,30 +195,58 @@ export default function HealthPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link href="/he" className="flex items-center gap-1.5 text-[0.68rem] text-white/25 hover:text-white/60 transition-colors">
-            <Home size={12} strokeWidth={1.5} />
-            דף הבית
+            <Home size={12} strokeWidth={1.5} /> דף הבית
           </Link>
           <Link href="/admin" className="flex items-center gap-1.5 text-[0.68rem] text-white/25 hover:text-accent transition-colors">
-            <ChevronLeft size={13} strokeWidth={1.5} />
-            ממשק ניהול
+            <ChevronLeft size={13} strokeWidth={1.5} /> ממשק ניהול
           </Link>
         </div>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
 
-        {/* Run button + summary */}
-        <div className="text-center space-y-5">
+        {/* ── Maintenance toggle ───────────────────────────────────────────── */}
+        <div className={`border px-5 py-4 flex items-center justify-between gap-4 ${maintenance ? "border-amber-500/40 bg-amber-500/[0.06]" : "border-white/8 bg-white/[0.02]"}`}>
+          <div className="flex items-center gap-3">
+            {maintenance
+              ? <PowerOff size={20} className="text-amber-400 shrink-0" />
+              : <Power     size={20} className="text-emerald-400 shrink-0" />}
+            <div>
+              <p className="text-sm font-bold">{maintenance ? "מצב תחזוקה — פעיל" : "האתר פעיל"}</p>
+              <p className="text-[0.65rem] text-white/35 mt-0.5">
+                {maintenance ? "כל הדפים הציבוריים מנותבים לדף תחזוקה" : "הדפים הציבוריים נגישים למבקרים"}
+              </p>
+            </div>
+          </div>
           <button
-            onClick={runDiagnostics}
-            disabled={running}
-            className="inline-flex items-center gap-2.5 bg-accent hover:bg-accent-dark disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-4 text-sm font-bold tracking-[0.15em] uppercase transition-colors duration-200"
+            onClick={toggleMaintenance}
+            disabled={maintLoading || maintenance === null}
+            className={`shrink-0 px-4 py-2 text-xs font-bold tracking-wide uppercase transition-colors disabled:opacity-40 disabled:cursor-not-allowed border ${maintenance ? "border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10" : "border-amber-500/40 text-amber-400 hover:bg-amber-500/10"}`}
           >
-            {running
-              ? <><Loader2 size={16} className="animate-spin" /> מריץ אבחון...</>
-              : <><RefreshCw size={16} strokeWidth={2} /> הרץ אבחון מלא</>
-            }
+            {maintLoading ? <Loader2 size={13} className="animate-spin" /> : maintenance ? "הפעל אתר" : "הפעל תחזוקה"}
           </button>
+        </div>
+
+        {/* ── Main diagnostics ─────────────────────────────────────────────── */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={runDiagnostics}
+              disabled={running}
+              className="inline-flex items-center gap-2 bg-accent hover:bg-accent-dark disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 text-sm font-bold tracking-[0.12em] uppercase transition-colors duration-200"
+            >
+              {running ? <><Loader2 size={14} className="animate-spin" /> מריץ...</> : <><RefreshCw size={14} strokeWidth={2} /> הרץ אבחון מלא</>}
+            </button>
+
+            {/* Live attendance test */}
+            <button
+              onClick={runAttendanceTest}
+              disabled={attRunning}
+              className="inline-flex items-center gap-2 border border-accent/40 hover:border-accent hover:bg-accent/10 disabled:opacity-50 disabled:cursor-not-allowed text-accent px-6 py-3 text-sm font-bold tracking-[0.12em] uppercase transition-colors duration-200"
+            >
+              {attRunning ? <><Loader2 size={14} className="animate-spin" /> בודק...</> : <><Zap size={14} strokeWidth={2} /> בדיקת נוכחות חיה</>}
+            </button>
+          </div>
 
           {checkedAt && (
             <p className="text-[0.6rem] text-white/20 tabular-nums">
@@ -202,9 +259,7 @@ export default function HealthPage() {
         {authError && (
           <div className="border border-red-500/30 bg-red-500/5 px-5 py-4 text-center">
             <p className="text-sm text-red-400 font-semibold">לא מחובר כמנהל</p>
-            <Link href="/admin" className="text-xs text-white/40 hover:text-accent mt-1 inline-block">
-              → כניסה לממשק ניהול
-            </Link>
+            <Link href="/admin" className="text-xs text-white/40 hover:text-accent mt-1 inline-block">→ כניסה לממשק ניהול</Link>
           </div>
         )}
 
@@ -212,9 +267,7 @@ export default function HealthPage() {
         {total > 0 && !running && (
           <div className={`border px-5 py-4 flex items-center justify-between ${overallOk ? "border-emerald-500/30 bg-emerald-500/5" : "border-red-500/30 bg-red-500/5"}`}>
             <div className="flex items-center gap-2">
-              {overallOk
-                ? <CheckCircle2 size={20} className="text-emerald-400" />
-                : <XCircle      size={20} className="text-red-400" />}
+              {overallOk ? <CheckCircle2 size={20} className="text-emerald-400" /> : <XCircle size={20} className="text-red-400" />}
               <p className="text-sm font-bold">
                 {overallOk ? "המערכת תקינה" : `נמצאו ${failed} שגיאות`}
                 {warned > 0 && ` · ${warned} אזהרות`}
@@ -228,10 +281,42 @@ export default function HealthPage() {
           </div>
         )}
 
+        {/* Live attendance test results */}
+        {(attSteps || attRunning) && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 px-1">
+              <Zap size={14} strokeWidth={1.5} className="text-accent/60" />
+              <h2 className="text-[0.65rem] font-bold tracking-[0.2em] uppercase text-white/35">בדיקת נוכחות חיה</h2>
+              {attOk !== null && (
+                <span className={`text-[0.58rem] px-1.5 py-0.5 font-semibold ${attOk ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
+                  {attOk ? "תקין" : "נכשל"}
+                </span>
+              )}
+            </div>
+            {attRunning && <div className="h-12 border border-white/5 bg-white/[0.02] animate-pulse" />}
+            {attSteps?.map((s, i) => (
+              <div key={i} className={`flex items-start gap-3 px-4 py-3 border ${s.ok ? "border-emerald-500/25 bg-emerald-500/[0.04]" : "border-red-500/25 bg-red-500/[0.04]"}`}>
+                <div className="pt-0.5 shrink-0">
+                  {s.ok ? <CheckCircle2 size={18} className="text-emerald-400" /> : <XCircle size={18} className="text-red-400" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-semibold text-white/85">{s.name}</p>
+                    <span className={`text-[0.58rem] px-1.5 py-0.5 ${s.ms < 500 ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
+                      {s.ms}ms
+                    </span>
+                  </div>
+                  <p className="text-[0.68rem] text-white/35 mt-0.5">{s.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Running skeleton */}
         {running && (
           <div className="space-y-2">
-            {[...Array(5)].map((_, i) => (
+            {[...Array(6)].map((_, i) => (
               <div key={i} className="h-14 border border-white/5 bg-white/[0.02] animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
             ))}
           </div>
@@ -245,10 +330,10 @@ export default function HealthPage() {
         )}
 
         {/* Empty state */}
-        {!running && total === 0 && !authError && (
-          <div className="text-center py-16 text-white/15">
+        {!running && total === 0 && !authError && !attSteps && (
+          <div className="text-center py-12 text-white/15">
             <Activity size={40} strokeWidth={1} className="mx-auto mb-4 opacity-30" />
-            <p className="text-sm">לחץ על הכפתור להרצת אבחון מלא</p>
+            <p className="text-sm">לחץ על אחד מהכפתורים להתחלת הבדיקה</p>
           </div>
         )}
 
