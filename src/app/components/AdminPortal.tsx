@@ -8,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   LogIn, Building2, Package, BarChart2, LayoutDashboard, Hammer,
-  ClipboardList, UserPlus, RefreshCw, Pencil, Loader2,
+  ClipboardList, UserPlus, RefreshCw, Pencil, Loader2, Activity,
   AlertCircle, AlertTriangle, TrendingUp, DollarSign, Target, CheckSquare2,
   Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag,
 } from "lucide-react";
@@ -701,10 +701,19 @@ export default function AdminPortal() {
               {isAdmin ? "ממשק מנהל" : foremanName ? `ברוך הבא, ${foremanName}` : "ממשק מנהל עבודה"}
             </h1>
           </div>
-          <button onClick={handleLogout}
-            className="border border-charcoal/20 px-3 py-1.5 text-xs text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
-            יציאה
-          </button>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Link href="/admin/health"
+                className="flex items-center gap-1.5 border border-charcoal/15 px-3 py-1.5 text-xs text-charcoal/40 hover:border-accent hover:text-accent transition-colors duration-200">
+                <Activity size={12} strokeWidth={1.5} />
+                סטטוס מערכת
+              </Link>
+            )}
+            <button onClick={handleLogout}
+              className="border border-charcoal/20 px-3 py-1.5 text-xs text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
+              יציאה
+            </button>
+          </div>
         </div>
 
         {/* Stats strip */}
