@@ -1354,6 +1354,13 @@ function Card({ title, children }: { title?: string; children: React.ReactNode }
 function Screen({ children, backHref, backLabel }: { children: React.ReactNode; backHref?: string; backLabel?: string }) {
   return (
     <div className="relative min-h-screen bg-bone flex flex-col items-center justify-center px-6 py-16 gap-6" dir="rtl">
+      <div className="absolute top-5 start-5">
+        <Link href="/he"
+          className="flex items-center gap-1 font-body text-xs text-charcoal/30 hover:text-accent transition-colors duration-200">
+          <ChevronRight size={14} strokeWidth={1.5} className="rotate-180" />
+          <span>דף הבית</span>
+        </Link>
+      </div>
       {backHref && (
         <div className="absolute top-5 end-5">
           <Link href={backHref}

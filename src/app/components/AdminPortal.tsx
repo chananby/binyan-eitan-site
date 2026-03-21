@@ -5,11 +5,12 @@ import { useFeedback } from "../hooks/useFeedback";
 import SuccessFlash from "./SuccessFlash";
 import ForemanPortal from "./ForemanPortal";
 import Image from "next/image";
+import Link from "next/link";
 import {
   LogIn, Building2, Package, BarChart2, LayoutDashboard, Hammer,
   ClipboardList, UserPlus, RefreshCw, Pencil, Loader2,
   AlertCircle, AlertTriangle, TrendingUp, DollarSign, Target, CheckSquare2,
-  Calendar, ChevronDown, ChevronUp, Flag,
+  Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -574,7 +575,13 @@ export default function AdminPortal() {
     return (
       <>
       <SuccessFlash show={showFlash} onDone={() => setShowFlash(false)} />
-      <div className="min-h-screen bg-bone flex flex-col items-center justify-center px-6 gap-8" dir="rtl">
+      <div className="relative min-h-screen bg-bone flex flex-col items-center justify-center px-6 gap-8" dir="rtl">
+        <div className="absolute top-5 start-5">
+          <Link href="/he" className="flex items-center gap-1 font-body text-xs text-charcoal/30 hover:text-accent transition-colors duration-200">
+            <ChevronLeft size={14} strokeWidth={1.5} />
+            <span>דף הבית</span>
+          </Link>
+        </div>
         <Image src="/logo.png" alt="Binyan Eitan" width={120} height={36} className="h-9 w-auto brightness-0 opacity-60" />
 
         {/* Mode tabs */}
@@ -687,7 +694,9 @@ export default function AdminPortal() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[0.6rem] font-bold tracking-[0.2em] uppercase text-accent/60">בנין איתן</p>
+            <Link href="/he" className="text-[0.6rem] font-bold tracking-[0.2em] uppercase text-accent/60 hover:text-accent transition-colors duration-200">
+              בנין איתן
+            </Link>
             <h1 className="font-heading text-2xl font-bold text-charcoal">
               {isAdmin ? "ממשק מנהל" : foremanName ? `ברוך הבא, ${foremanName}` : "ממשק מנהל עבודה"}
             </h1>
