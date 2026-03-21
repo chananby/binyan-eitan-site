@@ -4,15 +4,18 @@ import { isAuthedFromRequest } from "../../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 
+const TASK_SELECT = "id, project_id, milestone_id, task_name, start_date, end_date, contractor, status, notes, material_ready, sub_confirmed, equipment_on_site, delay_reason, created_at, project:project_id(id, name)";
+
 export async function GET(req: NextRequest) {
   if (!isAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get("project_id");
 
   const supabase = createServerClient();
-  let query = supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query: any = supabase
     .from("tasks")
-    .select("id, project_id, milestone_id, task_name, start_date, end_date, contractor, status, notes, created_at, project:project_id(id, name)")
+    .select(TASK_SELECT)
     .order("start_date", { ascending: true })
     .order("created_at", { ascending: true });
 
@@ -29,7 +32,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   if (!isAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: { project_id?: string; milestone_id?: string; task_name?: string; start_date?: string; end_date?: string; contractor?: string; notes?: string };
+  let body: {
+    project_id?: string; milestone_id?: string; task_name?: string;
+    start_date?: string; end_date?: string; contractor?: string; notes?: string;
+  };
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
   const { project_id, milestone_id, task_name, start_date, end_date, contractor, notes } = body;
@@ -42,15 +48,18 @@ export async function POST(req: NextRequest) {
     .from("tasks")
     .insert({
       project_id,
-      milestone_id: milestone_id || null,
-      task_name: task_name.trim(),
-      start_date: start_date || null,
-      end_date: end_date || null,
-      contractor: contractor?.trim() || null,
-      notes: notes?.trim() || null,
-      status: "planned",
+      milestone_id:      milestone_id || null,
+      task_name:         task_name.trim(),
+      start_date:        start_date || null,
+      end_date:          end_date   || null,
+      contractor:        contractor?.trim() || null,
+      notes:             notes?.trim() || null,
+      status:            "planned",
+      material_ready:    false,
+      sub_confirmed:     false,
+      equipment_on_site: false,
     })
-    .select("id, project_id, milestone_id, task_name, start_date, end_date, contractor, status, notes, created_at")
+    .select(TASK_SELECT)
     .single();
 
   if (error) {

@@ -8,7 +8,7 @@ import Image from "next/image";
 import {
   LogIn, Building2, Package, BarChart2, LayoutDashboard, Hammer,
   ClipboardList, UserPlus, RefreshCw, Pencil, Loader2,
-  AlertCircle, TrendingUp, DollarSign, Target, CheckSquare2,
+  AlertCircle, AlertTriangle, TrendingUp, DollarSign, Target, CheckSquare2,
   Calendar, ChevronDown, ChevronUp, Flag,
 } from "lucide-react";
 
@@ -31,8 +31,10 @@ interface Project { id: string; name: string; status?: string; }
 interface Task {
   id: string; project_id: string; milestone_id: string | null; task_name: string;
   start_date: string | null; end_date: string | null; contractor: string | null;
-  status: "planned" | "in_progress" | "completed";
+  status: "planned" | "in_progress" | "completed" | "delayed";
   notes: string | null; project?: { id: string; name: string } | null;
+  material_ready: boolean; sub_confirmed: boolean; equipment_on_site: boolean;
+  delay_reason: string | null;
 }
 interface Milestone {
   id: string; project_id: string; name: string; description: string | null;
@@ -64,10 +66,12 @@ const MILESTONE_STATUS_CLS: Record<string, string> = {
 const EXPENSE_CATEGORIES = ["חומרים", "קבלן משנה", "הזמנות", "כלי עבודה"];
 const UNITS = ["יחידות", "קוב", 'מ"ר', 'מ"א', "טון", 'ק"ג', "ליטר"];
 const WEATHER_OPTIONS = ["☀️ בהיר", "⛅ מעונן חלקית", "☁️ מעונן", "🌧️ גשום", "🌩️ סוערת", "🌬️ רוחות חזקות"];
-const STATUS_HE: Record<string, string> = { planned: "מתוכנן", in_progress: "בביצוע", completed: "הושלם" };
+const STATUS_HE: Record<string, string> = { planned: "מתוכנן", in_progress: "בביצוע", completed: "הושלם", delayed: "עיכוב" };
+const DELAY_REASON_HE: Record<string, string> = { workers: "כוח אדם", material: "חומרים", weather: "מזג אוויר", subcontractor: "קבלן משנה" };
 const STATUS_CLS: Record<string, string> = {
   planned:     "bg-charcoal/5 text-charcoal/60",
   in_progress: "bg-amber-50 text-amber-700",
+  delayed:     "bg-red-50 text-red-700",
   completed:   "bg-green-50 text-green-700",
 };
 const DAYS_HE = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
@@ -1371,6 +1375,53 @@ export default function AdminPortal() {
               </div>
             </Card>
 
+            {/* ── Red Alerts ───────────────────────────────────────────────── */}
+            {(() => {
+              const delayed   = tasks.filter(t => t.status === "delayed");
+              const notReady  = tasks.filter(t => t.status !== "completed" && t.status !== "delayed" && (!t.material_ready || !t.sub_confirmed || !t.equipment_on_site));
+              const total     = delayed.length + notReady.length;
+              if (!total) return null;
+              return (
+                <Card>
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle size={15} strokeWidth={1.5} className="text-red-500" />
+                    <h2 className="font-heading text-sm font-bold text-red-700">התראות לוגיסטיות ({total})</h2>
+                  </div>
+                  <div className="space-y-1.5">
+                    {delayed.map(t => {
+                      const proj = projects.find(p => p.id === t.project_id);
+                      return (
+                        <div key={t.id} className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-100">
+                          <span className="text-[0.6rem] px-1.5 py-0.5 bg-red-100 text-red-700 font-semibold shrink-0">עיכוב</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold truncate">{t.task_name}</p>
+                            <p className="text-[0.6rem] text-charcoal/40">{proj?.name}{t.delay_reason ? ` · ${DELAY_REASON_HE[t.delay_reason] ?? t.delay_reason}` : ""}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {notReady.map(t => {
+                      const proj    = projects.find(p => p.id === t.project_id);
+                      const missing = [
+                        !t.material_ready    && "חומרים",
+                        !t.sub_confirmed     && "קבלן משנה",
+                        !t.equipment_on_site && "ציוד",
+                      ].filter(Boolean).join(", ");
+                      return (
+                        <div key={t.id} className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-100">
+                          <span className="text-[0.6rem] px-1.5 py-0.5 bg-amber-100 text-amber-700 font-semibold shrink-0">לא מוכן</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold truncate">{t.task_name}</p>
+                            <p className="text-[0.6rem] text-charcoal/40">{proj?.name}{missing ? ` · חסר: ${missing}` : ""}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              );
+            })()}
+
             {/* ── Macro plan — milestones ─────────────────────────────────── */}
             <div className="space-y-2">
               <div className="flex items-center justify-between px-1">
@@ -1394,23 +1445,34 @@ export default function AdminPortal() {
               {milestones
                 .filter(m => !taskFilter || m.project_id === taskFilter)
                 .map(ms => {
-                  const msTasks    = tasks.filter(t => t.milestone_id === ms.id);
-                  const doneCount  = msTasks.filter(t => t.status === "completed").length;
-                  const isExpanded = expandedMs.has(ms.id);
-                  const proj       = projects.find(p => p.id === ms.project_id);
+                  const msTasks     = tasks.filter(t => t.milestone_id === ms.id);
+                  const doneCount   = msTasks.filter(t => t.status === "completed").length;
+                  const delayCount  = msTasks.filter(t => t.status === "delayed").length;
+                  const pct         = msTasks.length ? Math.round((doneCount / msTasks.length) * 100) : 0;
+                  const isExpanded  = expandedMs.has(ms.id);
+                  const proj        = projects.find(p => p.id === ms.project_id);
 
                   return (
-                    <div key={ms.id} className={`border ${ms.status === "completed" ? "border-charcoal/8 opacity-60" : "border-charcoal/15"} bg-white`}>
+                    <div key={ms.id} className={`border ${ms.status === "completed" ? "border-charcoal/8 opacity-60" : delayCount > 0 ? "border-red-200" : "border-charcoal/15"} bg-white`}>
                       {/* Milestone header */}
                       <button onClick={() => toggleMs(ms.id)} className="w-full flex items-center gap-2.5 px-4 py-3 text-right hover:bg-bone/60 transition-colors">
                         <Target size={14} strokeWidth={1.5} className={`shrink-0 ${ms.status === "completed" ? "text-green-500" : ms.status === "in_progress" ? "text-amber-500" : "text-accent/50"}`} />
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm font-bold truncate ${ms.status === "completed" ? "line-through text-charcoal/50" : "text-charcoal"}`}>{ms.name}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
+                          <div className="flex items-center gap-2 mt-1">
                             {proj && <span className="text-[0.6rem] text-charcoal/35">{proj.name}</span>}
                             {ms.target_date && <span className="text-[0.6rem] text-charcoal/35 tabular-nums" dir="ltr">· {ms.target_date}</span>}
                           </div>
+                          {msTasks.length > 0 && (
+                            <div className="mt-1.5 flex items-center gap-1.5">
+                              <div className="flex-1 h-1 bg-charcoal/8 overflow-hidden">
+                                <div className="h-full bg-accent transition-all duration-300" style={{ width: `${pct}%` }} />
+                              </div>
+                              <span className="text-[0.55rem] text-charcoal/35 tabular-nums shrink-0">{pct}%</span>
+                            </div>
+                          )}
                         </div>
+                        {delayCount > 0 && <span className="text-[0.6rem] px-1.5 py-0.5 bg-red-50 text-red-600 shrink-0">{delayCount} עיכוב</span>}
                         <span className={`text-[0.6rem] px-2 py-0.5 shrink-0 ${MILESTONE_STATUS_CLS[ms.status]}`}>{MILESTONE_STATUS_HE[ms.status]}</span>
                         <span className="text-[0.6rem] text-charcoal/30 shrink-0 tabular-nums">{doneCount}/{msTasks.length}</span>
                         {isExpanded ? <ChevronUp size={13} strokeWidth={1.5} className="shrink-0 text-charcoal/30" /> : <ChevronDown size={13} strokeWidth={1.5} className="shrink-0 text-charcoal/30" />}
@@ -1425,15 +1487,21 @@ export default function AdminPortal() {
                             <div className="divide-y divide-charcoal/5">
                               {msTasks.map(t => (
                                 <div key={t.id} className={`flex items-center gap-2 px-4 py-2.5 ${t.status === "completed" ? "opacity-50" : ""}`}>
-                                  <CheckSquare2 size={12} strokeWidth={1.5} className={`shrink-0 ${t.status === "completed" ? "text-green-500" : t.status === "in_progress" ? "text-amber-400" : "text-charcoal/20"}`} />
+                                  <CheckSquare2 size={12} strokeWidth={1.5} className={`shrink-0 ${t.status === "completed" ? "text-green-500" : t.status === "in_progress" ? "text-amber-400" : t.status === "delayed" ? "text-red-400" : "text-charcoal/20"}`} />
                                   <div className="flex-1 min-w-0">
                                     <p className={`text-xs font-semibold truncate ${t.status === "completed" ? "line-through" : ""}`}>{t.task_name}</p>
-                                    <div className="flex items-center gap-2 text-[0.6rem] text-charcoal/35 mt-0.5">
+                                    <div className="flex items-center gap-2 text-[0.6rem] text-charcoal/35 mt-0.5 flex-wrap">
                                       {t.contractor && <span>{t.contractor}</span>}
                                       {t.start_date && <span dir="ltr">{t.start_date}{t.end_date ? ` → ${t.end_date}` : ""}</span>}
+                                      {t.status === "delayed" && t.delay_reason && <span className="text-red-500">{DELAY_REASON_HE[t.delay_reason] ?? t.delay_reason}</span>}
+                                      {t.status !== "completed" && (!t.material_ready || !t.sub_confirmed || !t.equipment_on_site) && (
+                                        <span className="text-amber-600">
+                                          {[!t.material_ready && "חומרים", !t.sub_confirmed && "קב״מ", !t.equipment_on_site && "ציוד"].filter(Boolean).join(", ")} ✗
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
-                                  <span className={`text-[0.6rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
+                                  <span className={`text-[0.6rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status] ?? ""}`}>{STATUS_HE[t.status] ?? t.status}</span>
                                   {t.status !== "completed" && (
                                     <>
                                       {t.status === "planned" && (
