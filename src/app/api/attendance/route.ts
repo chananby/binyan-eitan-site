@@ -33,8 +33,9 @@ export async function POST(req: NextRequest) {
   if (!phone || !action) {
     return NextResponse.json({ success: false, error: "Missing required fields: phone, action" }, { status: 400 });
   }
-  // GPS is optional — record without coordinates if unavailable
-  const hasGps = !!(lat && lng);
+  if (!lat || !lng) {
+    return NextResponse.json({ success: false, error: "Location required" }, { status: 400 });
+  }
 
   // ── Init Supabase ──────────────────────────────────────────────────────────
   // Accepts SUPABASE_URL *or* NEXT_PUBLIC_SUPABASE_URL (whichever is set in Vercel)
@@ -158,10 +159,10 @@ export async function POST(req: NextRequest) {
   const attendancePayload: Record<string, unknown> = {
     staff_id: resolvedStaff!.id,
     action:   normalizedAction,
+    lat,
+    lng,
   };
 
-  // GPS is optional — include only when available
-  if (hasGps) { attendancePayload.lat = lat; attendancePayload.lng = lng; }
   if (timestamp)  attendancePayload.timestamp_label = timestamp;
   if (project_id) attendancePayload.project_id = project_id;
 

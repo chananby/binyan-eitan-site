@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   CheckCircle2, XCircle, AlertTriangle, Activity,
   RefreshCw, ChevronLeft, Loader2, Clock, Database,
-  Server, ShieldCheck, Home, Zap, PowerOff, Power,
+  Server, ShieldCheck, Home, Zap, PowerOff, Power, MapPin,
 } from "lucide-react";
 
 type CheckStatus = "ok" | "fail" | "warn";
@@ -32,6 +32,7 @@ const SECTION_META: Record<string, { label: string; icon: React.ReactNode }> = {
   db:     { label: "בסיס נתונים",      icon: <Database    size={15} strokeWidth={1.5} /> },
   schema: { label: "סכמת DB",          icon: <Database    size={15} strokeWidth={1.5} /> },
   data:   { label: "תקינות נתונים",    icon: <Activity    size={15} strokeWidth={1.5} /> },
+  policy: { label: "מדיניות",           icon: <MapPin      size={15} strokeWidth={1.5} /> },
   api:    { label: "תגובת API",         icon: <Server      size={15} strokeWidth={1.5} /> },
 };
 
@@ -173,7 +174,7 @@ export default function HealthPage() {
     finally { setMaintLoading(false); }
   }, [maintenance]);
 
-  const sections  = ["env", "db", "schema", "data", "api"];
+  const sections  = ["env", "db", "schema", "data", "policy", "api"];
   const grouped   = sections.map(s => ({ key: s, items: results.filter(r => r.section === s) })).filter(g => g.items.length > 0);
   const total     = results.length;
   const failed    = results.filter(r => r.status === "fail").length;

@@ -122,5 +122,32 @@ export async function GET(req: NextRequest) {
     });
   } catch { /* skip */ }
 
+  // ── Policy checks ──────────────────────────────────────────────────────────
+  // Verify GPS enforcement: POST to attendance without lat/lng must return 400
+  try {
+    const host = req.headers.get("host") ?? "localhost:3000";
+    const proto = process.env.NODE_ENV === "production" ? "https" : "http";
+    const res = await fetch(`${proto}://${host}/api/attendance`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: "0000000000", action: "in" }), // no lat/lng
+    });
+    const gpsEnforced = res.status === 400;
+    let detail = gpsEnforced ? "בקשות ללא GPS מוחזרות עם 400 Bad Request" : `ציפינו ל-400, קיבלנו ${res.status}`;
+    if (gpsEnforced) {
+      const data = await res.json().catch(() => ({}));
+      if (data.error) detail += ` — "${data.error}"`;
+    }
+    results.push({
+      id: "policy_gps_required", section: "policy",
+      name: "אכיפת GPS חובה",
+      status: gpsEnforced ? "ok" : "fail",
+      detail,
+      fix: gpsEnforced ? undefined : "ודא ש-/api/attendance מחייב lat ו-lng ומחזיר 400 כשהם חסרים",
+    });
+  } catch (e) {
+    results.push({ id: "policy_gps_required", section: "policy", name: "אכיפת GPS חובה", status: "warn", detail: `לא ניתן לבדוק: ${String(e)}` });
+  }
+
   return NextResponse.json({ results, checkedAt: new Date().toISOString() });
 }

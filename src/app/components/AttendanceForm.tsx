@@ -427,13 +427,21 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
   const requestLocation = useCallback(() => {
     if (!phone.trim() || phone.replace(/\D/g, "").length < 9) return;
     setGeoError(null); setStep("locating");
-    if (!navigator.geolocation) { setGeoError("הדפדפן לא תומך בשיתוף מיקום"); setStep("phone"); return; }
+    if (!navigator.geolocation) {
+      feedback.error();
+      setGeoError("חובה לאשר מיקום כדי לדווח נוכחות");
+      setStep("phone"); return;
+    }
     navigator.geolocation.getCurrentPosition(
       (pos) => { setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setStep("project"); },
-      () => { setGeoError("גישה למיקום נדרשת לדיווח נוכחות — אנא אשר גישה ונסה שוב."); setStep("phone"); },
+      () => {
+        feedback.error();
+        setGeoError("חובה לאשר מיקום כדי לדווח נוכחות");
+        setStep("phone");
+      },
       { timeout: 12000, enableHighAccuracy: true }
     );
-  }, [phone]);
+  }, [phone, feedback]);
 
   const submit = useCallback(async (selectedAction: "in" | "out") => {
     if (!coords) return;
