@@ -4,18 +4,19 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useFeedback } from "../hooks/useFeedback";
 import SuccessFlash from "./SuccessFlash";
 import ForemanPortal from "./ForemanPortal";
+import WeeklyPlanner from "./WeeklyPlanner";
 import Image from "next/image";
 import Link from "next/link";
 import {
   LogIn, Building2, Package, BarChart2, LayoutDashboard, Hammer,
   ClipboardList, UserPlus, RefreshCw, Pencil, Loader2, Activity,
   AlertCircle, AlertTriangle, TrendingUp, DollarSign, Target, CheckSquare2,
-  Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag,
+  Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag, Grid3x3,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
-type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "income" | "reports";
+type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "matrix" | "income" | "reports";
 type LoginMode = "pin" | "password";
 
 interface StaffMember {
@@ -678,8 +679,9 @@ export default function AdminPortal() {
     { key: "workers",    label: "עובדים",    icon: <UserPlus size={13} />,       adminOnly: true },
     { key: "projects",   label: "פרויקטים",  icon: <Building2 size={13} />,      adminOnly: true },
     { key: "expenses",   label: "הוצאות",    icon: <Package size={13} /> },
-    { key: "planning",   label: "תכנון",      icon: <Target size={13} /> },
-    { key: "income",     label: "הכנסות",    icon: <DollarSign size={13} />,     adminOnly: true },
+    { key: "planning",   label: "תכנון",         icon: <Target    size={13} /> },
+    { key: "matrix",     label: "מטריצה שבועית", icon: <Grid3x3   size={13} />, adminOnly: true },
+    { key: "income",     label: "הכנסות",        icon: <DollarSign size={13} />, adminOnly: true },
     { key: "reports",    label: "דוחות",      icon: <BarChart2 size={13} />,      adminOnly: true },
   ].filter(t => !t.adminOnly || isAdmin) as TabDef[];
 
@@ -1711,6 +1713,13 @@ export default function AdminPortal() {
                 </div>
               </Card>
             )}
+          </div>
+        )}
+
+        {/* ── WEEKLY MATRIX (admin only) ─────────────────────────────────────── */}
+        {tab === "matrix" && isAdmin && (
+          <div className="p-1">
+            <WeeklyPlanner projects={activeProjects} />
           </div>
         )}
 
