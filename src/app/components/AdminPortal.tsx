@@ -609,8 +609,8 @@ export default function AdminPortal() {
                   </div>
                 ))}
               </div>
-              {/* Keypad */}
-              <div className="grid grid-cols-3 gap-2">
+              {/* Keypad — dir="ltr" so digits always render 1-2-3 left-to-right */}
+              <div className="grid grid-cols-3 gap-2" dir="ltr">
                 {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((k, i) => (
                   <button key={i} disabled={loginLoading || !k}
                     onClick={() => k === "⌫" ? handlePinBackspace() : k && handlePinKey(k)}

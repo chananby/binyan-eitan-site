@@ -103,7 +103,7 @@ function PinGate({ onAuth }: { onAuth: (author: Author) => void }) {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-2 w-60">
+      <div className="grid grid-cols-3 gap-2 w-60" dir="ltr">
         {KEYS.map((d, i) => (
           <button key={i}
             onClick={() => {
