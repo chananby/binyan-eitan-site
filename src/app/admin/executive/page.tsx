@@ -182,6 +182,8 @@ export default function ExecutiveWarRoom() {
   const [addTask,    setAddTask]    = useState(false);
   const [newDl,      setNewDl]      = useState({ content: "", due_date: "", category: "general" as DeadlineCat });
   const [addDl,      setAddDl]      = useState(false);
+  const [feedError,  setFeedError]  = useState<string | null>(null);
+  const [loadError,  setLoadError]  = useState<string | null>(null);
 
   const canvasTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const feedBottom   = useRef<HTMLDivElement>(null);
@@ -209,13 +211,21 @@ export default function ExecutiveWarRoom() {
 
   // ── Load all data ──────────────────────────────────────────────────────────
   const loadAll = useCallback(async () => {
-    const [items, canvas] = await Promise.allSettled([
-      fetch("/api/executive/items").then(r => r.json()),
-      fetch("/api/executive/canvas").then(r => r.json()),
-    ]);
+    setLoadError(null);
+    try {
+      const [itemsRes, canvasRes] = await Promise.all([
+        fetch("/api/executive/items"),
+        fetch("/api/executive/canvas"),
+      ]);
 
-    if (items.status === "fulfilled") {
-      const all: ExecItem[] = items.value.items ?? [];
+      if (!itemsRes.ok) {
+        const err = await itemsRes.json().catch(() => ({}));
+        setLoadError(err.error ?? `שגיאה בטעינה (${itemsRes.status})`);
+        return;
+      }
+
+      const itemsData = await itemsRes.json();
+      const all: ExecItem[] = itemsData.items ?? [];
       setTasks(all.filter(i => i.type === "task").sort((a, b) => a.priority - b.priority));
       setFeed(all.filter(i => i.type === "feed").sort((a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -223,9 +233,13 @@ export default function ExecutiveWarRoom() {
       setDeadlines(all.filter(i => i.type === "deadline").sort((a, b) =>
         (a.due_date ?? "").localeCompare(b.due_date ?? "")
       ));
-    }
-    if (canvas.status === "fulfilled") {
-      setCanvas(canvas.value.content ?? "");
+
+      if (canvasRes.ok) {
+        const canvasData = await canvasRes.json();
+        setCanvas(canvasData.content ?? "");
+      }
+    } catch (e) {
+      setLoadError(`בעיית תקשורת: ${String(e)}`);
     }
   }, []);
 
@@ -263,24 +277,40 @@ export default function ExecutiveWarRoom() {
   const postFeed = async () => {
     if (!feedInput.trim() || !author || submitting) return;
     setSubmitting(true);
-    const res = await fetch("/api/executive/items", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "feed", author, content: feedInput.trim() }),
-    });
-    if (res.ok) { setFeedInput(""); await loadAll(); }
-    setSubmitting(false);
+    setFeedError(null);
+    try {
+      const res = await fetch("/api/executive/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "feed", author, content: feedInput.trim() }),
+      });
+      if (res.ok) {
+        setFeedInput("");
+        await loadAll();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setFeedError(data.error ?? `שגיאה ${res.status} — בדוק שהטבלה executive_space קיימת בסופאבייס`);
+      }
+    } catch {
+      setFeedError("בעיית תקשורת — בדוק חיבור אינטרנט");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // ── Task actions ───────────────────────────────────────────────────────────
   const submitTask = async () => {
     if (!newTask.trim()) return;
-    await fetch("/api/executive/items", {
+    const res = await fetch("/api/executive/items", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "task", content: newTask.trim(), priority: tasks.length + 1 }),
     });
-    setNewTask(""); setAddTask(false); await loadAll();
+    if (res.ok) { setNewTask(""); setAddTask(false); await loadAll(); }
+    else {
+      const d = await res.json().catch(() => ({}));
+      setLoadError(d.error ?? `שגיאה בשמירת המשימה (${res.status})`);
+    }
   };
 
   const toggleTask = async (id: string, done: boolean) => {
@@ -295,13 +325,18 @@ export default function ExecutiveWarRoom() {
   // ── Deadline actions ───────────────────────────────────────────────────────
   const submitDeadline = async () => {
     if (!newDl.content.trim() || !newDl.due_date) return;
-    await fetch("/api/executive/items", {
+    const res = await fetch("/api/executive/items", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "deadline", ...newDl }),
     });
-    setNewDl({ content: "", due_date: "", category: "general" });
-    setAddDl(false); await loadAll();
+    if (res.ok) {
+      setNewDl({ content: "", due_date: "", category: "general" });
+      setAddDl(false); await loadAll();
+    } else {
+      const d = await res.json().catch(() => ({}));
+      setLoadError(d.error ?? `שגיאה בשמירת המועד (${res.status})`);
+    }
   };
 
   const toggleDeadline = async (id: string, done: boolean) => {
@@ -406,6 +441,21 @@ export default function ExecutiveWarRoom() {
 
       <div className="max-w-xl mx-auto px-4 py-5 space-y-5">
 
+        {/* ── Global error banner ── */}
+        {loadError && (
+          <div className="flex items-start gap-3 bg-red-950/60 border border-red-500/40 px-4 py-3">
+            <AlertCircle size={15} className="text-red-400 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-red-300 text-xs font-bold mb-0.5">שגיאת מערכת</p>
+              <p className="text-red-400/80 text-[0.68rem] font-mono break-all">{loadError}</p>
+              <p className="text-red-400/50 text-[0.62rem] mt-1">ודא שהטבלה <span className="font-mono">executive_space</span> קיימת בסופאבייס</p>
+            </div>
+            <button onClick={() => setLoadError(null)} className="text-red-400/40 hover:text-red-300 shrink-0">
+              <X size={13} />
+            </button>
+          </div>
+        )}
+
         {/* ══ HOT SEAT ══════════════════════════════════════════════════════ */}
         <section className="bg-[#1E1B18] border border-amber-400/12 p-5">
           <div className="flex items-center justify-between mb-4">
@@ -502,6 +552,17 @@ export default function ExecutiveWarRoom() {
               </button>
             </div>
           </div>
+
+          {/* Feed error */}
+          {feedError && (
+            <div className="flex items-center gap-2 mb-3 bg-red-950/50 border border-red-500/30 px-3 py-2">
+              <AlertCircle size={13} className="text-red-400 shrink-0" />
+              <p className="text-red-400/90 text-xs font-mono flex-1">{feedError}</p>
+              <button onClick={() => setFeedError(null)} className="text-red-400/40 hover:text-red-300">
+                <X size={12} />
+              </button>
+            </div>
+          )}
 
           {/* Feed messages */}
           <div
