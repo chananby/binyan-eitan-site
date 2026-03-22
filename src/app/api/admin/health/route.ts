@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
     results.push({ id: "db_connection", section: "db", name: "חיבור לבסיס נתונים", status: "fail", detail: String(e), fix: "בדוק את הגדרות הסופאבייס" });
   }
 
-  // ── Schema ─────────────────────────────────────────────────────────────────
+  // ── Schema: core tables ────────────────────────────────────────────────────
   results.push(await checkTable (supabase, "milestones"));
   results.push(await checkColumn(supabase, "projects",      "foreman_id"));
   results.push(await checkColumn(supabase, "tasks",         "material_ready"));
@@ -88,6 +88,41 @@ export async function GET(req: NextRequest) {
   results.push(await checkColumn(supabase, "tasks",         "delay_reason"));
   results.push(await checkColumn(supabase, "daily_reports", "status"));
   results.push(await checkColumn(supabase, "daily_reports", "subcontractor_count"));
+
+  // ── Schema: executive tables ───────────────────────────────────────────────
+  results.push(await checkTable (supabase, "executive_space"));
+  results.push(await checkTable (supabase, "executive_canvas"));
+  results.push(await checkColumn(supabase, "executive_space", "type"));
+  results.push(await checkColumn(supabase, "executive_space", "author"));
+  results.push(await checkColumn(supabase, "executive_space", "done"));
+  results.push(await checkColumn(supabase, "executive_space", "due_date"));
+
+  // ── Schema: settings keys ──────────────────────────────────────────────────
+  try {
+    const { data: pinRows } = await supabase
+      .from("settings")
+      .select("key")
+      .in("key", ["executive_pin_hanan", "executive_pin_moti"]);
+    const keys = (pinRows ?? []).map((r: { key: string }) => r.key);
+    const hananOk = keys.includes("executive_pin_hanan");
+    const motiOk  = keys.includes("executive_pin_moti");
+    results.push({
+      id: "settings_exec_pin_hanan", section: "settings",
+      name: "PIN חנן (executive_pin_hanan)",
+      status: hananOk ? "ok" : "warn",
+      detail: hananOk ? "מוגדר בטבלת settings" : "חסר — ישתמש בברירת מחדל 108",
+      fix: hananOk ? undefined : "INSERT INTO settings (key,value) VALUES ('executive_pin_hanan','108') ON CONFLICT (key) DO NOTHING;",
+    });
+    results.push({
+      id: "settings_exec_pin_moti", section: "settings",
+      name: "PIN מוטי (executive_pin_moti)",
+      status: motiOk ? "ok" : "warn",
+      detail: motiOk ? "מוגדר בטבלת settings" : "חסר — ישתמש בברירת מחדל 274",
+      fix: motiOk ? undefined : "INSERT INTO settings (key,value) VALUES ('executive_pin_moti','274') ON CONFLICT (key) DO NOTHING;",
+    });
+  } catch {
+    results.push({ id: "settings_exec_pins", section: "settings", name: "PIN מנהלים", status: "warn", detail: "לא ניתן לבדוק — טבלת settings אולי לא קיימת" });
+  }
 
   // ── Data integrity ─────────────────────────────────────────────────────────
   try {
@@ -119,6 +154,30 @@ export async function GET(req: NextRequest) {
       name: "משימות מעוכבות",
       status: (count ?? 0) > 0 ? "warn" : "ok",
       detail: (count ?? 0) === 0 ? "אין משימות מעוכבות" : `${count} משימות בסטטוס עיכוב`,
+    });
+  } catch { /* skip */ }
+
+  // ── Attendance today ───────────────────────────────────────────────────────
+  try {
+    const nowIsrael = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Jerusalem" });
+    const todayIsrael = nowIsrael.split(" ")[0]; // "YYYY-MM-DD"
+    const hourIsrael = parseInt(nowIsrael.split(" ")[1]?.split(":")[0] ?? "0", 10);
+    const isWorkHours = hourIsrael >= 6 && hourIsrael < 20;
+
+    const { count: attCount } = await supabase
+      .from("attendance_logs")
+      .select("id", { count: "exact", head: true })
+      .eq("date", todayIsrael);
+
+    const noLogs = (attCount ?? 0) === 0;
+    results.push({
+      id: "data_attendance_today", section: "data",
+      name: `דיווחי נוכחות היום (${todayIsrael})`,
+      status: noLogs && isWorkHours ? "warn" : "ok",
+      detail: noLogs
+        ? isWorkHours ? "אפס דיווחים היום בשעות עבודה — ייתכן שעובדים לא מצליחים להתחבר" : "אפס דיווחים (מחוץ לשעות עבודה — תקין)"
+        : `${attCount} דיווחים היום`,
+      fix: noLogs && isWorkHours ? "בדוק שהעובדים מצליחים להתחבר ל-/attendance ושה-GPS פועל" : undefined,
     });
   } catch { /* skip */ }
 
