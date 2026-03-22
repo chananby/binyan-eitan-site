@@ -21,20 +21,28 @@ interface CheckResult {
 interface AttStep { name: string; ok: boolean; detail: string; ms: number; }
 
 const API_PINGS = [
-  { id: "ping_projects",   name: "/api/admin/projects",  url: "/api/admin/projects" },
-  { id: "ping_tasks",      name: "/api/admin/tasks",      url: "/api/admin/tasks" },
-  { id: "ping_milestones", name: "/api/admin/milestones", url: "/api/admin/milestones" },
-  { id: "ping_staff",      name: "/api/admin/staff",      url: "/api/admin/staff" },
+  { id: "ping_projects",      name: "/api/admin/projects",      url: "/api/admin/projects" },
+  { id: "ping_tasks",         name: "/api/admin/tasks",         url: "/api/admin/tasks" },
+  { id: "ping_milestones",    name: "/api/admin/milestones",    url: "/api/admin/milestones" },
+  { id: "ping_staff",         name: "/api/admin/staff",         url: "/api/admin/staff" },
+  { id: "ping_reports",       name: "/api/admin/daily-reports", url: "/api/admin/daily-reports" },
+  { id: "ping_materials",     name: "/api/admin/materials",     url: "/api/admin/materials" },
+  { id: "ping_weekly",        name: "/api/admin/weekly-plan",   url: "/api/admin/weekly-plan" },
+  { id: "ping_att_today",     name: "/api/admin/attendance/today", url: "/api/admin/attendance/today" },
+  { id: "ping_exec_items",    name: "/api/executive/items",     url: "/api/executive/items" },
+  { id: "ping_exec_canvas",   name: "/api/executive/canvas",    url: "/api/executive/canvas" },
+  { id: "ping_translations",  name: "/api/translations",        url: "/api/translations" },
 ];
 
 const SECTION_META: Record<string, { label: string; icon: React.ReactNode }> = {
-  env:    { label: "סביבה",           icon: <ShieldCheck size={15} strokeWidth={1.5} /> },
-  db:     { label: "בסיס נתונים",      icon: <Database    size={15} strokeWidth={1.5} /> },
-  schema: { label: "סכמת DB",          icon: <Database    size={15} strokeWidth={1.5} /> },
-  data:   { label: "תקינות נתונים",    icon: <Activity    size={15} strokeWidth={1.5} /> },
-  settings: { label: "הגדרות",           icon: <ShieldCheck size={15} strokeWidth={1.5} /> },
-  policy: { label: "מדיניות",           icon: <MapPin      size={15} strokeWidth={1.5} /> },
-  api:    { label: "תגובת API",         icon: <Server      size={15} strokeWidth={1.5} /> },
+  env:      { label: "משתני סביבה",     icon: <ShieldCheck size={15} strokeWidth={1.5} /> },
+  db:       { label: "בסיס נתונים",     icon: <Database    size={15} strokeWidth={1.5} /> },
+  schema:   { label: "סכמת DB",         icon: <Database    size={15} strokeWidth={1.5} /> },
+  settings: { label: "הגדרות מערכת",    icon: <ShieldCheck size={15} strokeWidth={1.5} /> },
+  data:     { label: "תקינות נתונים",   icon: <Activity    size={15} strokeWidth={1.5} /> },
+  services: { label: "שירותים חיצוניים", icon: <Zap        size={15} strokeWidth={1.5} /> },
+  policy:   { label: "אבטחה ומדיניות",  icon: <MapPin      size={15} strokeWidth={1.5} /> },
+  api:      { label: "תגובת endpoints", icon: <Server      size={15} strokeWidth={1.5} /> },
 };
 
 function StatusIcon({ status }: { status: CheckStatus | "idle" | "running" }) {
@@ -175,7 +183,7 @@ export default function HealthPage() {
     finally { setMaintLoading(false); }
   }, [maintenance]);
 
-  const sections  = ["env", "db", "schema", "settings", "data", "policy", "api"];
+  const sections  = ["env", "db", "schema", "settings", "data", "services", "policy", "api"];
   const grouped   = sections.map(s => ({ key: s, items: results.filter(r => r.section === s) })).filter(g => g.items.length > 0);
   const total     = results.length;
   const failed    = results.filter(r => r.status === "fail").length;
@@ -318,8 +326,8 @@ export default function HealthPage() {
         {/* Running skeleton */}
         {running && (
           <div className="space-y-2">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-14 border border-white/5 bg-white/[0.02] animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="h-14 border border-white/5 bg-white/[0.02] animate-pulse" style={{ animationDelay: `${i * 60}ms` }} />
             ))}
           </div>
         )}
