@@ -294,6 +294,16 @@ export default function AdminPortal() {
     if (authState === "admin" && tab === "income") loadIncome();
   }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Auto-refresh attendance every 60 s ────────────────────────────────────
+  useEffect(() => {
+    if (authState !== "admin" && authState !== "foreman") return;
+    const iv = setInterval(async () => {
+      const res = await fetch("/api/admin/attendance/today").catch(() => null);
+      if (res?.ok) { const d = await res.json(); setTodayLogs(d.records ?? []); }
+    }, 60_000);
+    return () => clearInterval(iv);
+  }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Data loaders ───────────────────────────────────────────────────────────
   async function loadData(role: "admin" | "foreman") {
     setDataLoading(true);
@@ -929,13 +939,16 @@ export default function AdminPortal() {
           <div className="space-y-5">
             <Card>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-heading text-base font-bold">יומן היום</h2>
-                <button onClick={reload} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors">
-                  <RefreshCw size={12} strokeWidth={1.5} /> רענן
+                <div>
+                  <h2 className="font-heading text-base font-bold">יומן היום</h2>
+                  <p className="text-[0.6rem] text-charcoal/30 font-body mt-0.5">מתעדכן אוטומטית כל דקה</p>
+                </div>
+                <button onClick={reload} className="flex items-center gap-1.5 text-xs border border-accent/30 text-accent hover:bg-accent hover:text-bone px-3 py-1.5 transition-colors duration-150">
+                  <RefreshCw size={12} strokeWidth={1.5} /> רענן עכשיו
                 </button>
               </div>
               {dataLoading && <p className="text-sm text-charcoal/40 text-center py-4">טוען...</p>}
-              {!dataLoading && todayLogs.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין דיווחים היום</p>}
+              {!dataLoading && todayLogs.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין דיווחים היום — לחץ "רענן עכשיו" אם עובדים כבר דיווחו</p>}
               {!dataLoading && todayLogs.length > 0 && (
                 <div className="divide-y divide-charcoal/5">
                   {todayLogs.map(r => editAttId === r.id ? (
