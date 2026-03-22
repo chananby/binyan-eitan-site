@@ -11,15 +11,25 @@ export const EXEC_COOKIE_OPTS = {
   path:     "/",
 };
 
-function execToken(): string {
+export type ExecAuthor = "Hanan" | "Moti";
+
+function execToken(author: ExecAuthor): string {
   const secret = process.env.ADMIN_PASSWORD ?? "be_internal_secret";
-  return createHmac("sha256", secret + "-exec").update("exec-v1").digest("hex");
+  return createHmac("sha256", secret + "-exec").update(`exec-v1-${author}`).digest("hex");
+}
+
+export function getExecAuthorFromRequest(req: NextRequest): ExecAuthor | null {
+  const cookie = req.cookies.get(EXEC_COOKIE)?.value;
+  if (!cookie) return null;
+  if (cookie === execToken("Hanan")) return "Hanan";
+  if (cookie === execToken("Moti"))  return "Moti";
+  return null;
 }
 
 export function isExecAuthedFromRequest(req: NextRequest): boolean {
-  return req.cookies.get(EXEC_COOKIE)?.value === execToken();
+  return getExecAuthorFromRequest(req) !== null;
 }
 
-export function getExecToken(): string {
-  return execToken();
+export function buildExecAuthCookie(author: ExecAuthor) {
+  return { name: EXEC_COOKIE, value: execToken(author), options: EXEC_COOKIE_OPTS };
 }
