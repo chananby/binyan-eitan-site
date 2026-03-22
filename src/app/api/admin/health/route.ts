@@ -130,6 +130,8 @@ export async function GET(req: NextRequest) {
     checkColumn(supabase, "attendance",    "action"),
     checkColumn(supabase, "attendance",    "lat"),
     checkColumn(supabase, "attendance",    "lng"),
+    checkColumn(supabase, "attendance",    "recorded_at"),
+    checkColumn(supabase, "attendance",    "staff_id"),
 
     // executive columns
     checkColumn(supabase, "executive_space", "type"),
@@ -261,19 +263,32 @@ export async function GET(req: NextRequest) {
     });
   } catch { /* skip */ }
 
-  // Attendance today
+  // Attendance today — read from `attendance` table (same as /api/admin/attendance/today)
   try {
-    const { count: attCount } = await supabase
-      .from("attendance_logs").select("id", { count: "exact", head: true }).eq("date", todayIsrael);
-    const noLogs = (attCount ?? 0) === 0;
-    results.push({
-      id: "data_attendance_today", section: "data", name: `נוכחות היום (${todayIsrael})`,
-      status: noLogs && isWorkHours ? "warn" : "ok",
-      detail: noLogs
-        ? isWorkHours ? "אפס דיווחים בשעות עבודה — ייתכן תקלה" : "אפס דיווחים (מחוץ לשעות עבודה — תקין)"
-        : `${attCount} דיווחים היום`,
-      fix: noLogs && isWorkHours ? "בדוק /attendance ושה-GPS פועל" : undefined,
-    });
+    const todayStartUTC = todayIsrael + "T00:00:00.000Z"; // midnight UTC ~ midnight Israel (close enough)
+    const { count: attCount, error: attErr } = await supabase
+      .from("attendance")
+      .select("id", { count: "exact", head: true })
+      .gte("recorded_at", todayStartUTC);
+
+    if (attErr) {
+      results.push({
+        id: "data_attendance_today", section: "data", name: `נוכחות היום (${todayIsrael})`,
+        status: "fail",
+        detail: `שגיאה בשאילתת נוכחות: ${attErr.message}`,
+        fix: "ודא שהעמודה recorded_at קיימת בטבלת attendance",
+      });
+    } else {
+      const noLogs = (attCount ?? 0) === 0;
+      results.push({
+        id: "data_attendance_today", section: "data", name: `נוכחות היום (${todayIsrael})`,
+        status: noLogs && isWorkHours ? "warn" : "ok",
+        detail: noLogs
+          ? isWorkHours ? "אפס דיווחים בשעות עבודה — ייתכן תקלה" : "אפס דיווחים (מחוץ לשעות עבודה — תקין)"
+          : `${attCount} דיווחים היום`,
+        fix: noLogs && isWorkHours ? "בדוק /attendance ושה-GPS פועל" : undefined,
+      });
+    }
   } catch { /* skip */ }
 
   // Executive items (sanity)

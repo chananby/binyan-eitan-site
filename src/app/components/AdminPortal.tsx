@@ -124,6 +124,7 @@ export default function AdminPortal() {
   const [incomeTotals,  setIncomeTotals]  = useState<Record<string, number>>({});
   const [reports,       setReports]       = useState<DailyReport[]>([]);
   const [dataLoading,   setDataLoading]   = useState(false);
+  const [attLoadErr,    setAttLoadErr]    = useState<string | null>(null);
 
   // Milestone UI
   const [expandedMs,      setExpandedMs]      = useState<Set<string>>(new Set());
@@ -306,7 +307,7 @@ export default function AdminPortal() {
 
   // ── Data loaders ───────────────────────────────────────────────────────────
   async function loadData(role: "admin" | "foreman") {
-    setDataLoading(true);
+    setDataLoading(true); setAttLoadErr(null);
     try {
       const results = await Promise.allSettled([
         fetch("/api/admin/attendance/today"),
@@ -316,7 +317,17 @@ export default function AdminPortal() {
       ]);
       const [logsR, projR, tasksR, msR] = results;
 
-      if (logsR.status  === "fulfilled" && logsR.value.ok)  { const d = await logsR.value.json();  setTodayLogs(d.records ?? []); }
+      if (logsR.status === "fulfilled") {
+        if (logsR.value.ok) {
+          const d = await logsR.value.json();
+          setTodayLogs(d.records ?? []);
+        } else {
+          const d = await logsR.value.json().catch(() => ({}));
+          setAttLoadErr(d.error ?? `שגיאת שרת ${logsR.value.status}`);
+        }
+      } else {
+        setAttLoadErr("לא ניתן להתחבר לשרת");
+      }
       if (projR.status  === "fulfilled" && projR.value.ok)  { const d = await projR.value.json();  setProjects(d.projects ?? []); }
       if (tasksR.status === "fulfilled" && tasksR.value.ok) { const d = await tasksR.value.json(); setTasks(d.tasks ?? []); }
       if (msR.status    === "fulfilled" && msR.value.ok)    { const d = await msR.value.json();    setMilestones(d.milestones ?? []); }
@@ -948,7 +959,17 @@ export default function AdminPortal() {
                 </button>
               </div>
               {dataLoading && <p className="text-sm text-charcoal/40 text-center py-4">טוען...</p>}
-              {!dataLoading && todayLogs.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין דיווחים היום — לחץ "רענן עכשיו" אם עובדים כבר דיווחו</p>}
+              {!dataLoading && attLoadErr && (
+                <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded px-3 py-2.5 text-sm text-red-700 mb-3">
+                  <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold">שגיאה בטעינת דיווחי נוכחות</p>
+                    <p className="text-xs text-red-500 mt-0.5">{attLoadErr}</p>
+                    <p className="text-xs text-red-400 mt-1">בדוק <a href="/admin/health" className="underline">בדיקת מערכת</a> לאבחון המלא</p>
+                  </div>
+                </div>
+              )}
+              {!dataLoading && !attLoadErr && todayLogs.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין דיווחים היום — לחץ "רענן עכשיו" אם עובדים כבר דיווחו</p>}
               {!dataLoading && todayLogs.length > 0 && (
                 <div className="divide-y divide-charcoal/5">
                   {todayLogs.map(r => editAttId === r.id ? (
