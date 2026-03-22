@@ -3,11 +3,30 @@ import { createServerClient } from "../../../lib/supabase";
 
 export const runtime = "nodejs";
 
-// Normalize phone: strip all non-digits, keep last 10 digits.
-// "058-500-8447" → "0585008447"   "+972585008447" → "0585008447" (last 10)
-// "0585008447" → "0585008447"
+// Normalize phone to standard Israeli 10-digit format (leading 0).
+// "058-500-8447"   → "0585008447"
+// "+972585008447"  → "0585008447"  (strip 972 country prefix)
+// "972585008447"   → "0585008447"
 function normalizePhone(raw: string): string {
-  return raw.replace(/\D/g, "").slice(-10);
+  const digits = raw.replace(/\D/g, "");
+  // Convert international format: 972XXXXXXXXX → 0XXXXXXXXX
+  if (digits.startsWith("972") && digits.length >= 12) {
+    return "0" + digits.slice(3);
+  }
+  return digits.slice(-10);
+}
+
+// Return all plausible formats a phone might be stored as in the DB.
+// Covers: with leading 0, without leading 0, with 972 prefix.
+function phoneVariants(normalized: string): string[] {
+  const v = new Set<string>();
+  v.add(normalized);                              // "0501234567"
+  if (normalized.startsWith("0")) {
+    v.add(normalized.slice(1));                   // "501234567"
+    v.add("972" + normalized.slice(1));           // "972501234567"
+    v.add("+972" + normalized.slice(1));          // "+972501234567"
+  }
+  return [...v];
 }
 
 // Log the full Supabase error — code + message + details + hint all matter.
@@ -64,16 +83,19 @@ export async function POST(req: NextRequest) {
   }
 
   const normalizedPhone = normalizePhone(phone);
-  console.info("[attendance] lookup phone:", normalizedPhone, "action:", action);
+  const variants        = phoneVariants(normalizedPhone);
+  console.info("[attendance] lookup phone:", normalizedPhone, "variants:", variants, "action:", action);
 
   // ── 1. Look up staff by phone ──────────────────────────────────────────────
-  // NOTE: only select columns we know exist. "active" is included but handled
-  // gracefully — if the column is named differently in your schema, update here.
-  const { data: staff, error: staffError } = await supabase
+  // Use .in() across all phone format variants so the lookup succeeds
+  // regardless of how the number was stored (with/without leading 0, with 972).
+  const { data: staffRows, error: staffError } = await supabase
     .from("staff")
     .select("id, name, active")
-    .eq("phone", normalizedPhone)
-    .maybeSingle();
+    .in("phone", variants)
+    .limit(1);
+
+  const staff = staffRows?.[0] ?? null;
 
   if (staffError) {
     logSupabaseError("staff lookup", staffError);
