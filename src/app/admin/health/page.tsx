@@ -119,6 +119,12 @@ export default function HealthPage() {
   const [maintenance,   setMaintenance]   = useState<boolean | null>(null);
   const [maintLoading,  setMaintLoading]  = useState(false);
 
+  // Executive PIN fix
+  const [pinHanan,     setPinHanan]     = useState("108");
+  const [pinMoti,      setPinMoti]      = useState("274");
+  const [pinSaving,    setPinSaving]    = useState(false);
+  const [pinMsg,       setPinMsg]       = useState<{ ok: boolean; text: string } | null>(null);
+
   // Load maintenance status on mount
   useEffect(() => {
     fetch("/api/admin/maintenance")
@@ -172,6 +178,31 @@ export default function HealthPage() {
       setAttRunning(false);
     }
   }, []);
+
+  const saveExecPins = useCallback(async () => {
+    if (!pinHanan.trim() || !pinMoti.trim()) return;
+    setPinSaving(true); setPinMsg(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pairs: [
+          { key: "executive_pin_hanan", value: pinHanan.trim() },
+          { key: "executive_pin_moti",  value: pinMoti.trim()  },
+        ]}),
+      });
+      if (res.ok) {
+        setPinMsg({ ok: true,  text: `PINs עודכנו — חנן: ${pinHanan.trim()} · מוטי: ${pinMoti.trim()}` });
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setPinMsg({ ok: false, text: d.error ?? `שגיאה (${res.status})` });
+      }
+    } catch (e) {
+      setPinMsg({ ok: false, text: String(e) });
+    } finally {
+      setPinSaving(false);
+    }
+  }, [pinHanan, pinMoti]);
 
   const toggleMaintenance = useCallback(async () => {
     if (maintenance === null) return;
@@ -235,6 +266,44 @@ export default function HealthPage() {
           >
             {maintLoading ? <Loader2 size={13} className="animate-spin" /> : maintenance ? "הפעל אתר" : "הפעל תחזוקה"}
           </button>
+        </div>
+
+        {/* ── Executive PINs ───────────────────────────────────────────────── */}
+        <div className="border border-white/8 bg-white/[0.02] px-5 py-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={14} strokeWidth={1.5} className="text-white/30" />
+            <p className="text-[0.65rem] font-bold tracking-[0.18em] uppercase text-white/35">קודי War Room</p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <label className="text-[0.65rem] text-white/40 shrink-0">חנן</label>
+              <input
+                type="text" inputMode="numeric" maxLength={8} value={pinHanan}
+                onChange={e => { setPinHanan(e.target.value.replace(/\D/g, "")); setPinMsg(null); }}
+                className="w-20 bg-white/5 border border-white/10 text-white text-sm text-center px-2 py-1.5 focus:outline-none focus:border-amber-400/40"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-[0.65rem] text-white/40 shrink-0">מוטי</label>
+              <input
+                type="text" inputMode="numeric" maxLength={8} value={pinMoti}
+                onChange={e => { setPinMoti(e.target.value.replace(/\D/g, "")); setPinMsg(null); }}
+                className="w-20 bg-white/5 border border-white/10 text-white text-sm text-center px-2 py-1.5 focus:outline-none focus:border-amber-400/40"
+              />
+            </div>
+            <button
+              onClick={saveExecPins}
+              disabled={pinSaving || !pinHanan.trim() || !pinMoti.trim()}
+              className="px-4 py-1.5 text-xs font-bold tracking-wide border border-amber-400/30 text-amber-400 hover:bg-amber-400/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              {pinSaving ? <Loader2 size={12} className="animate-spin" /> : "שמור PINs"}
+            </button>
+          </div>
+          {pinMsg && (
+            <p className={`text-[0.65rem] ${pinMsg.ok ? "text-emerald-400" : "text-red-400"}`}>
+              {pinMsg.ok ? "✓" : "✗"} {pinMsg.text}
+            </p>
+          )}
         </div>
 
         {/* ── Main diagnostics ─────────────────────────────────────────────── */}
