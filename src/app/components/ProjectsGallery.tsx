@@ -248,7 +248,7 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
                           src={proj.cover}
                           alt={
                             lang === "he"
-                              ? `${proj.he.title} | בנין איתן`
+                              ? `${proj.he.title} | בניין איתן`
                               : `${proj.en.title} | Binyan Eitan`
                           }
                           fill

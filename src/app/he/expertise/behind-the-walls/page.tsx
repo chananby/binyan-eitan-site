@@ -6,16 +6,16 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "מאחורי הקירות: איכות הבנייה הנסתרת",
   description:
-    "למה התשתיות בבית הן החלק הכי חשוב בשיפוץ? המדריך של בנין איתן לאינסטלציה, חשמל ואיטום ברמה הגבוהה ביותר.",
+    "למה התשתיות בבית הן החלק הכי חשוב בשיפוץ? המדריך של בניין איתן לאינסטלציה, חשמל ואיטום ברמה הגבוהה ביותר.",
   alternates: {
     canonical: "https://binyaneitan.com/he/expertise/behind-the-walls",
   },
   openGraph: {
-    title: "מאחורי הקירות: איכות הבנייה הנסתרת | בנין איתן",
+    title: "מאחורי הקירות: איכות הבנייה הנסתרת | בניין איתן",
     description:
-      "יוקרה אמיתית מתחילה מאחורי הקיר. המדריך של בנין איתן לתשתית שעומדת בזמן — אינסטלציה, חשמל, איטום ותיעוד רנטגן.",
+      "יוקרה אמיתית מתחילה מאחורי הקיר. המדריך של בניין איתן לתשתית שעומדת בזמן — אינסטלציה, חשמל, איטום ותיעוד רנטגן.",
     url: "https://binyaneitan.com/he/expertise/behind-the-walls",
-    siteName: "בנין איתן",
+    siteName: "בניין איתן",
     locale: "he_IL",
     type: "article",
     images: [
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
         url: "/interior-wall-framing-systems.jpg",
         width: 1200,
         height: 800,
-        alt: "שלב תשתיות בנייה — צנרת ומסגרת — בנין איתן",
+        alt: "שלב תשתיות בנייה — צנרת ומסגרת — בניין איתן",
       },
     ],
   },

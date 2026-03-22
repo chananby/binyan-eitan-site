@@ -54,7 +54,7 @@ export default function InternalPortalHe() {
         <div className="mx-auto max-w-3xl px-6 py-16 md:py-24">
           <div className="mb-12">
             <p className="font-body text-[0.65rem] font-semibold tracking-[0.22em] uppercase text-accent mb-3">
-              בנין איתן — פורטל פנימי
+              בניין איתן — פורטל פנימי
             </p>
             <h1 className="font-heading text-3xl font-bold text-charcoal md:text-4xl">אזור צוות</h1>
             <p className="mt-3 font-body text-sm text-charcoal/50">

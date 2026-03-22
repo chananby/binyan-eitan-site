@@ -78,7 +78,7 @@ export default function Footer() {
 
             <p className="font-body text-sm text-bone/55 leading-relaxed max-w-xs">
               {lang === "he"
-                ? "בנין איתן מחויבת למצוינות הנדסית, עמידה בלוחות זמנים ואיכות ביצוע ללא פשרות."
+                ? "בניין איתן מחויבת למצוינות הנדסית, עמידה בלוחות זמנים ואיכות ביצוע ללא פשרות."
                 : "Binyan Eitan is committed to engineering excellence, schedule adherence, and uncompromising construction quality."}
             </p>
           </div>

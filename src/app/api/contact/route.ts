@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #2D2926;">
       <h2 style="border-bottom: 2px solid #8D775F; padding-bottom: 8px; color: #8D775F;">
-        פנייה חדשה דרך האתר — בנין איתן
+        פנייה חדשה דרך האתר — בניין איתן
       </h2>
       <table style="width: 100%; border-collapse: collapse; margin-top: 16px;">
         <tr>

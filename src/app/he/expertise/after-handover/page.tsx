@@ -6,16 +6,16 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "יום המסירה והאחריות על הבית",
   description:
-    "מה קורה ביום שאחרי השיפוץ? המדריך של בנין איתן למסירה נכונה, תיעוד תשתיות (As-Made) ואחריות אישית לאורך זמן.",
+    "מה קורה ביום שאחרי השיפוץ? המדריך של בניין איתן למסירה נכונה, תיעוד תשתיות (As-Made) ואחריות אישית לאורך זמן.",
   alternates: {
     canonical: "https://binyaneitan.com/he/expertise/after-handover",
   },
   openGraph: {
-    title: "יום המסירה והאחריות על הבית | בנין איתן",
+    title: "יום המסירה והאחריות על הבית | בניין איתן",
     description:
-      "יום המסירה הוא רק ההתחלה. המחויבות של בנין איתן לתיעוד As-Made, הדרכה אישית ותמיכה מקצועית שנמשכת שנים אחרי סיום הפרויקט.",
+      "יום המסירה הוא רק ההתחלה. המחויבות של בניין איתן לתיעוד As-Made, הדרכה אישית ותמיכה מקצועית שנמשכת שנים אחרי סיום הפרויקט.",
     url: "https://binyaneitan.com/he/expertise/after-handover",
-    siteName: "בנין איתן",
+    siteName: "בניין איתן",
     locale: "he_IL",
     type: "article",
     images: [
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
         url: "/luxury-apartment-renovation-view.jpg",
         width: 1200,
         height: 800,
-        alt: "סלון מושלם ביום מסירת הפרויקט — בנין איתן",
+        alt: "סלון מושלם ביום מסירת הפרויקט — בניין איתן",
       },
     ],
   },

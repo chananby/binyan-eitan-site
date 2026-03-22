@@ -512,7 +512,7 @@ export default function ForemanPortal({
   if (view === "select") return (
     <div className="min-h-screen bg-bone flex flex-col" dir="rtl">
       <div className="bg-charcoal px-5 pt-12 pb-7 text-white">
-        <p className="text-[0.6rem] tracking-widest uppercase text-white/35 mb-1">בנין איתן · ממשק ממונה</p>
+        <p className="text-[0.6rem] tracking-widest uppercase text-white/35 mb-1">בניין איתן · ממשק ממונה</p>
         <h1 className="font-heading text-2xl font-bold">שלום, {foremanName}</h1>
         <p className="text-sm text-white/45 mt-1">בחר פרויקט להמשך</p>
       </div>

@@ -2,21 +2,21 @@ import type { Metadata } from "next";
 import LPTemplate, { type LPData } from "../LPTemplate";
 
 export const metadata: Metadata = {
-  title: "קבלן שיפוצים ובנייה בגבעת זאב | בנין איתן - מוטי איתן",
+  title: "קבלן שיפוצים ובנייה בגבעת זאב | בניין איתן - מוטי איתן",
   description:
     "בונים את גבעת זאב עם קבלן מקומי. זמינות של שכן, אחריות אישית ומחויבות לקהילה. מוטי איתן והצוות כאן בשבילכם.",
   alternates: {
     canonical: "https://binyaneitan.com/lp/givat-zeev",
   },
   openGraph: {
-    title: "קבלן בנייה מקומי בגבעת זאב | בנין איתן",
+    title: "קבלן בנייה מקומי בגבעת זאב | בניין איתן",
     description:
       "בונים את גבעת זאב עם קבלן מקומי. זמינות של שכן, אחריות אישית ומחויבות לקהילה. מוטי איתן והצוות כאן בשבילכם.",
     url: "https://binyaneitan.com/lp/givat-zeev",
-    siteName: "בנין איתן",
+    siteName: "בניין איתן",
     locale: "he_IL",
     type: "website",
-    images: [{ url: "/ramat-eshkol.jpg", width: 1200, height: 800, alt: "בנייה בגבעת זאב — בנין איתן" }],
+    images: [{ url: "/ramat-eshkol.jpg", width: 1200, height: 800, alt: "בנייה בגבעת זאב — בניין איתן" }],
   },
   twitter: { card: "summary_large_image" },
 };
@@ -27,9 +27,9 @@ const WHATSAPP =
 const data: LPData = {
   dir: "rtl",
   heroImage: "/ramat-eshkol.jpg",
-  heroImageAlt: "בנייה ושיפוץ בגבעת זאב — בנין איתן",
+  heroImageAlt: "בנייה ושיפוץ בגבעת זאב — בניין איתן",
   breakImage: "/ohel-avshalom.jpg",
-  badge: "בנין איתן — קבלן מקומי בגבעת זאב",
+  badge: "בניין איתן — קבלן מקומי בגבעת זאב",
   headingLine1: "בונים את גבעת זאב,",
   headingAccent: "עם קבלן שגר ממש לידכם.",
   heroSub:

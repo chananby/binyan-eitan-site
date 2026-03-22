@@ -1195,7 +1195,7 @@ export default function ContentEditorPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-gray-900">עורך התוכן</h1>
-            <p className="text-sm text-gray-500 mt-0.5">בנין איתן — ניהול תוכן האתר</p>
+            <p className="text-sm text-gray-500 mt-0.5">בניין איתן — ניהול תוכן האתר</p>
           </div>
           <div className="flex items-center gap-3">
             <a

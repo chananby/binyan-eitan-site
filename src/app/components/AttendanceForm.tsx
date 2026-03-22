@@ -535,7 +535,7 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[0.6rem] font-bold tracking-[0.2em] uppercase text-accent/60">בנין איתן</p>
+              <p className="text-[0.6rem] font-bold tracking-[0.2em] uppercase text-accent/60">בניין איתן</p>
               <h1 className="font-heading text-2xl font-bold text-charcoal">ממשק מנהל עבודה</h1>
             </div>
             <button onClick={handleAdminLogout}

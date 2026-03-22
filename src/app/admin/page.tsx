@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import AdminPortal from "../components/AdminPortal";
 
 export const metadata: Metadata = {
-  title: "ניהול | בנין איתן",
+  title: "ניהול | בניין איתן",
   robots: { index: false, follow: false },
 };
 

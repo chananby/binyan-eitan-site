@@ -2,18 +2,18 @@ import type { Metadata } from "next";
 import LPTemplate, { type LPData } from "../LPTemplate";
 
 export const metadata: Metadata = {
-  title: "שיפוצי יוקרה והרחבות בירושלים | בנין איתן",
+  title: "שיפוצי יוקרה והרחבות בירושלים | בניין איתן",
   description:
     "מומחים בשיפוצי פרימיום בירושלים עם אפס תלונות מלקוחות עבר, ניהול אתר מופתי ואחריות אישית של מוטי איתן.",
   alternates: {
     canonical: "https://binyaneitan.com/lp/jerusalem",
   },
   openGraph: {
-    title: "שיפוצי יוקרה בירושלים | בנין איתן",
+    title: "שיפוצי יוקרה בירושלים | בניין איתן",
     description:
       "מומחים בשיפוצי פרימיום בירושלים עם אפס תלונות מלקוחות עבר, ניהול אתר מופתי ואחריות אישית של מוטי איתן.",
     url: "https://binyaneitan.com/lp/jerusalem",
-    siteName: "בנין איתן",
+    siteName: "בניין איתן",
     locale: "he_IL",
     type: "website",
     images: [{ url: "/bayit-vegan.jpg", width: 1200, height: 800, alt: "שיפוץ יוקרה בירושלים" }],
@@ -27,9 +27,9 @@ const WHATSAPP =
 const data: LPData = {
   dir: "rtl",
   heroImage: "/bayit-vegan.jpg",
-  heroImageAlt: "שיפוץ יוקרה בירושלים — בנין איתן",
+  heroImageAlt: "שיפוץ יוקרה בירושלים — בניין איתן",
   breakImage: "/amshinov-3.jpg",
-  badge: "בנין איתן — קבלן רשום ג1",
+  badge: "בניין איתן — קבלן רשום ג1",
   headingLine1: "לשפץ בסטנדרט גבוה,",
   headingAccent: "ולישון בשקט בלילה.",
   heroSub:
@@ -44,7 +44,7 @@ const data: LPData = {
   introLabel: "הגישה שלנו",
   introText:
     "שיפוץ נכס יוקרה דורש הרבה יותר מעיצוב – הוא דורש דיוק בפרטים הקטנים וניהול אתר מופתי. אנחנו מביאים איתנו ניסיון רב בשיפוצים מורכבים בירושלים, תוך שמירה על סדר מופתי ועמידה קשיחה בלוחות זמנים. והכי חשוב? בדקו אותנו. אנחנו מתגאים בביקורות מעולות ואפס תלונות מלקוחות עבר. אנחנו פה כדי שתוכלו לשפץ בראש שקט באמת.",
-  pillarsTitle: "למה בנין איתן?",
+  pillarsTitle: "למה בניין איתן?",
   pillars: [
     {
       num: "01",

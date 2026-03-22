@@ -650,7 +650,7 @@ export default function AdminPortal() {
         </div>
 
         <p className="font-body text-[0.55rem] tracking-widest uppercase text-charcoal/20">
-          בנין איתן — פורטל ניהול פנימי
+          בניין איתן — פורטל ניהול פנימי
         </p>
       </div>
       </>
@@ -697,7 +697,7 @@ export default function AdminPortal() {
         <div className="flex items-center justify-between">
           <div>
             <Link href="/he" className="text-[0.6rem] font-bold tracking-[0.2em] uppercase text-accent/60 hover:text-accent transition-colors duration-200">
-              בנין איתן
+              בניין איתן
             </Link>
             <h1 className="font-heading text-2xl font-bold text-charcoal">
               {isAdmin ? "ממשק מנהל" : foremanName ? `ברוך הבא, ${foremanName}` : "ממשק מנהל עבודה"}
@@ -1724,7 +1724,7 @@ export default function AdminPortal() {
         )}
 
         <p className="text-center font-body text-[0.55rem] tracking-widest uppercase text-charcoal/20 pt-2">
-          בנין איתן — פורטל ניהול פנימי
+          בניין איתן — פורטל ניהול פנימי
         </p>
       </div>
     </div>

@@ -94,7 +94,7 @@ const ui = {
     notFound: "המאמר לא נמצא.",
     ctaLabel: "פנו אלינו לייעוץ",
     ctaSub: "או התקשרו: 058-500-8447",
-    tipTitle: "הביטחון של בנין איתן",
+    tipTitle: "הביטחון של בניין איתן",
     share: "שתף",
     minRead: (n: number) => `${n} דקות קריאה`,
   },

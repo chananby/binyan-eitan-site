@@ -112,7 +112,7 @@ export default async function DashboardPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="font-body text-[0.65rem] font-semibold tracking-[0.22em] uppercase text-accent mb-2">
-              בנין איתן — ניהול
+              בניין איתן — ניהול
             </p>
             <h1 className="font-heading text-3xl font-bold text-charcoal md:text-4xl">דשבורד</h1>
           </div>

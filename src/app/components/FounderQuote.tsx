@@ -11,7 +11,7 @@ export default function FounderQuote() {
 
   const quote: string = (t as Record<string, string>).founderQuote ?? "";
   const name: string  = (t as Record<string, string>).founderName  ?? (l === "he" ? "מוטי איתן" : "Motti Eitan");
-  const title: string = (t as Record<string, string>).founderTitle ?? (l === "he" ? "מייסד ומנכ\"ל, בנין איתן" : "Founder & CEO, Binyan Eitan");
+  const title: string = (t as Record<string, string>).founderTitle ?? (l === "he" ? "מייסד ומנכ\"ל, בניין איתן" : "Founder & CEO, Binyan Eitan");
 
   if (!quote) return null;
 

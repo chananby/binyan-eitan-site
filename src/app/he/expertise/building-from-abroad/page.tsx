@@ -11,11 +11,11 @@ export const metadata: Metadata = {
     canonical: "https://binyaneitan.com/he/expertise/building-from-abroad",
   },
   openGraph: {
-    title: "לבנות בישראל בראש שקט – המדריך לניהול פרויקט מרחוק | בנין איתן",
+    title: "לבנות בישראל בראש שקט – המדריך לניהול פרויקט מרחוק | בניין איתן",
     description:
       "המדריך המלא לבנייה ושיפוץ בישראל עבור תושבי חוץ. שקיפות מלאה, דיווחים שוטפים וניהול מקצועי בשלט רחוק.",
     url: "https://binyaneitan.com/he/expertise/building-from-abroad",
-    siteName: "בנין איתן",
+    siteName: "בניין איתן",
     locale: "he_IL",
     type: "article",
     images: [
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
         url: "/luxury-interior.jpg",
         width: 1200,
         height: 800,
-        alt: "ניהול פרויקט בנייה בישראל מרחוק — בנין איתן",
+        alt: "ניהול פרויקט בנייה בישראל מרחוק — בניין איתן",
       },
     ],
   },

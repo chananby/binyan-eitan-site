@@ -190,7 +190,7 @@ export default function HealthPage() {
         <div className="flex items-center gap-3">
           <Activity size={18} strokeWidth={1.5} className="text-accent" />
           <div>
-            <p className="text-[0.58rem] font-bold tracking-[0.2em] uppercase text-white/30">בנין איתן</p>
+            <p className="text-[0.58rem] font-bold tracking-[0.2em] uppercase text-white/30">בניין איתן</p>
             <h1 className="text-sm font-bold text-white/90 leading-none">בדיקת מערכת</h1>
           </div>
         </div>

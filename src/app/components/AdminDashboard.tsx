@@ -221,7 +221,7 @@ export default function AdminDashboard({
                 ממשק ניהול
               </p>
               <h1 className="font-heading text-xl font-bold text-charcoal leading-tight">
-                בנין איתן
+                בניין איתן
               </h1>
             </div>
           </div>

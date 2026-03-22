@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
-  title: { absolute: "בנין איתן | הנדסה וביצוע פרויקטים מורכבים בירושלים" },
+  title: { absolute: "בניין איתן | הנדסה וביצוע פרויקטים מורכבים בירושלים" },
   description:
     "קבלן רשום ג1 מס׳ 41805 — ביצוע פרויקטים מורכבים בירושלים ובנימין. הנדסה אזרחית, שיפוץ דירות ווילות, בנייה ושיפוצים וגמר פרימיום. עבודה עברית מקצועית — דיוק שאפשר למדוד.",
   keywords: [
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     languages: { en: "https://binyaneitan.com/en" },
   },
   openGraph: {
-    title: "בנין איתן | הנדסה וביצוע פרויקטים מורכבים בירושלים",
+    title: "בניין איתן | הנדסה וביצוע פרויקטים מורכבים בירושלים",
     description:
       "קבלן שיפוצים ובנייה בירושלים ובנימין — עבודה עברית מקצועית, שיפוץ יוקרה, גמר פרימיום. קבלן רשום ג1.",
     url: "https://binyaneitan.com/he",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
 const heLocalBusiness = {
   "@context": "https://schema.org",
   "@type": ["LocalBusiness", "ConstructionBusiness"],
-  "name": "בנין איתן",
+  "name": "בניין איתן",
   "alternateName": "Binyan Eitan",
   "founder": { "@type": "Person", "name": "מוטי איתן", "jobTitle": "קבלן רשום ג1 ומייסד" },
   "description": "קבלן רשום ג1 מס׳ 41805. ביצוע פרויקטים מורכבים בירושלים — הנדסה אזרחית, שיפוץ דירות ווילות, בנייה ושיפוצים וגמר פרימיום.",

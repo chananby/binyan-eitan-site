@@ -47,7 +47,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ConstructionBusiness",
-  "name": "בנין איתן - הנדסה וביצוע",
+  "name": "בניין איתן - הנדסה וביצוע",
   "description": "קבלן שיפוצים ובנייה בירושלים ובנימין — עבודה עברית מקצועית. שיפוץ דירות, בנייה ושיפוצים, הנדסת קונסטרוקציה וגמר פרימיום. קבלן רשום ג1 מס׳ 41805.",
   "url": "https://binyaneitan.com",
   "telephone": "02-500-0447",

@@ -39,7 +39,7 @@ const enLocalBusiness = {
   "@context": "https://schema.org",
   "@type": ["LocalBusiness", "ConstructionBusiness"],
   "name": "Binyan Eitan",
-  "alternateName": "בנין איתן",
+  "alternateName": "בניין איתן",
   "founder": { "@type": "Person", "name": "Moti Eitan", "jobTitle": "G1 Registered Contractor & Founder" },
   "description": "G1-registered contractor #41805. Complex project execution in Jerusalem — civil engineering, structural construction, luxury renovations, and premium finish work.",
   "url": "https://binyaneitan.com",

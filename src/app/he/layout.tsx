@@ -12,8 +12,8 @@ const assistant = Assistant({
 
 export const metadata: Metadata = {
   title: {
-    default: "בנין איתן | קבלן שיפוצים ובנייה בירושלים",
-    template: "%s | בנין איתן",
+    default: "בניין איתן | קבלן שיפוצים ובנייה בירושלים",
+    template: "%s | בניין איתן",
   },
   description:
     "קבלן שיפוצים ובנייה מוביל בירושלים ובנימין — עבודה עברית מקצועית עם ניסיון של 20 שנה. שיפוצי יוקרה, בנייה ושיפוצים, הנדסת קונסטרוקציה וגמר פרימיום. קבלן רשום ג1.",
@@ -24,13 +24,13 @@ export const metadata: Metadata = {
     "קבלן בנייה ירושלים",
     "שיפוץ דירה ירושלים",
     "קבלן שיפוצים בנימין",
-    "בנין איתן",
+    "בניין איתן",
     "קבלן רשום ג1",
     "שיפוץ יוקרה ירושלים",
     "הנדסת קונסטרוקציה ירושלים",
   ],
   openGraph: {
-    siteName: "בנין איתן",
+    siteName: "בניין איתן",
     type: "website",
     locale: "he_IL",
     images: [
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
         url: "/luxury-interior-finish-transformation.jpg",
         width: 1600,
         height: 900,
-        alt: "בנין איתן — מצוינות הנדסית וביצוע ללא פשרות",
+        alt: "בניין איתן — מצוינות הנדסית וביצוע ללא פשרות",
       },
     ],
   },
@@ -56,7 +56,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   "@id": "https://binyaneitan.com",
-  "name": "בנין איתן בע\"מ",
+  "name": "בניין איתן בע\"מ",
   "alternateName": ["Binyan Eitan Ltd.", "קבלן שיפוצים ובנייה בירושלים"],
   "url": "https://binyaneitan.com",
   "logo": "https://binyaneitan.com/logo.png",

@@ -13,7 +13,7 @@ const T = {
     title:    "אזור צוות",
     subtitle: "הזן קוד לכניסה",
     wrong:    "קוד שגוי",
-    footer:   "בנין איתן — גישה פנימית בלבד",
+    footer:   "בניין איתן — גישה פנימית בלבד",
   },
   en: {
     title:    "Staff Portal",

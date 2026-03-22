@@ -14,18 +14,18 @@ export const metadata: Metadata = {
     "עבודה עברית ירושלים",
     "שיפוץ דירה ירושלים",
     "מדריך שיפוץ",
-    "בנין איתן",
+    "בניין איתן",
   ],
   alternates: {
     canonical: "https://binyaneitan.com/he/expertise/how-to-avoid-renovation-mistakes",
     languages: { en: "https://binyaneitan.com/en/expertise/how-to-avoid-renovation-mistakes" },
   },
   openGraph: {
-    title: "איך להימנע מטעויות קריטיות בשיפוץ הבית | בנין איתן",
+    title: "איך להימנע מטעויות קריטיות בשיפוץ הבית | בניין איתן",
     description:
       "מדריך פרקטי: תקציב נסתר, בדיקת תשתיות, עבודה עברית ועוד — כל מה שצריך לדעת לפני שמתחילים שיפוץ.",
     url: "https://binyaneitan.com/he/expertise/how-to-avoid-renovation-mistakes",
-    siteName: "בנין איתן",
+    siteName: "בניין איתן",
     locale: "he_IL",
     type: "article",
     images: [
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
         url: "/luxury-interior-finish-transformation.jpg",
         width: 1600,
         height: 900,
-        alt: "שיפוץ יוקרה בירושלים — בנין איתן קבלן שיפוצים ובנייה",
+        alt: "שיפוץ יוקרה בירושלים — בניין איתן קבלן שיפוצים ובנייה",
       },
     ],
   },

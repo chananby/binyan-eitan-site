@@ -45,7 +45,7 @@ const jsonLd = {
   "@type": "LocalBusiness",
   "@id": "https://binyaneitan.com",
   "name": "Binyan Eitan Ltd.",
-  "alternateName": "בנין איתן בע\"מ",
+  "alternateName": "בניין איתן בע\"מ",
   "url": "https://binyaneitan.com",
   "logo": "https://binyaneitan.com/logo.png",
   "image": "https://binyaneitan.com/luxury-interior-finish-transformation.jpg",
