@@ -101,16 +101,19 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
 }
 
 // ── Task Card ─────────────────────────────────────────────────────────────────
-function TaskCard({ task, isDragging, onDragStart, onDelete, companies }: {
+function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, companies }: {
   task: Task; isDragging: boolean;
-  onDragStart: () => void; onDelete: () => void; companies: Company[];
+  onDragStart: () => void; onDragEnd: () => void; onDelete: () => void; companies: Company[];
 }) {
   const company = task.holding_companies ?? companies.find(c => c.id === task.company_id) ?? null;
   const date = new Date(task.created_at).toLocaleDateString("he-IL", { day: "numeric", month: "short" });
 
   return (
     <div
-      draggable onDragStart={onDragStart}
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragOver={e => e.preventDefault()}
       onClick={e => e.stopPropagation()}
       className={`group relative p-3.5 border bg-white cursor-grab active:cursor-grabbing transition-all duration-150 select-none
         ${isDragging
@@ -221,11 +224,13 @@ export default function Cockpit() {
   const [loading,       setLoading]       = useState(false);
   const [error,         setError]         = useState<string | null>(null);
   const [filterCompany, setFilterCompany] = useState<string | null>(null);
-  const [dragTaskId,    setDragTaskId]    = useState<string | null>(null);
+  const [dragTaskId,    setDragTaskId]    = useState<string | null>(null); // visual only
+  const dragIdRef = useRef<string | null>(null);                           // authoritative source for handleDrop
   const [dragOverCol,   setDragOverCol]   = useState<ColKey | null>(null);
   const [addingTo,      setAddingTo]      = useState<ColKey | null>(null);
   const [showSidebar,   setShowSidebar]   = useState(false);
   const [listening,     setListening]     = useState(false);
+  const [dragError,     setDragError]     = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognizerRef = useRef<any>(null);
 
@@ -252,18 +257,51 @@ export default function Cockpit() {
 
   useEffect(() => { if (authed) loadData(); }, [authed, loadData]);
 
+  // onDragEnd fires on the card after every drag (success or cancel).
+  // Clears both the ref (authoritative) and the visual state.
+  const clearDragState = useCallback(() => {
+    dragIdRef.current = null;
+    setDragTaskId(null);
+    setDragOverCol(null);
+  }, []);
+
   const handleDrop = useCallback(async (colKey: ColKey) => {
-    if (!dragTaskId) return;
-    const task = tasks.find(t => t.id === dragTaskId);
-    if (!task || task.status === colKey) { setDragTaskId(null); setDragOverCol(null); return; }
-    setTasks(prev => prev.map(t => t.id === dragTaskId ? { ...t, status: colKey } : t));
-    setDragTaskId(null); setDragOverCol(null);
-    const res = await fetch(`/api/holding/tasks/${dragTaskId}`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: colKey }),
-    });
-    if (!res.ok) setTasks(prev => prev.map(t => t.id === dragTaskId ? { ...t, status: task.status } : t));
-  }, [dragTaskId, tasks]);
+    const taskId = dragIdRef.current;
+    clearDragState();
+    if (!taskId) return;
+
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || task.status === colKey) return;
+
+    const prevStatus = task.status;
+
+    // Deep-copy the array so React always registers the change
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: colKey } : { ...t }));
+
+    try {
+      const res = await fetch(`/api/holding/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: colKey }),
+      });
+
+      if (!res.ok) {
+        // Roll back
+        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: prevStatus } : { ...t }));
+        // Try JSON first, fall back to raw text so we always see something useful
+        let errDetail: string;
+        try {
+          const txt = await res.text();
+          try { errDetail = JSON.stringify(JSON.parse(txt), null, 2); }
+          catch { errDetail = txt.slice(0, 600); }  // HTML or plain text — truncate
+        } catch { errDetail = `HTTP ${res.status} ${res.statusText}`; }
+        alert(`PATCH failed (${res.status}):\n\n${errDetail}`);
+      }
+    } catch (networkErr) {
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: prevStatus } : { ...t }));
+      alert("Network Error (drag-and-drop PATCH):\n" + String(networkErr));
+    }
+  }, [tasks, clearDragState]);
 
   const addTask = useCallback(async (colKey: ColKey, title: string, notes: string, companyId: string): Promise<string | null> => {
     try {
@@ -413,6 +451,12 @@ export default function Cockpit() {
               <AlertCircle size={14} /> {error}
             </div>
           )}
+          {dragError && (
+            <div className="mx-4 mt-3 flex items-center gap-2 text-red-600 text-sm border border-red-200 bg-red-50 px-4 py-2.5 rounded shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+              <AlertCircle size={13} />
+              <span className="font-medium">שגיאה בגרירה:</span> {dragError}
+            </div>
+          )}
           <div className="flex gap-4 h-full p-5 min-w-[950px]">
             {COLUMNS.map(col => {
               const colItems     = colTasks(col.key);
@@ -429,7 +473,7 @@ export default function Cockpit() {
                   }}
                   onDragOver={e => { e.preventDefault(); setDragOverCol(col.key); }}
                   onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverCol(null); }}
-                  onDrop={() => handleDrop(col.key)}
+                  onDrop={e => { e.preventDefault(); handleDrop(col.key); }}
                   onClick={() => { if (!isAdding) setAddingTo(col.key); }}
                 >
                   {/* Column header */}
@@ -487,7 +531,11 @@ export default function Cockpit() {
                     {colItems.map(task => (
                       <TaskCard key={task.id} task={task}
                         isDragging={dragTaskId === task.id}
-                        onDragStart={() => setDragTaskId(task.id)}
+                        onDragStart={() => {
+                          dragIdRef.current = task.id;   // sync — no stale closure risk
+                          setDragTaskId(task.id);        // async — for visual only
+                        }}
+                        onDragEnd={clearDragState}
                         onDelete={() => deleteTask(task.id)}
                         companies={companies} />
                     ))}

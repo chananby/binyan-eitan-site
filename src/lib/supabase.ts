@@ -38,7 +38,7 @@ export interface AttendanceRow {
   lat: string;
   lng: string;
   timestamp_label: string;
-  recorded_at: string;
+  created_at: string;
 }
 
 export interface ProjectRow {
