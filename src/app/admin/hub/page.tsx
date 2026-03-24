@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   ShieldCheck, Activity, Swords, Users, ClipboardList,
   Building2, Globe, Info, Briefcase, FileText, Home,
-  ExternalLink, Wrench, DollarSign, Calendar,
+  ExternalLink, Wrench, DollarSign, Calendar, LayoutDashboard,
 } from "lucide-react";
 
 interface HubLink {
@@ -26,8 +26,9 @@ const SECTIONS: HubSection[] = [
     title: "ניהול",
     links: [
       { href: "/admin",           label: "ממשק ניהול",        sub: "פרויקטים · עובדים · נוכחות",  icon: <ShieldCheck size={18} />, highlight: true },
-      { href: "/admin/executive", label: "War Room",           sub: "חנן ומוטי — לוח פנימי",        icon: <Swords       size={18} />, highlight: true },
-      { href: "/admin/health",    label: "בדיקת מערכת",        sub: "אבחון מלא של כל השירותים",     icon: <Activity     size={18} /> },
+      { href: "/admin/executive", label: "War Room",           sub: "חנן ומוטי — לוח פנימי",        icon: <Swords          size={18} />, highlight: true },
+      { href: "/admin/cockpit",   label: "Cockpit",            sub: "Multi-Entity · Kanban",          icon: <LayoutDashboard size={18} />, highlight: true },
+      { href: "/admin/health",    label: "בדיקת מערכת",        sub: "אבחון מלא של כל השירותים",     icon: <Activity        size={18} /> },
     ],
   },
   {
