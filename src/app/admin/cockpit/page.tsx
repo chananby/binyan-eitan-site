@@ -35,7 +35,7 @@ interface Task {
 
 // ── Column config ─────────────────────────────────────────────────────────────
 const COLUMNS: { key: ColKey; label: string; accent: string; lightBg: string }[] = [
-  { key: "backlog",     label: "Backlog",  accent: "#8D775F", lightBg: "#F3F2EE" },
+  { key: "backlog",     label: "בקלוג",    accent: "#8D775F", lightBg: "#F3F2EE" },
   { key: "urgent",      label: "דחוף",     accent: "#DC2626", lightBg: "#FEF2F2" },
   { key: "in_progress", label: "בביצוע",   accent: "#D97706", lightBg: "#FFFBEB" },
   { key: "pending",     label: "ממתין",    accent: "#2563EB", lightBg: "#EFF6FF" },
@@ -78,7 +78,7 @@ function PinGate({ onAuth }: { onAuth: (author: Author) => void }) {
   return (
     <div className="min-h-screen bg-[#F3F2EE] flex flex-col items-center justify-center p-8" dir="rtl">
       <Image src="/logo.png" alt="בניין איתן" width={110} height={30} className="mb-6 opacity-70" />
-      <p className="text-[#8D775F] text-[0.55rem] font-bold tracking-[0.3em] uppercase mb-1">Multi-Entity Cockpit</p>
+      <p className="text-[#8D775F] text-[0.55rem] font-bold tracking-[0.3em] uppercase mb-1">לוח שליטה</p>
       <h1 className="text-[#2D2926]/70 text-lg font-heading mb-8 tracking-wide">כניסה פרטית</h1>
       <div className="flex gap-2.5 mb-6">
         {Array.from({ length: 6 }).map((_, i) => (
@@ -161,22 +161,24 @@ function TaskCard({
 // ── Quick Add ─────────────────────────────────────────────────────────────────
 function QuickAdd({ colKey, companies, onAdd, onClose }: {
   colKey: ColKey; companies: Company[];
-  onAdd: (title: string, notes: string, companyId: string) => Promise<void>;
+  onAdd: (title: string, notes: string, companyId: string) => Promise<string | null>;
   onClose: () => void;
 }) {
   const [title,     setTitle]     = useState("");
   const [notes,     setNotes]     = useState("");
   const [companyId, setCompanyId] = useState(companies[0]?.id ?? "");
   const [saving,    setSaving]    = useState(false);
+  const [addErr,    setAddErr]    = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   const submit = async () => {
     if (!title.trim() || saving) return;
-    setSaving(true);
-    await onAdd(title.trim(), notes, companyId);
+    setSaving(true); setAddErr(null);
+    const err = await onAdd(title.trim(), notes, companyId);
     setSaving(false);
+    if (err) setAddErr(err);
   };
 
   return (
@@ -189,6 +191,11 @@ function QuickAdd({ colKey, companies, onAdd, onClose }: {
         data-voice-input
         className="w-full bg-white border border-[#D1CFCA] text-[#2D2926] text-[0.78rem] px-2.5 py-2 focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/25"
       />
+      {addErr && (
+        <p className="flex items-center gap-1.5 text-[0.65rem] text-red-600 border border-red-200 bg-red-50 px-2.5 py-1.5">
+          <AlertCircle size={11} /> {addErr}
+        </p>
+      )}
       <textarea
         value={notes} onChange={e => setNotes(e.target.value)}
         placeholder="הערות (אופציונלי)" rows={2}
@@ -268,12 +275,23 @@ export default function Cockpit() {
     if (!res.ok) setTasks(prev => prev.map(t => t.id === dragTaskId ? { ...t, status: task.status } : t));
   }, [dragTaskId, tasks]);
 
-  const addTask = useCallback(async (colKey: ColKey, title: string, notes: string, companyId: string) => {
-    const res = await fetch("/api/holding/tasks", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, notes: notes || undefined, status: colKey, company_id: companyId || undefined }),
-    });
-    if (res.ok) { const { task } = await res.json(); setTasks(prev => [task, ...prev]); setAddingTo(null); }
+  const addTask = useCallback(async (colKey: ColKey, title: string, notes: string, companyId: string): Promise<string | null> => {
+    try {
+      const res = await fetch("/api/holding/tasks", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, notes: notes || undefined, status: colKey, company_id: companyId || undefined }),
+      });
+      if (res.ok) {
+        const { task } = await res.json();
+        setTasks(prev => [task, ...prev]);
+        setAddingTo(null);
+        return null;
+      }
+      const d = await res.json().catch(() => ({}));
+      return d.error ?? `שגיאה ${res.status} — האם יצרת את טבלת holding_tasks בסופאבייס?`;
+    } catch (e) {
+      return `שגיאת רשת: ${String(e)}`;
+    }
   }, []);
 
   const deleteTask = useCallback(async (id: string) => {
@@ -329,8 +347,8 @@ export default function Cockpit() {
           <div className="flex items-center gap-2.5 shrink-0">
             <Image src="/logo.png" alt="" width={80} height={22} className="opacity-80" />
             <div>
-              <p className="text-[0.5rem] font-bold tracking-[0.25em] uppercase text-[#2D2926]/30">Holding</p>
-              <p className="text-[0.75rem] font-bold text-[#2D2926]/80 leading-none">Multi-Entity Cockpit</p>
+              <p className="text-[0.5rem] font-bold tracking-[0.25em] uppercase text-[#2D2926]/30">החזקות</p>
+              <p className="text-[0.75rem] font-bold text-[#2D2926]/80 leading-none">לוח שליטה</p>
             </div>
           </div>
           <div className="flex-1" />
@@ -341,7 +359,7 @@ export default function Cockpit() {
               ${listening
                 ? "border-red-400 text-red-500 bg-red-50 animate-pulse"
                 : "border-[#D1CFCA] text-[#2D2926]/50 hover:text-[#2D2926] hover:border-[#8D775F]/40"}`}>
-            {listening ? <><MicOff size={12}/> עצור</> : <><Mic size={12}/> קול</>}
+            {listening ? <><MicOff size={12}/> עצור הקלטה</> : <><Mic size={12}/> הכתבה</>}
           </button>
 
           {/* Urgent toggle */}
@@ -444,6 +462,7 @@ export default function Cockpit() {
                     <QuickAdd colKey={col.key} companies={companies}
                       onAdd={(title, notes, cid) => addTask(col.key, title, notes, cid)}
                       onClose={() => setAddingTo(null)} />
+
                   )}
 
                   <div className="flex-1 overflow-y-auto space-y-2 px-1 py-1 min-h-[200px]">
@@ -525,7 +544,7 @@ export default function Cockpit() {
       {/* Mobile bottom bar */}
       <div className="shrink-0 border-t border-[#D1CFCA] bg-white px-4 py-2.5 flex items-center justify-between md:hidden">
         <a href="/admin/hub" className="text-[0.65rem] text-[#2D2926]/30 hover:text-[#2D2926] flex items-center gap-1.5">
-          Hub
+          מרכז שליטה
         </a>
         <button onClick={() => setAddingTo("backlog")}
           className="flex items-center gap-1.5 px-4 py-2 bg-[#8D775F] text-white text-[0.72rem] font-bold hover:bg-[#7A6451] transition-colors">
