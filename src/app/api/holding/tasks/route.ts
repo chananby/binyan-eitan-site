@@ -9,6 +9,43 @@ export const runtime = "nodejs";
 
 const SELECT = "*, holding_companies(id, name, color, icon)";
 
+// Columns that may be missing if table was created via Supabase UI without full migration.
+// We try inserting with all fields; on schema-cache errors we drop the offending field and retry.
+const OPTIONAL_COLS = ["author", "notes", "priority", "company_id", "updated_at"] as const;
+type OptionalCol = typeof OPTIONAL_COLS[number];
+
+function isSchemaError(msg: string, col?: string) {
+  if (!msg.toLowerCase().includes("schema cache") && !msg.includes("Could not find")) return false;
+  return col ? msg.includes(`'${col}'`) : true;
+}
+
+async function insertWithFallback(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  payload: Record<string, unknown>,
+): Promise<{ data: unknown; error: { message: string } | null }> {
+  const { data, error } = await supabase
+    .from("holding_tasks")
+    .insert(payload)
+    .select(SELECT)
+    .single();
+
+  if (!error) return { data, error: null };
+
+  // Not a schema-cache error — surface it as-is
+  if (!isSchemaError(error.message)) return { data: null, error };
+
+  // Find which optional column triggered the error and drop it, then retry
+  const badCol = OPTIONAL_COLS.find(c => error.message.includes(`'${c}'`));
+  if (!badCol) return { data: null, error };
+
+  const reduced = { ...payload };
+  delete reduced[badCol as OptionalCol];
+
+  // Recurse — handles multiple missing columns one at a time
+  return insertWithFallback(supabase, reduced);
+}
+
 export async function GET(req: NextRequest) {
   if (!isExecAuthedFromRequest(req))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -47,32 +84,18 @@ export async function POST(req: NextRequest) {
   if (!VALID.includes(status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
 
   const supabase = createServerClient();
-  const base = { title: title.trim(), notes: notes || null, status, priority, company_id: company_id || null };
 
-  // First attempt: insert with author
-  const first = await supabase.from("holding_tasks")
-    .insert({ ...base, author })
-    .select(SELECT)
-    .single();
+  const { data, error } = await insertWithFallback(supabase, {
+    title: title.trim(),
+    notes: notes || null,
+    status,
+    priority,
+    company_id: company_id || null,
+    author,
+  });
 
-  if (!first.error) return NextResponse.json({ task: first.data }, { status: 201 });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // If 'author' column missing — table was created without it; retry without author
-  const missingAuthor =
-    first.error.message.includes("author") ||
-    first.error.message.toLowerCase().includes("schema cache");
-
-  if (!missingAuthor) {
-    return NextResponse.json({ error: first.error.message }, { status: 500 });
-  }
-
-  const second = await supabase.from("holding_tasks")
-    .insert(base)
-    .select(SELECT)
-    .single();
-
-  if (second.error) return NextResponse.json({ error: second.error.message }, { status: 500 });
-
-  // Inject author into the returned object so the UI shows it correctly
-  return NextResponse.json({ task: { ...second.data, author, _author_column_missing: true } }, { status: 201 });
+  // Always ensure author is present in the response even if column was missing
+  return NextResponse.json({ task: { ...data as object, author } }, { status: 201 });
 }
