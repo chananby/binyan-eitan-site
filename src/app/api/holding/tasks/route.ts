@@ -7,6 +7,8 @@ import {
 
 export const runtime = "nodejs";
 
+const SELECT = "*, holding_companies(id, name, color, icon)";
+
 export async function GET(req: NextRequest) {
   if (!isExecAuthedFromRequest(req))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -18,7 +20,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from("holding_tasks")
-    .select("*, holding_companies(id, name, color, icon)")
+    .select(SELECT)
     .order("priority", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -34,13 +36,7 @@ export async function POST(req: NextRequest) {
   const author = getExecAuthorFromRequest(req);
   if (!author) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: {
-    title?: string;
-    notes?: string;
-    status?: string;
-    priority?: number;
-    company_id?: string;
-  };
+  let body: { title?: string; notes?: string; status?: string; priority?: number; company_id?: string };
   try { body = await req.json(); }
   catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
@@ -51,12 +47,32 @@ export async function POST(req: NextRequest) {
   if (!VALID.includes(status)) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
 
   const supabase = createServerClient();
-  const { data, error } = await supabase
-    .from("holding_tasks")
-    .insert({ title: title.trim(), notes, status, priority, company_id: company_id || null, author })
-    .select("*, holding_companies(id, name, color, icon)")
+  const base = { title: title.trim(), notes: notes || null, status, priority, company_id: company_id || null };
+
+  // First attempt: insert with author
+  const first = await supabase.from("holding_tasks")
+    .insert({ ...base, author })
+    .select(SELECT)
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ task: data }, { status: 201 });
+  if (!first.error) return NextResponse.json({ task: first.data }, { status: 201 });
+
+  // If 'author' column missing — table was created without it; retry without author
+  const missingAuthor =
+    first.error.message.includes("author") ||
+    first.error.message.toLowerCase().includes("schema cache");
+
+  if (!missingAuthor) {
+    return NextResponse.json({ error: first.error.message }, { status: 500 });
+  }
+
+  const second = await supabase.from("holding_tasks")
+    .insert(base)
+    .select(SELECT)
+    .single();
+
+  if (second.error) return NextResponse.json({ error: second.error.message }, { status: 500 });
+
+  // Inject author into the returned object so the UI shows it correctly
+  return NextResponse.json({ task: { ...second.data, author, _author_column_missing: true } }, { status: 201 });
 }

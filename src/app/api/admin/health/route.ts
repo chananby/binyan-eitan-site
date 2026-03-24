@@ -140,7 +140,37 @@ export async function GET(req: NextRequest) {
     checkColumn(supabase, "executive_space", "due_date"),
     checkColumn(supabase, "executive_space", "content"),
     checkColumn(supabase, "executive_space", "priority"),
+
+    // holding tables
+    checkTable(supabase,  "holding_companies"),
+    checkTable(supabase,  "holding_tasks"),
+    checkColumn(supabase, "holding_tasks", "author"),
+    checkColumn(supabase, "holding_tasks", "notes"),
+    checkColumn(supabase, "holding_tasks", "status"),
+    checkColumn(supabase, "holding_tasks", "priority"),
+    checkColumn(supabase, "holding_tasks", "company_id"),
+    checkColumn(supabase, "holding_companies", "color"),
+    checkColumn(supabase, "holding_companies", "icon"),
+    checkColumn(supabase, "holding_companies", "sort_order"),
   ]);
+
+  // Enrich holding schema failures with precise SQL fix
+  const HOLDING_FIXES: Record<string, string> = {
+    "schema_table_holding_companies": `CREATE TABLE holding_companies (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  name text NOT NULL,\n  slug text UNIQUE NOT NULL,\n  color text NOT NULL DEFAULT '#888',\n  icon text NOT NULL DEFAULT '📦',\n  drive_url text,\n  sort_order int DEFAULT 0,\n  created_at timestamptz DEFAULT now()\n);`,
+    "schema_table_holding_tasks": `CREATE TABLE holding_tasks (\n  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),\n  company_id uuid REFERENCES holding_companies(id) ON DELETE SET NULL,\n  title text NOT NULL,\n  notes text,\n  status text NOT NULL DEFAULT 'backlog' CHECK (status IN ('backlog','urgent','in_progress','pending','done')),\n  priority int NOT NULL DEFAULT 0,\n  author text NOT NULL DEFAULT 'Hanan',\n  created_at timestamptz DEFAULT now(),\n  updated_at timestamptz DEFAULT now()\n);`,
+    "schema_holding_tasks_author":     `ALTER TABLE holding_tasks ADD COLUMN IF NOT EXISTS author text NOT NULL DEFAULT 'Hanan';`,
+    "schema_holding_tasks_notes":      `ALTER TABLE holding_tasks ADD COLUMN IF NOT EXISTS notes text;`,
+    "schema_holding_tasks_status":     `ALTER TABLE holding_tasks ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'backlog';`,
+    "schema_holding_tasks_priority":   `ALTER TABLE holding_tasks ADD COLUMN IF NOT EXISTS priority int NOT NULL DEFAULT 0;`,
+    "schema_holding_tasks_company_id": `ALTER TABLE holding_tasks ADD COLUMN IF NOT EXISTS company_id uuid REFERENCES holding_companies(id) ON DELETE SET NULL;`,
+    "schema_holding_companies_color":  `ALTER TABLE holding_companies ADD COLUMN IF NOT EXISTS color text NOT NULL DEFAULT '#888';`,
+    "schema_holding_companies_icon":   `ALTER TABLE holding_companies ADD COLUMN IF NOT EXISTS icon text NOT NULL DEFAULT '📦';`,
+    "schema_holding_companies_sort_order": `ALTER TABLE holding_companies ADD COLUMN IF NOT EXISTS sort_order int DEFAULT 0;`,
+  };
+  for (const r of schemaChecks) {
+    if (r.status === "fail" && HOLDING_FIXES[r.id]) r.fix = HOLDING_FIXES[r.id];
+  }
+
   results.push(...schemaChecks);
 
   // ═══════════════════════════════════════════════════════════════════════════
