@@ -179,21 +179,25 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
 }
 
 // ── Quick Add ─────────────────────────────────────────────────────────────────
-function QuickAdd({ colKey, companies, onAdd, onClose }: {
+function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   colKey: ColKey; companies: Company[];
+  defaultCompanyId: string;  // "" = require selection, otherwise pre-select
   onAdd: (title: string, notes: string, companyId: string) => Promise<string | null>;
   onClose: () => void;
 }) {
   const [title,     setTitle]     = useState("");
   const [notes,     setNotes]     = useState("");
-  const [companyId, setCompanyId] = useState(companies[0]?.id ?? "");
+  const [companyId, setCompanyId] = useState(defaultCompanyId);
   const [saving,    setSaving]    = useState(false);
   const [addErr,    setAddErr]    = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
 
+  const requiresCompany = !defaultCompanyId; // true when showing "all"
+  const canSubmit = title.trim() && (!requiresCompany || companyId);
+
   const submit = async () => {
-    if (!title.trim() || saving) return;
+    if (!canSubmit || saving) return;
     setSaving(true); setAddErr(null);
     const err = await onAdd(title.trim(), notes, companyId);
     setSaving(false);
@@ -229,11 +233,18 @@ function QuickAdd({ colKey, companies, onAdd, onClose }: {
       />
       <select
         value={companyId} onChange={e => setCompanyId(e.target.value)}
-        className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/70 text-[0.75rem] px-3 py-2 rounded focus:outline-none"
+        className={`w-full bg-[#FAFAF9] border text-[0.75rem] px-3 py-2 rounded focus:outline-none
+          ${requiresCompany && !companyId
+            ? "border-amber-300 text-[#2D2926]/40"
+            : "border-[#E8E7E3] text-[#2D2926]/70"}`}
       >
+        {requiresCompany && <option value="">— בחר חברה —</option>}
         {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
       </select>
-      <button onClick={submit} disabled={!title.trim() || saving}
+      {requiresCompany && !companyId && (
+        <p className="text-[0.6rem] text-amber-600">יש לבחור חברה לפני השמירה</p>
+      )}
+      <button onClick={submit} disabled={!canSubmit || saving}
         className="w-full py-2.5 text-white text-[0.75rem] font-bold tracking-wide disabled:opacity-40 transition-colors rounded"
         style={{ background: col.accent }}>
         {saving ? <Loader2 size={13} className="animate-spin mx-auto" /> : `הוסף ל${col.label}`}
@@ -628,6 +639,7 @@ export default function Cockpit() {
                   {isAdding && (
                     <div className="px-2">
                       <QuickAdd colKey={col.key} companies={companies}
+                        defaultCompanyId={filterCompany ?? ""}
                         onAdd={(title, notes, cid) => addTask(col.key, title, notes, cid)}
                         onClose={() => setAddingTo(null)} />
                     </div>
