@@ -12,8 +12,9 @@ export const runtime = "nodejs";
 // ── Inline auth (no import from exec-auth so no hidden crash) ─────────────────
 function resolveAuthor(req: NextRequest): "Hanan" | "Moti" | null {
   try {
-    const cookie = req.cookies.get("be_exec_token")?.value;
-    if (!cookie) return null;
+    const raw = req.cookies.get("be_exec_token")?.value;
+    if (!raw) return null;
+    const cookie = raw.trim().toLowerCase();
     const secret = process.env.ADMIN_PASSWORD ?? "be_internal_secret";
     const tok = (a: string) =>
       createHmac("sha256", secret + "-exec").update("exec-v1-" + a).digest("hex");
