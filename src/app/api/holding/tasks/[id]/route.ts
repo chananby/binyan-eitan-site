@@ -11,9 +11,9 @@ export const runtime = "nodejs";
 // ── Inline auth ────────────────────────────────────────────────────────────────
 function resolveAuthor(req: NextRequest): "Hanan" | "Moti" | null {
   try {
-    const cookie = req.cookies.get("be_exec_token")?.value?.trim() ?? "";
-    if (cookie === "session_valid_Hanan") return "Hanan";
-    if (cookie === "session_valid_Moti")  return "Moti";
+    const cookie = req.cookies.get("be_exec_token")?.value ?? "";
+    if (cookie === "AUTHORIZED_HANAN") return "Hanan";
+    if (cookie === "AUTHORIZED_MOTI")  return "Moti";
     return null;
   } catch {
     return null;

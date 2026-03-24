@@ -12,14 +12,10 @@ export const EXEC_COOKIE_OPTS = {
 
 export type ExecAuthor = "Hanan" | "Moti";
 
-function execToken(author: ExecAuthor): string {
-  return `session_valid_${author}`;
-}
-
 export function getExecAuthorFromRequest(req: NextRequest): ExecAuthor | null {
-  const cookie = req.cookies.get(EXEC_COOKIE)?.value?.trim() ?? "";
-  if (cookie === execToken("Hanan")) return "Hanan";
-  if (cookie === execToken("Moti"))  return "Moti";
+  const cookie = req.cookies.get(EXEC_COOKIE)?.value ?? "";
+  if (cookie === "AUTHORIZED_HANAN") return "Hanan";
+  if (cookie === "AUTHORIZED_MOTI")  return "Moti";
   return null;
 }
 
@@ -28,5 +24,6 @@ export function isExecAuthedFromRequest(req: NextRequest): boolean {
 }
 
 export function buildExecAuthCookie(author: ExecAuthor) {
-  return { name: EXEC_COOKIE, value: execToken(author), options: EXEC_COOKIE_OPTS };
+  const value = author === "Hanan" ? "AUTHORIZED_HANAN" : "AUTHORIZED_MOTI";
+  return { name: EXEC_COOKIE, value, options: EXEC_COOKIE_OPTS };
 }

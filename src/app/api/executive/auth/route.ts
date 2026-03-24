@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "../../../../lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 import {
   EXEC_COOKIE, buildExecAuthCookie, getExecAuthorFromRequest,
 } from "../../../../lib/exec-auth";
@@ -20,29 +20,41 @@ export async function POST(req: NextRequest) {
   catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
   const { pin } = body;
+  console.log("[executive/auth] PIN received:", pin);
+
   if (!pin) return NextResponse.json({ error: "PIN required" }, { status: 400 });
 
-  // Fetch PINs from settings table (fallback to env / hardcoded gematria defaults)
-  const supabase = createServerClient();
-  const { data: rows } = await supabase
+  // Fetch PINs from settings table
+  const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  const supabase    = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+
+  const { data: rows, error: dbErr } = await supabase
     .from("settings")
     .select("key, value")
     .in("key", ["executive_pin_hanan", "executive_pin_moti"]);
 
-  const pinMap = Object.fromEntries((rows ?? []).map(r => [r.key, r.value]));
-  const hananPin = pinMap["executive_pin_hanan"] ?? process.env.EXECUTIVE_PIN_HANAN ?? "108";
-  const motiPin  = pinMap["executive_pin_moti"]  ?? process.env.EXECUTIVE_PIN_MOTI  ?? "274";
+  if (dbErr) console.log("[executive/auth] DB error:", dbErr.message);
+
+  const pinMap   = Object.fromEntries((rows ?? []).map(r => [r.key, r.value]));
+  const hananPin = (pinMap["executive_pin_hanan"] ?? process.env.EXECUTIVE_PIN_HANAN ?? "108").trim();
+  const motiPin  = (pinMap["executive_pin_moti"]  ?? process.env.EXECUTIVE_PIN_MOTI  ?? "274").trim();
+
+  console.log("[executive/auth] PIN from DB — Hanan:", hananPin, "Moti:", motiPin);
 
   const trimmedPin = pin.trim();
   let author: "Hanan" | "Moti" | null = null;
-  if (trimmedPin === hananPin.trim()) author = "Hanan";
-  else if (trimmedPin === motiPin.trim()) author = "Moti";
+  if (trimmedPin === hananPin) author = "Hanan";
+  else if (trimmedPin === motiPin) author = "Moti";
 
   if (!author) {
+    console.log("[executive/auth] PIN mismatch — rejecting");
     return NextResponse.json({ error: "קוד שגוי" }, { status: 401 });
   }
 
   const { name, value, options } = buildExecAuthCookie(author);
+  console.log("[executive/auth] Cookie set —", name, "=", value);
+
   const res = NextResponse.json({ ok: true, author });
   res.cookies.set(name, value, options);
   return res;
