@@ -33,9 +33,10 @@ export async function POST(req: NextRequest) {
   const hananPin = pinMap["executive_pin_hanan"] ?? process.env.EXECUTIVE_PIN_HANAN ?? "108";
   const motiPin  = pinMap["executive_pin_moti"]  ?? process.env.EXECUTIVE_PIN_MOTI  ?? "274";
 
+  const trimmedPin = pin.trim();
   let author: "Hanan" | "Moti" | null = null;
-  if (pin === hananPin) author = "Hanan";
-  else if (pin === motiPin) author = "Moti";
+  if (trimmedPin === hananPin.trim()) author = "Hanan";
+  else if (trimmedPin === motiPin.trim()) author = "Moti";
 
   if (!author) {
     return NextResponse.json({ error: "קוד שגוי" }, { status: 401 });

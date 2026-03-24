@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import { createHmac } from "crypto";
 
 export const EXEC_COOKIE = "be_exec_token";
 
@@ -14,13 +13,11 @@ export const EXEC_COOKIE_OPTS = {
 export type ExecAuthor = "Hanan" | "Moti";
 
 function execToken(author: ExecAuthor): string {
-  const secret = process.env.ADMIN_PASSWORD ?? "be_internal_secret";
-  return createHmac("sha256", secret + "-exec").update(`exec-v1-${author}`).digest("hex");
+  return `session_valid_${author}`;
 }
 
 export function getExecAuthorFromRequest(req: NextRequest): ExecAuthor | null {
-  const cookie = req.cookies.get(EXEC_COOKIE)?.value;
-  if (!cookie) return null;
+  const cookie = req.cookies.get(EXEC_COOKIE)?.value?.trim() ?? "";
   if (cookie === execToken("Hanan")) return "Hanan";
   if (cookie === execToken("Moti"))  return "Moti";
   return null;

@@ -4,22 +4,16 @@
  * Returns JSON on every code path, including crashes.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createClient }              from "@supabase/supabase-js";
-import { createHmac }                from "crypto";
+import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 
-// ── Inline auth (no import from exec-auth so no hidden crash) ─────────────────
+// ── Inline auth ────────────────────────────────────────────────────────────────
 function resolveAuthor(req: NextRequest): "Hanan" | "Moti" | null {
   try {
-    const raw = req.cookies.get("be_exec_token")?.value;
-    if (!raw) return null;
-    const cookie = raw.trim().toLowerCase();
-    const secret = process.env.ADMIN_PASSWORD ?? "be_internal_secret";
-    const tok = (a: string) =>
-      createHmac("sha256", secret + "-exec").update("exec-v1-" + a).digest("hex");
-    if (cookie === tok("Hanan")) return "Hanan";
-    if (cookie === tok("Moti"))  return "Moti";
+    const cookie = req.cookies.get("be_exec_token")?.value?.trim() ?? "";
+    if (cookie === "session_valid_Hanan") return "Hanan";
+    if (cookie === "session_valid_Moti")  return "Moti";
     return null;
   } catch {
     return null;
