@@ -1,12 +1,33 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import {
   Plus, Trash2, Mic, MicOff, AlertCircle, Loader2,
   Zap, LogOut, X, ChevronLeft,
   FolderOpen, Filter, Pencil,
+  // Company icons (Lucide names stored in DB)
+  Crown, Construction, Utensils, DoorOpen, CloudSun, Box, User,
+  Building2, Hammer, HardHat, Wrench, Store, Briefcase, Globe,
+  type LucideProps,
 } from "lucide-react";
+
+// ── Icon renderer — handles both emoji strings and Lucide icon names ───────────
+const LUCIDE_ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
+  Crown, Construction, Utensils, DoorOpen, CloudSun, Box, User,
+  Building2, Hammer, HardHat, Wrench, Store, Briefcase, Globe,
+};
+
+function CompanyIcon({ icon, size = 13 }: { icon: string; size?: number }) {
+  // If the string contains an emoji character, render as text
+  if (/\p{Extended_Pictographic}/u.test(icon)) {
+    return <span className="leading-none" style={{ fontSize: size }}>{icon}</span>;
+  }
+  const Icon = LUCIDE_ICON_MAP[icon];
+  if (Icon) return <Icon size={size} />;
+  // Unknown string — just show first 2 chars as fallback
+  return <span className="leading-none text-xs">{icon.slice(0, 2)}</span>;
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Author  = "Hanan" | "Moti";
@@ -122,7 +143,7 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
     >
       {company && (
         <div className="flex items-center gap-1.5 mb-2">
-          <span className="text-sm leading-none">{company.icon}</span>
+          <CompanyIcon icon={company.icon} size={13} />
           <span className="text-[0.6rem] font-bold tracking-wide" style={{ color: company.color }}>
             {company.name}
           </span>
@@ -210,7 +231,7 @@ function QuickAdd({ colKey, companies, onAdd, onClose }: {
         value={companyId} onChange={e => setCompanyId(e.target.value)}
         className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/70 text-[0.75rem] px-3 py-2 rounded focus:outline-none"
       >
-        {companies.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+        {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
       </select>
       <button onClick={submit} disabled={!title.trim() || saving}
         className="w-full py-2.5 text-white text-[0.75rem] font-bold tracking-wide disabled:opacity-40 transition-colors rounded"
@@ -268,7 +289,7 @@ function EditModal({ task, companies, onSave, onClose }: {
           className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/70 text-[0.75rem] px-3 py-2 rounded focus:outline-none"
         >
           <option value="">— ללא חברה —</option>
-          {companies.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+          {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
         {err && (
           <div className="flex items-center gap-1.5 text-[0.65rem] text-red-600 bg-red-50 border border-red-200 px-2.5 py-1.5 rounded">
@@ -527,7 +548,7 @@ export default function Cockpit() {
                 style={filterCompany === c.id
                   ? { borderColor: c.color, color: "white", background: c.color }
                   : { borderColor: "#E8E7E3", color: "#2D2926", opacity: 0.7, background: "white" }}>
-                <span>{c.icon}</span> {c.name}
+                <CompanyIcon icon={c.icon} size={12} /> {c.name}
               </button>
               {c.drive_url && (
                 <a href={c.drive_url} target="_blank" rel="noopener noreferrer"
@@ -679,7 +700,7 @@ export default function Cockpit() {
                     <div key={task.id} className="p-3.5 rounded-lg border border-red-100 bg-red-50/60 hover:bg-red-50 transition-colors">
                       {company && (
                         <div className="flex items-center gap-1.5 mb-1.5">
-                          <span className="text-sm">{company.icon}</span>
+                          <CompanyIcon icon={company.icon} size={14} />
                           <span className="text-[0.6rem] font-bold" style={{ color: company.color }}>{company.name}</span>
                         </div>
                       )}
