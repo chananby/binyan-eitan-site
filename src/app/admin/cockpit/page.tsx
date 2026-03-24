@@ -5,7 +5,7 @@ import Image from "next/image";
 import {
   Plus, Trash2, Mic, MicOff, AlertCircle, Loader2,
   Zap, LogOut, X, ChevronLeft,
-  FolderOpen, Filter,
+  FolderOpen, Filter, Pencil,
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -101,9 +101,9 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
 }
 
 // ── Task Card ─────────────────────────────────────────────────────────────────
-function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, companies }: {
+function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, companies }: {
   task: Task; isDragging: boolean;
-  onDragStart: () => void; onDragEnd: () => void; onDelete: () => void; companies: Company[];
+  onDragStart: () => void; onDragEnd: () => void; onDelete: () => void; onEdit: () => void; companies: Company[];
 }) {
   const company = task.holding_companies ?? companies.find(c => c.id === task.company_id) ?? null;
   const date = new Date(task.created_at).toLocaleDateString("he-IL", { day: "numeric", month: "short" });
@@ -128,7 +128,7 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, companie
           </span>
         </div>
       )}
-      <p className="text-[0.82rem] text-[#2D2926] leading-snug break-words pe-5 font-medium">{task.title}</p>
+      <p className="text-[0.82rem] text-[#2D2926] leading-snug break-words pe-10 font-medium">{task.title}</p>
       {task.notes && (
         <p className="text-[0.68rem] text-[#2D2926]/40 mt-1.5 line-clamp-2 leading-relaxed">{task.notes}</p>
       )}
@@ -139,6 +139,14 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, companie
         </span>
         <span className="text-[0.6rem] text-[#2D2926]/25">{date}</span>
       </div>
+      {/* Edit button */}
+      <button
+        onClick={e => { e.stopPropagation(); onEdit(); }}
+        className="absolute top-2.5 end-8 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded text-[#2D2926]/20 hover:text-[#8D775F] hover:bg-[#F3F2EE]"
+      >
+        <Pencil size={11} />
+      </button>
+      {/* Delete button */}
       <button
         onClick={e => { e.stopPropagation(); onDelete(); }}
         className="absolute top-2.5 end-2.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded text-[#2D2926]/20 hover:text-red-500 hover:bg-red-50"
@@ -213,6 +221,75 @@ function QuickAdd({ colKey, companies, onAdd, onClose }: {
   );
 }
 
+// ── Edit Modal ────────────────────────────────────────────────────────────────
+function EditModal({ task, companies, onSave, onClose }: {
+  task: Task; companies: Company[];
+  onSave: (id: string, title: string, notes: string, companyId: string) => Promise<string | null>;
+  onClose: () => void;
+}) {
+  const [title,     setTitle]     = useState(task.title);
+  const [notes,     setNotes]     = useState(task.notes ?? "");
+  const [companyId, setCompanyId] = useState(task.company_id ?? "");
+  const [saving,    setSaving]    = useState(false);
+  const [err,       setErr]       = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const submit = async () => {
+    if (!title.trim() || saving) return;
+    setSaving(true); setErr(null);
+    const e = await onSave(task.id, title.trim(), notes, companyId);
+    setSaving(false);
+    if (e) setErr(e); else onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" dir="rtl"
+      onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-5 space-y-3.5"
+        onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-bold text-[#2D2926]/80">עריכת משימה</p>
+          <button onClick={onClose} className="text-[#2D2926]/30 hover:text-[#2D2926]/70"><X size={15} /></button>
+        </div>
+        <input
+          ref={inputRef} value={title} onChange={e => setTitle(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") submit(); if (e.key === "Escape") onClose(); }}
+          placeholder="כותרת המשימה"
+          className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926] text-sm px-3 py-2.5 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/25"
+        />
+        <textarea
+          value={notes} onChange={e => setNotes(e.target.value)}
+          placeholder="הערות (אופציונלי)" rows={3}
+          className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/80 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20 resize-none"
+        />
+        <select
+          value={companyId} onChange={e => setCompanyId(e.target.value)}
+          className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/70 text-[0.75rem] px-3 py-2 rounded focus:outline-none"
+        >
+          <option value="">— ללא חברה —</option>
+          {companies.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+        </select>
+        {err && (
+          <div className="flex items-center gap-1.5 text-[0.65rem] text-red-600 bg-red-50 border border-red-200 px-2.5 py-1.5 rounded">
+            <AlertCircle size={11} /> {err}
+          </div>
+        )}
+        <div className="flex gap-2 pt-1">
+          <button onClick={onClose}
+            className="flex-1 py-2 text-[0.75rem] font-semibold text-[#2D2926]/50 border border-[#E8E7E3] rounded hover:bg-[#F3F2EE] transition-colors">
+            ביטול
+          </button>
+          <button onClick={submit} disabled={!title.trim() || saving}
+            className="flex-1 py-2 text-[0.75rem] font-bold text-white bg-[#8D775F] rounded hover:bg-[#7A6451] disabled:opacity-40 transition-colors">
+            {saving ? <Loader2 size={13} className="animate-spin mx-auto" /> : "שמירה"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function Cockpit() {
   const [authed,   setAuthed]   = useState(false);
@@ -231,6 +308,7 @@ export default function Cockpit() {
   const [showSidebar,   setShowSidebar]   = useState(false);
   const [listening,     setListening]     = useState(false);
   const [dragError,     setDragError]     = useState<string | null>(null);
+  const [editingTask,   setEditingTask]   = useState<Task | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognizerRef = useRef<any>(null);
 
@@ -295,11 +373,11 @@ export default function Cockpit() {
           try { errDetail = JSON.stringify(JSON.parse(txt), null, 2); }
           catch { errDetail = txt.slice(0, 600); }  // HTML or plain text — truncate
         } catch { errDetail = `HTTP ${res.status} ${res.statusText}`; }
-        alert(`PATCH failed (${res.status}):\n\n${errDetail}`);
+        alert(`שגיאת עדכון (${res.status}):\n\n${errDetail}`);
       }
     } catch (networkErr) {
       setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: prevStatus } : { ...t }));
-      alert("Network Error (drag-and-drop PATCH):\n" + String(networkErr));
+      alert("שגיאת רשת (גרירה ושחרור):\n" + String(networkErr));
     }
   }, [tasks, clearDragState]);
 
@@ -318,6 +396,28 @@ export default function Cockpit() {
   const deleteTask = useCallback(async (id: string) => {
     setTasks(prev => prev.filter(t => t.id !== id));
     await fetch(`/api/holding/tasks/${id}`, { method: "DELETE" });
+  }, []);
+
+  const saveEdit = useCallback(async (
+    id: string, title: string, notes: string, companyId: string,
+  ): Promise<string | null> => {
+    try {
+      const res = await fetch(`/api/holding/tasks/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, notes: notes || null, company_id: companyId || null }),
+      });
+      if (res.ok) {
+        setTasks(prev => prev.map(t => t.id === id
+          ? { ...t, title, notes: notes || undefined, company_id: companyId || undefined }
+          : { ...t }
+        ));
+        return null;
+      }
+      const txt = await res.text().catch(() => "");
+      try { return JSON.parse(txt)?.error ?? `שגיאה ${res.status}`; }
+      catch { return txt.slice(0, 200) || `שגיאה ${res.status}`; }
+    } catch (e) { return `שגיאת רשת: ${String(e)}`; }
   }, []);
 
   const startVoice = useCallback(() => {
@@ -432,7 +532,7 @@ export default function Cockpit() {
               {c.drive_url && (
                 <a href={c.drive_url} target="_blank" rel="noopener noreferrer"
                   className="p-1.5 text-[#2D2926]/20 hover:text-[#8D775F] transition-colors rounded-full"
-                  title={`Drive — ${c.name}`}>
+                  title={`פתח Drive — ${c.name}`}>
                   <FolderOpen size={11} />
                 </a>
               )}
@@ -537,6 +637,7 @@ export default function Cockpit() {
                         }}
                         onDragEnd={clearDragState}
                         onDelete={() => deleteTask(task.id)}
+                        onEdit={() => setEditingTask(task)}
                         companies={companies} />
                     ))}
                   </div>
@@ -612,6 +713,16 @@ export default function Cockpit() {
           <Plus size={14} /> משימה חדשה
         </button>
       </div>
+
+      {/* Edit modal */}
+      {editingTask && (
+        <EditModal
+          task={editingTask}
+          companies={companies}
+          onSave={saveEdit}
+          onClose={() => setEditingTask(null)}
+        />
+      )}
     </div>
   );
 }

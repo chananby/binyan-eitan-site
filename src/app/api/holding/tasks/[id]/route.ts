@@ -43,18 +43,35 @@ export async function PATCH(
     }
 
     // 2. Body
-    let status = "";
+    let body: Record<string, unknown>;
     try {
-      const body = await req.json();
-      status = String(body?.status ?? "");
+      body = await req.json();
     } catch (e) {
       return NextResponse.json({ error: "Cannot parse JSON body", detail: String(e) }, { status: 400 });
     }
 
-    // 3. Validate status
-    const VALID = ["backlog", "urgent", "in_progress", "pending", "done"];
-    if (!status || !VALID.includes(status)) {
-      return NextResponse.json({ error: "Invalid or missing status", received: status, valid: VALID }, { status: 400 });
+    // 3. Build update payload (status, title, notes, company_id — all optional)
+    const VALID_STATUS = ["backlog", "urgent", "in_progress", "pending", "done"];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const patch: Record<string, any> = {};
+
+    if ("status" in body) {
+      const status = String(body.status ?? "");
+      if (!VALID_STATUS.includes(status)) {
+        return NextResponse.json({ error: "Invalid status", received: status, valid: VALID_STATUS }, { status: 400 });
+      }
+      patch.status = status;
+    }
+    if ("title" in body) {
+      const title = String(body.title ?? "").trim();
+      if (!title) return NextResponse.json({ error: "title לא יכול להיות ריק" }, { status: 400 });
+      patch.title = title;
+    }
+    if ("notes" in body)      patch.notes      = body.notes      ? String(body.notes).trim() : null;
+    if ("company_id" in body) patch.company_id = body.company_id ? String(body.company_id)   : null;
+
+    if (Object.keys(patch).length === 0) {
+      return NextResponse.json({ error: "אין שדות לעדכון" }, { status: 400 });
     }
 
     // 4. Task ID
@@ -78,7 +95,7 @@ export async function PATCH(
 
     const { error: dbErr } = await supabase
       .from("holding_tasks")
-      .update({ status })
+      .update(patch)
       .eq("id", taskId);
 
     if (dbErr) {
@@ -90,7 +107,7 @@ export async function PATCH(
     }
 
     // 7. Success
-    return NextResponse.json({ ok: true, task_id: taskId, status, author });
+    return NextResponse.json({ ok: true, task_id: taskId, patch, author });
 
   } catch (fatal) {
     // Absolute last resort — still returns JSON so the alert() fires
