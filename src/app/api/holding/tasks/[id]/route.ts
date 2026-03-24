@@ -25,7 +25,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     .from("holding_tasks")
     .update(update)
     .eq("id", params.id)
-    .select("*, holding_companies(id, name, slug, color, icon)")
+    .select("*, holding_companies(id, name, color, icon)")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

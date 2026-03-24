@@ -76,7 +76,7 @@ function PinGate({ onAuth }: { onAuth: (author: Author) => void }) {
   const KEYS = ["1","2","3","4","5","6","7","8","9","","0","⌫"];
 
   return (
-    <div className="min-h-screen bg-[#141210] flex flex-col items-center justify-center p-8" dir="rtl">
+    <div className="min-h-screen bg-[#2D2926] flex flex-col items-center justify-center p-8" dir="rtl">
       <Image src="/logo.png" alt="בניין איתן" width={100} height={28} className="mb-6 opacity-60 brightness-0 invert" />
       <p className="text-amber-400/50 text-[0.55rem] font-bold tracking-[0.3em] uppercase mb-1">Multi-Entity Cockpit</p>
       <h1 className="text-[#F3F2EE]/70 text-lg font-heading mb-8 tracking-wide">כניסה פרטית</h1>
@@ -202,7 +202,7 @@ function QuickAdd({
   };
 
   return (
-    <div className="p-3 border border-amber-400/20 bg-[#1a1714] space-y-2 mt-2">
+    <div className="p-3 border border-amber-400/20 bg-[#2D2926] space-y-2 mt-2">
       <input
         ref={inputRef}
         value={title}
@@ -221,7 +221,7 @@ function QuickAdd({
       <select
         value={companyId}
         onChange={e => setCompanyId(e.target.value)}
-        className="w-full bg-[#1a1714] border border-white/10 text-white/70 text-[0.72rem] px-2.5 py-1.5 focus:outline-none"
+        className="w-full bg-[#2D2926] border border-white/10 text-white/70 text-[0.72rem] px-2.5 py-1.5 focus:outline-none"
       >
         {companies.map(c => (
           <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
@@ -391,10 +391,10 @@ export default function Cockpit() {
   if (!authed) return <PinGate onAuth={a => { setAuthed(true); setAuthor(a); }} />;
 
   return (
-    <div className="min-h-screen bg-[#0F0D0B] text-white flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-[#2D2926] text-white flex flex-col" dir="rtl">
 
       {/* ── Top Bar ──────────────────────────────────────────────────────────── */}
-      <header className="shrink-0 border-b border-white/[0.06] bg-[#141210] px-4 py-3 z-30">
+      <header className="shrink-0 border-b border-white/[0.08] bg-[#252220] px-4 py-3 z-30">
         <div className="flex items-center gap-3 mb-3">
           {/* Logo + title */}
           <div className="flex items-center gap-2.5 shrink-0">
@@ -573,8 +573,8 @@ export default function Cockpit() {
 
         {/* ── Urgent Sidebar ────────────────────────────────────────────────── */}
         {showSidebar && (
-          <aside className="w-72 shrink-0 border-s border-white/[0.06] bg-[#120D0B] overflow-y-auto flex flex-col">
-            <div className="sticky top-0 bg-[#120D0B] flex items-center justify-between px-4 py-3 border-b border-white/[0.06] z-10">
+          <aside className="w-72 shrink-0 border-s border-white/[0.08] bg-[#252220] overflow-y-auto flex flex-col">
+            <div className="sticky top-0 bg-[#252220] flex items-center justify-between px-4 py-3 border-b border-white/[0.06] z-10">
               <div className="flex items-center gap-2">
                 <Zap size={13} className="text-red-400" />
                 <p className="text-[0.68rem] font-bold tracking-wide text-red-400">כל הדחוף</p>
@@ -630,7 +630,7 @@ export default function Cockpit() {
       </div>
 
       {/* ── Bottom bar (mobile add) ───────────────────────────────────────────── */}
-      <div className="shrink-0 border-t border-white/[0.06] bg-[#141210] px-4 py-2.5 flex items-center justify-between md:hidden">
+      <div className="shrink-0 border-t border-white/[0.08] bg-[#252220] px-4 py-2.5 flex items-center justify-between md:hidden">
         <a href="/admin/hub" className="text-[0.65rem] text-white/25 hover:text-white/60 flex items-center gap-1.5">
           <ExternalLink size={11} /> Hub
         </a>

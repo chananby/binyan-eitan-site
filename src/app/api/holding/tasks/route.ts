@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from("holding_tasks")
-    .select("*, holding_companies(id, name, slug, color, icon)")
+    .select("*, holding_companies(id, name, color, icon)")
     .order("priority", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   const { data, error } = await supabase
     .from("holding_tasks")
     .insert({ title: title.trim(), notes, status, priority, company_id: company_id || null, author })
-    .select("*, holding_companies(id, name, slug, color, icon)")
+    .select("*, holding_companies(id, name, color, icon)")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
