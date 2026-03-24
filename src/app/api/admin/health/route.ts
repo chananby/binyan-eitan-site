@@ -28,7 +28,8 @@ async function checkColumn(supabase: any, table: string, column: string): Promis
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function checkTable(supabase: any, table: string): Promise<CheckResult> {
   try {
-    const { error } = await supabase.from(table).select("id").limit(0);
+    // Use count() so we don't depend on any specific column existing
+    const { error } = await supabase.from(table).select("*", { count: "exact", head: true });
     if (error) return { id: `schema_table_${table}`, section: "schema", name: `טבלה: ${table}`, status: "fail", detail: error.message, fix: `צור את טבלת ${table} בסופאבייס` };
     return { id: `schema_table_${table}`, section: "schema", name: `טבלה: ${table}`, status: "ok", detail: "טבלה קיימת" };
   } catch (e) {
@@ -130,7 +131,7 @@ export async function GET(req: NextRequest) {
     checkColumn(supabase, "attendance",    "action"),
     checkColumn(supabase, "attendance",    "lat"),
     checkColumn(supabase, "attendance",    "lng"),
-    checkColumn(supabase, "attendance",    "recorded_at"),
+    checkColumn(supabase, "attendance",    "created_at"),
     checkColumn(supabase, "attendance",    "staff_id"),
 
     // executive columns
