@@ -4,8 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import {
   Plus, Trash2, Mic, MicOff, AlertCircle, Loader2,
-  Zap, LogOut, X, ChevronRight,
-  FolderOpen, SlidersHorizontal,
+  Zap, LogOut, X, ChevronLeft,
+  FolderOpen, Filter,
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -13,36 +13,25 @@ type Author  = "Hanan" | "Moti";
 type ColKey  = "backlog" | "urgent" | "in_progress" | "pending" | "done";
 
 interface Company {
-  id:        string;
-  name:      string;
-  slug?:     string;
-  color:     string;
-  icon:      string;
-  drive_url?: string;
+  id: string; name: string; slug?: string;
+  color: string; icon: string; drive_url?: string;
 }
-
 interface Task {
-  id:          string;
-  title:       string;
-  notes?:      string;
-  status:      ColKey;
-  priority:    number;
-  author:      string;
-  company_id?: string;
-  created_at:  string;
+  id: string; title: string; notes?: string;
+  status: ColKey; priority: number; author: string;
+  company_id?: string; created_at: string;
   holding_companies?: Company | null;
 }
 
 // ── Column config ─────────────────────────────────────────────────────────────
-const COLUMNS: { key: ColKey; label: string; accent: string; lightBg: string }[] = [
-  { key: "backlog",     label: "בקלוג",    accent: "#8D775F", lightBg: "#F3F2EE" },
-  { key: "urgent",      label: "דחוף",     accent: "#DC2626", lightBg: "#FEF2F2" },
-  { key: "in_progress", label: "בביצוע",   accent: "#D97706", lightBg: "#FFFBEB" },
-  { key: "pending",     label: "ממתין",    accent: "#2563EB", lightBg: "#EFF6FF" },
-  { key: "done",        label: "הושלם",    accent: "#16A34A", lightBg: "#F0FDF4" },
+const COLUMNS: { key: ColKey; label: string; sub: string; accent: string; pill: string }[] = [
+  { key: "backlog",     label: "חדש",          sub: "טרם התחיל",        accent: "#8D775F", pill: "bg-[#8D775F]/10 text-[#8D775F]"   },
+  { key: "urgent",      label: "דחוף",         sub: "מיידי",            accent: "#DC2626", pill: "bg-red-50 text-red-600"           },
+  { key: "in_progress", label: "בתהליך",       sub: "מתבצע עכשיו",      accent: "#D97706", pill: "bg-amber-50 text-amber-700"       },
+  { key: "pending",     label: "ממתין",        sub: "תלוי בצד חיצוני",  accent: "#2563EB", pill: "bg-blue-50 text-blue-700"         },
+  { key: "done",        label: "הושלם",        sub: "טופל ונסגר",       accent: "#16A34A", pill: "bg-green-50 text-green-700"       },
 ];
 
-// ── Fallback company list ─────────────────────────────────────────────────────
 const DEFAULT_COMPANIES: Company[] = [
   { id: "shulchan", name: "שולחן המלך",         color: "#D4A017", icon: "🍽️" },
   { id: "binyan",   name: "בניין איתן",           color: "#4A7FA5", icon: "🏗️" },
@@ -54,9 +43,9 @@ const DEFAULT_COMPANIES: Company[] = [
 ];
 
 // ── PIN Gate ──────────────────────────────────────────────────────────────────
-function PinGate({ onAuth }: { onAuth: (author: Author) => void }) {
-  const [pin,     setPin]     = useState("");
-  const [error,   setError]   = useState(false);
+function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
+  const [pin, setPin]         = useState("");
+  const [error, setError]     = useState(false);
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
@@ -64,8 +53,7 @@ function PinGate({ onAuth }: { onAuth: (author: Author) => void }) {
     setLoading(true);
     try {
       const res = await fetch("/api/executive/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin }),
       });
       if (res.ok) { const d = await res.json(); onAuth(d.author); }
@@ -74,49 +62,46 @@ function PinGate({ onAuth }: { onAuth: (author: Author) => void }) {
   };
 
   const KEYS = ["1","2","3","4","5","6","7","8","9","","0","⌫"];
-
   return (
     <div className="min-h-screen bg-[#F3F2EE] flex flex-col items-center justify-center p-8" dir="rtl">
-      <Image src="/logo.png" alt="בניין איתן" width={110} height={30} className="mb-6 opacity-70" />
-      <p className="text-[#8D775F] text-[0.55rem] font-bold tracking-[0.3em] uppercase mb-1">לוח שליטה</p>
-      <h1 className="text-[#2D2926]/70 text-lg font-heading mb-8 tracking-wide">כניסה פרטית</h1>
-      <div className="flex gap-2.5 mb-6">
+      <Image src="/logo.png" alt="" width={110} height={30} className="mb-8 opacity-80" />
+      <p className="text-[#8D775F]/70 text-[0.58rem] font-bold tracking-[0.28em] uppercase mb-2">לוח ניהול החזקות</p>
+      <h1 className="text-[#2D2926]/80 text-xl font-heading mb-10 tracking-wide">כניסה פרטית</h1>
+      <div className="flex gap-3 mb-6">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className={`w-2 h-2 rounded-full border border-[#8D775F]/40 transition-all duration-150
-            ${i < pin.length ? "bg-[#8D775F] scale-125" : "bg-transparent"}`} />
+          <div key={i} className={`w-2.5 h-2.5 rounded-full border-2 transition-all duration-200
+            ${i < pin.length ? "bg-[#8D775F] border-[#8D775F] scale-110" : "bg-transparent border-[#D1CFCA]"}`} />
         ))}
       </div>
       {error && (
-        <div className="mb-4 flex items-center gap-1.5 text-red-500 text-xs">
-          <AlertCircle size={13} /> קוד שגוי
+        <div className="mb-4 flex items-center gap-1.5 text-red-500 text-sm">
+          <AlertCircle size={14} /> קוד שגוי, נסה שוב
         </div>
       )}
-      <div className="grid grid-cols-3 gap-2 w-56" dir="ltr">
+      <div className="grid grid-cols-3 gap-2.5 w-60" dir="ltr">
         {KEYS.map((d, i) => (
           <button key={i}
             onClick={() => {
               if (d === "⌫") { setPin(p => p.slice(0,-1)); setError(false); }
               else if (d && pin.length < 6) { setPin(p => p + d); setError(false); }
             }}
-            className={`h-13 py-3 border transition-all duration-100 active:scale-95 font-heading text-base
+            className={`h-14 rounded border text-lg font-heading transition-all duration-100 active:scale-95
               ${!d ? "pointer-events-none border-transparent"
-                   : "border-[#D1CFCA] text-[#2D2926]/70 bg-white hover:bg-[#E8E7E3] hover:border-[#8D775F]/40"}`}>
+                   : "border-[#D1CFCA] bg-white text-[#2D2926]/80 hover:bg-[#E8E7E3] hover:border-[#8D775F]/50 shadow-sm"}`}>
             {d}
           </button>
         ))}
       </div>
       <button onClick={submit} disabled={pin.length < 3 || loading}
-        className="mt-5 w-56 h-11 bg-[#8D775F] text-white font-heading font-bold tracking-[0.18em] uppercase text-sm disabled:opacity-30 hover:bg-[#7A6451] transition-colors">
-        {loading ? <Loader2 size={15} className="animate-spin mx-auto" /> : "כניסה"}
+        className="mt-6 w-60 h-12 bg-[#8D775F] text-white font-heading font-bold tracking-[0.15em] uppercase text-sm rounded disabled:opacity-30 hover:bg-[#7A6451] transition-colors shadow-md">
+        {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : "כניסה"}
       </button>
     </div>
   );
 }
 
 // ── Task Card ─────────────────────────────────────────────────────────────────
-function TaskCard({
-  task, isDragging, onDragStart, onDelete, companies,
-}: {
+function TaskCard({ task, isDragging, onDragStart, onDelete, companies }: {
   task: Task; isDragging: boolean;
   onDragStart: () => void; onDelete: () => void; companies: Company[];
 }) {
@@ -126,31 +111,34 @@ function TaskCard({
   return (
     <div
       draggable onDragStart={onDragStart}
-      className={`group relative p-3 border bg-white cursor-grab active:cursor-grabbing transition-all duration-150 select-none shadow-sm
-        ${isDragging ? "opacity-40 scale-[0.97] shadow-none" : "border-[#D1CFCA] hover:border-[#8D775F]/40 hover:shadow-md"}`}
+      onClick={e => e.stopPropagation()}
+      className={`group relative p-3.5 border bg-white cursor-grab active:cursor-grabbing transition-all duration-150 select-none
+        ${isDragging
+          ? "opacity-30 scale-[0.96] rotate-1 shadow-none border-[#D1CFCA]"
+          : "border-[#E8E7E3] hover:border-[#8D775F]/30 shadow-sm hover:shadow-md"}`}
     >
       {company && (
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <span className="text-[0.72rem]">{company.icon}</span>
-          <span className="text-[0.6rem] font-bold tracking-wide truncate" style={{ color: company.color }}>
+        <div className="flex items-center gap-1.5 mb-2">
+          <span className="text-sm leading-none">{company.icon}</span>
+          <span className="text-[0.6rem] font-bold tracking-wide" style={{ color: company.color }}>
             {company.name}
           </span>
         </div>
       )}
-      <p className="text-[0.8rem] text-[#2D2926] leading-snug break-words pe-5">{task.title}</p>
+      <p className="text-[0.82rem] text-[#2D2926] leading-snug break-words pe-5 font-medium">{task.title}</p>
       {task.notes && (
-        <p className="text-[0.65rem] text-[#2D2926]/40 mt-1.5 line-clamp-2 leading-snug">{task.notes}</p>
+        <p className="text-[0.68rem] text-[#2D2926]/40 mt-1.5 line-clamp-2 leading-relaxed">{task.notes}</p>
       )}
-      <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-[#E8E7E3]">
-        <span className={`text-[0.58rem] font-bold px-1.5 py-0.5 border
-          ${task.author === "Hanan" ? "border-amber-500/30 text-amber-700" : "border-blue-500/30 text-blue-700"}`}>
-          {task.author === "Hanan" ? "ח" : "מ"}
+      <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-[#F3F2EE]">
+        <span className={`text-[0.6rem] font-bold px-2 py-0.5 rounded-full
+          ${task.author === "Hanan" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
+          {task.author === "Hanan" ? "חנן" : "מוטי"}
         </span>
-        <span className="text-[0.58rem] text-[#2D2926]/30">{date}</span>
+        <span className="text-[0.6rem] text-[#2D2926]/25">{date}</span>
       </div>
       <button
         onClick={e => { e.stopPropagation(); onDelete(); }}
-        className="absolute top-2 end-2 opacity-0 group-hover:opacity-100 transition-opacity text-[#2D2926]/20 hover:text-red-500"
+        className="absolute top-2.5 end-2.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded text-[#2D2926]/20 hover:text-red-500 hover:bg-red-50"
       >
         <Trash2 size={11} />
       </button>
@@ -170,7 +158,6 @@ function QuickAdd({ colKey, companies, onAdd, onClose }: {
   const [saving,    setSaving]    = useState(false);
   const [addErr,    setAddErr]    = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   const submit = async () => {
@@ -181,61 +168,64 @@ function QuickAdd({ colKey, companies, onAdd, onClose }: {
     if (err) setAddErr(err);
   };
 
+  const col = COLUMNS.find(c => c.key === colKey)!;
+
   return (
-    <div className="p-3 border border-[#8D775F]/30 bg-[#FDFCFA] space-y-2 mt-2 shadow-sm">
+    <div className="p-3.5 border-2 bg-white shadow-lg mt-2 space-y-2.5" style={{ borderColor: col.accent + "40" }}
+      onClick={e => e.stopPropagation()}>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[0.65rem] font-bold text-[#2D2926]/50">משימה חדשה · {col.label}</span>
+        <button onClick={onClose} className="text-[#2D2926]/25 hover:text-[#2D2926]/70"><X size={13} /></button>
+      </div>
       <input
         ref={inputRef} value={title}
         onChange={e => setTitle(e.target.value)}
         onKeyDown={e => { if (e.key === "Enter") submit(); if (e.key === "Escape") onClose(); }}
-        placeholder="כותרת המשימה..."
+        placeholder="מה צריך לעשות?"
         data-voice-input
-        className="w-full bg-white border border-[#D1CFCA] text-[#2D2926] text-[0.78rem] px-2.5 py-2 focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/25"
+        className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926] text-sm px-3 py-2.5 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/25"
       />
       {addErr && (
-        <p className="flex items-center gap-1.5 text-[0.65rem] text-red-600 border border-red-200 bg-red-50 px-2.5 py-1.5">
+        <div className="flex items-center gap-1.5 text-[0.65rem] text-red-600 bg-red-50 border border-red-200 px-2.5 py-1.5 rounded">
           <AlertCircle size={11} /> {addErr}
-        </p>
+        </div>
       )}
       <textarea
         value={notes} onChange={e => setNotes(e.target.value)}
         placeholder="הערות (אופציונלי)" rows={2}
-        className="w-full bg-white border border-[#D1CFCA] text-[#2D2926]/80 text-[0.72rem] px-2.5 py-1.5 focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20 resize-none"
+        className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/80 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20 resize-none"
       />
       <select
         value={companyId} onChange={e => setCompanyId(e.target.value)}
-        className="w-full bg-white border border-[#D1CFCA] text-[#2D2926]/70 text-[0.72rem] px-2.5 py-1.5 focus:outline-none"
+        className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/70 text-[0.75rem] px-3 py-2 rounded focus:outline-none"
       >
         {companies.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
       </select>
-      <div className="flex gap-2">
-        <button onClick={submit} disabled={!title.trim() || saving}
-          className="flex-1 py-1.5 bg-[#8D775F] text-white text-[0.72rem] font-bold tracking-wide disabled:opacity-40 hover:bg-[#7A6451] transition-colors">
-          {saving ? <Loader2 size={12} className="animate-spin mx-auto" /> : `הוסף ל-${COLUMNS.find(c=>c.key===colKey)?.label}`}
-        </button>
-        <button onClick={onClose} className="px-3 py-1.5 border border-[#D1CFCA] text-[#2D2926]/40 hover:text-[#2D2926] transition-colors">
-          <X size={13} />
-        </button>
-      </div>
+      <button onClick={submit} disabled={!title.trim() || saving}
+        className="w-full py-2.5 text-white text-[0.75rem] font-bold tracking-wide disabled:opacity-40 transition-colors rounded"
+        style={{ background: col.accent }}>
+        {saving ? <Loader2 size={13} className="animate-spin mx-auto" /> : `הוסף ל${col.label}`}
+      </button>
     </div>
   );
 }
 
-// ── Main Cockpit ──────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 export default function Cockpit() {
   const [authed,   setAuthed]   = useState(false);
   const [checking, setChecking] = useState(true);
   const [author,   setAuthor]   = useState<Author | null>(null);
 
-  const [companies,      setCompanies]      = useState<Company[]>([]);
-  const [tasks,          setTasks]          = useState<Task[]>([]);
-  const [loading,        setLoading]        = useState(false);
-  const [error,          setError]          = useState<string | null>(null);
-  const [filterCompany,  setFilterCompany]  = useState<string | null>(null);
-  const [dragTaskId,     setDragTaskId]     = useState<string | null>(null);
-  const [dragOverCol,    setDragOverCol]    = useState<ColKey | null>(null);
-  const [addingTo,       setAddingTo]       = useState<ColKey | null>(null);
-  const [showSidebar,    setShowSidebar]    = useState(false);
-  const [listening,      setListening]      = useState(false);
+  const [companies,     setCompanies]     = useState<Company[]>([]);
+  const [tasks,         setTasks]         = useState<Task[]>([]);
+  const [loading,       setLoading]       = useState(false);
+  const [error,         setError]         = useState<string | null>(null);
+  const [filterCompany, setFilterCompany] = useState<string | null>(null);
+  const [dragTaskId,    setDragTaskId]    = useState<string | null>(null);
+  const [dragOverCol,   setDragOverCol]   = useState<ColKey | null>(null);
+  const [addingTo,      setAddingTo]      = useState<ColKey | null>(null);
+  const [showSidebar,   setShowSidebar]   = useState(false);
+  const [listening,     setListening]     = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognizerRef = useRef<any>(null);
 
@@ -255,7 +245,7 @@ export default function Cockpit() {
       if (cRes.ok) { const { companies: co } = await cRes.json(); setCompanies(co.length > 0 ? co : DEFAULT_COMPANIES); }
       else setCompanies(DEFAULT_COMPANIES);
       if (tRes.ok) { const { tasks: t } = await tRes.json(); setTasks(t ?? []); }
-      else { const d = await tRes.json().catch(() => ({})); setError(d.error ?? `שגיאה (${tRes.status})`); }
+      else { const d = await tRes.json().catch(() => ({})); setError(d.error ?? "שגיאה בטעינת משימות"); }
     } catch (e) { setError(String(e)); }
     finally { setLoading(false); }
   }, []);
@@ -281,17 +271,10 @@ export default function Cockpit() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, notes: notes || undefined, status: colKey, company_id: companyId || undefined }),
       });
-      if (res.ok) {
-        const { task } = await res.json();
-        setTasks(prev => [task, ...prev]);
-        setAddingTo(null);
-        return null;
-      }
+      if (res.ok) { const { task } = await res.json(); setTasks(prev => [task, ...prev]); setAddingTo(null); return null; }
       const d = await res.json().catch(() => ({}));
-      return d.error ?? `שגיאה ${res.status} — האם יצרת את טבלת holding_tasks בסופאבייס?`;
-    } catch (e) {
-      return `שגיאת רשת: ${String(e)}`;
-    }
+      return d.error ?? `שגיאה ${res.status} — בדוק שטבלת holding_tasks קיימת בסופאבייס`;
+    } catch (e) { return `שגיאת רשת: ${String(e)}`; }
   }, []);
 
   const deleteTask = useCallback(async (id: string) => {
@@ -333,7 +316,7 @@ export default function Cockpit() {
 
   if (checking) return (
     <div className="min-h-screen bg-[#F3F2EE] flex items-center justify-center">
-      <Loader2 size={20} className="animate-spin text-[#8D775F]/40" />
+      <Loader2 size={22} className="animate-spin text-[#8D775F]/40" />
     </div>
   );
   if (!authed) return <PinGate onAuth={a => { setAuthed(true); setAuthor(a); }} />;
@@ -341,77 +324,77 @@ export default function Cockpit() {
   return (
     <div className="min-h-screen bg-[#F3F2EE] text-[#2D2926] flex flex-col" dir="rtl">
 
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className="shrink-0 border-b border-[#D1CFCA] bg-white px-4 py-3 z-30 shadow-sm">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex items-center gap-2.5 shrink-0">
-            <Image src="/logo.png" alt="" width={80} height={22} className="opacity-80" />
-            <div>
-              <p className="text-[0.5rem] font-bold tracking-[0.25em] uppercase text-[#2D2926]/30">החזקות</p>
-              <p className="text-[0.75rem] font-bold text-[#2D2926]/80 leading-none">לוח שליטה</p>
-            </div>
+      {/* ── Header ───────────────────────────────────────────────────────────── */}
+      <header className="shrink-0 bg-white border-b border-[#E8E7E3] px-5 py-3.5 z-30">
+        <div className="flex items-center gap-4 mb-4">
+          <Image src="/logo.png" alt="" width={76} height={21} className="opacity-75 shrink-0" />
+          <div className="h-5 w-px bg-[#D1CFCA]" />
+          <div>
+            <p className="text-[0.52rem] font-bold tracking-[0.22em] uppercase text-[#8D775F]/60">החזקות</p>
+            <p className="text-[0.82rem] font-bold text-[#2D2926]/80 leading-none mt-0.5">לוח ניהול</p>
           </div>
           <div className="flex-1" />
 
           {/* Voice */}
           <button onClick={listening ? stopVoice : startVoice}
-            className={`flex items-center gap-1.5 px-3 py-1.5 border text-[0.68rem] font-bold tracking-wide transition-colors
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-full border text-[0.7rem] font-semibold transition-colors
               ${listening
-                ? "border-red-400 text-red-500 bg-red-50 animate-pulse"
-                : "border-[#D1CFCA] text-[#2D2926]/50 hover:text-[#2D2926] hover:border-[#8D775F]/40"}`}>
-            {listening ? <><MicOff size={12}/> עצור הקלטה</> : <><Mic size={12}/> הכתבה</>}
+                ? "border-red-300 text-red-500 bg-red-50 animate-pulse"
+                : "border-[#D1CFCA] text-[#2D2926]/50 hover:border-[#8D775F]/50 hover:text-[#2D2926]"}`}>
+            {listening ? <><MicOff size={13}/> עצור</> : <><Mic size={13}/> כתיבה קולית</>}
           </button>
 
-          {/* Urgent toggle */}
+          {/* Urgent */}
           <button onClick={() => setShowSidebar(s => !s)}
-            className={`relative flex items-center gap-1.5 px-3 py-1.5 border text-[0.68rem] font-bold tracking-wide transition-colors
+            className={`relative flex items-center gap-2 px-3.5 py-2 rounded-full border text-[0.7rem] font-semibold transition-colors
               ${showSidebar
-                ? "border-red-400 text-red-500 bg-red-50"
+                ? "border-red-300 text-red-600 bg-red-50"
                 : "border-[#D1CFCA] text-[#2D2926]/50 hover:text-[#2D2926]"}`}>
-            <Zap size={12} />
+            <Zap size={13} />
             דחוף
             {urgentAll.length > 0 && (
-              <span className="absolute -top-1.5 -start-1.5 w-4 h-4 rounded-full bg-red-500 text-white text-[0.55rem] font-bold flex items-center justify-center">
+              <span className="absolute -top-1.5 -start-1.5 w-4.5 h-4.5 min-w-[1.1rem] min-h-[1.1rem] rounded-full bg-red-500 text-white text-[0.55rem] font-bold flex items-center justify-center px-1">
                 {urgentAll.length}
               </span>
             )}
           </button>
 
-          {/* Author + logout */}
-          <div className="flex items-center gap-2">
-            <span className={`text-[0.65rem] font-bold px-2 py-1 border
-              ${author === "Hanan" ? "border-amber-500/40 text-amber-700 bg-amber-50" : "border-blue-500/40 text-blue-700 bg-blue-50"}`}>
+          {/* Author */}
+          <div className="flex items-center gap-2.5">
+            <span className={`text-[0.68rem] font-bold px-2.5 py-1 rounded-full
+              ${author === "Hanan" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
               {author === "Hanan" ? "חנן" : "מוטי"}
             </span>
-            <button onClick={logout} className="text-[#2D2926]/25 hover:text-[#2D2926]/70 transition-colors">
+            <button onClick={logout} className="p-1.5 rounded-full text-[#2D2926]/25 hover:text-[#2D2926]/70 hover:bg-[#F3F2EE] transition-colors">
               <LogOut size={14} />
             </button>
           </div>
         </div>
 
         {/* Company chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
           <button onClick={() => setFilterCompany(null)}
-            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 border text-[0.68rem] font-bold tracking-wide transition-colors
+            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[0.7rem] font-semibold transition-colors
               ${!filterCompany
-                ? "border-[#8D775F] text-[#8D775F] bg-[#8D775F]/[0.06]"
-                : "border-[#D1CFCA] text-[#2D2926]/40 hover:text-[#2D2926] hover:border-[#2D2926]/25"}`}>
-            <SlidersHorizontal size={11} /> הכל
+                ? "bg-[#2D2926] border-[#2D2926] text-white"
+                : "border-[#D1CFCA] text-[#2D2926]/50 hover:text-[#2D2926] hover:border-[#2D2926]/40"}`}>
+            <Filter size={10} /> הכל
           </button>
 
           {companies.map(c => (
-            <div key={c.id} className="shrink-0 flex items-center gap-1">
+            <div key={c.id} className="shrink-0 flex items-center gap-0.5">
               <button
                 onClick={() => setFilterCompany(filterCompany === c.id ? null : c.id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 border text-[0.68rem] font-bold tracking-wide transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[0.7rem] font-semibold transition-all"
                 style={filterCompany === c.id
-                  ? { borderColor: c.color, color: c.color, backgroundColor: c.color + "10" }
-                  : { borderColor: "#D1CFCA", color: "#2D2926", opacity: 0.55 }}>
-                <span className="text-[0.8rem]">{c.icon}</span> {c.name}
+                  ? { borderColor: c.color, color: "white", background: c.color }
+                  : { borderColor: "#E8E7E3", color: "#2D2926", opacity: 0.7, background: "white" }}>
+                <span>{c.icon}</span> {c.name}
               </button>
               {c.drive_url && (
                 <a href={c.drive_url} target="_blank" rel="noopener noreferrer"
-                  className="p-1.5 text-[#2D2926]/20 hover:text-[#8D775F] transition-colors" title={`Drive — ${c.name}`}>
+                  className="p-1.5 text-[#2D2926]/20 hover:text-[#8D775F] transition-colors rounded-full"
+                  title={`Drive — ${c.name}`}>
                   <FolderOpen size={11} />
                 </a>
               )}
@@ -420,62 +403,85 @@ export default function Cockpit() {
         </div>
       </header>
 
-      {/* ── Body ───────────────────────────────────────────────────────────── */}
+      {/* ── Body ─────────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
 
         {/* Kanban */}
         <main className="flex-1 overflow-x-auto overflow-y-hidden">
           {error && (
-            <div className="m-4 flex items-center gap-2 text-red-600 text-xs border border-red-200 bg-red-50 px-4 py-2.5">
-              <AlertCircle size={13} /> {error}
+            <div className="m-4 flex items-center gap-2 text-red-600 text-sm border border-red-200 bg-red-50 px-4 py-3 rounded">
+              <AlertCircle size={14} /> {error}
             </div>
           )}
-          <div className="flex gap-3 h-full p-4 min-w-[900px]">
+          <div className="flex gap-4 h-full p-5 min-w-[950px]">
             {COLUMNS.map(col => {
-              const colItems    = colTasks(col.key);
+              const colItems     = colTasks(col.key);
               const isDragTarget = dragOverCol === col.key;
+              const isAdding     = addingTo === col.key;
+
               return (
                 <div key={col.key}
-                  className="flex flex-col w-[220px] shrink-0 transition-all duration-150"
-                  style={{ background: isDragTarget ? col.lightBg : "transparent", outline: isDragTarget ? `2px solid ${col.accent}30` : undefined }}
+                  className={`flex flex-col w-[230px] shrink-0 rounded-xl transition-all duration-150 cursor-pointer
+                    ${isDragTarget ? "ring-2 ring-offset-1" : ""}`}
+                  style={{
+                    background: isDragTarget ? col.pill.includes("red") ? "#FEF2F2" : col.pill.includes("amber") ? "#FFFBEB" : col.pill.includes("blue") ? "#EFF6FF" : col.pill.includes("green") ? "#F0FDF4" : "#F3F2EE" : "transparent",
+                    outlineColor: isDragTarget ? col.accent : undefined,
+                  }}
                   onDragOver={e => { e.preventDefault(); setDragOverCol(col.key); }}
                   onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverCol(null); }}
                   onDrop={() => handleDrop(col.key)}
+                  onClick={() => { if (!isAdding) setAddingTo(col.key); }}
                 >
                   {/* Column header */}
-                  <div className="flex items-center justify-between px-3 py-2.5 mb-2 border-b-2"
-                    style={{ borderColor: col.accent + "40" }}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: col.accent }} />
-                      <span className="text-[0.72rem] font-bold tracking-wide text-[#2D2926]/80">{col.label}</span>
+                  <div className="flex items-center justify-between px-3 py-3 mb-1">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ background: col.accent }} />
+                      <div>
+                        <p className="text-[0.78rem] font-bold text-[#2D2926]/85 leading-none">{col.label}</p>
+                        <p className="text-[0.58rem] text-[#2D2926]/35 mt-0.5">{col.sub}</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[0.6rem] text-[#2D2926]/30 font-mono tabular-nums">{colItems.length}</span>
-                      <button onClick={() => setAddingTo(addingTo === col.key ? null : col.key)}
-                        className="text-[#2D2926]/25 hover:text-[#2D2926]/70 transition-colors">
-                        {addingTo === col.key ? <X size={13} /> : <Plus size={13} />}
+                    <div className="flex items-center gap-1.5">
+                      {colItems.length > 0 && (
+                        <span className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${col.pill}`}>
+                          {colItems.length}
+                        </span>
+                      )}
+                      <button
+                        onClick={e => { e.stopPropagation(); setAddingTo(isAdding ? null : col.key); }}
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-[#2D2926]/30 hover:text-[#2D2926] hover:bg-[#E8E7E3] transition-colors"
+                      >
+                        {isAdding ? <X size={12} /> : <Plus size={12} />}
                       </button>
                     </div>
                   </div>
 
-                  {addingTo === col.key && (
-                    <QuickAdd colKey={col.key} companies={companies}
-                      onAdd={(title, notes, cid) => addTask(col.key, title, notes, cid)}
-                      onClose={() => setAddingTo(null)} />
+                  {/* Divider */}
+                  <div className="mx-3 h-px mb-2" style={{ background: col.accent + "25" }} />
 
+                  {/* Quick add */}
+                  {isAdding && (
+                    <div className="px-2">
+                      <QuickAdd colKey={col.key} companies={companies}
+                        onAdd={(title, notes, cid) => addTask(col.key, title, notes, cid)}
+                        onClose={() => setAddingTo(null)} />
+                    </div>
                   )}
 
-                  <div className="flex-1 overflow-y-auto space-y-2 px-1 py-1 min-h-[200px]">
+                  {/* Task list */}
+                  <div className="flex-1 overflow-y-auto px-2 pb-3 space-y-2 min-h-[120px]"
+                    onClick={e => { if (e.target === e.currentTarget && !isAdding) setAddingTo(col.key); }}>
                     {loading && colItems.length === 0 && (
-                      <div className="flex justify-center pt-8">
-                        <Loader2 size={14} className="animate-spin text-[#2D2926]/20" />
+                      <div className="flex justify-center pt-10">
+                        <Loader2 size={16} className="animate-spin text-[#2D2926]/15" />
                       </div>
                     )}
-                    {!loading && colItems.length === 0 && (
-                      <div className="flex items-center justify-center pt-10">
-                        <p className="text-[0.6rem] text-[#2D2926]/15 border-2 border-dashed border-[#D1CFCA] px-3 py-2">
-                          גרור לכאן
-                        </p>
+                    {!loading && colItems.length === 0 && !isAdding && (
+                      <div className="flex flex-col items-center justify-center pt-8 gap-2 pointer-events-none">
+                        <div className="w-10 h-10 rounded-full border-2 border-dashed border-[#D1CFCA] flex items-center justify-center">
+                          <Plus size={14} className="text-[#D1CFCA]" />
+                        </div>
+                        <p className="text-[0.62rem] text-[#2D2926]/20">לחץ להוספה</p>
                       </div>
                     )}
                     {colItems.map(task => (
@@ -492,44 +498,51 @@ export default function Cockpit() {
           </div>
         </main>
 
-        {/* Urgent Sidebar */}
+        {/* Urgent sidebar */}
         {showSidebar && (
-          <aside className="w-72 shrink-0 border-s border-[#D1CFCA] bg-white overflow-y-auto flex flex-col shadow-lg">
-            <div className="sticky top-0 bg-white flex items-center justify-between px-4 py-3 border-b border-[#D1CFCA] z-10">
+          <aside className="w-72 shrink-0 border-s border-[#E8E7E3] bg-white overflow-y-auto flex flex-col">
+            <div className="sticky top-0 bg-white flex items-center justify-between px-4 py-3.5 border-b border-[#E8E7E3] z-10">
               <div className="flex items-center gap-2">
-                <Zap size={13} className="text-red-500" />
-                <p className="text-[0.68rem] font-bold tracking-wide text-red-600">כל הדחוף</p>
-                <span className="text-[0.6rem] text-[#2D2926]/30 font-mono">{urgentAll.length}</span>
+                <Zap size={14} className="text-red-500" />
+                <p className="text-sm font-bold text-red-600">משימות דחופות</p>
+                {urgentAll.length > 0 && (
+                  <span className="text-[0.62rem] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">
+                    {urgentAll.length}
+                  </span>
+                )}
               </div>
-              <button onClick={() => setShowSidebar(false)} className="text-[#2D2926]/25 hover:text-[#2D2926]/70">
-                <ChevronRight size={14} />
+              <button onClick={() => setShowSidebar(false)}
+                className="p-1.5 rounded-full text-[#2D2926]/25 hover:text-[#2D2926]/70 hover:bg-[#F3F2EE] transition-colors">
+                <ChevronLeft size={14} />
               </button>
             </div>
 
             {urgentAll.length === 0 ? (
-              <div className="flex-1 flex items-center justify-center">
-                <p className="text-[0.65rem] text-[#2D2926]/25">אין משימות דחופות 🎉</p>
+              <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center p-6">
+                <span className="text-3xl">🎉</span>
+                <p className="text-sm text-[#2D2926]/40 font-medium">אין משימות דחופות</p>
               </div>
             ) : (
-              <div className="p-3 space-y-2">
+              <div className="p-3 space-y-2.5">
                 {urgentAll.map(task => {
                   const company = task.holding_companies ?? companies.find(c => c.id === task.company_id) ?? null;
                   return (
-                    <div key={task.id} className="p-3 border border-red-200 bg-red-50">
+                    <div key={task.id} className="p-3.5 rounded-lg border border-red-100 bg-red-50/60 hover:bg-red-50 transition-colors">
                       {company && (
                         <div className="flex items-center gap-1.5 mb-1.5">
-                          <span className="text-[0.65rem]">{company.icon}</span>
-                          <span className="text-[0.58rem] font-bold" style={{ color: company.color }}>{company.name}</span>
+                          <span className="text-sm">{company.icon}</span>
+                          <span className="text-[0.6rem] font-bold" style={{ color: company.color }}>{company.name}</span>
                         </div>
                       )}
-                      <p className="text-[0.75rem] text-[#2D2926] leading-snug">{task.title}</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className={`text-[0.58rem] font-bold px-1.5 py-0.5 border
-                          ${task.author === "Hanan" ? "border-amber-400/40 text-amber-700" : "border-blue-400/40 text-blue-700"}`}>
-                          {task.author === "Hanan" ? "ח" : "מ"}
+                      <p className="text-sm text-[#2D2926] leading-snug font-medium">{task.title}</p>
+                      <div className="flex items-center justify-between mt-2.5">
+                        <span className={`text-[0.62rem] font-bold px-2 py-0.5 rounded-full
+                          ${task.author === "Hanan" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
+                          {task.author === "Hanan" ? "חנן" : "מוטי"}
                         </span>
-                        <button onClick={() => deleteTask(task.id)} className="text-[#2D2926]/20 hover:text-red-500 transition-colors">
-                          <Trash2 size={11} />
+                        <button onClick={() => deleteTask(task.id)}
+                          className="p-1 rounded text-[#2D2926]/20 hover:text-red-500 hover:bg-red-100 transition-colors">
+                          <Trash2 size={12} />
                         </button>
                       </div>
                     </div>
@@ -541,14 +554,14 @@ export default function Cockpit() {
         )}
       </div>
 
-      {/* Mobile bottom bar */}
-      <div className="shrink-0 border-t border-[#D1CFCA] bg-white px-4 py-2.5 flex items-center justify-between md:hidden">
-        <a href="/admin/hub" className="text-[0.65rem] text-[#2D2926]/30 hover:text-[#2D2926] flex items-center gap-1.5">
-          מרכז שליטה
+      {/* Mobile bottom */}
+      <div className="shrink-0 border-t border-[#E8E7E3] bg-white px-4 py-3 flex items-center justify-between md:hidden">
+        <a href="/admin/hub" className="text-[0.68rem] text-[#2D2926]/40 hover:text-[#2D2926] font-medium">
+          ← מרכז שליטה
         </a>
         <button onClick={() => setAddingTo("backlog")}
-          className="flex items-center gap-1.5 px-4 py-2 bg-[#8D775F] text-white text-[0.72rem] font-bold hover:bg-[#7A6451] transition-colors">
-          <Plus size={13} /> משימה חדשה
+          className="flex items-center gap-2 px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-full hover:bg-[#7A6451] transition-colors">
+          <Plus size={14} /> משימה חדשה
         </button>
       </div>
     </div>
