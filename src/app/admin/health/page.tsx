@@ -149,7 +149,13 @@ export default function HealthPage() {
           try {
             const r = await fetch(url);
             const ms = Date.now() - t0;
-            return { id, section: "api", name, status: (r.ok ? (ms < 1500 ? "ok" : "warn") : "fail") as CheckStatus, detail: r.ok ? `HTTP ${r.status}` : `HTTP ${r.status} — שגיאה`, ms, fix: !r.ok ? `בדוק את ה-endpoint ${url}` : undefined };
+            // 401 = endpoint exists and is correctly protected — treat as ok
+            const protected401 = r.status === 401;
+            const isOk = r.ok || protected401;
+            const detail = protected401
+              ? `HTTP 401 — מוגן (תקין)`
+              : r.ok ? `HTTP ${r.status}` : `HTTP ${r.status} — שגיאה`;
+            return { id, section: "api", name, status: (isOk ? (ms < 1500 ? "ok" : "warn") : "fail") as CheckStatus, detail, ms, fix: !isOk ? `בדוק את ה-endpoint ${url}` : undefined };
           } catch (e) {
             return { id, section: "api", name, status: "fail" as CheckStatus, detail: String(e), ms: Date.now() - t0, fix: `ה-endpoint ${url} לא מגיב` };
           }
