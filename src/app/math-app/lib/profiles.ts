@@ -110,6 +110,26 @@ export function saveProfileStore(store: ProfileStore, storeKey = STORE_KEY): voi
 // ── Stats merge (used by cloud sync) ─────────────────────────────────────────
 
 export function mergeStats(local: StoredStats, remote: StoredStats): StoredStats {
+  // Merge per-topic stats (take best values from each side)
+  const allKeys = new Set([
+    ...Object.keys(local.topicStats  ?? {}),
+    ...Object.keys(remote.topicStats ?? {}),
+  ]);
+  const topicStats: Record<string, import("./types").TopicStats> = {};
+  for (const key of allKeys) {
+    const l = local.topicStats?.[key];
+    const r = remote.topicStats?.[key];
+    if (!l) { topicStats[key] = r!; continue; }
+    if (!r) { topicStats[key] = l;  continue; }
+    topicStats[key] = {
+      highestLevel: Math.max(l.highestLevel, r.highestLevel) as Difficulty,
+      totalCorrect: Math.max(l.totalCorrect, r.totalCorrect),
+      totalWrong:   Math.max(l.totalWrong,   r.totalWrong),
+      pointsTotal:  Math.max(l.pointsTotal,  r.pointsTotal),
+      lastPlayed:   l.lastPlayed > r.lastPlayed ? l.lastPlayed : r.lastPlayed,
+    };
+  }
+
   return {
     totalCorrect:   Math.max(local.totalCorrect,   remote.totalCorrect),
     totalWrong:     Math.max(local.totalWrong,     remote.totalWrong),
@@ -117,5 +137,6 @@ export function mergeStats(local: StoredStats, remote: StoredStats): StoredStats
     sessionsPlayed: Math.max(local.sessionsPlayed, remote.sessionsPlayed),
     pointsTotal:    Math.max(local.pointsTotal,    remote.pointsTotal),
     lastPlayed:     local.lastPlayed > remote.lastPlayed ? local.lastPlayed : remote.lastPlayed,
+    ...(allKeys.size > 0 ? { topicStats } : {}),
   };
 }

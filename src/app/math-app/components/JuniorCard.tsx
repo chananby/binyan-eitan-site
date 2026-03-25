@@ -63,9 +63,10 @@ export default function JuniorCard({ question, stats, streakToLevelUp, onSubmit,
     setHintCd(HINT_DELAY_SEC);
   }, [question.id]);
 
-  // Read aloud on question change
+  // Read aloud on question change; cancel on unmount
   useEffect(() => {
     readAloud(question.text);
+    return () => { if (typeof window !== "undefined") window.speechSynthesis?.cancel(); };
   }, [question.id, question.text]);
 
   // 10-second hint countdown (only when hint not yet shown)
