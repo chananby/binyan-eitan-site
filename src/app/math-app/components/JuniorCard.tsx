@@ -6,6 +6,7 @@ import JuniorKeypad from "./JuniorKeypad";
 import Confetti from "./Confetti";
 import type { MathQuestion } from "../lib/types";
 import type { SessionStats } from "../hooks/useAdaptiveEngine";
+import { useFeedback } from "../hooks/useFeedback";
 
 interface JuniorCardProps {
   question: MathQuestion;
@@ -49,6 +50,7 @@ function readAloud(text: string) {
 }
 
 export default function JuniorCard({ question, stats, streakToLevelUp, onSubmit, onNext }: JuniorCardProps) {
+  const { onCorrect, onWrong } = useFeedback();
   const [value, setValue]           = useState("");
   const [shake, setShake]           = useState(false);
   const [confettiBurst, setBurst]   = useState(0);
@@ -85,8 +87,10 @@ export default function JuniorCard({ question, stats, streakToLevelUp, onSubmit,
     if (!value || stats.showHint) return;
     const correct = onSubmit(value);
     if (correct) {
+      onCorrect();
       setBurst((b) => b + 1);
     } else {
+      onWrong();
       setShake(true);
       setTimeout(() => setShake(false), 500);
       setValue("");

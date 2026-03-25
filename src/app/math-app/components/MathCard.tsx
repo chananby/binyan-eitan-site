@@ -5,6 +5,7 @@ import type { MathQuestion } from "../lib/types";
 import { DIFFICULTY_LABELS, DIFFICULTY_COLORS } from "../lib/types";
 import type { SessionStats } from "../hooks/useAdaptiveEngine";
 import Keypad from "./Keypad";
+import { useFeedback } from "../hooks/useFeedback";
 
 interface MathCardProps {
   question: MathQuestion;
@@ -21,6 +22,7 @@ export default function MathCard({
   onNext,
   spaceMode = false,
 }: MathCardProps) {
+  const { onCorrect, onWrong } = useFeedback();
   const [input, setInput]       = useState("");
   const [shake, setShake]       = useState(false);
   const [pulse, setPulse]       = useState(false);
@@ -44,9 +46,11 @@ export default function MathCard({
     const isCorrect = onSubmit(input);
     setAnswered(true);
     if (isCorrect) {
+      onCorrect();
       setPulse(true);
       setTimeout(() => setPulse(false), 700);
     } else {
+      onWrong();
       setShake(true);
       setTimeout(() => {
         setShake(false);

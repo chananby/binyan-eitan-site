@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import MathPinGate from "./components/MathPinGate";
 
 export const metadata: Metadata = {
   title: "מתמטיקה — תוכנית המחוננים | בר-אילן",
@@ -6,16 +7,10 @@ export const metadata: Metadata = {
   robots: "noindex, nofollow",
 };
 
-export default function MathAppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  // Wrap in RTL div — root <html> is handled by binyan-eitan root layout,
-  // but dir/lang are overridden here for the math-app subtree.
+export default function MathAppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div dir="rtl" lang="he" className="font-heebo">
-      {children}
+      <MathPinGate>{children}</MathPinGate>
     </div>
   );
 }
