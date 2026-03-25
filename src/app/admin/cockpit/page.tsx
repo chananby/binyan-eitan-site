@@ -198,28 +198,46 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
 // ── Quick Add ─────────────────────────────────────────────────────────────────
 function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   colKey: ColKey; companies: Company[];
-  defaultCompanyId: string;  // "" = require selection, otherwise pre-select
-  onAdd: (title: string, notes: string, companyId: string, assignedTo: string) => Promise<string | null>;
+  defaultCompanyId: string;
+  onAdd: (title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string) => Promise<string | null>;
   onClose: () => void;
 }) {
-  const [title,      setTitle]      = useState("");
-  const [notes,      setNotes]      = useState("");
-  const [companyId,  setCompanyId]  = useState(defaultCompanyId);
-  const [assignedTo, setAssignedTo] = useState("");
-  const [saving,     setSaving]     = useState(false);
-  const [addErr,     setAddErr]     = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [title,         setTitle]         = useState("");
+  const [notes,         setNotes]         = useState("");
+  const [companyId,     setCompanyId]     = useState(defaultCompanyId);
+  const [assignedTo,    setAssignedTo]    = useState("");
+  const [attachmentUrl, setAttachmentUrl] = useState("");
+  const [uploading,     setUploading]     = useState(false);
+  const [uploadErr,     setUploadErr]     = useState<string | null>(null);
+  const [saving,        setSaving]        = useState(false);
+  const [addErr,        setAddErr]        = useState<string | null>(null);
+  const inputRef   = useRef<HTMLInputElement>(null);
+  const fileInputId = useRef(`qa-file-${Math.random().toString(36).slice(2)}`).current;
   useEffect(() => { inputRef.current?.focus(); }, []);
-  // Sync company selection if the parent filter changes while form is open
   useEffect(() => { if (defaultCompanyId) setCompanyId(defaultCompanyId); }, [defaultCompanyId]);
 
-  const requiresCompany = !defaultCompanyId; // true when showing "all"
-  const canSubmit = title.trim() && (!requiresCompany || companyId);
+  const requiresCompany = !defaultCompanyId;
+  const canSubmit = title.trim() && (!requiresCompany || companyId) && !uploading;
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setUploading(true); setUploadErr(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/holding/upload", { method: "POST", body: fd });
+      if (res.ok) { const { url } = await res.json(); setAttachmentUrl(url); }
+      else { const d = await res.json().catch(() => ({})); setUploadErr(d.error ?? `שגיאת העלאה ${res.status}`); }
+    } catch (ex) { setUploadErr(String(ex)); }
+    finally { setUploading(false); }
+  };
 
   const submit = async () => {
     if (!canSubmit || saving) return;
     setSaving(true); setAddErr(null);
-    const err = await onAdd(title.trim(), notes, companyId, assignedTo.trim());
+    const err = await onAdd(title.trim(), notes, companyId, assignedTo.trim(), attachmentUrl);
     setSaving(false);
     if (err) setAddErr(err);
   };
@@ -227,11 +245,11 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   const col = COLUMNS.find(c => c.key === colKey)!;
 
   return (
-    <div className="p-3.5 border-2 bg-white shadow-lg mt-2 space-y-2.5" style={{ borderColor: col.accent + "40" }}
+    <div className="p-3.5 border-2 bg-white shadow-lg mt-2 space-y-2" style={{ borderColor: col.accent + "40" }}
       onClick={e => e.stopPropagation()}>
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between">
         <span className="text-[0.65rem] font-bold text-[#2D2926]/50">משימה חדשה · {col.label}</span>
-        <button onClick={onClose} className="text-[#2D2926]/25 hover:text-[#2D2926]/70"><X size={13} /></button>
+        <button type="button" onClick={onClose} className="text-[#2D2926]/25 hover:text-[#2D2926]/70"><X size={13} /></button>
       </div>
       <input
         ref={inputRef} value={title}
@@ -259,9 +277,7 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
       <select
         value={companyId} onChange={e => setCompanyId(e.target.value)}
         className={`w-full bg-[#FAFAF9] border text-[0.75rem] px-3 py-2 rounded focus:outline-none
-          ${requiresCompany && !companyId
-            ? "border-amber-300 text-[#2D2926]/40"
-            : "border-[#E8E7E3] text-[#2D2926]/70"}`}
+          ${requiresCompany && !companyId ? "border-amber-300 text-[#2D2926]/40" : "border-[#E8E7E3] text-[#2D2926]/70"}`}
       >
         {requiresCompany && <option value="">— בחר חברה —</option>}
         {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -269,7 +285,26 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
       {requiresCompany && !companyId && (
         <p className="text-[0.6rem] text-amber-600">יש לבחור חברה לפני השמירה</p>
       )}
-      <button onClick={submit} disabled={!canSubmit || saving}
+      {/* File attachment */}
+      {attachmentUrl ? (
+        <div className="flex items-center justify-between px-2.5 py-1.5 bg-[#F3F2EE] rounded border border-[#E8E7E3]">
+          <span className="flex items-center gap-1.5 text-[0.65rem] text-[#2D2926]/60 truncate">
+            <Paperclip size={10} /> קובץ מצורף
+          </span>
+          <button type="button" onClick={() => setAttachmentUrl("")}
+            className="text-[0.62rem] text-red-400 hover:text-red-600 font-medium shrink-0">הסר</button>
+        </div>
+      ) : (
+        <label htmlFor={fileInputId}
+          className={`w-full flex items-center justify-center gap-1.5 py-1.5 border border-dashed border-[#D1CFCA] rounded text-[0.68rem] text-[#2D2926]/35 hover:border-[#8D775F]/50 hover:text-[#2D2926]/60 transition-colors
+            ${uploading ? "opacity-40 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
+          {uploading ? <><Loader2 size={11} className="animate-spin" /> מעלה...</> : <><Paperclip size={11} /> צרף קובץ (אופציונלי)</>}
+          <input id={fileInputId} type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+            onChange={handleFileChange} disabled={uploading} className="sr-only" />
+        </label>
+      )}
+      {uploadErr && <p className="text-[0.62rem] text-red-500 flex items-center gap-1"><AlertCircle size={10} />{uploadErr}</p>}
+      <button type="button" onClick={submit} disabled={!canSubmit || saving}
         className="w-full py-2.5 text-white text-[0.75rem] font-bold tracking-wide disabled:opacity-40 transition-colors rounded"
         style={{ background: col.accent }}>
         {saving ? <Loader2 size={13} className="animate-spin mx-auto" /> : `הוסף ל${col.label}`}
@@ -507,14 +542,15 @@ export default function Cockpit() {
     }
   }, [tasks, clearDragState]);
 
-  const addTask = useCallback(async (colKey: ColKey, title: string, notes: string, companyId: string, assignedTo: string): Promise<string | null> => {
+  const addTask = useCallback(async (colKey: ColKey, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string): Promise<string | null> => {
     try {
       const res = await fetch("/api/holding/tasks", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title, notes: notes || undefined, status: colKey,
-          company_id: companyId || undefined,
-          assigned_to: assignedTo || undefined,
+          company_id:     companyId     || undefined,
+          assigned_to:    assignedTo    || undefined,
+          attachment_url: attachmentUrl || undefined,
         }),
       });
       if (res.ok) { await loadData(); setAddingTo(null); return null; }
@@ -772,14 +808,13 @@ export default function Cockpit() {
                     <div className="px-2">
                       <QuickAdd colKey={col.key} companies={companies}
                         defaultCompanyId={filterCompany ?? ""}
-                        onAdd={(title, notes, cid, assignedTo) => addTask(col.key, title, notes, cid, assignedTo)}
+                        onAdd={(title, notes, cid, assignedTo, attachUrl) => addTask(col.key, title, notes, cid, assignedTo, attachUrl)}
                         onClose={() => setAddingTo(null)} />
                     </div>
                   )}
 
                   {/* Task list */}
-                  <div className="flex-1 overflow-y-auto px-2 pb-3 space-y-2 min-h-[120px]"
-                    onClick={e => { if (e.target === e.currentTarget && !isAdding) setAddingTo(col.key); }}>
+                  <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-2 min-h-[120px]">
                     {loading && colItems.length === 0 && (
                       <div className="flex justify-center pt-10">
                         <Loader2 size={16} className="animate-spin text-[#2D2926]/15" />
@@ -797,14 +832,23 @@ export default function Cockpit() {
                       <TaskCard key={task.id} task={task}
                         isDragging={dragTaskId === task.id}
                         onDragStart={() => {
-                          dragIdRef.current = task.id;   // sync — no stale closure risk
-                          setDragTaskId(task.id);        // async — for visual only
+                          dragIdRef.current = task.id;
+                          setDragTaskId(task.id);
                         }}
                         onDragEnd={clearDragState}
                         onDelete={() => deleteTask(task.id)}
                         onEdit={() => setEditingTask(task)}
                         companies={companies} />
                     ))}
+                    {/* Always-visible add button at the bottom */}
+                    {!isAdding && (
+                      <button
+                        onClick={e => { e.stopPropagation(); setAddingTo(col.key); }}
+                        className="w-full mt-1 py-1.5 flex items-center justify-center gap-1.5 text-[0.65rem] text-[#2D2926]/25 hover:text-[#2D2926]/60 hover:bg-[#E8E7E3]/60 rounded transition-colors border border-transparent hover:border-[#E8E7E3]"
+                      >
+                        <Plus size={11} /> הוסף משימה
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -834,7 +878,7 @@ export default function Cockpit() {
                   <div className="mb-3">
                     <QuickAdd colKey={mobileCol} companies={companies}
                       defaultCompanyId={filterCompany ?? ""}
-                      onAdd={(title, notes, cid, assignedTo) => addTask(mobileCol, title, notes, cid, assignedTo)}
+                      onAdd={(title, notes, cid, assignedTo, attachUrl) => addTask(mobileCol, title, notes, cid, assignedTo, attachUrl)}
                       onClose={() => setAddingTo(null)} />
                   </div>
                 )}
@@ -926,9 +970,9 @@ export default function Cockpit() {
         <a href="/admin/hub" className="text-[0.68rem] text-[#2D2926]/40 hover:text-[#2D2926] font-medium">
           ← מרכז שליטה
         </a>
-        <button onClick={() => setAddingTo("backlog")}
+        <button onClick={() => setAddingTo(mobileCol)}
           className="flex items-center gap-2 px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-full hover:bg-[#7A6451] transition-colors">
-          <Plus size={14} /> משימה חדשה
+          <Plus size={14} /> הוסף ל{COLUMNS.find(c => c.key === mobileCol)!.label}
         </button>
       </div>
 

@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     let body: {
       title?: string; notes?: string;
       status?: string; priority?: number; company_id?: string;
-      assigned_to?: string;
+      assigned_to?: string; attachment_url?: string;
     };
     try {
       body = await req.json();
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON", detail: String(e) }, { status: 400 });
     }
 
-    const { title, notes, status = "backlog", priority = 0, company_id, assigned_to } = body;
+    const { title, notes, status = "backlog", priority = 0, company_id, assigned_to, attachment_url } = body;
 
     if (!title?.trim()) {
       return NextResponse.json({ error: "כותרת משימה חובה" }, { status: 400 });
@@ -99,8 +99,9 @@ export async function POST(req: NextRequest) {
         notes:      notes?.trim() || null,
         status,
         priority,
-        company_id:  company_id  || null,
-        assigned_to: assigned_to || null,
+        company_id:     company_id     || null,
+        assigned_to:    assigned_to    || null,
+        attachment_url: attachment_url || null,
         author,
       });
 
