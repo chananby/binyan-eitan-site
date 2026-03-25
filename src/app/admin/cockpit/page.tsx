@@ -293,13 +293,14 @@ function EditModal({ task, companies, onSave, onClose }: {
   const [uploadErr,     setUploadErr]     = useState<string | null>(null);
   const [saving,        setSaving]        = useState(false);
   const [err,           setErr]           = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const fileRef  = useRef<HTMLInputElement>(null);
+  const inputRef   = useRef<HTMLInputElement>(null);
+  const fileInputId = useRef(`file-${Math.random().toString(36).slice(2)}`).current;
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = ""; // reset immediately so same file can be re-picked
     setUploading(true); setUploadErr(null);
     try {
       const fd = new FormData();
@@ -313,7 +314,7 @@ function EditModal({ task, companies, onSave, onClose }: {
         setUploadErr(d.error ?? `שגיאת העלאה ${res.status}`);
       }
     } catch (ex) { setUploadErr(String(ex)); }
-    finally { setUploading(false); if (fileRef.current) fileRef.current.value = ""; }
+    finally { setUploading(false); }
   };
 
   const submit = async () => {
@@ -361,8 +362,6 @@ function EditModal({ task, companies, onSave, onClose }: {
 
         {/* Attachment section */}
         <div className="space-y-2">
-          <input ref={fileRef} type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-            onChange={handleFileChange} className="hidden" />
           {attachmentUrl ? (
             <div className="border border-[#E8E7E3] rounded-lg overflow-hidden">
               {isImage ? (
@@ -376,15 +375,20 @@ function EditModal({ task, companies, onSave, onClose }: {
               )}
               <div className="flex items-center justify-between px-3 py-1.5 bg-[#FAFAF9] border-t border-[#E8E7E3]">
                 <span className="text-[0.62rem] text-[#2D2926]/40">קובץ מצורף</span>
-                <button onClick={() => setAttachmentUrl("")}
+                <button type="button" onClick={() => setAttachmentUrl("")}
                   className="text-[0.62rem] text-red-400 hover:text-red-600 font-medium">הסר</button>
               </div>
             </div>
           ) : (
-            <button onClick={() => fileRef.current?.click()} disabled={uploading}
-              className="w-full flex items-center justify-center gap-2 py-2 border border-dashed border-[#D1CFCA] rounded-lg text-[0.72rem] text-[#2D2926]/40 hover:border-[#8D775F]/50 hover:text-[#2D2926]/70 disabled:opacity-40 transition-colors">
+            /* Use <label htmlFor> — works reliably on all browsers/mobile without programmatic .click() */
+            <label htmlFor={fileInputId}
+              className={`w-full flex items-center justify-center gap-2 py-2 border border-dashed border-[#D1CFCA] rounded-lg text-[0.72rem] text-[#2D2926]/40 hover:border-[#8D775F]/50 hover:text-[#2D2926]/70 transition-colors select-none
+                ${uploading ? "opacity-40 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
               {uploading ? <><Loader2 size={12} className="animate-spin" /> מעלה...</> : <><Upload size={12} /> צרף תמונה / קובץ</>}
-            </button>
+              {/* sr-only keeps the input in DOM flow so browsers allow the click — never use display:none */}
+              <input id={fileInputId} type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                onChange={handleFileChange} disabled={uploading} className="sr-only" />
+            </label>
           )}
           {uploadErr && (
             <p className="text-[0.62rem] text-red-500 flex items-center gap-1"><AlertCircle size={10} />{uploadErr}</p>
