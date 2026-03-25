@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import MathCard from "./components/MathCard";
 import JuniorCard from "./components/JuniorCard";
@@ -16,6 +16,7 @@ import { generateQuestion as generateG3   } from "./lib/engines/grade3";
 import { generateQuestion as generateDiv  } from "./lib/engines/grade3-division";
 import { generateQuestion as generateG4   } from "./lib/engines/grade4";
 import { generateQuestion as generateRatios } from "./lib/engines/ratios";
+import { generateQuestion as generateWP   } from "./lib/engines/word-problems";
 import type { Difficulty, MathQuestion, StoredStats } from "./lib/types";
 import type { Profile } from "./lib/profiles";
 
@@ -83,6 +84,16 @@ export const ALL_TOPICS: Topic[] = [
     title: "יחסים ופרופורציות",
     subtitle: "תעריף יחידה, יחס ישר וקנה מידה",
     generateFn: generateRatios,
+  },
+  {
+    id: "word-problems",
+    emoji: "📖",
+    title: "בעיות סיפור",
+    subtitle: "בעיות מילוליות בחיבור, חיסור, כפל וחלוקה",
+    badge: "כיתה ג׳–ד׳",
+    theme: "space",
+    junior: true,
+    generateFn: generateWP,
   },
 ];
 
@@ -191,8 +202,10 @@ interface JuniorSessionProps {
   onBack: () => void;
 }
 
+const JUNIOR_SPEED_EVERY = 5;   // every N correct answers → speed question
+const JUNIOR_SPEED_SECS  = 30;
+
 function JuniorSession({ topic, initialStats, onStatsUpdate, onBack }: JuniorSessionProps) {
-  // Use topic-specific highestLevel as starting level (falls back to 1 for new topics)
   const startLevel = (initialStats.topicStats?.[topic.id]?.highestLevel ?? 1) as import("./lib/types").Difficulty;
   const engine = useAdaptiveEngine(
     topic.generateFn,
@@ -204,6 +217,44 @@ function JuniorSession({ topic, initialStats, onStatsUpdate, onBack }: JuniorSes
   );
   const milestone = useFeedbackEvents(engine.stats);
 
+  // ── Occasional speed round ────────────────────────────────────────────────
+  const correctCount   = useRef(0);
+  const [timedNow, setTimedNow] = useState(false);
+  const [timerLeft, setTimerLeft] = useState(JUNIOR_SPEED_SECS);
+  const engineTimeout  = useRef(engine.timeout);
+  useEffect(() => { engineTimeout.current = engine.timeout; }, [engine.timeout]);
+
+  // Track question changes to clear timed mode after the question is answered
+  const prevQId = useRef(engine.question.id);
+  useEffect(() => {
+    if (engine.question.id !== prevQId.current) {
+      prevQId.current = engine.question.id;
+      setTimedNow(false);
+      setTimerLeft(JUNIOR_SPEED_SECS);
+    }
+  }, [engine.question.id]);
+
+  // Countdown
+  useEffect(() => {
+    if (!timedNow) return;
+    if (timerLeft <= 0) { engineTimeout.current(); return; }
+    const id = setTimeout(() => setTimerLeft(t => t - 1), 1000);
+    return () => clearTimeout(id);
+  }, [timedNow, timerLeft]);
+
+  // Wrapped submit: count correct answers, activate speed round every N
+  const handleSubmit = useCallback((val: string): boolean => {
+    const ok = engine.submit(val);
+    if (ok) {
+      correctCount.current += 1;
+      if (correctCount.current % JUNIOR_SPEED_EVERY === 0) {
+        setTimedNow(true);
+        setTimerLeft(JUNIOR_SPEED_SECS);
+      }
+    }
+    return ok;
+  }, [engine]);
+
   const navBtn = "text-cyan-400/70 hover:text-cyan-300";
 
   return (
@@ -212,10 +263,19 @@ function JuniorSession({ topic, initialStats, onStatsUpdate, onBack }: JuniorSes
         <button onClick={onBack} className={`flex items-center gap-1 transition-colors text-sm font-medium ${navBtn}`}>
           → חזרה לנושאים
         </button>
-        <button onClick={engine.reset} className="text-xs text-cyan-600/60 hover:text-cyan-400 transition-colors underline underline-offset-2">
-          אפס
-        </button>
+        <div className="flex items-center gap-3">
+          {timedNow && (
+            <span className="flex items-center gap-1 text-xs font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400/30 px-2.5 py-1 rounded-full animate-pulse">
+              ⚡ מהירות!
+            </span>
+          )}
+          <button onClick={engine.reset} className="text-xs text-cyan-600/60 hover:text-cyan-400 transition-colors underline underline-offset-2">
+            אפס
+          </button>
+        </div>
       </div>
+
+      {timedNow && <TimerBar timeLeft={timerLeft} total={JUNIOR_SPEED_SECS} />}
 
       <MilestoneBanner event={milestone} spaceMode />
 
@@ -223,7 +283,7 @@ function JuniorSession({ topic, initialStats, onStatsUpdate, onBack }: JuniorSes
         question={engine.question}
         stats={engine.stats}
         streakToLevelUp={STREAK_TO_LEVEL_UP_JUNIOR}
-        onSubmit={engine.submit}
+        onSubmit={handleSubmit}
         onNext={engine.next}
       />
     </div>
@@ -255,6 +315,21 @@ function Dashboard({ profile, topics, parentHref = "/math-app/parent", onPickTop
           {total === 0 ? "בחר נושא כדי להתחיל" : `${profile.stats.pointsTotal} נק׳ · רמה ${profile.stats.highestLevel} · ${total} שאלות`}
         </p>
       </div>
+
+      {/* Daily challenge button */}
+      <Link
+        href="/math-app/daily"
+        className="flex items-center justify-between w-full mb-5 px-5 py-3.5 rounded-2xl border-2 border-amber-400/60 bg-amber-50 hover:bg-amber-100 hover:border-amber-400 transition-all group"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">⚡</span>
+          <div className="text-right">
+            <p className="font-extrabold text-amber-800 text-sm">אתגר יומי</p>
+            <p className="text-xs text-amber-600/70">10 שאלות · 35 שניות כל אחת</p>
+          </div>
+        </div>
+        <span className="text-amber-600 font-bold text-sm group-hover:translate-x-[-2px] transition-transform">← שחק</span>
+      </Link>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         {topics.map((topic) => {
