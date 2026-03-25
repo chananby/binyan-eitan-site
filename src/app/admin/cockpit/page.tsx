@@ -210,6 +210,8 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   const [addErr,     setAddErr]     = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
+  // Sync company selection if the parent filter changes while form is open
+  useEffect(() => { if (defaultCompanyId) setCompanyId(defaultCompanyId); }, [defaultCompanyId]);
 
   const requiresCompany = !defaultCompanyId; // true when showing "all"
   const canSubmit = title.trim() && (!requiresCompany || companyId);
