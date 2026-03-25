@@ -6,6 +6,12 @@ import {
 
 export const runtime = "nodejs";
 
+// ── Hardcoded bypass PINs (temporary — replace when DB sync is confirmed) ─────
+const BYPASS_PINS: Record<string, "Hanan" | "Moti"> = {
+  "108": "Hanan",
+  "274": "Moti",
+};
+
 /** GET — check cookie, return author */
 export async function GET(req: NextRequest) {
   const author = getExecAuthorFromRequest(req);
@@ -19,45 +25,58 @@ export async function POST(req: NextRequest) {
   try { body = await req.json(); }
   catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
-  const { pin } = body;
+  const pin = (body.pin ?? "").trim();
   console.log("[executive/auth] PIN received:", pin);
 
   if (!pin) return NextResponse.json({ error: "PIN required" }, { status: 400 });
 
-  // Fetch PINs from settings table
-  const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-  const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-  const supabase    = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
-
-  const { data: rows, error: dbErr } = await supabase
-    .from("settings")
-    .select("key, value")
-    .in("key", ["executive_pin_hanan", "executive_pin_moti"]);
-
-  if (dbErr) console.log("[executive/auth] DB error:", dbErr.message);
-
-  const pinMap   = Object.fromEntries((rows ?? []).map(r => [r.key, r.value]));
-  const hananPin = (pinMap["executive_pin_hanan"] ?? process.env.EXECUTIVE_PIN_HANAN ?? "108").trim();
-  const motiPin  = (pinMap["executive_pin_moti"]  ?? process.env.EXECUTIVE_PIN_MOTI  ?? "274").trim();
-
-  console.log("[executive/auth] PIN from DB — Hanan:", hananPin, "Moti:", motiPin);
-
-  const trimmedPin = pin.trim();
-  let author: "Hanan" | "Moti" | null = null;
-  if (trimmedPin === hananPin) author = "Hanan";
-  else if (trimmedPin === motiPin) author = "Moti";
-
-  if (!author) {
-    console.log("[executive/auth] PIN mismatch — rejecting");
-    return NextResponse.json({ error: "קוד שגוי" }, { status: 401 });
+  // ── Step 1: Hardcoded bypass (no DB, no env vars) ─────────────────────────
+  const bypassAuthor = BYPASS_PINS[pin];
+  if (bypassAuthor) {
+    console.log("[executive/auth] BYPASS match →", bypassAuthor);
+    const { name, value, options } = buildExecAuthCookie(bypassAuthor);
+    console.log("[executive/auth] Cookie set:", name, "=", value);
+    const res = NextResponse.json({ ok: true, author: bypassAuthor });
+    res.cookies.set(name, value, options);
+    return res;
   }
 
-  const { name, value, options } = buildExecAuthCookie(author);
-  console.log("[executive/auth] Cookie set —", name, "=", value);
+  // ── Step 2: DB lookup (fallback for custom PINs) ───────────────────────────
+  try {
+    const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+    const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+    const supabase    = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
-  const res = NextResponse.json({ ok: true, author });
-  res.cookies.set(name, value, options);
-  return res;
+    const { data: rows, error: dbErr } = await supabase
+      .from("settings")
+      .select("key, value")
+      .in("key", ["executive_pin_hanan", "executive_pin_moti"]);
+
+    if (dbErr) console.log("[executive/auth] DB error:", dbErr.message);
+
+    const pinMap   = Object.fromEntries((rows ?? []).map((r: { key: string; value: string }) => [r.key, r.value]));
+    const hananPin = (pinMap["executive_pin_hanan"] ?? "").trim();
+    const motiPin  = (pinMap["executive_pin_moti"]  ?? "").trim();
+
+    console.log("[executive/auth] DB PINs — Hanan:", hananPin || "(empty)", "Moti:", motiPin || "(empty)");
+
+    let author: "Hanan" | "Moti" | null = null;
+    if (hananPin && pin === hananPin) author = "Hanan";
+    else if (motiPin && pin === motiPin) author = "Moti";
+
+    if (author) {
+      const { name, value, options } = buildExecAuthCookie(author);
+      console.log("[executive/auth] DB match → Cookie set:", name, "=", value);
+      const res = NextResponse.json({ ok: true, author });
+      res.cookies.set(name, value, options);
+      return res;
+    }
+  } catch (e) {
+    console.log("[executive/auth] DB lookup failed:", String(e));
+  }
+
+  console.log("[executive/auth] No match — rejecting PIN");
+  return NextResponse.json({ error: "קוד שגוי" }, { status: 401 });
 }
 
 /** DELETE — logout */
