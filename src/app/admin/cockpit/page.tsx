@@ -478,10 +478,11 @@ export default function Cockpit() {
   const stopVoice = useCallback(() => { recognizerRef.current?.stop(); setListening(false); }, []);
   const logout    = async () => { await fetch("/api/executive/auth", { method: "DELETE" }); setAuthed(false); setAuthor(null); };
 
+  const safeTasks   = tasks.filter(Boolean) as Task[];
   const visibleTasks = filterCompany
-    ? tasks.filter(t => t.company_id === filterCompany || t.holding_companies?.id === filterCompany)
-    : tasks;
-  const urgentAll = tasks.filter(t => t.status === "urgent");
+    ? safeTasks.filter(t => t.company_id === filterCompany || t.holding_companies?.id === filterCompany)
+    : safeTasks;
+  const urgentAll = safeTasks.filter(t => t.status === "urgent");
   const colTasks  = (key: ColKey) => visibleTasks.filter(t => t.status === key);
 
   if (checking) return (
