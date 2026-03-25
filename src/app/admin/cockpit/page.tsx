@@ -5,7 +5,7 @@ import Image from "next/image";
 import {
   Plus, Trash2, Mic, MicOff, AlertCircle, Loader2,
   Zap, LogOut, X, ChevronLeft,
-  FolderOpen, Filter, Pencil,
+  FolderOpen, Filter, Pencil, Paperclip, UserCheck, ExternalLink, Upload,
   // Company icons (Lucide names stored in DB)
   Crown, Construction, Utensils, DoorOpen, CloudSun, Box, User,
   Building2, Hammer, HardHat, Wrench, Store, Briefcase, Globe,
@@ -42,6 +42,8 @@ interface Task {
   status: ColKey; priority: number; author: string;
   company_id?: string; created_at: string;
   holding_companies?: Company | null;
+  assigned_to?: string;
+  attachment_url?: string;
 }
 
 // ── Column config ─────────────────────────────────────────────────────────────
@@ -153,6 +155,21 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
       {task.notes && (
         <p className="text-[0.68rem] text-[#2D2926]/40 mt-1.5 line-clamp-2 leading-relaxed">{task.notes}</p>
       )}
+      {task.assigned_to && (
+        <div className="flex items-center gap-1 mt-1.5">
+          <UserCheck size={9} className="text-[#8D775F]/60 shrink-0" />
+          <span className="text-[0.62rem] text-[#8D775F]/80 font-medium truncate">{task.assigned_to}</span>
+        </div>
+      )}
+      {task.attachment_url && (
+        <a href={task.attachment_url} target="_blank" rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
+          className="flex items-center gap-1 mt-1.5 text-[0.62rem] text-blue-500 hover:text-blue-700 transition-colors">
+          <Paperclip size={9} className="shrink-0" />
+          <span className="truncate">קובץ מצורף</span>
+          <ExternalLink size={8} className="shrink-0 opacity-60" />
+        </a>
+      )}
       <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-[#F3F2EE]">
         <span className={`text-[0.6rem] font-bold px-2 py-0.5 rounded-full
           ${task.author === "Hanan" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
@@ -182,14 +199,15 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
 function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   colKey: ColKey; companies: Company[];
   defaultCompanyId: string;  // "" = require selection, otherwise pre-select
-  onAdd: (title: string, notes: string, companyId: string) => Promise<string | null>;
+  onAdd: (title: string, notes: string, companyId: string, assignedTo: string) => Promise<string | null>;
   onClose: () => void;
 }) {
-  const [title,     setTitle]     = useState("");
-  const [notes,     setNotes]     = useState("");
-  const [companyId, setCompanyId] = useState(defaultCompanyId);
-  const [saving,    setSaving]    = useState(false);
-  const [addErr,    setAddErr]    = useState<string | null>(null);
+  const [title,      setTitle]      = useState("");
+  const [notes,      setNotes]      = useState("");
+  const [companyId,  setCompanyId]  = useState(defaultCompanyId);
+  const [assignedTo, setAssignedTo] = useState("");
+  const [saving,     setSaving]     = useState(false);
+  const [addErr,     setAddErr]     = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
 
@@ -199,7 +217,7 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   const submit = async () => {
     if (!canSubmit || saving) return;
     setSaving(true); setAddErr(null);
-    const err = await onAdd(title.trim(), notes, companyId);
+    const err = await onAdd(title.trim(), notes, companyId, assignedTo.trim());
     setSaving(false);
     if (err) setAddErr(err);
   };
@@ -231,6 +249,11 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
         placeholder="הערות (אופציונלי)" rows={2}
         className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/80 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20 resize-none"
       />
+      <input
+        value={assignedTo} onChange={e => setAssignedTo(e.target.value)}
+        placeholder="מיועד ל (אופציונלי)"
+        className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/80 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20"
+      />
       <select
         value={companyId} onChange={e => setCompanyId(e.target.value)}
         className={`w-full bg-[#FAFAF9] border text-[0.75rem] px-3 py-2 rounded focus:outline-none
@@ -256,29 +279,55 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
 // ── Edit Modal ────────────────────────────────────────────────────────────────
 function EditModal({ task, companies, onSave, onClose }: {
   task: Task; companies: Company[];
-  onSave: (id: string, title: string, notes: string, companyId: string) => Promise<string | null>;
+  onSave: (id: string, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string) => Promise<string | null>;
   onClose: () => void;
 }) {
-  const [title,     setTitle]     = useState(task.title);
-  const [notes,     setNotes]     = useState(task.notes ?? "");
-  const [companyId, setCompanyId] = useState(task.company_id ?? "");
-  const [saving,    setSaving]    = useState(false);
-  const [err,       setErr]       = useState<string | null>(null);
+  const [title,         setTitle]         = useState(task.title);
+  const [notes,         setNotes]         = useState(task.notes ?? "");
+  const [companyId,     setCompanyId]     = useState(task.company_id ?? "");
+  const [assignedTo,    setAssignedTo]    = useState(task.assigned_to ?? "");
+  const [attachmentUrl, setAttachmentUrl] = useState(task.attachment_url ?? "");
+  const [uploading,     setUploading]     = useState(false);
+  const [uploadErr,     setUploadErr]     = useState<string | null>(null);
+  const [saving,        setSaving]        = useState(false);
+  const [err,           setErr]           = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileRef  = useRef<HTMLInputElement>(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true); setUploadErr(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/holding/upload", { method: "POST", body: fd });
+      if (res.ok) {
+        const { url } = await res.json();
+        setAttachmentUrl(url);
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setUploadErr(d.error ?? `שגיאת העלאה ${res.status}`);
+      }
+    } catch (ex) { setUploadErr(String(ex)); }
+    finally { setUploading(false); if (fileRef.current) fileRef.current.value = ""; }
+  };
 
   const submit = async () => {
     if (!title.trim() || saving) return;
     setSaving(true); setErr(null);
-    const e = await onSave(task.id, title.trim(), notes, companyId);
+    const e = await onSave(task.id, title.trim(), notes, companyId, assignedTo.trim(), attachmentUrl);
     setSaving(false);
     if (e) setErr(e); else onClose();
   };
 
+  const isImage = attachmentUrl && /\.(jpe?g|png|gif|webp|svg)(\?|$)/i.test(attachmentUrl);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" dir="rtl"
       onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-5 space-y-3.5"
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-5 space-y-3 max-h-[90dvh] overflow-y-auto"
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <p className="text-sm font-bold text-[#2D2926]/80">עריכת משימה</p>
@@ -295,6 +344,11 @@ function EditModal({ task, companies, onSave, onClose }: {
           placeholder="הערות (אופציונלי)" rows={3}
           className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/80 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20 resize-none"
         />
+        <input
+          value={assignedTo} onChange={e => setAssignedTo(e.target.value)}
+          placeholder="מיועד ל (אופציונלי)"
+          className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/80 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20"
+        />
         <select
           value={companyId} onChange={e => setCompanyId(e.target.value)}
           className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/70 text-[0.75rem] px-3 py-2 rounded focus:outline-none"
@@ -302,6 +356,39 @@ function EditModal({ task, companies, onSave, onClose }: {
           <option value="">— ללא חברה —</option>
           {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
+
+        {/* Attachment section */}
+        <div className="space-y-2">
+          <input ref={fileRef} type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+            onChange={handleFileChange} className="hidden" />
+          {attachmentUrl ? (
+            <div className="border border-[#E8E7E3] rounded-lg overflow-hidden">
+              {isImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={attachmentUrl} alt="קובץ מצורף" className="w-full max-h-40 object-cover" />
+              ) : (
+                <a href={attachmentUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-2.5 text-[0.75rem] text-blue-600 hover:bg-blue-50 transition-colors">
+                  <Paperclip size={13} /> פתח קובץ מצורף <ExternalLink size={11} className="opacity-60" />
+                </a>
+              )}
+              <div className="flex items-center justify-between px-3 py-1.5 bg-[#FAFAF9] border-t border-[#E8E7E3]">
+                <span className="text-[0.62rem] text-[#2D2926]/40">קובץ מצורף</span>
+                <button onClick={() => setAttachmentUrl("")}
+                  className="text-[0.62rem] text-red-400 hover:text-red-600 font-medium">הסר</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => fileRef.current?.click()} disabled={uploading}
+              className="w-full flex items-center justify-center gap-2 py-2 border border-dashed border-[#D1CFCA] rounded-lg text-[0.72rem] text-[#2D2926]/40 hover:border-[#8D775F]/50 hover:text-[#2D2926]/70 disabled:opacity-40 transition-colors">
+              {uploading ? <><Loader2 size={12} className="animate-spin" /> מעלה...</> : <><Upload size={12} /> צרף תמונה / קובץ</>}
+            </button>
+          )}
+          {uploadErr && (
+            <p className="text-[0.62rem] text-red-500 flex items-center gap-1"><AlertCircle size={10} />{uploadErr}</p>
+          )}
+        </div>
+
         {err && (
           <div className="flex items-center gap-1.5 text-[0.65rem] text-red-600 bg-red-50 border border-red-200 px-2.5 py-1.5 rounded">
             <AlertCircle size={11} /> {err}
@@ -312,7 +399,7 @@ function EditModal({ task, companies, onSave, onClose }: {
             className="flex-1 py-2 text-[0.75rem] font-semibold text-[#2D2926]/50 border border-[#E8E7E3] rounded hover:bg-[#F3F2EE] transition-colors">
             ביטול
           </button>
-          <button onClick={submit} disabled={!title.trim() || saving}
+          <button onClick={submit} disabled={!title.trim() || saving || uploading}
             className="flex-1 py-2 text-[0.75rem] font-bold text-white bg-[#8D775F] rounded hover:bg-[#7A6451] disabled:opacity-40 transition-colors">
             {saving ? <Loader2 size={13} className="animate-spin mx-auto" /> : "שמירה"}
           </button>
@@ -341,6 +428,7 @@ export default function Cockpit() {
   const [listening,     setListening]     = useState(false);
   const [dragError,     setDragError]     = useState<string | null>(null);
   const [editingTask,   setEditingTask]   = useState<Task | null>(null);
+  const [mobileCol,     setMobileCol]     = useState<ColKey>("backlog");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognizerRef = useRef<any>(null);
 
@@ -413,17 +501,21 @@ export default function Cockpit() {
     }
   }, [tasks, clearDragState]);
 
-  const addTask = useCallback(async (colKey: ColKey, title: string, notes: string, companyId: string): Promise<string | null> => {
+  const addTask = useCallback(async (colKey: ColKey, title: string, notes: string, companyId: string, assignedTo: string): Promise<string | null> => {
     try {
       const res = await fetch("/api/holding/tasks", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, notes: notes || undefined, status: colKey, company_id: companyId || undefined }),
+        body: JSON.stringify({
+          title, notes: notes || undefined, status: colKey,
+          company_id: companyId || undefined,
+          assigned_to: assignedTo || undefined,
+        }),
       });
-      if (res.ok) { const { task } = await res.json(); setTasks(prev => [task, ...prev]); setAddingTo(null); return null; }
+      if (res.ok) { await loadData(); setAddingTo(null); return null; }
       const d = await res.json().catch(() => ({}));
       return d.error ?? `שגיאה ${res.status} — בדוק שטבלת holding_tasks קיימת בסופאבייס`;
     } catch (e) { return `שגיאת רשת: ${String(e)}`; }
-  }, []);
+  }, [loadData]);
 
   const deleteTask = useCallback(async (id: string) => {
     setTasks(prev => prev.filter(t => t.id !== id));
@@ -431,17 +523,21 @@ export default function Cockpit() {
   }, []);
 
   const saveEdit = useCallback(async (
-    id: string, title: string, notes: string, companyId: string,
+    id: string, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string,
   ): Promise<string | null> => {
     try {
       const res = await fetch(`/api/holding/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, notes: notes || null, company_id: companyId || null }),
+        body: JSON.stringify({
+          title, notes: notes || null, company_id: companyId || null,
+          assigned_to: assignedTo || null, attachment_url: attachmentUrl || null,
+        }),
       });
       if (res.ok) {
         setTasks(prev => prev.map(t => t.id === id
-          ? { ...t, title, notes: notes || undefined, company_id: companyId || undefined }
+          ? { ...t, title, notes: notes || undefined, company_id: companyId || undefined,
+              assigned_to: assignedTo || undefined, attachment_url: attachmentUrl || undefined }
           : { ...t }
         ));
         return null;
@@ -506,13 +602,21 @@ export default function Cockpit() {
           </div>
           <div className="flex-1" />
 
-          {/* Voice */}
+          {/* Voice — hidden on mobile */}
           <button onClick={listening ? stopVoice : startVoice}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-full border text-[0.7rem] font-semibold transition-colors
+            className={`hidden md:flex items-center gap-2 px-3.5 py-2 rounded-full border text-[0.7rem] font-semibold transition-colors
               ${listening
                 ? "border-red-300 text-red-500 bg-red-50 animate-pulse"
                 : "border-[#D1CFCA] text-[#2D2926]/50 hover:border-[#8D775F]/50 hover:text-[#2D2926]"}`}>
             {listening ? <><MicOff size={13}/> עצור</> : <><Mic size={13}/> כתיבה קולית</>}
+          </button>
+          {/* Voice icon-only on mobile */}
+          <button onClick={listening ? stopVoice : startVoice}
+            className={`md:hidden p-2 rounded-full border transition-colors
+              ${listening
+                ? "border-red-300 text-red-500 bg-red-50 animate-pulse"
+                : "border-[#D1CFCA] text-[#2D2926]/50"}`}>
+            {listening ? <MicOff size={15}/> : <Mic size={15}/>}
           </button>
 
           {/* Urgent */}
@@ -522,7 +626,7 @@ export default function Cockpit() {
                 ? "border-red-300 text-red-600 bg-red-50"
                 : "border-[#D1CFCA] text-[#2D2926]/50 hover:text-[#2D2926]"}`}>
             <Zap size={13} />
-            דחוף
+            <span className="hidden md:inline">דחוף</span>
             {urgentAll.length > 0 && (
               <span className="absolute -top-1.5 -start-1.5 w-4.5 h-4.5 min-w-[1.1rem] min-h-[1.1rem] rounded-full bg-red-500 text-white text-[0.55rem] font-bold flex items-center justify-center px-1">
                 {urgentAll.length}
@@ -574,6 +678,26 @@ export default function Cockpit() {
         </div>
       </header>
 
+      {/* ── Mobile column tabs ───────────────────────────────────────────────── */}
+      <div className="md:hidden shrink-0 bg-white border-b border-[#E8E7E3] px-2 py-2 flex gap-1 overflow-x-auto">
+        {COLUMNS.map(col => (
+          <button key={col.key} onClick={() => setMobileCol(col.key)}
+            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.7rem] font-bold transition-all
+              ${mobileCol === col.key
+                ? "text-white shadow-sm"
+                : "text-[#2D2926]/50 bg-[#F3F2EE] hover:bg-[#E8E7E3]"}`}
+            style={mobileCol === col.key ? { background: col.accent } : {}}>
+            <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: mobileCol === col.key ? "white" : col.accent, opacity: mobileCol === col.key ? 0.7 : 1 }} />
+            {col.label}
+            {colTasks(col.key).length > 0 && (
+              <span className={`text-[0.58rem] font-bold px-1 rounded-full ${mobileCol === col.key ? "bg-white/20" : "bg-[#D1CFCA]/60"}`}>
+                {colTasks(col.key).length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
       {/* ── Body ─────────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
 
@@ -590,7 +714,8 @@ export default function Cockpit() {
               <span className="font-medium">שגיאה בגרירה:</span> {dragError}
             </div>
           )}
-          <div className="flex gap-4 h-full p-5 min-w-[950px]">
+          {/* Desktop kanban — horizontal scroll */}
+          <div className="hidden md:flex gap-4 h-full p-5 min-w-[950px]">
             {COLUMNS.map(col => {
               const colItems     = colTasks(col.key);
               const isDragTarget = dragOverCol === col.key;
@@ -641,7 +766,7 @@ export default function Cockpit() {
                     <div className="px-2">
                       <QuickAdd colKey={col.key} companies={companies}
                         defaultCompanyId={filterCompany ?? ""}
-                        onAdd={(title, notes, cid) => addTask(col.key, title, notes, cid)}
+                        onAdd={(title, notes, cid, assignedTo) => addTask(col.key, title, notes, cid, assignedTo)}
                         onClose={() => setAddingTo(null)} />
                     </div>
                   )}
@@ -679,6 +804,59 @@ export default function Cockpit() {
               );
             })}
           </div>
+
+          {/* Mobile single-column view */}
+          {(() => {
+            const col      = COLUMNS.find(c => c.key === mobileCol)!;
+            const colItems = colTasks(mobileCol);
+            const isAdding = addingTo === mobileCol;
+            return (
+              <div className="md:hidden flex flex-col h-full p-3" key={mobileCol}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: col.accent }} />
+                    <p className="text-sm font-bold text-[#2D2926]/85">{col.label}</p>
+                    <p className="text-[0.68rem] text-[#2D2926]/35">{col.sub}</p>
+                  </div>
+                  <button onClick={() => setAddingTo(isAdding ? null : mobileCol)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.7rem] font-bold text-white transition-colors active:scale-95"
+                    style={{ background: col.accent }}>
+                    {isAdding ? <><X size={11} /> ביטול</> : <><Plus size={11} /> הוסף</>}
+                  </button>
+                </div>
+                {isAdding && (
+                  <div className="mb-3">
+                    <QuickAdd colKey={mobileCol} companies={companies}
+                      defaultCompanyId={filterCompany ?? ""}
+                      onAdd={(title, notes, cid, assignedTo) => addTask(mobileCol, title, notes, cid, assignedTo)}
+                      onClose={() => setAddingTo(null)} />
+                  </div>
+                )}
+                <div className="flex-1 overflow-y-auto space-y-2.5 pb-4">
+                  {loading && colItems.length === 0 && (
+                    <div className="flex justify-center pt-10"><Loader2 size={16} className="animate-spin text-[#2D2926]/15" /></div>
+                  )}
+                  {!loading && colItems.length === 0 && !isAdding && (
+                    <div className="flex flex-col items-center justify-center pt-12 gap-3 text-center">
+                      <div className="w-12 h-12 rounded-full border-2 border-dashed border-[#D1CFCA] flex items-center justify-center">
+                        <Plus size={16} className="text-[#D1CFCA]" />
+                      </div>
+                      <p className="text-[0.7rem] text-[#2D2926]/25">אין משימות בעמודה זו</p>
+                    </div>
+                  )}
+                  {colItems.map(task => (
+                    <TaskCard key={task.id} task={task}
+                      isDragging={false}
+                      onDragStart={() => {}}
+                      onDragEnd={() => {}}
+                      onDelete={() => deleteTask(task.id)}
+                      onEdit={() => setEditingTask(task)}
+                      companies={companies} />
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </main>
 
         {/* Urgent sidebar */}

@@ -62,8 +62,10 @@ export async function PATCH(
       if (!title) return NextResponse.json({ error: "title לא יכול להיות ריק" }, { status: 400 });
       patch.title = title;
     }
-    if ("notes" in body)      patch.notes      = body.notes      ? String(body.notes).trim() : null;
-    if ("company_id" in body) patch.company_id = body.company_id ? String(body.company_id)   : null;
+    if ("notes" in body)          patch.notes           = body.notes           ? String(body.notes).trim()          : null;
+    if ("company_id" in body)     patch.company_id      = body.company_id      ? String(body.company_id)             : null;
+    if ("assigned_to" in body)    patch.assigned_to     = body.assigned_to     ? String(body.assigned_to).trim()     : null;
+    if ("attachment_url" in body) patch.attachment_url  = body.attachment_url  ? String(body.attachment_url).trim()  : null;
 
     if (Object.keys(patch).length === 0) {
       return NextResponse.json({ error: "אין שדות לעדכון" }, { status: 400 });
