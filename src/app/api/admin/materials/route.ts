@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     let query: any = supabase
       .from("materials")
       .select("*")
-      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .limit(200);
 
     if (projectId) query = query.eq("project_id", projectId);

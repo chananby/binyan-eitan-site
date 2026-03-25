@@ -61,8 +61,8 @@ export async function GET(req: NextRequest) {
     let query: any = supabase
       .from("daily_reports")
       .select("*")
-      .order("date",       { ascending: false })
-      .order("created_at", { ascending: false })
+      .order("date", { ascending: false })
+      .order("id",   { ascending: false })
       .limit(50);
 
     if (projectId) query = query.eq("project_id", projectId);
