@@ -50,7 +50,7 @@ export default function Keypad({
   return (
     <div className="flex flex-col gap-2 w-full mt-4">
       {/* digit + backspace grid */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2" dir="ltr">
         {KEYS.map((key) => (
           <button
             key={key}
