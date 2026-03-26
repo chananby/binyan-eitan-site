@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import {
-  ShieldCheck, Activity, Swords, Users, ClipboardList,
+  ShieldCheck, Activity, Swords, ClipboardList,
   Building2, Globe, Info, Briefcase, FileText, Home,
   ExternalLink, Wrench, DollarSign, Calendar, LayoutDashboard,
+  Calculator,
 } from "lucide-react";
 
 interface HubLink {
@@ -23,18 +24,14 @@ interface HubSection {
 
 const SECTIONS: HubSection[] = [
   {
-    title: "ניהול",
+    title: "כלי ניהול",
     links: [
-      { href: "/admin",           label: "ממשק ניהול",        sub: "פרויקטים · עובדים · נוכחות",  icon: <ShieldCheck size={18} />, highlight: true },
-      { href: "/admin/executive", label: "War Room",           sub: "חנן ומוטי — לוח פנימי",        icon: <Swords          size={18} />, highlight: true },
-      { href: "/admin/cockpit",   label: "Cockpit",            sub: "Multi-Entity · Kanban",          icon: <LayoutDashboard size={18} />, highlight: true },
-      { href: "/admin/health",    label: "בדיקת מערכת",        sub: "אבחון מלא של כל השירותים",     icon: <Activity        size={18} /> },
-    ],
-  },
-  {
-    title: "נוכחות",
-    links: [
-      { href: "/attendance",      label: "דיווח נוכחות",       sub: "קישור לעובדים — GPS + טלפון",  icon: <ClipboardList size={18} /> },
+      { href: "/admin",           label: "ממשק ניהול",        sub: "פרויקטים · עובדים · נוכחות",   icon: <ShieldCheck     size={18} />, highlight: true },
+      { href: "/admin/cockpit",   label: "Cockpit",            sub: "לוח משימות · Multi-Entity",      icon: <LayoutDashboard size={18} />, highlight: true },
+      { href: "/admin/executive", label: "War Room",           sub: "חנן ומוטי — לוח פנימי",         icon: <Swords          size={18} />, highlight: true },
+      { href: "/math-app",        label: "אפליקציית מתמטיקה", sub: "תרגול · אחוזים · יחסים",        icon: <Calculator      size={18} />, highlight: true },
+      { href: "/attendance",      label: "דיווח נוכחות",       sub: "קישור לעובדים — GPS + טלפון",   icon: <ClipboardList   size={18} /> },
+      { href: "/admin/health",    label: "בדיקת מערכת",        sub: "אבחון מלא של כל השירותים",      icon: <Activity        size={18} /> },
     ],
   },
   {
