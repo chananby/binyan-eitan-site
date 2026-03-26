@@ -1106,12 +1106,25 @@ ${detailHtml}
             {/* ── Inline attendance report view ─────────────────────────────── */}
             {attReportData && (() => {
               const { rows, summary, from, to } = attReportData;
-              // Group rows by worker name
+
+              // Group by worker
               const byWorker = new Map<string, AttReportRow[]>();
               for (const r of rows) {
                 if (!byWorker.has(r.staff_name)) byWorker.set(r.staff_name, []);
                 byWorker.get(r.staff_name)!.push(r);
               }
+
+              // Group by date (DD.MM.YYYY) sorted ascending
+              const byDate = new Map<string, AttReportRow[]>();
+              for (const r of rows) {
+                if (!byDate.has(r.date)) byDate.set(r.date, []);
+                byDate.get(r.date)!.push(r);
+              }
+              const sortedDates = [...byDate.keys()].sort((a, b) => {
+                const s = (d: string) => d.split(".").reverse().join("-");
+                return s(a).localeCompare(s(b));
+              });
+
               return (
                 <div className="space-y-4">
                   {/* Header */}
@@ -1124,7 +1137,7 @@ ${detailHtml}
                     </span>
                   </div>
 
-                  {/* Summary cards */}
+                  {/* Summary cards — per worker totals */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                     {summary.map(s => (
                       <div key={s.phone} className="bg-bone border border-warm-gray-light p-3">
@@ -1144,6 +1157,66 @@ ${detailHtml}
                       </div>
                     ))}
                   </div>
+
+                  {/* ── Daily summary (grouped by date) ── */}
+                  {sortedDates.length > 0 && (
+                    <Card>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Calendar size={14} strokeWidth={1.5} className="text-accent" />
+                        <h3 className="font-heading font-bold text-sm">סיכום יומי</h3>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-bone text-charcoal/50">
+                              <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">תאריך</th>
+                              <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">עובד</th>
+                              <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">כניסה</th>
+                              <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">יציאה</th>
+                              <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">שעות</th>
+                              <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">אתר עבודה</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {sortedDates.map(date => {
+                              const dayRows = byDate.get(date)!;
+                              const dayTotal = dayRows.reduce((s, r) => s + (r.hours ?? 0), 0);
+                              return (
+                                <>
+                                  {dayRows.map((r, i) => (
+                                    <tr key={`${date}-${i}`} className="bg-white hover:bg-bone/40 transition-colors">
+                                      <td className="px-2.5 py-1.5 border border-warm-gray-light font-medium text-charcoal/70">
+                                        {i === 0 ? date : ""}
+                                      </td>
+                                      <td className="px-2.5 py-1.5 border border-warm-gray-light font-semibold">{r.staff_name}</td>
+                                      <td className="px-2.5 py-1.5 border border-warm-gray-light text-green-700">{r.entry}</td>
+                                      <td className="px-2.5 py-1.5 border border-warm-gray-light text-red-600">{r.exit}</td>
+                                      <td className="px-2.5 py-1.5 border border-warm-gray-light font-bold text-accent">
+                                        {r.hours !== null ? r.hours.toFixed(2) : <span className="text-charcoal/25">—</span>}
+                                      </td>
+                                      <td className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/55 text-[0.68rem] max-w-[160px] truncate">{r.project}</td>
+                                    </tr>
+                                  ))}
+                                  {/* Day subtotal */}
+                                  <tr className="bg-[#F3F2EE] border-b-2 border-warm-gray-light">
+                                    <td className="px-2.5 py-1 border border-warm-gray-light text-[0.62rem] text-charcoal/40 font-medium">{date}</td>
+                                    <td className="px-2.5 py-1 border border-warm-gray-light text-[0.62rem] text-charcoal/50">
+                                      {dayRows.length} עובד{dayRows.length !== 1 ? "ים" : ""}
+                                    </td>
+                                    <td colSpan={2} className="border border-warm-gray-light" />
+                                    <td className="px-2.5 py-1 border border-warm-gray-light font-bold text-charcoal text-[0.72rem]">
+                                      {dayTotal > 0 ? dayTotal.toFixed(2) : "—"}
+                                    </td>
+                                    <td className="px-2.5 py-1 border border-warm-gray-light text-[0.6rem] text-charcoal/35">סה"כ יומי</td>
+                                  </tr>
+                                </>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </Card>
+                  )}
 
                   {/* Per-worker detail tables */}
                   {[...byWorker.entries()].map(([name, wRows]) => {
