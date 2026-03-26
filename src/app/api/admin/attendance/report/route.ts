@@ -5,8 +5,14 @@
  *   rows[]    — one row per worker per day (entry, exit, hours, project)
  *   summary[] — one row per worker (total days, total hours)
  *
- * Dates are interpreted in Israel time (Asia/Jerusalem).
- * Defaults to the last 7 days when no params are supplied.
+ * timestamp_label format (set by AttendanceForm/clock-out):
+ *   "DD.MM.YYYY, HH:MM"  (Hebrew toLocaleString output)
+ *
+ * We parse this to get the ACTUAL work date and time, since created_at
+ * reflects when the record was inserted (which may differ — e.g. retroactive entry).
+ *
+ * DB query is widened by ±3 days so retroactively-inserted records aren't missed;
+ * in-range filtering happens in code using the parsed work date.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -14,36 +20,69 @@ import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Timestamp helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Parse "DD.MM.YYYY, HH:MM" (or "DD.MM.YYYY HH:MM") → Date (Israel +03:00).
+ * Returns null if the format is unrecognised.
+ */
+function parseLabelDateTime(label: string | null | undefined): Date | null {
+  if (!label) return null;
+  // Remove optional comma, then split on any whitespace
+  const parts = label.replace(",", "").trim().split(/\s+/);
+  if (parts.length < 2) return null;
+  const [datePart, timePart] = parts;
+  const [day, month, year] = datePart.split(".");
+  const [hour, minute]     = timePart.split(":");
+  if (!day || !month || !year || !hour || !minute) return null;
+  // Fixed +03:00 offset — close enough for report purposes (DST shifts ≤1 h)
+  const d = new Date(`${year}-${month.padStart(2,"0")}-${day.padStart(2,"0")}T${hour.padStart(2,"0")}:${minute.padStart(2,"0")}:00+03:00`);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/** Extract just "HH:MM" from the label; fall back to empty string. */
+function labelTime(label: string | null | undefined): string {
+  const d = parseLabelDateTime(label);
+  if (!d) return "";
+  return d.toLocaleTimeString("he-IL", {
+    timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit", hour12: false,
+  });
+}
+
+/** Extract "DD.MM.YYYY" date string from the label; fall back to null. */
+function labelDate(label: string | null | undefined): string | null {
+  const d = parseLabelDateTime(label);
+  if (!d) return null;
+  return d.toLocaleDateString("he-IL", {
+    timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", year: "numeric",
+  });
+}
+
+/** "YYYY-MM-DD" for a Date in Israel timezone. */
+function toYMD(d: Date): string {
+  return d.toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" }); // sv locale → YYYY-MM-DD
+}
 
 function israelDate(isoStr: string): string {
   return new Date(isoStr).toLocaleDateString("he-IL", {
-    timeZone: "Asia/Jerusalem",
-    day:   "2-digit",
-    month: "2-digit",
-    year:  "numeric",
+    timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", year: "numeric",
   });
 }
-
 function israelTime(isoStr: string): string {
   return new Date(isoStr).toLocaleTimeString("he-IL", {
-    timeZone: "Asia/Jerusalem",
-    hour:   "2-digit",
-    minute: "2-digit",
-    hour12: false,
+    timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit", hour12: false,
   });
 }
 
-// Convert a "YYYY-MM-DD" string to start-of-day ISO in Israel time
-function dayStartISO(ymd: string): string {
-  // e.g. "2025-03-20" → "2025-03-20T00:00:00" treated as Israel midnight
-  // We approximate by converting to UTC using a fixed +03:00 offset.
-  // Daylight-saving shifts are handled by the display formatter; the boundary
-  // is only ever off by ≤1 hour which is acceptable for a daily report.
-  return new Date(`${ymd}T00:00:00+03:00`).toISOString();
-}
-function dayEndISO(ymd: string): string {
-  return new Date(`${ymd}T23:59:59+03:00`).toISOString();
+// Convert a "YYYY-MM-DD" string to start/end-of-day ISO in Israel time
+function dayStartISO(ymd: string): string { return new Date(`${ymd}T00:00:00+03:00`).toISOString(); }
+function dayEndISO(ymd: string): string   { return new Date(`${ymd}T23:59:59+03:00`).toISOString(); }
+
+// Shift a YYYY-MM-DD by N days
+function shiftYMD(ymd: string, days: number): string {
+  const d = new Date(`${ymd}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
 }
 
 // ── GET ───────────────────────────────────────────────────────────────────────
@@ -55,7 +94,7 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const today = new Date().toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" }); // YYYY-MM-DD
+    const today = new Date().toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" });
     const sevenDaysAgo = new Date(Date.now() - 6 * 86_400_000)
       .toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" });
 
@@ -69,18 +108,20 @@ export async function GET(req: NextRequest) {
     }
     const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
+    // Widen DB query by ±3 days to catch retroactively-entered records
+    // (where created_at is outside the range but the actual work date is inside).
     const { data, error } = await supabase
       .from("attendance")
       .select("id, action, timestamp_label, created_at, staff:staff_id(id, name, phone), project:project_id(name)")
-      .gte("created_at", dayStartISO(from))
-      .lte("created_at", dayEndISO(to))
+      .gte("created_at", dayStartISO(shiftYMD(from, -3)))
+      .lte("created_at", dayEndISO(shiftYMD(to, +3)))
       .order("created_at", { ascending: true });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // ── Group: staffId → dateStr → { entries[], exits[], projects[] } ─────────
+    // ── Group: staffId → workDateStr → { entries[], exits[], projects[] } ──────
     type Rec = typeof data[number];
     const grouped = new Map<string, Map<string, { entries: Rec[]; exits: Rec[]; staffName: string; staffPhone: string; projects: string[] }>>();
 
@@ -92,15 +133,23 @@ export async function GET(req: NextRequest) {
       const staffPhone = staff?.phone ?? "—";
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const projectName = (rec.project as any)?.name ?? "";
-      const dateStr = israelDate(rec.created_at);
+
+      // Use the ACTUAL work date from timestamp_label, not created_at
+      const workDateStr = labelDate(rec.timestamp_label) ?? israelDate(rec.created_at);
+
+      // Determine the YYYY-MM-DD of this work date for range filtering
+      const workD = parseLabelDateTime(rec.timestamp_label) ?? new Date(rec.created_at);
+      const workYMD = toYMD(workD);
+      // Skip records whose actual work date is outside the requested range
+      if (workYMD < from || workYMD > to) continue;
 
       if (!grouped.has(staffId)) grouped.set(staffId, new Map());
       const byDate = grouped.get(staffId)!;
 
-      if (!byDate.has(dateStr)) {
-        byDate.set(dateStr, { entries: [], exits: [], staffName, staffPhone, projects: [] });
+      if (!byDate.has(workDateStr)) {
+        byDate.set(workDateStr, { entries: [], exits: [], staffName, staffPhone, projects: [] });
       }
-      const day = byDate.get(dateStr)!;
+      const day = byDate.get(workDateStr)!;
 
       if (rec.action === "כניסה" || rec.action === "in") day.entries.push(rec);
       else if (rec.action === "יציאה" || rec.action === "out") day.exits.push(rec);
@@ -115,22 +164,27 @@ export async function GET(req: NextRequest) {
     }[] = [];
 
     for (const [, byDate] of grouped) {
-      // Sort dates ascending
-      const sortedDates = [...byDate.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+      // Sort dates ascending by their Hebrew date string (DD.MM.YYYY)
+      const sortedDates = [...byDate.entries()].sort((a, b) => {
+        // Convert "DD.MM.YYYY" → "YYYY-MM-DD" for reliable sort
+        const toSortable = (s: string) => s.split(".").reverse().join("-");
+        return toSortable(a[0]).localeCompare(toSortable(b[0]));
+      });
+
       for (const [dateStr, day] of sortedDates) {
         const firstEntry = day.entries[0] ?? null;
         const lastExit   = day.exits[day.exits.length - 1] ?? null;
 
-        const entryDisplay = firstEntry?.timestamp_label
-          ? firstEntry.timestamp_label.slice(0, 5)
-          : firstEntry ? israelTime(firstEntry.created_at) : "—";
-        const exitDisplay  = lastExit?.timestamp_label
-          ? lastExit.timestamp_label.slice(0, 5)
-          : lastExit  ? israelTime(lastExit.created_at)   : "—";
+        // Time display: extract from timestamp_label; fall back to created_at
+        const entryDisplay = labelTime(firstEntry?.timestamp_label) || (firstEntry ? israelTime(firstEntry.created_at) : "—");
+        const exitDisplay  = labelTime(lastExit?.timestamp_label)   || (lastExit  ? israelTime(lastExit.created_at)   : "—");
 
+        // Hours: use parsed datetime from labels for accurate diff
         let hours: number | null = null;
         if (firstEntry && lastExit) {
-          const diffMs = new Date(lastExit.created_at).getTime() - new Date(firstEntry.created_at).getTime();
+          const entryDt = parseLabelDateTime(firstEntry.timestamp_label) ?? new Date(firstEntry.created_at);
+          const exitDt  = parseLabelDateTime(lastExit.timestamp_label)   ?? new Date(lastExit.created_at);
+          const diffMs  = exitDt.getTime() - entryDt.getTime();
           if (diffMs > 0) hours = Math.round(diffMs / 36_000) / 100; // 2-decimal hours
         }
 
@@ -152,7 +206,12 @@ export async function GET(req: NextRequest) {
     }
 
     // Sort rows: staff name → date
-    rows.sort((a, b) => a.staff_name.localeCompare(b.staff_name, "he") || a.date.localeCompare(b.date));
+    rows.sort((a, b) => {
+      const nameSort = a.staff_name.localeCompare(b.staff_name, "he");
+      if (nameSort !== 0) return nameSort;
+      const toSortable = (s: string) => s.split(".").reverse().join("-");
+      return toSortable(a.date).localeCompare(toSortable(b.date));
+    });
 
     // ── Summary ───────────────────────────────────────────────────────────────
     const summaryMap = new Map<string, { name: string; phone: string; days: number; hours: number }>();
