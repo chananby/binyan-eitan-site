@@ -23,10 +23,24 @@ const NICE_PERCENTS: Record<Difficulty, number[]> = {
   3: [10, 20, 25, 50, 75],
 };
 
-function pickWhole(level: Difficulty): number {
-  if (level === 1) return rand(1, 9) * 10;   // 10–90, multiples of 10
-  if (level === 2) return rand(1, 8) * 20;   // 20–160, multiples of 20
-  return rand(2, 20) * 5;                     // 10–100, multiples of 5
+// pct-aware: ensures (pct/100)*whole is always a whole number
+function pickWhole(level: Difficulty, pct: number): number {
+  if (level === 1) {
+    // pct 25/75 need mult-of-4; other percents (10,20,50) are fine with mult-of-10
+    if (pct === 25 || pct === 75) {
+      const pool = [20, 40, 60, 80];
+      return pool[rand(0, pool.length - 1)];
+    }
+    return rand(1, 9) * 10; // 10–90
+  }
+  if (level === 2) return rand(1, 8) * 20; // 20–160, always mult-of-4 ✓
+  // Level 3
+  if (pct === 25 || pct === 75) {
+    const pool = [20, 40, 60, 80, 100, 120, 200];
+    return pool[rand(0, pool.length - 1)];
+  }
+  if (pct === 50) return rand(1, 10) * 20;  // 20–200, mult-of-2 ✓
+  return rand(1, 10) * 10;                  // 10–100, mult-of-10 ✓ (for 10% and 20%)
 }
 
 let _seq = 0;
@@ -40,7 +54,7 @@ function fmt(n: number): string {
 
 function genLevel1(): MathQuestion {
   const pct   = NICE_PERCENTS[1][rand(0, NICE_PERCENTS[1].length - 1)];
-  const whole = pickWhole(1);
+  const whole = pickWhole(1, pct);
   const answer = (pct / 100) * whole;
   const onePercent = whole / 100;
 
@@ -60,7 +74,7 @@ function genLevel1(): MathQuestion {
 
 function genLevel2(): MathQuestion {
   const pct   = NICE_PERCENTS[2][rand(0, NICE_PERCENTS[2].length - 1)];
-  const whole = pickWhole(2);
+  const whole = pickWhole(2, pct);
   const part  = (pct / 100) * whole;
   const onePercent = part / pct;
 
@@ -80,7 +94,7 @@ function genLevel2(): MathQuestion {
 
 function genLevel3(): MathQuestion {
   const pct   = NICE_PERCENTS[3][rand(0, NICE_PERCENTS[3].length - 1)];
-  const whole = pickWhole(3);
+  const whole = pickWhole(3, pct);
   const part  = (pct / 100) * whole;
   const ratio = part / whole;
 

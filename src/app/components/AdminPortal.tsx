@@ -58,6 +58,11 @@ interface DailyReport {
   project: { id: string; name: string } | null;
 }
 
+// Attendance report types (shared between in-app view and print/PDF export)
+interface AttReportRow    { staff_name: string; staff_phone: string; date: string; entry: string; exit: string; hours: number | null; project: string; }
+interface AttSummaryRow   { name: string; phone: string; days: number; hours: number; }
+interface AttReportData   { rows: AttReportRow[]; summary: AttSummaryRow[]; from: string; to: string; }
+
 const MILESTONE_STATUS_HE: Record<string, string>  = { pending: "ממתין", in_progress: "בביצוע", completed: "הושלם" };
 const MILESTONE_STATUS_CLS: Record<string, string> = {
   pending:     "bg-charcoal/5 text-charcoal/50",
@@ -192,51 +197,109 @@ export default function AdminPortal() {
   const [attReportTo,      setAttReportTo]      = useState(attTodayStr);
   const [attReportLoading, setAttReportLoading] = useState(false);
   const [attReportErr,     setAttReportErr]     = useState<string | null>(null);
+  const [attReportData,    setAttReportData]    = useState<AttReportData | null>(null);
 
-  const downloadAttendanceReport = async () => {
+  // Shared fetch — populates attReportData for the in-app view; returns data for print
+  const fetchAttReport = async (): Promise<AttReportData | null> => {
     setAttReportLoading(true); setAttReportErr(null);
     try {
       const res = await fetch(`/api/admin/attendance/report?from=${attReportFrom}&to=${attReportTo}`);
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error ?? `שגיאה ${res.status}`); }
-      const { rows, summary } = await res.json();
-
-      type ReportRow = { staff_name: string; staff_phone: string; date: string; entry: string; exit: string; hours: number | null; project: string };
-      type SummaryRow = { name: string; phone: string; days: number; hours: number };
-
-      const esc = (v: string | number | null) => {
-        const s = v === null ? "—" : String(v);
-        return s.includes(",") ? `"${s}"` : s;
-      };
-
-      const lines: string[] = [
-        `דוח נוכחות — ${attReportFrom} עד ${attReportTo}`,
-        "",
-        "שם עובד,טלפון,תאריך,שעת כניסה,שעת יציאה,שעות עבודה,פרויקט",
-        ...(rows as ReportRow[]).map(r =>
-          [r.staff_name, r.staff_phone, r.date, r.entry, r.exit,
-           r.hours !== null ? r.hours.toFixed(2) : "—", r.project
-          ].map(esc).join(",")
-        ),
-        "",
-        "סיכום",
-        "שם עובד,טלפון,ימי עבודה,סה\"כ שעות",
-        ...(summary as SummaryRow[]).map(s =>
-          [s.name, s.phone, s.days, s.hours.toFixed(2)].map(esc).join(",")
-        ),
-      ];
-
-      const BOM = "\uFEFF";
-      const blob = new Blob([BOM + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement("a");
-      a.href     = url;
-      a.download = `נוכחות_${attReportFrom}_${attReportTo}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (e) { setAttReportErr(String(e)); }
+      const data: AttReportData = await res.json();
+      setAttReportData({ ...data, from: attReportFrom, to: attReportTo });
+      return data;
+    } catch (e) { setAttReportErr(String(e)); return null; }
     finally { setAttReportLoading(false); }
+  };
+
+  // Open a print-ready HTML report in a new tab → user can Ctrl+P → Save as PDF
+  const printAttReport = async () => {
+    const data = await fetchAttReport();
+    if (!data) return;
+    const { rows, summary, from, to } = data;
+
+    // Group rows by worker for the detailed section
+    const byWorker = new Map<string, AttReportRow[]>();
+    for (const r of rows) {
+      if (!byWorker.has(r.staff_name)) byWorker.set(r.staff_name, []);
+      byWorker.get(r.staff_name)!.push(r);
+    }
+
+    const detailHtml = [...byWorker.entries()].map(([name, wRows]) => {
+      const workerSummary = summary.find(s => s.name === name);
+      const rowsHtml = wRows.map(r => `
+        <tr>
+          <td>${r.date}</td>
+          <td>${r.entry}</td>
+          <td>${r.exit}</td>
+          <td>${r.hours !== null ? r.hours.toFixed(2) : "—"}</td>
+          <td>${r.project}</td>
+        </tr>`).join("");
+      return `
+        <div class="worker-block">
+          <div class="worker-header">
+            <span class="worker-name">${name}</span>
+            <span class="worker-meta">${workerSummary?.days ?? 0} ימי עבודה &nbsp;·&nbsp; סה"כ ${workerSummary?.hours.toFixed(2) ?? "0"} שעות</span>
+          </div>
+          <table>
+            <thead><tr><th>תאריך</th><th>כניסה</th><th>יציאה</th><th>שעות</th><th>אתר עבודה</th></tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>`;
+    }).join("");
+
+    const summaryHtml = summary.map(s => `
+      <tr>
+        <td>${s.name}</td>
+        <td>${s.phone}</td>
+        <td>${s.days}</td>
+        <td>${s.hours.toFixed(2)}</td>
+      </tr>`).join("");
+
+    const html = `<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="utf-8"/>
+<title>דוח נוכחות ${from} – ${to}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Arial', sans-serif; font-size: 12px; color: #2D2926; background: #fff; padding: 24px; direction: rtl; }
+  h1 { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+  .subtitle { font-size: 11px; color: #666; margin-bottom: 20px; }
+  .section-title { font-size: 13px; font-weight: bold; margin: 20px 0 8px; border-bottom: 1.5px solid #8D775F; padding-bottom: 4px; color: #8D775F; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  th, td { border: 1px solid #D1CFCA; padding: 5px 8px; text-align: right; }
+  th { background: #F3F2EE; font-weight: bold; font-size: 11px; }
+  td { font-size: 11px; }
+  tr:nth-child(even) td { background: #FAFAF9; }
+  .worker-block { margin-bottom: 20px; }
+  .worker-header { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 10px; background: #F3F2EE; border-right: 3px solid #8D775F; margin-bottom: 6px; }
+  .worker-name { font-weight: bold; font-size: 12px; }
+  .worker-meta { font-size: 10px; color: #666; }
+  @media print {
+    body { padding: 10px; }
+    .worker-block { page-break-inside: avoid; }
+    @page { margin: 1.5cm; size: A4; }
+  }
+</style>
+</head>
+<body>
+<h1>דוח נוכחות</h1>
+<div class="subtitle">תקופה: ${from} עד ${to}</div>
+
+<div class="section-title">סיכום לפי עובד</div>
+<table>
+  <thead><tr><th>שם עובד</th><th>טלפון</th><th>ימי עבודה</th><th>סה"כ שעות</th></tr></thead>
+  <tbody>${summaryHtml}</tbody>
+</table>
+
+<div class="section-title">פירוט יומי לפי עובד</div>
+${detailHtml}
+<script>window.onload = function(){ window.print(); }<\/script>
+</body></html>`;
+
+    const w = window.open("", "_blank");
+    if (w) { w.document.write(html); w.document.close(); }
   };
 
   // Attendance edit UI
@@ -1003,28 +1066,34 @@ export default function AdminPortal() {
         {tab === "attendance" && isAdmin && (
           <div className="space-y-5">
 
-            {/* Weekly report download card */}
+            {/* Attendance report — date pickers + view + print */}
             <Card>
               <div className="flex items-center gap-2 mb-4">
-                <Download size={15} strokeWidth={1.5} className="text-accent" />
-                <h2 className="font-heading text-base font-bold">הורדת דוח נוכחות</h2>
+                <BarChart2 size={15} strokeWidth={1.5} className="text-accent" />
+                <h2 className="font-heading text-base font-bold">דוח נוכחות</h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end">
                 <div>
                   <label className="block text-[0.68rem] text-charcoal/50 mb-1 font-body">מתאריך</label>
-                  <input type="date" value={attReportFrom} onChange={e => setAttReportFrom(e.target.value)}
+                  <input type="date" value={attReportFrom}
+                    onChange={e => { setAttReportFrom(e.target.value); setAttReportData(null); }}
                     className="w-full border border-warm-gray-light bg-bone text-charcoal text-sm px-3 py-2 focus:outline-none focus:border-accent" />
                 </div>
                 <div>
                   <label className="block text-[0.68rem] text-charcoal/50 mb-1 font-body">עד תאריך</label>
-                  <input type="date" value={attReportTo} onChange={e => setAttReportTo(e.target.value)}
+                  <input type="date" value={attReportTo}
+                    onChange={e => { setAttReportTo(e.target.value); setAttReportData(null); }}
                     className="w-full border border-warm-gray-light bg-bone text-charcoal text-sm px-3 py-2 focus:outline-none focus:border-accent" />
                 </div>
-                <button onClick={downloadAttendanceReport} disabled={attReportLoading || !attReportFrom || !attReportTo}
+                <button onClick={fetchAttReport} disabled={attReportLoading || !attReportFrom || !attReportTo}
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-accent text-bone text-sm font-semibold hover:bg-accent-dark disabled:opacity-40 transition-colors whitespace-nowrap">
                   {attReportLoading
-                    ? <><Loader2 size={13} className="animate-spin" /> מכין...</>
-                    : <><Download size={13} /> הורד CSV</>}
+                    ? <><Loader2 size={13} className="animate-spin" /> טוען...</>
+                    : <><BarChart2 size={13} /> הצג דוח</>}
+                </button>
+                <button onClick={printAttReport} disabled={attReportLoading || !attReportFrom || !attReportTo}
+                  className="flex items-center justify-center gap-2 px-4 py-2 border border-accent text-accent text-sm font-semibold hover:bg-accent hover:text-bone disabled:opacity-40 transition-colors whitespace-nowrap">
+                  <Download size={13} /> הורד PDF
                 </button>
               </div>
               {attReportErr && (
@@ -1032,11 +1101,115 @@ export default function AdminPortal() {
                   <AlertCircle size={12} /> {attReportErr}
                 </p>
               )}
-              <p className="mt-3 text-[0.62rem] text-charcoal/30 font-body">
-                הדוח כולל: שעת כניסה / יציאה / שעות עבודה לכל עובד לכל יום + סיכום ימים ושעות לתקופה.
-                פתח ב-Excel (תומך בעברית).
-              </p>
             </Card>
+
+            {/* ── Inline attendance report view ─────────────────────────────── */}
+            {attReportData && (() => {
+              const { rows, summary, from, to } = attReportData;
+              // Group rows by worker name
+              const byWorker = new Map<string, AttReportRow[]>();
+              for (const r of rows) {
+                if (!byWorker.has(r.staff_name)) byWorker.set(r.staff_name, []);
+                byWorker.get(r.staff_name)!.push(r);
+              }
+              return (
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <p className="text-[0.68rem] text-charcoal/40 font-body">
+                      דוח נוכחות — {from} עד {to}
+                    </p>
+                    <span className="text-[0.62rem] text-accent font-semibold border border-accent/30 px-2 py-0.5">
+                      {rows.length} רשומות · {summary.length} עובדים
+                    </span>
+                  </div>
+
+                  {/* Summary cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {summary.map(s => (
+                      <div key={s.phone} className="bg-bone border border-warm-gray-light p-3">
+                        <p className="font-heading font-bold text-sm text-charcoal truncate">{s.name}</p>
+                        <p className="text-[0.62rem] text-charcoal/40 mt-0.5">{s.phone}</p>
+                        <div className="flex gap-3 mt-2">
+                          <div>
+                            <p className="text-lg font-heading font-bold text-accent leading-none">{s.days}</p>
+                            <p className="text-[0.58rem] text-charcoal/40 leading-none mt-0.5">ימים</p>
+                          </div>
+                          <div className="w-px bg-warm-gray-light" />
+                          <div>
+                            <p className="text-lg font-heading font-bold text-charcoal leading-none">{s.hours.toFixed(1)}</p>
+                            <p className="text-[0.58rem] text-charcoal/40 leading-none mt-0.5">שעות</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Per-worker detail tables */}
+                  {[...byWorker.entries()].map(([name, wRows]) => {
+                    const ws = summary.find(s => s.name === name);
+                    return (
+                      <Card key={name}>
+                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-warm-gray-light">
+                          <div className="flex items-center gap-2">
+                            <div className="w-1 h-5 bg-accent" />
+                            <p className="font-heading font-bold text-sm">{name}</p>
+                            <span className="text-[0.6rem] text-charcoal/40">{ws?.phone}</span>
+                          </div>
+                          <div className="flex gap-3 text-[0.68rem] text-charcoal/50">
+                            <span><strong className="text-charcoal">{ws?.days ?? 0}</strong> ימים</span>
+                            <span><strong className="text-charcoal">{(ws?.hours ?? 0).toFixed(2)}</strong> שעות</span>
+                          </div>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs border-collapse">
+                            <thead>
+                              <tr className="bg-bone text-charcoal/50">
+                                <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">תאריך</th>
+                                <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">כניסה</th>
+                                <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">יציאה</th>
+                                <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">שעות</th>
+                                <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">אתר עבודה</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {wRows.map((r, i) => (
+                                <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-bone/60"}>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light font-medium">{r.date}</td>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light text-green-700">{r.entry}</td>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light text-red-600">{r.exit}</td>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light font-bold text-accent">
+                                    {r.hours !== null ? r.hours.toFixed(2) : <span className="text-charcoal/25">—</span>}
+                                  </td>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/60 text-[0.68rem] max-w-[180px] truncate">{r.project}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            {wRows.length > 1 && (
+                              <tfoot>
+                                <tr className="bg-bone font-semibold">
+                                  <td colSpan={3} className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/50 text-[0.62rem]">סיכום</td>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light text-accent font-bold">
+                                    {(ws?.hours ?? 0).toFixed(2)}
+                                  </td>
+                                  <td className="border border-warm-gray-light" />
+                                </tr>
+                              </tfoot>
+                            )}
+                          </table>
+                        </div>
+                      </Card>
+                    );
+                  })}
+
+                  {rows.length === 0 && (
+                    <div className="text-center py-10 text-charcoal/30 text-sm">
+                      לא נמצאו רשומות נוכחות לתקופה זו
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             <Card>
               <div className="flex items-center justify-between mb-3">

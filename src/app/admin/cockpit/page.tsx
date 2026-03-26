@@ -124,9 +124,11 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
 }
 
 // ── Task Card ─────────────────────────────────────────────────────────────────
-function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, companies }: {
+function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, onTouchStart, companies }: {
   task: Task; isDragging: boolean;
-  onDragStart: () => void; onDragEnd: () => void; onDelete: () => void; onEdit: () => void; companies: Company[];
+  onDragStart: () => void; onDragEnd: () => void; onDelete: () => void; onEdit: () => void;
+  onTouchStart?: (e: React.TouchEvent) => void;
+  companies: Company[];
 }) {
   const company = task.holding_companies ?? companies.find(c => c.id === task.company_id) ?? null;
   const date = new Date(task.created_at).toLocaleDateString("he-IL", { day: "numeric", month: "short" });
@@ -137,6 +139,7 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onDragOver={e => e.preventDefault()}
+      onTouchStart={onTouchStart}
       onClick={e => e.stopPropagation()}
       className={`group relative p-3.5 border bg-white cursor-grab active:cursor-grabbing transition-all duration-150 select-none
         ${isDragging
@@ -177,17 +180,17 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
         </span>
         <span className="text-[0.6rem] text-[#2D2926]/25">{date}</span>
       </div>
-      {/* Edit button */}
+      {/* Edit button — always slightly visible for touch devices */}
       <button
         onClick={e => { e.stopPropagation(); onEdit(); }}
-        className="absolute top-2.5 end-8 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded text-[#2D2926]/20 hover:text-[#8D775F] hover:bg-[#F3F2EE]"
+        className="absolute top-2.5 end-8 opacity-25 group-hover:opacity-100 transition-opacity p-0.5 rounded text-[#2D2926]/40 hover:text-[#8D775F] hover:bg-[#F3F2EE]"
       >
         <Pencil size={11} />
       </button>
-      {/* Delete button */}
+      {/* Delete button — always slightly visible for touch devices */}
       <button
         onClick={e => { e.stopPropagation(); onDelete(); }}
-        className="absolute top-2.5 end-2.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded text-[#2D2926]/20 hover:text-red-500 hover:bg-red-50"
+        className="absolute top-2.5 end-2.5 opacity-25 group-hover:opacity-100 transition-opacity p-0.5 rounded text-[#2D2926]/40 hover:text-red-500 hover:bg-red-50"
       >
         <Trash2 size={11} />
       </button>
@@ -316,7 +319,7 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
 // ── Edit Modal ────────────────────────────────────────────────────────────────
 function EditModal({ task, companies, onSave, onClose }: {
   task: Task; companies: Company[];
-  onSave: (id: string, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string) => Promise<string | null>;
+  onSave: (id: string, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string, newStatus: ColKey) => Promise<string | null>;
   onClose: () => void;
 }) {
   const [title,         setTitle]         = useState(task.title);
@@ -324,6 +327,7 @@ function EditModal({ task, companies, onSave, onClose }: {
   const [companyId,     setCompanyId]     = useState(task.company_id ?? "");
   const [assignedTo,    setAssignedTo]    = useState(task.assigned_to ?? "");
   const [attachmentUrl, setAttachmentUrl] = useState(task.attachment_url ?? "");
+  const [newStatus,     setNewStatus]     = useState<ColKey>(task.status);
   const [uploading,     setUploading]     = useState(false);
   const [uploadErr,     setUploadErr]     = useState<string | null>(null);
   const [saving,        setSaving]        = useState(false);
@@ -355,7 +359,7 @@ function EditModal({ task, companies, onSave, onClose }: {
   const submit = async () => {
     if (!title.trim() || saving) return;
     setSaving(true); setErr(null);
-    const e = await onSave(task.id, title.trim(), notes, companyId, assignedTo.trim(), attachmentUrl);
+    const e = await onSave(task.id, title.trim(), notes, companyId, assignedTo.trim(), attachmentUrl, newStatus);
     setSaving(false);
     if (e) setErr(e); else onClose();
   };
@@ -393,6 +397,12 @@ function EditModal({ task, companies, onSave, onClose }: {
         >
           <option value="">— ללא חברה —</option>
           {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select
+          value={newStatus} onChange={e => setNewStatus(e.target.value as ColKey)}
+          className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/70 text-[0.75rem] px-3 py-2 rounded focus:outline-none"
+        >
+          {COLUMNS.map(c => <option key={c.key} value={c.key}>{c.label} — {c.sub}</option>)}
         </select>
 
         {/* Attachment section */}
@@ -473,6 +483,13 @@ export default function Cockpit() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognizerRef = useRef<any>(null);
 
+  // Touch drag refs (avoid stale closures via refs, not state)
+  const touchGhostRef    = useRef<HTMLDivElement | null>(null);
+  const touchDraggingRef = useRef(false);
+  const touchTaskIdRef   = useRef<string | null>(null);
+  // handleDropRef lets the non-passive useEffect always call the latest handleDrop
+  const handleDropRef = useRef<((col: ColKey) => Promise<void>) | null>(null);
+
   useEffect(() => {
     fetch("/api/executive/auth")
       .then(async r => { if (r.ok) { const d = await r.json(); setAuthed(true); setAuthor(d.author); } })
@@ -542,6 +559,81 @@ export default function Cockpit() {
     }
   }, [tasks, clearDragState]);
 
+  // Keep handleDropRef in sync so touch listeners (registered once) always call the current version
+  useEffect(() => { handleDropRef.current = handleDrop; }, [handleDrop]);
+
+  // Non-passive touch listeners for drag-and-drop on touch devices (tablets)
+  useEffect(() => {
+    const onTouchMove = (e: TouchEvent) => {
+      if (!touchDraggingRef.current) return;
+      e.preventDefault(); // prevents page scroll during drag — needs non-passive listener
+      const touch = e.touches[0];
+      const ghost = touchGhostRef.current;
+      if (ghost) {
+        ghost.style.left = `${touch.clientX - 80}px`;
+        ghost.style.top  = `${touch.clientY - 28}px`;
+        // Temporarily hide ghost to detect element underneath it
+        ghost.style.visibility = "hidden";
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        ghost.style.visibility = "";
+        let node = el as HTMLElement | null;
+        while (node && !node.dataset?.colKey) node = node.parentElement;
+        const ck = node?.dataset?.colKey as ColKey | undefined;
+        // Update visual highlight (access React state setter directly — ref-safe)
+        setDragOverCol(ck ?? null);
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!touchDraggingRef.current) return;
+      touchDraggingRef.current = false;
+      // Remove ghost
+      const ghost = touchGhostRef.current;
+      if (ghost) { ghost.remove(); touchGhostRef.current = null; }
+      setDragTaskId(null);
+      setDragOverCol(null);
+      // Find column under lifted finger
+      const touch = e.changedTouches[0];
+      let node = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement | null;
+      while (node && !node.dataset?.colKey) node = node.parentElement;
+      const ck = node?.dataset?.colKey as ColKey | undefined;
+      if (ck && touchTaskIdRef.current) {
+        dragIdRef.current = touchTaskIdRef.current;
+        handleDropRef.current?.(ck);
+      } else {
+        dragIdRef.current = null;
+      }
+      touchTaskIdRef.current = null;
+    };
+
+    document.addEventListener("touchmove", onTouchMove, { passive: false });
+    document.addEventListener("touchend",  onTouchEnd);
+    return () => {
+      document.removeEventListener("touchmove", onTouchMove);
+      document.removeEventListener("touchend",  onTouchEnd);
+    };
+  }, []); // empty — uses refs throughout
+
+  const startTouchDrag = useCallback((task: Task, e: React.TouchEvent) => {
+    touchDraggingRef.current  = true;
+    touchTaskIdRef.current    = task.id;
+    dragIdRef.current         = task.id;
+    setDragTaskId(task.id);
+    const touch = e.touches[0];
+    const ghost = document.createElement("div");
+    ghost.style.cssText = [
+      "position:fixed", "z-index:9999", "pointer-events:none",
+      `left:${touch.clientX - 80}px`, `top:${touch.clientY - 28}px`,
+      "background:white", "border:1.5px solid #8D775F", "border-radius:8px",
+      "padding:6px 12px", "max-width:180px", "font-size:0.75rem",
+      "color:#2D2926", "box-shadow:0 8px 24px rgba(0,0,0,0.18)",
+      "opacity:0.92", "white-space:nowrap", "overflow:hidden", "text-overflow:ellipsis",
+    ].join(";");
+    ghost.textContent = task.title;
+    document.body.appendChild(ghost);
+    touchGhostRef.current = ghost;
+  }, []);
+
   const addTask = useCallback(async (colKey: ColKey, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string): Promise<string | null> => {
     try {
       const res = await fetch("/api/holding/tasks", {
@@ -565,7 +657,7 @@ export default function Cockpit() {
   }, []);
 
   const saveEdit = useCallback(async (
-    id: string, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string,
+    id: string, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string, newStatus: ColKey,
   ): Promise<string | null> => {
     try {
       const res = await fetch(`/api/holding/tasks/${id}`, {
@@ -574,11 +666,12 @@ export default function Cockpit() {
         body: JSON.stringify({
           title, notes: notes || null, company_id: companyId || null,
           assigned_to: assignedTo || null, attachment_url: attachmentUrl || null,
+          status: newStatus,
         }),
       });
       if (res.ok) {
         setTasks(prev => prev.map(t => t.id === id
-          ? { ...t, title, notes: notes || undefined, company_id: companyId || undefined,
+          ? { ...t, title, status: newStatus, notes: notes || undefined, company_id: companyId || undefined,
               assigned_to: assignedTo || undefined, attachment_url: attachmentUrl || undefined }
           : { ...t }
         ));
@@ -765,6 +858,7 @@ export default function Cockpit() {
 
               return (
                 <div key={col.key}
+                  data-col-key={col.key}
                   className={`flex flex-col w-[230px] shrink-0 rounded-xl transition-all duration-150 cursor-pointer
                     ${isDragTarget ? "ring-2 ring-offset-1" : ""}`}
                   style={{
@@ -836,6 +930,7 @@ export default function Cockpit() {
                           setDragTaskId(task.id);
                         }}
                         onDragEnd={clearDragState}
+                        onTouchStart={e => startTouchDrag(task, e)}
                         onDelete={() => deleteTask(task.id)}
                         onEdit={() => setEditingTask(task)}
                         companies={companies} />
