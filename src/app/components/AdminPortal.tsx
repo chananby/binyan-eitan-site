@@ -11,7 +11,7 @@ import {
   LogIn, Building2, Package, BarChart2, LayoutDashboard, Hammer,
   ClipboardList, UserPlus, RefreshCw, Pencil, Loader2, Activity,
   AlertCircle, AlertTriangle, TrendingUp, DollarSign, Target, CheckSquare2,
-  Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag, Grid3x3,
+  Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag, Grid3x3, Download,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -184,6 +184,60 @@ export default function AdminPortal() {
   const [newTaskContractor, setNewTaskContractor]  = useState("");
   const [taskAddLoading,    setTaskAddLoading]     = useState(false);
   const [taskAddMsg,        setTaskAddMsg]         = useState("");
+
+  // Attendance report download UI
+  const attTodayStr   = new Date().toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" });
+  const attWeekAgoStr = new Date(Date.now() - 6 * 86_400_000).toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" });
+  const [attReportFrom,    setAttReportFrom]    = useState(attWeekAgoStr);
+  const [attReportTo,      setAttReportTo]      = useState(attTodayStr);
+  const [attReportLoading, setAttReportLoading] = useState(false);
+  const [attReportErr,     setAttReportErr]     = useState<string | null>(null);
+
+  const downloadAttendanceReport = async () => {
+    setAttReportLoading(true); setAttReportErr(null);
+    try {
+      const res = await fetch(`/api/admin/attendance/report?from=${attReportFrom}&to=${attReportTo}`);
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error ?? `שגיאה ${res.status}`); }
+      const { rows, summary } = await res.json();
+
+      type ReportRow = { staff_name: string; staff_phone: string; date: string; entry: string; exit: string; hours: number | null; project: string };
+      type SummaryRow = { name: string; phone: string; days: number; hours: number };
+
+      const esc = (v: string | number | null) => {
+        const s = v === null ? "—" : String(v);
+        return s.includes(",") ? `"${s}"` : s;
+      };
+
+      const lines: string[] = [
+        `דוח נוכחות — ${attReportFrom} עד ${attReportTo}`,
+        "",
+        "שם עובד,טלפון,תאריך,שעת כניסה,שעת יציאה,שעות עבודה,פרויקט",
+        ...(rows as ReportRow[]).map(r =>
+          [r.staff_name, r.staff_phone, r.date, r.entry, r.exit,
+           r.hours !== null ? r.hours.toFixed(2) : "—", r.project
+          ].map(esc).join(",")
+        ),
+        "",
+        "סיכום",
+        "שם עובד,טלפון,ימי עבודה,סה\"כ שעות",
+        ...(summary as SummaryRow[]).map(s =>
+          [s.name, s.phone, s.days, s.hours.toFixed(2)].map(esc).join(",")
+        ),
+      ];
+
+      const BOM = "\uFEFF";
+      const blob = new Blob([BOM + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href     = url;
+      a.download = `נוכחות_${attReportFrom}_${attReportTo}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) { setAttReportErr(String(e)); }
+    finally { setAttReportLoading(false); }
+  };
 
   // Attendance edit UI
   const [editAttId,        setEditAttId]        = useState<string | null>(null);
@@ -948,6 +1002,42 @@ export default function AdminPortal() {
         {/* ── ATTENDANCE (admin only) ────────────────────────────────────────── */}
         {tab === "attendance" && isAdmin && (
           <div className="space-y-5">
+
+            {/* Weekly report download card */}
+            <Card>
+              <div className="flex items-center gap-2 mb-4">
+                <Download size={15} strokeWidth={1.5} className="text-accent" />
+                <h2 className="font-heading text-base font-bold">הורדת דוח נוכחות</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
+                <div>
+                  <label className="block text-[0.68rem] text-charcoal/50 mb-1 font-body">מתאריך</label>
+                  <input type="date" value={attReportFrom} onChange={e => setAttReportFrom(e.target.value)}
+                    className="w-full border border-warm-gray-light bg-bone text-charcoal text-sm px-3 py-2 focus:outline-none focus:border-accent" />
+                </div>
+                <div>
+                  <label className="block text-[0.68rem] text-charcoal/50 mb-1 font-body">עד תאריך</label>
+                  <input type="date" value={attReportTo} onChange={e => setAttReportTo(e.target.value)}
+                    className="w-full border border-warm-gray-light bg-bone text-charcoal text-sm px-3 py-2 focus:outline-none focus:border-accent" />
+                </div>
+                <button onClick={downloadAttendanceReport} disabled={attReportLoading || !attReportFrom || !attReportTo}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-accent text-bone text-sm font-semibold hover:bg-accent-dark disabled:opacity-40 transition-colors whitespace-nowrap">
+                  {attReportLoading
+                    ? <><Loader2 size={13} className="animate-spin" /> מכין...</>
+                    : <><Download size={13} /> הורד CSV</>}
+                </button>
+              </div>
+              {attReportErr && (
+                <p className="mt-2 text-xs text-red-500 flex items-center gap-1.5">
+                  <AlertCircle size={12} /> {attReportErr}
+                </p>
+              )}
+              <p className="mt-3 text-[0.62rem] text-charcoal/30 font-body">
+                הדוח כולל: שעת כניסה / יציאה / שעות עבודה לכל עובד לכל יום + סיכום ימים ושעות לתקופה.
+                פתח ב-Excel (תומך בעברית).
+              </p>
+            </Card>
+
             <Card>
               <div className="flex items-center justify-between mb-3">
                 <div>
