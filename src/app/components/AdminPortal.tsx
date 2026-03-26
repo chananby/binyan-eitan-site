@@ -1158,17 +1158,18 @@ ${detailHtml}
                     ))}
                   </div>
 
-                  {/* ── Daily summary (grouped by date) ── */}
+                  {/* ── Daily summary per worker, grouped by date ── */}
                   {sortedDates.length > 0 && (
                     <Card>
                       <div className="flex items-center gap-2 mb-3">
                         <Calendar size={14} strokeWidth={1.5} className="text-accent" />
-                        <h3 className="font-heading font-bold text-sm">סיכום יומי</h3>
+                        <h3 className="font-heading font-bold text-sm">סיכום יומי לפי עובד</h3>
                       </div>
                       <div className="overflow-x-auto">
                         <table className="w-full text-xs border-collapse">
                           <thead>
                             <tr className="bg-bone text-charcoal/50">
+                              <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light w-16">יום</th>
                               <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">תאריך</th>
                               <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">עובד</th>
                               <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">כניסה</th>
@@ -1180,37 +1181,28 @@ ${detailHtml}
                           <tbody>
                             {sortedDates.map(date => {
                               const dayRows = byDate.get(date)!;
-                              const dayTotal = dayRows.reduce((s, r) => s + (r.hours ?? 0), 0);
-                              return (
-                                <>
-                                  {dayRows.map((r, i) => (
-                                    <tr key={`${date}-${i}`} className="bg-white hover:bg-bone/40 transition-colors">
-                                      <td className="px-2.5 py-1.5 border border-warm-gray-light font-medium text-charcoal/70">
-                                        {i === 0 ? date : ""}
-                                      </td>
-                                      <td className="px-2.5 py-1.5 border border-warm-gray-light font-semibold">{r.staff_name}</td>
-                                      <td className="px-2.5 py-1.5 border border-warm-gray-light text-green-700">{r.entry}</td>
-                                      <td className="px-2.5 py-1.5 border border-warm-gray-light text-red-600">{r.exit}</td>
-                                      <td className="px-2.5 py-1.5 border border-warm-gray-light font-bold text-accent">
-                                        {r.hours !== null ? r.hours.toFixed(2) : <span className="text-charcoal/25">—</span>}
-                                      </td>
-                                      <td className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/55 text-[0.68rem] max-w-[160px] truncate">{r.project}</td>
-                                    </tr>
-                                  ))}
-                                  {/* Day subtotal */}
-                                  <tr className="bg-[#F3F2EE] border-b-2 border-warm-gray-light">
-                                    <td className="px-2.5 py-1 border border-warm-gray-light text-[0.62rem] text-charcoal/40 font-medium">{date}</td>
-                                    <td className="px-2.5 py-1 border border-warm-gray-light text-[0.62rem] text-charcoal/50">
-                                      {dayRows.length} עובד{dayRows.length !== 1 ? "ים" : ""}
-                                    </td>
-                                    <td colSpan={2} className="border border-warm-gray-light" />
-                                    <td className="px-2.5 py-1 border border-warm-gray-light font-bold text-charcoal text-[0.72rem]">
-                                      {dayTotal > 0 ? dayTotal.toFixed(2) : "—"}
-                                    </td>
-                                    <td className="px-2.5 py-1 border border-warm-gray-light text-[0.6rem] text-charcoal/35">סה"כ יומי</td>
-                                  </tr>
-                                </>
-                              );
+                              // Derive day-of-week from "DD.MM.YYYY"
+                              const [dd, mm, yyyy] = date.split(".");
+                              const dow = DAYS_HE[new Date(`${yyyy}-${mm}-${dd}T12:00:00`).getDay()];
+                              return dayRows.map((r, i) => (
+                                <tr key={`${date}-${i}`}
+                                  className={`hover:bg-bone/40 transition-colors ${i === dayRows.length - 1 ? "border-b-2 border-warm-gray-light" : ""}`}
+                                  style={{ background: i % 2 === 0 ? "#fff" : "#FAFAF9" }}>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/50 font-medium">
+                                    {i === 0 ? dow : ""}
+                                  </td>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/70">
+                                    {i === 0 ? date : ""}
+                                  </td>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light font-semibold">{r.staff_name}</td>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light text-green-700">{r.entry}</td>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light text-red-600">{r.exit}</td>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light font-bold text-accent">
+                                    {r.hours !== null ? r.hours.toFixed(2) : <span className="text-charcoal/25">—</span>}
+                                  </td>
+                                  <td className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/55 text-[0.68rem] max-w-[160px] truncate">{r.project}</td>
+                                </tr>
+                              ));
                             })}
                           </tbody>
                         </table>
