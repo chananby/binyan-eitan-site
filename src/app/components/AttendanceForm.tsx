@@ -58,10 +58,90 @@ function nowLabel() {
   return new Date().toLocaleString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+// ── Language support ───────────────────────────────────────────────────────────
+
+type Lang = "he" | "ru";
+
+const T: Record<Lang, {
+  clockTitle: string; phonePrompt: string; confirmLocation: string; geoRequired: string;
+  locating: string;
+  pickSite: string; pickSiteSub: string; loadingSites: string; noSites: string; changeNumber: string;
+  locationOk: string; clockIn: string; clockOut: string; changeSite: string;
+  sending: string;
+  recordedIn: string; recordedOut: string; hello: string;
+  autoReg: string; autoRegBody: string; dayMsg: string;
+  goodWorkIn: string; goodWorkOut: string; anotherReport: string;
+  tryAgain: string; notFound: string; unknownError: string;
+  home: string; footer: string;
+}> = {
+  he: {
+    clockTitle: "שעון נוכחות",
+    phonePrompt: "הזן מספר טלפון לזיהוי",
+    confirmLocation: "אשר מיקום והמשך",
+    geoRequired: "חובה לאשר מיקום כדי לדווח נוכחות",
+    locating: "מאתר מיקום…",
+    pickSite: "בחר אתר בנייה",
+    pickSiteSub: "בחר את האתר שבו אתה עובד היום",
+    loadingSites: "טוען אתרים...",
+    noSites: "אין אתרי בנייה פעילים — פנה למנהל",
+    changeNumber: "שנה מספר",
+    locationOk: "מיקום אושר ✓",
+    clockIn: "כניסה",
+    clockOut: "יציאה",
+    changeSite: "שנה אתר",
+    sending: "שולח דיווח…",
+    recordedIn: "כניסה נרשמה ✅",
+    recordedOut: "יציאה נרשמה 🔴",
+    hello: "שלום",
+    autoReg: "רישום אוטומטי",
+    autoRegBody: "הטלפון נרשם כמשתמש ראשון במערכת. עדכן את שמך בדשבורד הניהולי.",
+    dayMsg: "הודעת היום",
+    goodWorkIn: "עבודה טובה! 💪",
+    goodWorkOut: "שיהיה לך יום נעים 👋",
+    anotherReport: "דיווח נוסף",
+    tryAgain: "נסה שוב",
+    notFound: "מספר הטלפון לא נמצא ברשימת הצוות. פנה למנהל.",
+    unknownError: "שגיאה לא ידועה — נסה שוב.",
+    home: "דף הבית",
+    footer: "בניין איתן — מערכת נוכחות פנימית",
+  },
+  ru: {
+    clockTitle: "Отметка о явке",
+    phonePrompt: "Введите номер телефона",
+    confirmLocation: "Подтвердить местоположение",
+    geoRequired: "Необходимо разрешить доступ к местоположению",
+    locating: "Определение местоположения…",
+    pickSite: "Выберите объект",
+    pickSiteSub: "Выберите объект, где вы работаете сегодня",
+    loadingSites: "Загрузка объектов...",
+    noSites: "Нет активных объектов — обратитесь к менеджеру",
+    changeNumber: "Изменить номер",
+    locationOk: "Местоположение подтверждено ✓",
+    clockIn: "Приход",
+    clockOut: "Уход",
+    changeSite: "Изменить объект",
+    sending: "Отправка данных…",
+    recordedIn: "Приход зарегистрирован ✅",
+    recordedOut: "Уход зарегистрирован 🔴",
+    hello: "Привет,",
+    autoReg: "Авторегистрация",
+    autoRegBody: "Номер зарегистрирован как новый пользователь. Обновите имя в панели администратора.",
+    dayMsg: "Сообщение дня",
+    goodWorkIn: "Хорошей работы! 💪",
+    goodWorkOut: "Хорошего дня! 👋",
+    anotherReport: "Ещё одна отметка",
+    tryAgain: "Повторить",
+    notFound: "Номер телефона не найден в списке сотрудников. Обратитесь к менеджеру.",
+    unknownError: "Неизвестная ошибка — попробуйте снова.",
+    home: "Главная",
+    footer: "Binyan Eitan — система учёта рабочего времени",
+  },
+};
+
 // ── Component ──────────────────────────────────────────────────────────────────
-export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) {
-  const portalHref = `/${lang}/internal`;
-  const backLabel  = lang === "he" ? "חזור לתפריט הראשי" : "Back to Portal";
+export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | "en" }) {
+  const portalHref = `/${siteLang}/internal`;
+  const backLabel  = siteLang === "he" ? "חזור לתפריט הראשי" : "Back to Portal";
 
   // ── Worker attendance state ──────────────────────────────────────────────
   const [step, setStep]                     = useState<Step>("phone");
@@ -164,6 +244,14 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
   const [editAttTimestamp, setEditAttTimestamp] = useState("");
   const [editAttLoading, setEditAttLoading]   = useState(false);
   const [editAttMsg, setEditAttMsg]           = useState("");
+
+  // ── UI language (worker-facing only) ─────────────────────────────────────
+  const [lang, setLang] = useState<Lang>(() => {
+    if (typeof window === "undefined") return "he";
+    return (localStorage.getItem("att_lang") as Lang) ?? "he";
+  });
+  useEffect(() => { localStorage.setItem("att_lang", lang); }, [lang]);
+  const t = T[lang];
 
   // ── Dashboard computed values ─────────────────────────────────────────────
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -429,14 +517,14 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
     setGeoError(null); setStep("locating");
     if (!navigator.geolocation) {
       feedback.error();
-      setGeoError("חובה לאשר מיקום כדי לדווח נוכחות");
+      setGeoError(T[lang].geoRequired);
       setStep("phone"); return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => { setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setStep("project"); },
       () => {
         feedback.error();
-        setGeoError("חובה לאשר מיקום כדי לדווח נוכחות");
+        setGeoError(T[lang].geoRequired);
         setStep("phone");
       },
       { timeout: 12000, enableHighAccuracy: true }
@@ -467,12 +555,12 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
         setStep("success");
       } else if (data.error === "phone_not_found") {
         feedback.error();
-        setErrorMsg("מספר הטלפון לא נמצא ברשימת הצוות. פנה למנהל."); setStep("error");
+        setErrorMsg(T[lang].notFound); setStep("error");
       } else {
         feedback.error();
-        setErrorMsg(data.error ?? "שגיאה לא ידועה — נסה שוב."); setStep("error");
+        setErrorMsg(data.error ?? T[lang].unknownError); setStep("error");
       }
-    } catch { feedback.error(); setErrorMsg("בעיית תקשורת — בדוק חיבור אינטרנט ונסה שוב."); setStep("error"); }
+    } catch { feedback.error(); setErrorMsg(T[lang].unknownError); setStep("error"); }
   }, [coords, phone, selectedProjectId]);
 
   const reset = () => {
@@ -484,7 +572,7 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
   // ── Admin: password screen ────────────────────────────────────────────────
   if (adminView === "password") {
     return (
-      <Screen backHref={portalHref} backLabel={backLabel}>
+      <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
         <Lock size={40} strokeWidth={1.5} className="text-accent" />
         <div className="text-center space-y-1">
           <p className="font-heading text-xl font-bold text-charcoal">ניהול אתר</p>
@@ -1161,11 +1249,11 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
     return (
       <>
       <SuccessFlash show={showFlash} onDone={() => setShowFlash(false)} variant={flashVariant} />
-      <Screen backHref={portalHref} backLabel={backLabel}>
+      <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
         <CheckCircle size={64} strokeWidth={1} className={isIn ? "text-green-500" : "text-red-400"} />
         <div className="text-center space-y-1">
-          <p className="font-heading text-2xl font-bold text-charcoal">{isIn ? "כניסה נרשמה ✅" : "יציאה נרשמה 🔴"}</p>
-          {workerName && <p className="font-heading text-xl text-charcoal/80">שלום {workerName}</p>}
+          <p className="font-heading text-2xl font-bold text-charcoal">{isIn ? t.recordedIn : t.recordedOut}</p>
+          {workerName && <p className="font-heading text-xl text-charcoal/80">{t.hello} {workerName}</p>}
           <p className="font-body text-sm text-charcoal/40">{timestamp}</p>
           {selectedProject && (
             <div className="flex items-center justify-center gap-1 text-sm text-charcoal/50 mt-1">
@@ -1175,21 +1263,21 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
         </div>
         {autoRegistered && (
           <div className="w-full rounded-sm border border-amber-200 bg-amber-50 px-5 py-4">
-            <p className="mb-1 font-body text-[0.6rem] font-bold tracking-[0.18em] uppercase text-amber-500">רישום אוטומטי</p>
-            <p className="font-body text-sm leading-relaxed text-charcoal/80">הטלפון נרשם כמשתמש ראשון במערכת. עדכן את שמך בדשבורד הניהולי.</p>
+            <p className="mb-1 font-body text-[0.6rem] font-bold tracking-[0.18em] uppercase text-amber-500">{t.autoReg}</p>
+            <p className="font-body text-sm leading-relaxed text-charcoal/80">{t.autoRegBody}</p>
           </div>
         )}
         {dailyMessage ? (
           <div className="w-full rounded-sm border border-sky-200 bg-sky-50 px-5 py-4">
-            <p className="mb-1 font-body text-[0.6rem] font-bold tracking-[0.18em] uppercase text-sky-400">הודעת היום</p>
+            <p className="mb-1 font-body text-[0.6rem] font-bold tracking-[0.18em] uppercase text-sky-400">{t.dayMsg}</p>
             <p className="font-body text-base leading-relaxed text-charcoal/80">{dailyMessage}</p>
           </div>
         ) : (
-          <p className="font-body text-sm text-charcoal/30">{isIn ? "עבודה טובה! 💪" : "שיהיה לך יום נעים 👋"}</p>
+          <p className="font-body text-sm text-charcoal/30">{isIn ? t.goodWorkIn : t.goodWorkOut}</p>
         )}
         <button onClick={reset}
           className="mt-2 w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
-          דיווח נוסף
+          {t.anotherReport}
         </button>
       </Screen>
       </>
@@ -1198,12 +1286,12 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
 
   if (step === "error") {
     return (
-      <Screen backHref={portalHref} backLabel={backLabel}>
+      <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
         <AlertCircle size={56} strokeWidth={1} className="text-red-400" />
         <p className="font-body text-center text-sm text-charcoal/70 leading-relaxed max-w-xs">{errorMsg}</p>
         <button onClick={reset}
           className="mt-4 w-full bg-charcoal py-4 font-body text-sm font-semibold tracking-wider uppercase text-bone hover:bg-charcoal/80 transition-colors duration-200">
-          נסה שוב
+          {t.tryAgain}
         </button>
       </Screen>
     );
@@ -1211,38 +1299,38 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
 
   if (step === "submitting") {
     return (
-      <Screen backHref={portalHref} backLabel={backLabel}>
+      <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
         <Loader2 size={48} strokeWidth={1.5} className="text-accent animate-spin" />
-        <p className="font-body text-sm text-charcoal/50 tracking-wider">שולח דיווח…</p>
+        <p className="font-body text-sm text-charcoal/50 tracking-wider">{t.sending}</p>
       </Screen>
     );
   }
 
   if (step === "locating") {
     return (
-      <Screen backHref={portalHref} backLabel={backLabel}>
+      <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
         <MapPin size={48} strokeWidth={1.5} className="text-accent animate-pulse" />
-        <p className="font-body text-sm text-charcoal/50 tracking-wider">מאתר מיקום…</p>
+        <p className="font-body text-sm text-charcoal/50 tracking-wider">{t.locating}</p>
       </Screen>
     );
   }
 
   if (step === "project") {
     return (
-      <Screen backHref={portalHref} backLabel={backLabel}>
+      <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
         <div className="text-center space-y-1">
           <Building2 size={36} strokeWidth={1.5} className="text-accent mx-auto" />
-          <p className="font-heading text-xl font-bold text-charcoal">בחר אתר בנייה</p>
-          <p className="font-body text-xs text-charcoal/40">בחר את האתר שבו אתה עובד היום</p>
+          <p className="font-heading text-xl font-bold text-charcoal">{t.pickSite}</p>
+          <p className="font-body text-xs text-charcoal/40">{t.pickSiteSub}</p>
         </div>
         <div className="w-full space-y-3">
           {projectsLoading ? (
             <div className="flex items-center justify-center gap-2 py-6 text-charcoal/40">
               <Loader2 size={18} className="animate-spin" />
-              <span className="font-body text-sm">טוען אתרים...</span>
+              <span className="font-body text-sm">{t.loadingSites}</span>
             </div>
           ) : projects.length === 0 ? (
-            <p className="text-center font-body text-sm text-charcoal/40 py-4">אין אתרי בנייה פעילים — פנה למנהל</p>
+            <p className="text-center font-body text-sm text-charcoal/40 py-4">{t.noSites}</p>
           ) : (
             <div className="space-y-2">
               {projects.map(p => (
@@ -1256,7 +1344,7 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
           )}
           <button onClick={reset}
             className="font-body text-xs text-charcoal/30 hover:text-charcoal/60 transition-colors duration-200 underline underline-offset-2 w-full text-center">
-            שנה מספר
+            {t.changeNumber}
           </button>
         </div>
       </Screen>
@@ -1266,9 +1354,9 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
   if (step === "ready" && coords) {
     const selectedProject = projects.find(p => p.id === selectedProjectId);
     return (
-      <Screen backHref={portalHref} backLabel={backLabel}>
+      <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
         <div className="text-center space-y-1">
-          <p className="font-body text-[0.6rem] font-bold tracking-[0.22em] uppercase text-accent/70">מיקום אושר ✓</p>
+          <p className="font-body text-[0.6rem] font-bold tracking-[0.22em] uppercase text-accent/70">{t.locationOk}</p>
           <p className="font-body text-sm text-charcoal/50 tabular-nums" dir="ltr">{phone}</p>
           {selectedProject && (
             <div className="flex items-center justify-center gap-1 text-xs text-charcoal/50">
@@ -1280,17 +1368,17 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
           <button onClick={() => submit("in")}
             className="flex flex-col items-center justify-center gap-3 bg-green-600 hover:bg-green-700 active:scale-95 py-8 transition-all duration-150 rounded-sm">
             <LogIn size={32} strokeWidth={1.5} className="text-white" />
-            <span className="font-heading text-lg font-bold text-white">כניסה</span>
+            <span className="font-heading text-lg font-bold text-white">{t.clockIn}</span>
           </button>
           <button onClick={() => submit("out")}
             className="flex flex-col items-center justify-center gap-3 bg-red-500 hover:bg-red-600 active:scale-95 py-8 transition-all duration-150 rounded-sm">
             <LogOut size={32} strokeWidth={1.5} className="text-white" />
-            <span className="font-heading text-lg font-bold text-white">יציאה</span>
+            <span className="font-heading text-lg font-bold text-white">{t.clockOut}</span>
           </button>
         </div>
         <div className="flex flex-col items-center gap-2">
-          <button onClick={() => setStep("project")} className="font-body text-xs text-charcoal/30 hover:text-charcoal/60 transition-colors duration-200 underline underline-offset-2">שנה אתר</button>
-          <button onClick={reset} className="font-body text-xs text-charcoal/20 hover:text-charcoal/50 transition-colors duration-200">שנה מספר</button>
+          <button onClick={() => setStep("project")} className="font-body text-xs text-charcoal/30 hover:text-charcoal/60 transition-colors duration-200 underline underline-offset-2">{t.changeSite}</button>
+          <button onClick={reset} className="font-body text-xs text-charcoal/20 hover:text-charcoal/50 transition-colors duration-200">{t.changeNumber}</button>
         </div>
       </Screen>
     );
@@ -1298,10 +1386,10 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
 
   // Default: phone entry
   return (
-    <Screen backHref={portalHref} backLabel={backLabel}>
+    <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
       <div className="text-center space-y-1">
-        <p className="font-heading text-xl font-bold text-charcoal">שעון נוכחות</p>
-        <p className="font-body text-xs text-charcoal/40">הזן מספר טלפון לזיהוי</p>
+        <p className="font-heading text-xl font-bold text-charcoal">{t.clockTitle}</p>
+        <p className="font-body text-xs text-charcoal/40">{t.phonePrompt}</p>
       </div>
       <div className="w-full space-y-4">
         <input
@@ -1321,7 +1409,7 @@ export default function AttendanceForm({ lang = "he" }: { lang?: "he" | "en" }) 
         <button onClick={requestLocation} disabled={phone.replace(/\D/g, "").length < 9}
           className="w-full bg-accent py-5 font-heading text-base font-bold tracking-[0.15em] uppercase text-bone transition-colors duration-200 hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2">
           <MapPin size={18} strokeWidth={1.5} />
-          אשר מיקום והמשך
+          {t.confirmLocation}
         </button>
       </div>
     </Screen>
@@ -1359,14 +1447,18 @@ function Card({ title, children }: { title?: string; children: React.ReactNode }
   );
 }
 
-function Screen({ children, backHref, backLabel }: { children: React.ReactNode; backHref?: string; backLabel?: string }) {
+function Screen({ children, backHref, backLabel, lang, onLangChange }: {
+  children: React.ReactNode; backHref?: string; backLabel?: string;
+  lang: Lang; onLangChange: (l: Lang) => void;
+}) {
+  const isRtl = lang === "he";
   return (
-    <div className="relative min-h-screen bg-bone flex flex-col items-center justify-center px-6 py-16 gap-6" dir="rtl">
+    <div className="relative min-h-screen bg-bone flex flex-col items-center justify-center px-6 py-16 gap-6" dir={isRtl ? "rtl" : "ltr"}>
       <div className="absolute top-5 start-5">
         <Link href="/he"
           className="flex items-center gap-1 font-body text-xs text-charcoal/30 hover:text-accent transition-colors duration-200">
-          <ChevronRight size={14} strokeWidth={1.5} className="rotate-180" />
-          <span>דף הבית</span>
+          <ChevronRight size={14} strokeWidth={1.5} className={isRtl ? "rotate-180" : ""} />
+          <span>{T[lang].home}</span>
         </Link>
       </div>
       {backHref && (
@@ -1382,8 +1474,19 @@ function Screen({ children, backHref, backLabel }: { children: React.ReactNode; 
         <Image src="/logo.png" alt="Binyan Eitan" width={110} height={32} className="h-8 w-auto brightness-0 opacity-60" />
       </Link>
       {children}
-      <p className="mt-6 font-body text-[0.55rem] tracking-widest uppercase text-charcoal/20">
-        בניין איתן — מערכת נוכחות פנימית
+      <div className="flex items-center gap-2 mt-2">
+        <button onClick={() => onLangChange("he")}
+          className={`font-body text-xs transition-colors duration-150 ${lang === "he" ? "text-accent font-bold" : "text-charcoal/25 hover:text-charcoal/50"}`}>
+          עב
+        </button>
+        <span className="text-charcoal/15 text-xs">|</span>
+        <button onClick={() => onLangChange("ru")}
+          className={`font-body text-xs transition-colors duration-150 ${lang === "ru" ? "text-accent font-bold" : "text-charcoal/25 hover:text-charcoal/50"}`}>
+          RU
+        </button>
+      </div>
+      <p className="font-body text-[0.55rem] tracking-widest uppercase text-charcoal/20">
+        {T[lang].footer}
       </p>
     </div>
   );
