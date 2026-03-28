@@ -10,13 +10,14 @@ import ProfileSelector from "./components/ProfileSelector";
 import { useAdaptiveEngine } from "./hooks/useAdaptiveEngine";
 import { useFeedbackEvents } from "./hooks/useFeedbackEvents";
 import { useProfiles } from "./hooks/useProfiles";
-import { generateQuestion as generatePct  } from "./lib/engines/percentages";
-import { generateQuestion as generateFrac } from "./lib/engines/fractions";
-import { generateQuestion as generateG3   } from "./lib/engines/grade3";
-import { generateQuestion as generateDiv  } from "./lib/engines/grade3-division";
-import { generateQuestion as generateG4   } from "./lib/engines/grade4";
+import { generateQuestion as generatePct   } from "./lib/engines/percentages";
+import { generateQuestion as generateFrac  } from "./lib/engines/fractions";
+import { generateQuestion as generateConv  } from "./lib/engines/conversions";
+import { generateQuestion as generateG3    } from "./lib/engines/grade3";
+import { generateQuestion as generateDiv   } from "./lib/engines/grade3-division";
+import { generateQuestion as generateG4    } from "./lib/engines/grade4";
 import { generateQuestion as generateRatios } from "./lib/engines/ratios";
-import { generateQuestion as generateWP   } from "./lib/engines/word-problems";
+import { generateQuestion as generateWP    } from "./lib/engines/word-problems";
 import type { Difficulty, MathQuestion, StoredStats } from "./lib/types";
 import type { Profile } from "./lib/profiles";
 
@@ -77,6 +78,13 @@ export const ALL_TOPICS: Topic[] = [
     theme: "space",
     junior: true,
     generateFn: generateG4,
+  },
+  {
+    id: "conversions",
+    emoji: "🔄",
+    title: "המרות — % · עשרוני · שבר",
+    subtitle: "המרה בין אחוזים, מספרים עשרוניים ושברים",
+    generateFn: generateConv,
   },
   {
     id: "ratios",
