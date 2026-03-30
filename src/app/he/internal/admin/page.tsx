@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createServerClient, type ProjectRow } from "../../../../lib/supabase";
+import { isAdminAuthed } from "../../../../lib/admin-auth";
 import { ChevronLeft, MapPin, Calendar, User, LayoutDashboard } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -45,6 +47,8 @@ async function getProjects(): Promise<{ projects: ProjectRow[]; error: string | 
 }
 
 export default async function AdminProjectsPage() {
+  if (!isAdminAuthed()) redirect("/he/internal");
+
   const { projects, error } = await getProjects();
 
   const active    = projects.filter((p) => p.status === "active");

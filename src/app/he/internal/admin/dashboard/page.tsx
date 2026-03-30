@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createServerClient } from "../../../../../lib/supabase";
+import { isAdminAuthed } from "../../../../../lib/admin-auth";
 import { ChevronLeft, Users, TrendingUp } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -96,6 +98,8 @@ async function getBudgetSummary() {
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage() {
+  if (!isAdminAuthed()) redirect("/he/internal");
+
   const [{ records: attendance, error: attErr }, { summary: budget, error: budgetErr }] =
     await Promise.all([getWeeklyAttendance(), getBudgetSummary()]);
 
