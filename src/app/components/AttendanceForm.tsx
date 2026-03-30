@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type Step      = "phone" | "locating" | "project" | "ready" | "submitting" | "success" | "error";
+type Step      = "phone" | "locating" | "project" | "ready" | "submitting" | "success" | "error" | "history";
 type AdminView = "none" | "password" | "dashboard";
 type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "reports";
 
@@ -73,6 +73,7 @@ const T: Record<Lang, {
   goodWorkIn: string; goodWorkOut: string; anotherReport: string;
   tryAgain: string; notFound: string; unknownError: string;
   home: string; footer: string;
+  myHistory: string; historyTitle: string; noHistory: string; loadingHistory: string; backToForm: string;
 }> = {
   he: {
     clockTitle: "שעון נוכחות",
@@ -104,6 +105,11 @@ const T: Record<Lang, {
     unknownError: "שגיאה לא ידועה — נסה שוב.",
     home: "דף הבית",
     footer: "בניין איתן — מערכת נוכחות פנימית",
+    myHistory: "היסטוריית נוכחות שלי",
+    historyTitle: "הנוכחות שלי",
+    noHistory: "לא נמצאו רשומות נוכחות",
+    loadingHistory: "טוען היסטוריה...",
+    backToForm: "חזור לדיווח",
   },
   ru: {
     clockTitle: "Отметка о явке",
@@ -135,6 +141,11 @@ const T: Record<Lang, {
     unknownError: "Неизвестная ошибка — попробуйте снова.",
     home: "Главная",
     footer: "Binyan Eitan — система учёта рабочего времени",
+    myHistory: "Моя история посещаемости",
+    historyTitle: "Моя посещаемость",
+    noHistory: "Записи не найдены",
+    loadingHistory: "Загрузка...",
+    backToForm: "Вернуться к отметке",
   },
 };
 
@@ -157,6 +168,12 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   const [showFlash,  setShowFlash]  = useState(false);
   const [flashVariant, setFlashVariant] = useState<"in" | "out">("in");
   const feedback = useFeedback();
+
+  // ── Worker history state ──────────────────────────────────────────────────
+  const [historyRecords, setHistoryRecords] = useState<Array<{ id: string; action: string; timestamp_label: string | null; created_at: string; project: { id: string; name: string } | null }>>([]);
+  const [historyName, setHistoryName]       = useState<string | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError]     = useState<string | null>(null);
 
   // ── Project selection (worker flow) ─────────────────────────────────────
   const [projects, setProjects]                   = useState<Project[]>([]);
@@ -568,6 +585,23 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     setWorkerName(null); setAction(null); setErrorMsg(null);
     setDailyMessage(null); setAutoRegistered(false); setSelectedProjectId("");
   };
+
+  const fetchHistory = useCallback(async () => {
+    if (phone.replace(/\D/g, "").length < 9) return;
+    setHistoryLoading(true); setHistoryError(null); setHistoryRecords([]); setHistoryName(null);
+    setStep("history");
+    try {
+      const res  = await fetch("/api/worker/history", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: phone.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) { setHistoryName(data.name ?? null); setHistoryRecords(data.records ?? []); }
+      else if (data.error === "phone_not_found") { setHistoryError(T[lang].notFound); }
+      else { setHistoryError(T[lang].unknownError); }
+    } catch { setHistoryError(T[lang].unknownError); }
+    finally { setHistoryLoading(false); }
+  }, [phone, lang]);
 
   // ── Admin: password screen ────────────────────────────────────────────────
   if (adminView === "password") {
@@ -1384,6 +1418,51 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     );
   }
 
+  // ── History screen ────────────────────────────────────────────────────────
+  if (step === "history") {
+    return (
+      <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
+        <div className="w-full text-center space-y-1">
+          <p className="font-body text-[0.6rem] font-bold tracking-[0.22em] uppercase text-accent/70">{t.historyTitle}</p>
+          {historyName && <p className="font-heading text-lg font-bold text-charcoal">{historyName}</p>}
+        </div>
+        <div className="w-full space-y-2">
+          {historyLoading ? (
+            <div className="flex items-center justify-center gap-2 py-6 text-charcoal/40">
+              <Loader2 size={18} className="animate-spin" />
+              <span className="font-body text-sm">{t.loadingHistory}</span>
+            </div>
+          ) : historyError ? (
+            <p className="text-center font-body text-sm text-red-400 py-4">{historyError}</p>
+          ) : historyRecords.length === 0 ? (
+            <p className="text-center font-body text-sm text-charcoal/40 py-4">{t.noHistory}</p>
+          ) : (
+            <div className="divide-y divide-charcoal/8 max-h-[50vh] overflow-y-auto">
+              {historyRecords.map(r => {
+                const isIn = r.action === "כניסה" || r.action === "in";
+                const display = r.timestamp_label ?? new Date(r.created_at).toLocaleString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+                return (
+                  <div key={r.id} className="flex items-center gap-3 py-3 px-1">
+                    <span className={`shrink-0 w-2 h-2 rounded-full ${isIn ? "bg-green-500" : "bg-red-400"}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-body text-sm font-semibold text-charcoal">{isIn ? t.clockIn : t.clockOut}</p>
+                      {r.project && <p className="font-body text-[0.65rem] text-charcoal/40 truncate">{r.project.name}</p>}
+                    </div>
+                    <p className="font-body text-xs text-charcoal/40 tabular-nums shrink-0" dir="ltr">{display}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <button onClick={reset}
+          className="w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
+          {t.backToForm}
+        </button>
+      </Screen>
+    );
+  }
+
   // Default: phone entry
   return (
     <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
@@ -1410,6 +1489,10 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
           className="w-full bg-accent py-5 font-heading text-base font-bold tracking-[0.15em] uppercase text-bone transition-colors duration-200 hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2">
           <MapPin size={18} strokeWidth={1.5} />
           {t.confirmLocation}
+        </button>
+        <button onClick={fetchHistory} disabled={phone.replace(/\D/g, "").length < 9}
+          className="w-full border border-charcoal/15 py-3 font-body text-sm text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed">
+          {t.myHistory}
         </button>
       </div>
     </Screen>

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
-import { isAdminAuthedFromRequest } from "../../../../lib/admin-auth";
+import {
+  isAuthedFromRequest,
+  isAdminAuthedFromRequest,
+  getAdminRoleFromRequest,
+  getForemanStaffIdFromRequest,
+} from "../../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 
@@ -8,13 +13,55 @@ function normalizePhone(raw: string): string {
   return raw.replace(/\D/g, "").slice(-10);
 }
 
-// GET — list all staff (pin is never returned — only has_pin flag)
+// GET — list staff
+// Admin: all staff
+// Foreman: only workers who have attendance records in their projects
 export async function GET(req: NextRequest) {
-  if (!isAdminAuthedFromRequest(req)) {
+  if (!isAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const supabase = createServerClient();
+  const isAdmin = getAdminRoleFromRequest(req) === "admin";
+
+  if (!isAdmin) {
+    // Foreman path — return only workers in their projects
+    const staffId = getForemanStaffIdFromRequest(req);
+    if (!staffId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { data: foremanProjects } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("foreman_id", staffId);
+
+    const projectIds = (foremanProjects ?? []).map((p: { id: string }) => p.id);
+    if (projectIds.length === 0) return NextResponse.json({ staff: [] });
+
+    // Get distinct worker IDs from attendance in those projects
+    const { data: attRecords } = await supabase
+      .from("attendance")
+      .select("staff_id")
+      .in("project_id", projectIds);
+
+    const workerIds = [...new Set((attRecords ?? []).map((r: { staff_id: string }) => r.staff_id))];
+    if (workerIds.length === 0) return NextResponse.json({ staff: [] });
+
+    const { data, error } = await supabase
+      .from("staff")
+      .select("id, name, phone, role, active, pin")
+      .in("id", workerIds)
+      .order("name", { ascending: true });
+
+    if (error) {
+      console.error("[admin/staff GET foreman]", JSON.stringify(error));
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    const staff = (data ?? []).map(({ pin, ...rest }) => ({ ...rest, has_pin: !!pin }));
+    return NextResponse.json({ staff });
+  }
+
+  // Admin path — all staff
   const { data, error } = await supabase
     .from("staff")
     .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, pin")
@@ -26,12 +73,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Mask PIN — return has_pin indicator only
   const staff = (data ?? []).map(({ pin, ...rest }) => ({ ...rest, has_pin: !!pin }));
   return NextResponse.json({ staff });
 }
 
-// POST — add new worker
+// POST — add new worker (admin only)
 export async function POST(req: NextRequest) {
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
