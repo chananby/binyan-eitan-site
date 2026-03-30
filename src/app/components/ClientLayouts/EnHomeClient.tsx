@@ -7,7 +7,6 @@ import Pillars from "../Pillars";
 import ProcessSection from "../ProcessSection";
 import TechnicalAnatomy from "../TechnicalAnatomy";
 import PortfolioGallery from "../PortfolioGallery";
-import BeforeAfterSlider from "../BeforeAfterSlider";
 import EngineeringExcellence from "../EngineeringExcellence";
 import Testimonials from "../Testimonials";
 import FounderQuote from "../FounderQuote";
@@ -25,27 +24,6 @@ export default function EnHomeClient() {
       <ProcessSection />
       <TechnicalAnatomy />
       <PortfolioGallery />
-      <section className="bg-charcoal py-16 md:py-24">
-        <div className="mx-auto max-w-[800px] px-8">
-          <div className="mb-8 text-start">
-            <p className="overline-label mb-4 text-bone/40">
-              <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
-              Before &amp; After
-            </p>
-            <h2 className="font-heading text-3xl font-bold text-bone md:text-4xl">
-              Jerusalem — Maier Sham
-            </h2>
-            <p className="mt-3 font-body text-sm text-bone/50">
-              Complete gut renovation: bathroom stripped to substrate and rebuilt.
-            </p>
-          </div>
-          <BeforeAfterSlider
-            beforeSrc="/jerusalem-bathroom-before.jpg"
-            afterSrc="/jerusalem-bathroom-stripped.jpg"
-            aspectRatio="4/5"
-          />
-        </div>
-      </section>
       <EngineeringExcellence />
       <Testimonials />
       <FounderQuote />

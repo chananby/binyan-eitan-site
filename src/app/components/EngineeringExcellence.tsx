@@ -15,7 +15,6 @@ const FALLBACK_SRCS = [
   "/structural-foundation-reinforcement.jpg",
   "/luxury-electrical-infrastructure-precision.jpg",
   "/expert-jerusalem-stone-facade-work.jpg",
-  "/ramat-eshkol-penthouse-2.jpg",
   "/premium-marble-bathroom-detailing.jpg",
 ];
 
@@ -26,7 +25,6 @@ const FALLBACK_LABELS: Record<"en" | "he", string[]> = {
     "Foundation Reinforcement",
     "Interior Wall Framing",
     "Jerusalem Stone Facade",
-    "Professional Airless Painting",
     "Premium Marble Detailing",
   ],
   he: [
@@ -34,7 +32,6 @@ const FALLBACK_LABELS: Record<"en" | "he", string[]> = {
     "חיזוק יסודות",
     "מסגרת קירות פנים",
     "חיפוי אבן ירושלמית",
-    "צביעה מקצועית בתרסיס",
     "גמר שיש פרמיום",
   ],
 };

@@ -193,16 +193,6 @@ export default function Hero() {
           className="relative col-span-4 mt-12 self-center md:col-span-8 md:col-start-5 md:row-start-1 md:mt-0"
           variants={fadeScale}
         >
-          {/* Decorative offset frame */}
-          <div
-            className="absolute -end-3 -bottom-3 z-0 h-full w-full border border-accent/15 md:-end-6 md:-bottom-6"
-            aria-hidden="true"
-          />
-          <div
-            className="absolute -end-1.5 -bottom-1.5 z-0 h-full w-full border border-charcoal/[0.04] md:-end-3 md:-bottom-3"
-            aria-hidden="true"
-          />
-
           {/* Image with parallax */}
           <motion.div
             className="relative z-10 aspect-[4/5] w-full overflow-hidden md:aspect-[3/4] lg:aspect-[4/5]"

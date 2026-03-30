@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Assistant, Heebo } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import AccessibilityMenu from "./components/AccessibilityMenu";
 import { TranslationsProvider } from "./components/TranslationsProvider";
@@ -151,6 +152,22 @@ export default function RootLayout({
           {children}
           <AccessibilityMenu />
         </TranslationsProvider>
+        {/* Microsoft Clarity */}
+        <Script id="clarity-init" strategy="afterInteractive">{`
+          (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+          })(window, document, "clarity", "script", "w40c828o9d");
+        `}</Script>
+        {/* Google Analytics 4 */}
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-1CWQG6YY4H" strategy="afterInteractive" />
+        <Script id="ga4-init" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-1CWQG6YY4H');
+        `}</Script>
       </body>
     </html>
   );
