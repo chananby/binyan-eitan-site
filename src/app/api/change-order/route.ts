@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../lib/supabase";
+import { isAdminAuthedFromRequest } from "../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
+  if (!isAdminAuthedFromRequest(req))
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   let body: Record<string, unknown>;
   try {
     body = await req.json();
