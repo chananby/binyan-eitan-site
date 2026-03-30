@@ -48,13 +48,33 @@ function makeDivision(divisors: number[], quotientMin: number, quotientMax: numb
   };
 }
 
+// Level 4/5: Division with word-problem context
+function makeDivisionWord(divisors: number[], quotientMin: number, quotientMax: number, difficulty: Difficulty): MathQuestion {
+  const d        = pick(divisors);
+  const q        = randInt(quotientMin, quotientMax);
+  const dividend = d * q;
+  const items    = pick(["עוגיות", "כדורים", "ספרים", "תפוחים", "מחברות"]);
+  const kids     = pick(["ילדים", "חברים", "תלמידים", "קבוצות"]);
+
+  return {
+    id: uid(), difficulty,
+    text: `יש ${dividend} ${items}.\nחילקו אותם בשווה ל-${d} ${kids}.\nכמה ${items} לכל ${kids.slice(0, -1)}?`,
+    answer: q,
+    hint: `${dividend} ÷ ${d} = ?`,
+    unit: items,
+    fullSolution: [
+      `${dividend} ÷ ${d} = ${q}`,
+      `לכל ${kids.slice(0, -1)} יש ${q} ${items}`,
+      `✅ תשובה: ${q}`,
+    ],
+  };
+}
+
 export function generateQuestion(difficulty: Difficulty): MathQuestion {
-  if (difficulty === 1) {
-    return makeDivision([2, 3, 4, 5], 2, 9, 1);
-  }
-  if (difficulty === 2) {
-    return makeDivision([6, 7, 8, 9], 2, 9, 2);
-  }
-  // difficulty === 3
-  return makeDivision([2, 3, 4, 5, 6, 7, 8, 9, 10], 10, 20, 3);
+  if (difficulty === 1) return makeDivision([2, 3, 4, 5], 2, 9, 1);
+  if (difficulty === 2) return makeDivision([6, 7, 8, 9], 2, 9, 2);
+  if (difficulty === 3) return makeDivision([2, 3, 4, 5, 6, 7, 8, 9, 10], 10, 20, 3);
+  if (difficulty === 4) return makeDivisionWord([2, 3, 4, 5, 6], 5, 15, 4);
+  // difficulty === 5
+  return makeDivisionWord([6, 7, 8, 9, 10], 10, 25, 5);
 }

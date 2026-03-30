@@ -62,8 +62,8 @@ function ProgressTip({ stats }: { stats: StoredStats }) {
   }
   const acc = stats.totalCorrect / total;
   let msg = "";
-  if (acc >= 0.85 && stats.highestLevel === 3) {
-    msg = "🏆 מצוין! הרמה הגבוהה ביותר הושגה עם דיוק גבוה. שקול להוסיף נושאים חדשים.";
+  if (acc >= 0.85 && stats.highestLevel >= 4) {
+    msg = "🏆 מצוין! רמה גבוהה מאוד הושגה עם דיוק גבוה. שקול להוסיף נושאים חדשים.";
   } else if (acc >= 0.7) {
     msg = "📈 התקדמות יפה! ממשיך לשפר. שמור על הרצף!";
   } else if (acc < 0.5 && total >= 10) {
@@ -105,17 +105,19 @@ function ProfileStats({ stats, name, onDelete }: {
       {total > 0 && (
         <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
           <p className="text-sm font-semibold text-slate-600 mb-3">רמות שהושגו</p>
-          <div className="flex gap-3">
-            {([1, 2, 3] as Difficulty[]).map((lvl) => (
+          <div className="flex gap-2">
+            {([1, 2, 3, 4, 5] as Difficulty[]).map((lvl) => (
               <div key={lvl} className={[
-                "flex-1 rounded-xl p-3 text-center border",
+                "flex-1 rounded-xl p-2 text-center border",
                 lvl <= stats.highestLevel
-                  ? "bg-brand-50 border-brand-200 text-brand-700"
+                  ? lvl >= 5 ? "bg-yellow-50 border-yellow-300 text-yellow-800"
+                    : lvl >= 4 ? "bg-purple-50 border-purple-300 text-purple-700"
+                    : "bg-brand-50 border-brand-200 text-brand-700"
                   : "bg-slate-50 border-slate-100 text-slate-300",
               ].join(" ")}>
-                <p className="text-lg font-extrabold">{lvl}</p>
-                <p className="text-xs font-medium">{DIFFICULTY_LABELS[lvl]}</p>
-                {lvl <= stats.highestLevel && <p className="text-base mt-1">✔</p>}
+                <p className="text-base font-extrabold">{lvl}</p>
+                <p className="text-[0.6rem] font-medium leading-tight">{DIFFICULTY_LABELS[lvl]}</p>
+                {lvl <= stats.highestLevel && <p className="text-sm mt-0.5">✔</p>}
               </div>
             ))}
           </div>
@@ -143,7 +145,9 @@ function ProfileStats({ stats, name, onDelete }: {
                   <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
                     <span className={[
                       "text-xs font-bold px-2 py-0.5 rounded-full border",
-                      ts.highestLevel === 3 ? "bg-red-50 border-red-200 text-red-600"
+                      ts.highestLevel >= 5 ? "bg-yellow-50 border-yellow-300 text-yellow-800"
+                        : ts.highestLevel >= 4 ? "bg-purple-50 border-purple-200 text-purple-700"
+                        : ts.highestLevel === 3 ? "bg-red-50 border-red-200 text-red-600"
                         : ts.highestLevel === 2 ? "bg-amber-50 border-amber-200 text-amber-600"
                         : "bg-green-50 border-green-200 text-green-600",
                     ].join(" ")}>
@@ -248,12 +252,24 @@ export default function ParentDashboardView({ backHref, storageKey = STORE_KEY }
             )}
 
             {activeProf && (
-              <div className="mb-5 text-xs text-slate-400 flex items-center gap-2">
-                <span>🔑</span>
-                <span>מפתח סנכרון של {activeProf.name}:</span>
-                <span className="font-mono font-bold text-slate-600 tracking-wide">
-                  {activeProf.syncKey}
-                </span>
+              <div className="mb-5 rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
+                <p className="text-xs font-semibold text-slate-500 mb-1">
+                  🔑 קוד הילד — לשחזור מכשיר אחר
+                </p>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono font-extrabold text-xl text-brand-700 tracking-widest select-all">
+                    {activeProf.syncKey}
+                  </span>
+                  <button
+                    onClick={() => navigator.clipboard?.writeText(activeProf.syncKey)}
+                    className="text-xs text-slate-400 hover:text-brand-600 transition-colors border border-slate-200 rounded-lg px-2 py-1"
+                  >
+                    העתק
+                  </button>
+                </div>
+                <p className="text-[0.65rem] text-slate-400 mt-1">
+                  שמור את הקוד — הקלד אותו במכשיר חדש כדי לשחזר את נתוני {activeProf.name}
+                </p>
               </div>
             )}
 

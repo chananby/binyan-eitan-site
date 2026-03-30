@@ -209,6 +209,89 @@ function makeReversePerimeter(perims: number[], difficulty: Difficulty): MathQue
   };
 }
 
+// ── Three-digit addition (Level 4) ───────────────────────────────────────────
+
+function makeThreeDigitAdd(difficulty: Difficulty): MathQuestion {
+  const a = randInt(100, 500);
+  const b = randInt(50, 400);
+  const answer = a + b;
+  return {
+    id: uid(), difficulty,
+    text: `${a} + ${b} = ?`,
+    answer, hint: `פרק לפי מאות, עשרות, אחדות`,
+    unit: "",
+    fullSolution: [
+      `מאות: ${Math.floor(a / 100) * 100} + ${Math.floor(b / 100) * 100} = ${Math.floor(a / 100) * 100 + Math.floor(b / 100) * 100}`,
+      `עשרות: ${Math.floor((a % 100) / 10) * 10} + ${Math.floor((b % 100) / 10) * 10}`,
+      `${a} + ${b} = ${answer}`,
+      `✅ תשובה: ${answer}`,
+    ],
+  };
+}
+
+// ── Two-step arithmetic (Level 4) ─────────────────────────────────────────────
+
+function makeTwoStep(difficulty: Difficulty): MathQuestion {
+  const a = randInt(10, 30);
+  const b = randInt(3, 8);
+  const c = randInt(5, 20);
+  const answer = a * b - c;
+  if (answer <= 0) return makeTwoStep(difficulty);
+  return {
+    id: uid(), difficulty,
+    text: `${a} × ${b} − ${c} = ?`,
+    answer, hint: `תחילה כפל, אחר כך חסר`,
+    unit: "",
+    fullSolution: [
+      `שלב 1: ${a} × ${b} = ${a * b}`,
+      `שלב 2: ${a * b} − ${c} = ${answer}`,
+      `✅ תשובה: ${answer}`,
+    ],
+  };
+}
+
+// ── Rectangle perimeter (Level 5) ─────────────────────────────────────────────
+
+function makeRectPerimeter(difficulty: Difficulty): MathQuestion {
+  const w = randInt(5, 15);
+  const h = randInt(3, w - 1);
+  const answer = 2 * (w + h);
+  return {
+    id: uid(), difficulty,
+    text: `מלבן ברוחב ${w} ס״מ וגובה ${h} ס״מ.\nמה ההיקף?`,
+    answer, hint: `היקף מלבן = 2 × (אורך + רוחב)`,
+    unit: "ס״מ",
+    fullSolution: [
+      `שלב 1: ${w} + ${h} = ${w + h}`,
+      `שלב 2: 2 × ${w + h} = ${answer}`,
+      `✅ תשובה: ${answer} ס״מ`,
+    ],
+  };
+}
+
+// ── Three-step problem (Level 5) ──────────────────────────────────────────────
+
+function makeThreeStep(difficulty: Difficulty): MathQuestion {
+  const price  = randInt(3, 8);
+  const qty1   = randInt(3, 7);
+  const qty2   = randInt(2, 5);
+  const budget = (price * qty1 + price * qty2) + randInt(5, 20);
+  const spent  = price * (qty1 + qty2);
+  const answer = budget - spent;
+  return {
+    id: uid(), difficulty,
+    text: `${budget} ₪ בכיס.\nקניתי ${qty1} ספרים ב-${price} ₪ כל אחד ועוד ${qty2} בצהריים.\nכמה נשאר?`,
+    answer, unit: "₪",
+    hint: `שלב 1: כמה ספרים בסך הכל? שלב 2: כמה שילמת? שלב 3: חסר`,
+    fullSolution: [
+      `שלב 1: ${qty1} + ${qty2} = ${qty1 + qty2} ספרים`,
+      `שלב 2: ${qty1 + qty2} × ${price} = ${spent} ₪`,
+      `שלב 3: ${budget} − ${spent} = ${answer} ₪`,
+      `✅ תשובה: ${answer} ₪`,
+    ],
+  };
+}
+
 // ── Question type union ───────────────────────────────────────────────────────
 
 type QType = "add" | "sub" | "mult" | "frac" | "peri";
@@ -217,7 +300,6 @@ type QType = "add" | "sub" | "mult" | "frac" | "peri";
 
 export function generateQuestion(difficulty: Difficulty): MathQuestion {
   if (difficulty === 1) {
-    // Weighted: mostly arithmetic + tables 1-5, some fractions
     const type = pick<QType>(["add", "add", "add", "sub", "sub", "mult", "mult", "frac"]);
     if (type === "add")  return makeAddition(1);
     if (type === "sub")  return makeSubtraction(1);
@@ -232,9 +314,19 @@ export function generateQuestion(difficulty: Difficulty): MathQuestion {
     return makeSquarePerimeter([7, 8, 9, 10, 11, 12], 2);
   }
 
-  // difficulty === 3
-  const type = pick<QType>(["mult", "mult", "frac", "peri"]);
-  if (type === "mult") return makeMultiplication([7, 8, 9, 10], 3);
-  if (type === "frac") return makeThreeQuarters([4, 8, 12, 16, 20, 24, 28, 32], 3);
-  return makeReversePerimeter([8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48], 3);
+  if (difficulty === 3) {
+    const type = pick<QType>(["mult", "mult", "frac", "peri"]);
+    if (type === "mult") return makeMultiplication([7, 8, 9, 10], 3);
+    if (type === "frac") return makeThreeQuarters([4, 8, 12, 16, 20, 24, 28, 32], 3);
+    return makeReversePerimeter([8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48], 3);
+  }
+
+  if (difficulty === 4) {
+    const which = randInt(0, 1);
+    return which === 0 ? makeThreeDigitAdd(4) : makeTwoStep(4);
+  }
+
+  // difficulty === 5
+  const which = randInt(0, 1);
+  return which === 0 ? makeRectPerimeter(5) : makeThreeStep(5);
 }

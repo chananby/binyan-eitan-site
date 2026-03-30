@@ -218,10 +218,148 @@ function level3(): MathQuestion {
   };
 }
 
+// ── Level 4 — percentage word problems ───────────────────────────────────────
+
+function level4(): MathQuestion {
+  const [n1] = two();
+  const type = rand(0, 2);
+
+  if (type === 0) {
+    // "price increased by X%, how much now?"
+    const pcts   = [10, 20, 25, 50];
+    const pct    = pick(pcts as unknown as string[]) as unknown as number;
+    const orig   = pct === 25 ? rand(2, 8) * 4 : rand(1, 9) * 10;
+    const change = (orig * pct) / 100;
+    const answer = orig + change;
+    return {
+      id: uid(), difficulty: 4,
+      text: `המחיר המקורי של ${n1} היה ${orig} ₪.\nהמחיר עלה ב-${pct}%.\nמה המחיר החדש?`,
+      answer, unit: "₪",
+      hint: `מצא ${pct}% מ-${orig} ואז הוסף`,
+      fullSolution: [
+        `שלב 1: ${pct}% מ-${orig} — ${orig} × ${pct} ÷ 100 = ${change} ₪`,
+        `שלב 2: ${orig} + ${change} = ${answer} ₪`,
+        `✅ תשובה: ${answer} ₪`,
+      ],
+    };
+  }
+  if (type === 1) {
+    // "after X% discount, how much do you pay?"
+    const pcts = [10, 20, 25, 50];
+    const pct  = pick(pcts as unknown as string[]) as unknown as number;
+    const orig = pct === 25 ? rand(2, 8) * 4 : rand(1, 9) * 10;
+    const discount = (orig * pct) / 100;
+    const answer   = orig - discount;
+    return {
+      id: uid(), difficulty: 4,
+      text: `מחיר מלא: ${orig} ₪.\nהנחה של ${pct}%.\nכמה משלמים?`,
+      answer, unit: "₪",
+      hint: `מצא ${pct}% מ-${orig} וחסר`,
+      fullSolution: [
+        `שלב 1: הנחה — ${orig} × ${pct} ÷ 100 = ${discount} ₪`,
+        `שלב 2: ${orig} − ${discount} = ${answer} ₪`,
+        `✅ תשובה: ${answer} ₪`,
+      ],
+    };
+  }
+  // "profit = sold − bought, what % profit?"
+  const bought = rand(2, 8) * 10;
+  const pcts   = [10, 20, 25, 50];
+  const pct    = pick(pcts as unknown as string[]) as unknown as number;
+  const profit = (bought * pct) / 100;
+  const sold   = bought + profit;
+  return {
+    id: uid(), difficulty: 4,
+    text: `${n1} קנה פריט ב-${bought} ₪ ומכר אותו ב-${sold} ₪.\nכמה אחוזי רווח עשה?`,
+    answer: pct, unit: "%",
+    hint: `(${sold} − ${bought}) ÷ ${bought} × 100`,
+    fullSolution: [
+      `שלב 1: רווח — ${sold} − ${bought} = ${profit} ₪`,
+      `שלב 2: אחוז רווח — ${profit} ÷ ${bought} × 100 = ${pct}%`,
+      `✅ תשובה: ${pct}%`,
+    ],
+  };
+}
+
+// ── Level 5 — three-step complex problems ─────────────────────────────────────
+
+function level5(): MathQuestion {
+  const [n1, n2] = two();
+  const type = rand(0, 2);
+
+  if (type === 0) {
+    // Earn × days − expense × days
+    const wage    = rand(5, 12);
+    const workDays = rand(4, 7);
+    const expDay  = rand(2, wage - 1);
+    const expDays = rand(2, 4);
+    const earned  = wage * workDays;
+    const spent   = expDay * expDays;
+    const answer  = earned - spent;
+    if (answer <= 0) return level5(); // retry if negative
+    return {
+      id: uid(), difficulty: 5,
+      text: `${n1} מרוויח ${wage} ₪ ליום ועובד ${workDays} ימים.\nהוא מוציא ${expDay} ₪ ליום על אוכל למשך ${expDays} ימים.\nכמה כסף נשאר לו?`,
+      answer, unit: "₪",
+      hint: `שלב 1: כמה הרוויח? שלב 2: כמה הוציא? שלב 3: חסר`,
+      fullSolution: [
+        `שלב 1: ${wage} × ${workDays} = ${earned} ₪`,
+        `שלב 2: ${expDay} × ${expDays} = ${spent} ₪`,
+        `שלב 3: ${earned} − ${spent} = ${answer} ₪`,
+        `✅ תשובה: ${answer} ₪`,
+      ],
+    };
+  }
+  if (type === 1) {
+    // Split + give fraction
+    const groups = rand(3, 5);
+    const each   = rand(4, 9);
+    const total  = groups * each;
+    const den    = rand(2, 4);
+    if (each % den !== 0) return level5(); // ensure clean division
+    const gave   = each / den;
+    const left   = each - gave;
+    return {
+      id: uid(), difficulty: 5,
+      text: `חולקו ${total} ספרים ל-${groups} ילדים בשווה.\n${n1} נתן ${n2} רבע מהספרים שקיבל.\nכמה ספרים יש ל${n1} עכשיו?`,
+      answer: left, unit: "ספרים",
+      hint: `שלב 1: כמה קיבל? שלב 2: כמה הוא רבע מזה?`,
+      fullSolution: [
+        `שלב 1: ${total} ÷ ${groups} = ${each} ספרים`,
+        `שלב 2: נתן 1/${den} — ${each} ÷ ${den} = ${gave}`,
+        `שלב 3: ${each} − ${gave} = ${left}`,
+        `✅ תשובה: ${left} ספרים`,
+      ],
+    };
+  }
+  // type 2: total items, fraction sold, fraction of rest kept
+  const total   = rand(3, 6) * 10;
+  const soldFrac = 2; // sold half
+  const sold    = total / soldFrac;
+  const rest    = total - sold;
+  const keptFrac = rand(2, 4);
+  if (rest % keptFrac !== 0) return level5();
+  const kept = rest / keptFrac;
+  return {
+    id: uid(), difficulty: 5,
+    text: `${n1} הכין ${total} עוגיות.\nהוא מכר מחצית מהן.\nמ-השאריות, הוא שמר 1/${keptFrac} לעצמו.\nכמה עוגיות שמר?`,
+    answer: kept, unit: "עוגיות",
+    hint: `שלב 1: כמה נמכרו? שלב 2: כמה נשאר? שלב 3: 1/${keptFrac} מהשאריות`,
+    fullSolution: [
+      `שלב 1: ${total} ÷ 2 = ${sold} נמכרו`,
+      `שלב 2: ${total} − ${sold} = ${rest} נשאר`,
+      `שלב 3: ${rest} ÷ ${keptFrac} = ${kept} שמר`,
+      `✅ תשובה: ${kept} עוגיות`,
+    ],
+  };
+}
+
 // ── Public export ─────────────────────────────────────────────────────────────
 
 export function generateQuestion(d: Difficulty): MathQuestion {
   if (d === 1) return level1();
   if (d === 2) return level2();
-  return level3();
+  if (d === 3) return level3();
+  if (d === 4) return level4();
+  return level5();
 }

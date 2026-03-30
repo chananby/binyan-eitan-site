@@ -149,6 +149,79 @@ function makeRectPerimeter(aMin: number, aMax: number, bMin: number, bMax: numbe
   };
 }
 
+// ── Area from perimeter (Level 4) ────────────────────────────────────────────
+
+function makeAreaFromPerim(difficulty: Difficulty): MathQuestion {
+  const a = randInt(4, 12);
+  const b = randInt(3, a - 1);
+  const perim  = 2 * (a + b);
+  const answer = a * b;
+  return {
+    id: uid(), difficulty,
+    text: `היקף המלבן ${perim} ס״מ, אורך ${a} ס״מ.\nמה השטח?`,
+    answer, hint: `מצא קודם את הרוחב (היקף ÷ 2 − אורך)`,
+    unit: "ס״מ²",
+    fullSolution: [
+      `שלב 1: חצי היקף = ${perim} ÷ 2 = ${perim / 2}`,
+      `שלב 2: רוחב = ${perim / 2} − ${a} = ${b}`,
+      `שלב 3: שטח = ${a} × ${b} = ${answer}`,
+      `✅ תשובה: ${answer} ס״מ²`,
+    ],
+  };
+}
+
+// ── 3-digit × 2-digit (Level 5) ──────────────────────────────────────────────
+
+function makeMult3x2(difficulty: Difficulty): MathQuestion {
+  const a = randInt(101, 299);
+  const b = randInt(11, 19);
+  const answer = a * b;
+  const bT = Math.floor(b / 10) * 10;
+  const bO = b % 10;
+  return {
+    id: uid(), difficulty,
+    text: `${a} × ${b} = ?`,
+    answer, hint: `פרק: ${a} × ${bT} + ${a} × ${bO}`,
+    unit: "",
+    fullSolution: [
+      `שלב 1: ${a} × ${bT} = ${a * bT}`,
+      `שלב 2: ${a} × ${bO} = ${a * bO}`,
+      `שלב 3: ${a * bT} + ${a * bO} = ${answer}`,
+      `✅ תשובה: ${answer}`,
+    ],
+  };
+}
+
+// ── Combined area+perimeter word problem (Level 5) ────────────────────────────
+
+function makeAreaPeriWord(difficulty: Difficulty): MathQuestion {
+  const a = randInt(5, 12);
+  const b = randInt(3, a - 1);
+  const area  = a * b;
+  const perim = 2 * (a + b);
+  const which = randInt(0, 1);
+  if (which === 0) {
+    return {
+      id: uid(), difficulty,
+      text: `שדה בצורת מלבן: ${a} מ' × ${b} מ'.\nכמה מטרים גידור צריך להקיף אותו?`,
+      answer: perim, hint: `היקף = 2 × (אורך + רוחב)`, unit: "מ'",
+      fullSolution: [
+        `2 × (${a} + ${b}) = 2 × ${a + b} = ${perim}`,
+        `✅ תשובה: ${perim} מ'`,
+      ],
+    };
+  }
+  return {
+    id: uid(), difficulty,
+    text: `שדה בצורת מלבן: ${a} מ' × ${b} מ'.\nכמה מ"ר שטח יש?`,
+    answer: area, hint: `שטח = אורך × רוחב`, unit: "מ\"ר",
+    fullSolution: [
+      `${a} × ${b} = ${area}`,
+      `✅ תשובה: ${area} מ"ר`,
+    ],
+  };
+}
+
 // ── Main generator ────────────────────────────────────────────────────────────
 
 type QType = "mult" | "area" | "peri";
@@ -167,9 +240,22 @@ export function generateQuestion(difficulty: Difficulty): MathQuestion {
     return makeRectPerimeter(4, 15, 3, 12, 2);
   }
 
-  // difficulty === 3
+  if (difficulty === 3) {
+    const type = pick<QType>(["mult", "area", "peri"]);
+    if (type === "mult") return makeMult2x2(3);
+    if (type === "area") return makeRectArea(6, 20, 5, 18, 3);
+    return makeRectPerimeter(6, 20, 5, 18, 3);
+  }
+
+  if (difficulty === 4) {
+    const type = pick<QType>(["mult", "area", "peri"]);
+    if (type === "mult") return makeMult2x2(4);
+    if (type === "area") return makeRectArea(8, 25, 6, 20, 4);
+    return makeAreaFromPerim(4);
+  }
+
+  // difficulty === 5
   const type = pick<QType>(["mult", "area", "peri"]);
-  if (type === "mult") return makeMult2x2(3);
-  if (type === "area") return makeRectArea(6, 20, 5, 18, 3);
-  return makeRectPerimeter(6, 20, 5, 18, 3);
+  if (type === "mult") return makeMult3x2(5);
+  return makeAreaPeriWord(5);
 }

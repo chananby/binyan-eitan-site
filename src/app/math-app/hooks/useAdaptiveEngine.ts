@@ -48,12 +48,12 @@ export interface AdaptiveEngine {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const POINTS_BY_LEVEL: Record<Difficulty, number> = { 1: 5, 2: 10, 3: 20 };
+const POINTS_BY_LEVEL: Record<Difficulty, number> = { 1: 5, 2: 10, 3: 20, 4: 35, 5: 50 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function clampLevel(n: number): Difficulty {
-  return Math.min(3, Math.max(1, n)) as Difficulty;
+  return Math.min(5, Math.max(1, n)) as Difficulty;
 }
 
 function freshSession(level: Difficulty): SessionStats {
