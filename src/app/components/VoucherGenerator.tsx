@@ -161,29 +161,37 @@ function drawGoblet(ctx: CanvasRenderingContext2D, cx: number, topY: number, h: 
 
 function drawPassoverCorners(ctx: CanvasRenderingContext2D, W: number, H: number, color: string, alpha: number) {
   // ── Top-left ──
-  drawFlower(ctx, 118, 118, 27, color, alpha * 0.68);
-  drawLeaf(ctx, 118, 118, 174, 86, 20, color, alpha * 0.46);
-  drawLeaf(ctx, 118, 118, 86, 174, -20, color, alpha * 0.46);
-  drawWheat(ctx, 156, 156, 72, -0.5, color, alpha * 0.38);
-  drawFlower(ctx, 170, 86, 14, color, alpha * 0.38);
+  drawFlower(ctx, 122, 122, 36, color, alpha * 0.78);
+  drawLeaf(ctx, 122, 122, 188, 82, 26, color, alpha * 0.55);
+  drawLeaf(ctx, 122, 122, 82, 188, -26, color, alpha * 0.55);
+  drawWheat(ctx, 168, 168, 90, -0.5, color, alpha * 0.50);
+  drawWheat(ctx, 96, 168, 80, -0.2, color, alpha * 0.38);
+  drawFlower(ctx, 184, 88, 19, color, alpha * 0.50);
+  drawFlower(ctx, 90, 185, 15, color, alpha * 0.40);
   // ── Top-right ──
-  drawFlower(ctx, W - 118, 118, 27, color, alpha * 0.68);
-  drawLeaf(ctx, W - 118, 118, W - 174, 86, -20, color, alpha * 0.46);
-  drawLeaf(ctx, W - 118, 118, W - 86, 174, 20, color, alpha * 0.46);
-  drawWheat(ctx, W - 156, 156, 72, 0.5, color, alpha * 0.38);
-  drawFlower(ctx, W - 170, 86, 14, color, alpha * 0.38);
+  drawFlower(ctx, W - 122, 122, 36, color, alpha * 0.78);
+  drawLeaf(ctx, W - 122, 122, W - 188, 82, -26, color, alpha * 0.55);
+  drawLeaf(ctx, W - 122, 122, W - 82, 188, 26, color, alpha * 0.55);
+  drawWheat(ctx, W - 168, 168, 90, 0.5, color, alpha * 0.50);
+  drawWheat(ctx, W - 96, 168, 80, 0.2, color, alpha * 0.38);
+  drawFlower(ctx, W - 184, 88, 19, color, alpha * 0.50);
+  drawFlower(ctx, W - 90, 185, 15, color, alpha * 0.40);
   // ── Bottom-left ──
-  drawFlower(ctx, 118, H - 118, 27, color, alpha * 0.68);
-  drawLeaf(ctx, 118, H - 118, 174, H - 86, 20, color, alpha * 0.46);
-  drawLeaf(ctx, 118, H - 118, 86, H - 174, -20, color, alpha * 0.46);
-  drawWheat(ctx, 156, H - 76, 72, -0.5, color, alpha * 0.38);
-  drawFlower(ctx, 170, H - 86, 14, color, alpha * 0.38);
+  drawFlower(ctx, 122, H - 122, 36, color, alpha * 0.78);
+  drawLeaf(ctx, 122, H - 122, 188, H - 82, 26, color, alpha * 0.55);
+  drawLeaf(ctx, 122, H - 122, 82, H - 188, -26, color, alpha * 0.55);
+  drawWheat(ctx, 168, H - 68, 90, -0.5, color, alpha * 0.50);
+  drawWheat(ctx, 96, H - 68, 80, -0.2, color, alpha * 0.38);
+  drawFlower(ctx, 184, H - 88, 19, color, alpha * 0.50);
+  drawFlower(ctx, 90, H - 185, 15, color, alpha * 0.40);
   // ── Bottom-right ──
-  drawFlower(ctx, W - 118, H - 118, 27, color, alpha * 0.68);
-  drawLeaf(ctx, W - 118, H - 118, W - 174, H - 86, -20, color, alpha * 0.46);
-  drawLeaf(ctx, W - 118, H - 118, W - 86, H - 174, 20, color, alpha * 0.46);
-  drawWheat(ctx, W - 156, H - 76, 72, 0.5, color, alpha * 0.38);
-  drawFlower(ctx, W - 170, H - 86, 14, color, alpha * 0.38);
+  drawFlower(ctx, W - 122, H - 122, 36, color, alpha * 0.78);
+  drawLeaf(ctx, W - 122, H - 122, W - 188, H - 82, -26, color, alpha * 0.55);
+  drawLeaf(ctx, W - 122, H - 122, W - 82, H - 188, 26, color, alpha * 0.55);
+  drawWheat(ctx, W - 168, H - 68, 90, 0.5, color, alpha * 0.50);
+  drawWheat(ctx, W - 96, H - 68, 80, 0.2, color, alpha * 0.38);
+  drawFlower(ctx, W - 184, H - 88, 19, color, alpha * 0.50);
+  drawFlower(ctx, W - 90, H - 185, 15, color, alpha * 0.40);
 }
 
 function drawPassoverCenterpiece(ctx: CanvasRenderingContext2D, CX: number, topY: number, color: string, alpha: number) {
@@ -192,21 +200,21 @@ function drawPassoverCenterpiece(ctx: CanvasRenderingContext2D, CX: number, topY
   fadeLineH(ctx, 160, CX - 80, topY + 2, color.replace(')', `,${alpha * 0.35})`).replace('rgb', 'rgba'));
   fadeLineH(ctx, CX + 80, 920, topY + 2, color.replace(')', `,${alpha * 0.35})`).replace('rgb', 'rgba'));
   // Goblet
-  drawGoblet(ctx, CX, topY + 10, 95, color, alpha * 0.55);
+  drawGoblet(ctx, CX, topY + 8, 115, color, alpha * 0.72);
   // Wheat stalks — inner pair
-  drawWheat(ctx, CX - 82, topY + 104, 112, -0.55, color, alpha * 0.44);
-  drawWheat(ctx, CX + 82, topY + 104, 112, 0.55, color, alpha * 0.44);
+  drawWheat(ctx, CX - 90, topY + 122, 130, -0.55, color, alpha * 0.58);
+  drawWheat(ctx, CX + 90, topY + 122, 130, 0.55, color, alpha * 0.58);
   // Wheat stalks — outer pair
-  drawWheat(ctx, CX - 155, topY + 88, 92, -0.38, color, alpha * 0.32);
-  drawWheat(ctx, CX + 155, topY + 88, 92, 0.38, color, alpha * 0.32);
+  drawWheat(ctx, CX - 168, topY + 106, 108, -0.38, color, alpha * 0.44);
+  drawWheat(ctx, CX + 168, topY + 106, 108, 0.38, color, alpha * 0.44);
   // Flowers
-  drawFlower(ctx, CX - 215, topY + 62, 23, color, alpha * 0.42);
-  drawFlower(ctx, CX + 215, topY + 62, 23, color, alpha * 0.42);
-  drawFlower(ctx, CX - 260, topY + 100, 16, color, alpha * 0.30);
-  drawFlower(ctx, CX + 260, topY + 100, 16, color, alpha * 0.30);
+  drawFlower(ctx, CX - 230, topY + 70, 28, color, alpha * 0.58);
+  drawFlower(ctx, CX + 230, topY + 70, 28, color, alpha * 0.58);
+  drawFlower(ctx, CX - 282, topY + 112, 20, color, alpha * 0.44);
+  drawFlower(ctx, CX + 282, topY + 112, 20, color, alpha * 0.44);
   // Leaves flanking goblet
-  drawLeaf(ctx, CX - 32, topY + 100, CX - 76, topY + 55, 16, color, alpha * 0.36);
-  drawLeaf(ctx, CX + 32, topY + 100, CX + 76, topY + 55, -16, color, alpha * 0.36);
+  drawLeaf(ctx, CX - 36, topY + 118, CX - 85, topY + 62, 20, color, alpha * 0.48);
+  drawLeaf(ctx, CX + 36, topY + 118, CX + 85, topY + 62, -20, color, alpha * 0.48);
 }
 
 // ─── Template A: Smart Sky ────────────────────────────────────────────────────
@@ -228,7 +236,7 @@ async function drawSmartSkyVoucher(canvas: HTMLCanvasElement, emp: Employee) {
   ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
 
   // Passover corners (drawn BEHIND borders)
-  drawPassoverCorners(ctx, W, H, GOLD, 0.40);
+  drawPassoverCorners(ctx, W, H, GOLD, 0.62);
 
   // Borders
   ctx.strokeStyle = 'rgba(200,160,74,0.46)'; ctx.lineWidth = 2;
@@ -270,7 +278,7 @@ async function drawSmartSkyVoucher(canvas: HTMLCanvasElement, emp: Employee) {
   // "To the honour of"
   ctx.font = '27px "Assistant","Heebo",Arial,sans-serif';
   ctx.fillStyle = 'rgba(180,190,215,0.58)';
-  ctx.fillText('מוענק בגאווה לכבוד', CX, 410);
+  ctx.fillText('לכבוד', CX, 410);
 
   // Employee name
   ctx.shadowColor = 'rgba(255,255,255,0.14)'; ctx.shadowBlur = 22;
@@ -306,9 +314,9 @@ async function drawSmartSkyVoucher(canvas: HTMLCanvasElement, emp: Employee) {
 
   // ── Message — 3 paragraphs ──────────────────────────────────────────────────
   const paras = [
-    'עם תחילת שנת 2026, אנו שמחים לשלוח לך שובר מתנה זה כביטוי אמיתי להוקרתנו על עבודתך המסורה והנאמנה.',
+    'לרגל חג הפסח הבא עלינו לטובה, אנו שמחים לשלוח לך שובר מתנה זה כביטוי אמיתי להוקרתנו על עבודתך המסורה והנאמנה.',
     'אנחנו מעריכים אותך ושמחים שאתה חלק ממשפחת סמארט סקיי.',
-    'יהי רצון שהשנה החדשה תביא לך ולמשפחתך הטובה בריאות שלמה, שמחה רבה, הצלחה ושפע בכל מעשי ידיך.',
+    'יהי רצון שיהיה לך ולמשפחתך חג שמח, כשר ומואר — ושנה של בריאות, שמחה, הצלחה ושפע בכל.',
   ];
   ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   ctx.font = '33px "Assistant","Heebo",Arial,sans-serif';
@@ -317,7 +325,7 @@ async function drawSmartSkyVoucher(canvas: HTMLCanvasElement, emp: Employee) {
 
   // ── Passover centerpiece ────────────────────────────────────────────────────
   const cpY = Math.max(msgEnd + 48, 1220);
-  drawPassoverCenterpiece(ctx, CX, cpY, GOLD, 0.50);
+  drawPassoverCenterpiece(ctx, CX, cpY, GOLD, 0.72);
 
   // ── Vendor box ──────────────────────────────────────────────────────────────
   const vbY = Math.max(cpY + 210, 1450), vbH = 175;
@@ -359,7 +367,7 @@ async function drawBinyanEitanVoucher(canvas: HTMLCanvasElement, emp: Employee) 
   ctx.fillStyle = ov; ctx.fillRect(0, 0, W, H);
 
   // Passover corners (BEHIND borders)
-  drawPassoverCorners(ctx, W, H, BRONZE, 0.44);
+  drawPassoverCorners(ctx, W, H, BRONZE, 0.66);
 
   // Borders
   ctx.strokeStyle = BRONZE; ctx.lineWidth = 2; ctx.strokeRect(44, 44, W - 88, H - 88);
@@ -427,9 +435,9 @@ async function drawBinyanEitanVoucher(canvas: HTMLCanvasElement, emp: Employee) 
 
   // ── Message — 3 paragraphs ──────────────────────────────────────────────────
   const paras = [
-    'בהכרת תודה עמוקה על מסירותך, הנאמנות והרוח הטובה שאתה מביא לבנין איתן בכל יום.',
-    'ברצוני להביע את הערכתי הכנה לעבודתך ולתרומתך לצוות המצוין שלנו.',
-    'יהי רצון שהשנה הבאה תביא לך ולמשפחתך הטובה בריאות, נחת, שמחה ושפע בכל.',
+    'לרגל חג הפסח הבא עלינו לטובה, ברצוני להביע את הכרת התודה הכנה שלי על מסירותך, הנאמנות והרוח הטובה שאתה מביא לבנין איתן.',
+    'אתה חלק בלתי נפרד מהצוות המצוין שלנו, ואני מעריך אותך מאוד.',
+    'יהי רצון שיהיה לך ולמשפחתך חג פסח שמח וכשר — ושנה של בריאות, נחת ושפע בכל.',
   ];
   ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   ctx.font = '35px "Assistant","Heebo",Arial,sans-serif'; ctx.fillStyle = 'rgba(45,41,38,0.80)';
@@ -437,7 +445,7 @@ async function drawBinyanEitanVoucher(canvas: HTMLCanvasElement, emp: Employee) 
 
   // ── Passover centerpiece ────────────────────────────────────────────────────
   const cpY = Math.max(msgEnd + 50, 1220);
-  drawPassoverCenterpiece(ctx, CX, cpY, BRONZE, 0.54);
+  drawPassoverCenterpiece(ctx, CX, cpY, BRONZE, 0.76);
 
   // ── Vendor box ──────────────────────────────────────────────────────────────
   const vbY = Math.max(cpY + 210, 1450), vbH = 175;
