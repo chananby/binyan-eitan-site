@@ -134,9 +134,18 @@ function diamond(
   ctx.fill();
 }
 
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
 // ─── Template A: Smart Sky ────────────────────────────────────────────────────
 
-function drawSmartSkyVoucher(canvas: HTMLCanvasElement, emp: Employee) {
+async function drawSmartSkyVoucher(canvas: HTMLCanvasElement, emp: Employee) {
   const ctx = canvas.getContext('2d')!;
   const W = 1080, H = 1920, CX = W / 2;
 
@@ -169,28 +178,38 @@ function drawSmartSkyVoucher(canvas: HTMLCanvasElement, emp: Employee) {
   ctx.lineWidth = 2.5;
   drawCorners(ctx, W, H, 52);
 
-  // ── Logo area ──
-  ctx.save();
-  ctx.direction = 'ltr';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.shadowColor = 'rgba(200,160,74,0.35)';
-  ctx.shadowBlur = 28;
-  ctx.font = 'bold 58px "Assistant","Heebo",Arial,sans-serif';
-  ctx.fillStyle = '#FFFFFF';
-  // Manual letter-spacing fallback: set letterSpacing if available
-  // @ts-expect-error – canvas letterSpacing is supported in modern browsers
-  ctx.letterSpacing = '10px';
-  ctx.fillText('SMART SKY', CX, 180);
-  // @ts-expect-error
-  ctx.letterSpacing = '3px';
-  ctx.shadowBlur = 0;
-  ctx.font = '27px "Assistant","Heebo",Arial,sans-serif';
-  ctx.fillStyle = '#C8A04A';
-  ctx.fillText('\u2736  \u05D7\u05E9\u05DE\u05DC \u2736 \u05EA\u05D0\u05D5\u05E8\u05D4  \u2736', CX, 246);
-  // @ts-expect-error
-  ctx.letterSpacing = '0px';
-  ctx.restore();
+  // ── Logo ──
+  try {
+    const logo = await loadImage('/smart-sky-logo.png');
+    const maxW = 360, maxH = 185;
+    const scale = Math.min(maxW / logo.naturalWidth, maxH / logo.naturalHeight);
+    const lW = logo.naturalWidth * scale, lH = logo.naturalHeight * scale;
+    ctx.save();
+    // Invert black→white, then screen blends white onto dark bg while hiding the bg
+    ctx.filter = 'invert(1)';
+    ctx.globalCompositeOperation = 'screen';
+    ctx.drawImage(logo, CX - lW / 2, 88, lW, lH);
+    ctx.restore();
+  } catch {
+    // Fallback text if logo not found
+    ctx.save();
+    ctx.direction = 'ltr';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(200,160,74,0.35)';
+    ctx.shadowBlur = 20;
+    ctx.letterSpacing = '10px';
+    ctx.font = 'bold 58px "Assistant","Heebo",Arial,sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('SMART SKY', CX, 180);
+    ctx.letterSpacing = '3px';
+    ctx.shadowBlur = 0;
+    ctx.font = '27px "Assistant","Heebo",Arial,sans-serif';
+    ctx.fillStyle = '#C8A04A';
+    ctx.fillText('מערכות הצללה מתקדמות', CX, 246);
+    ctx.letterSpacing = '0px';
+    ctx.restore();
+  }
 
   // Gold rule
   ctx.lineWidth = 1;
@@ -309,7 +328,7 @@ function drawSmartSkyVoucher(canvas: HTMLCanvasElement, emp: Employee) {
 
 // ─── Template B: Binyan Eitan ─────────────────────────────────────────────────
 
-function drawBinyanEitanVoucher(canvas: HTMLCanvasElement, emp: Employee) {
+async function drawBinyanEitanVoucher(canvas: HTMLCanvasElement, emp: Employee) {
   const ctx = canvas.getContext('2d')!;
   const W = 1080, H = 1920, CX = W / 2;
 
@@ -346,17 +365,29 @@ function drawBinyanEitanVoucher(canvas: HTMLCanvasElement, emp: Employee) {
     ctx.beginPath(); ctx.moveTo(110, barY); ctx.lineTo(W - 110, barY); ctx.stroke();
   }
 
-  // Company name
-  ctx.direction = 'rtl';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = 'bold 70px "Assistant","Heebo",Arial,sans-serif';
-  ctx.fillStyle = '#2D2926';
-  ctx.fillText('\u05D1\u05E0\u05D9\u05DF \u05D0\u05D9\u05EA\u05DF', CX, 196);
-
-  ctx.font = '28px "Assistant","Heebo",Arial,sans-serif';
-  ctx.fillStyle = '#8D775F';
-  ctx.fillText('\u05D4\u05E0\u05D3\u05E1\u05D4 \u05D5\u05D1\u05E0\u05D9\u05D9\u05D4', CX, 260);
+  // ── Logo ──
+  try {
+    const logo = await loadImage('/logo.png');
+    const maxW = 310, maxH = 195;
+    const scale = Math.min(maxW / logo.naturalWidth, maxH / logo.naturalHeight);
+    const lW = logo.naturalWidth * scale, lH = logo.naturalHeight * scale;
+    ctx.save();
+    // multiply: white bg × bone bg = bone (disappears), colored marks × bone = stays visible
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.drawImage(logo, CX - lW / 2, 100, lW, lH);
+    ctx.restore();
+  } catch {
+    // Fallback text
+    ctx.direction = 'rtl';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 70px "Assistant","Heebo",Arial,sans-serif';
+    ctx.fillStyle = '#2D2926';
+    ctx.fillText('בנין איתן', CX, 196);
+    ctx.font = '28px "Assistant","Heebo",Arial,sans-serif';
+    ctx.fillStyle = '#8D775F';
+    ctx.fillText('הנדסה ובנייה', CX, 260);
+  }
 
   // Bronze rule
   ctx.lineWidth = 1.5;
@@ -476,11 +507,11 @@ export default function VoucherGenerator() {
   useEffect(() => {
     if (!selected || !canvasRef.current) return;
     const canvas = canvasRef.current;
-    document.fonts.ready.then(() => {
+    document.fonts.ready.then(async () => {
       if (selected.company === 'smartSky') {
-        drawSmartSkyVoucher(canvas, selected);
+        await drawSmartSkyVoucher(canvas, selected);
       } else {
-        drawBinyanEitanVoucher(canvas, selected);
+        await drawBinyanEitanVoucher(canvas, selected);
       }
     });
   }, [selected]);
