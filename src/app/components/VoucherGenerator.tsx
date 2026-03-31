@@ -463,11 +463,11 @@ async function drawBinyanEitanVoucher(canvas: HTMLCanvasElement, emp: Employee) 
   ctx.fillText('בתוקף עד: ד׳ סיוון תשפ״ו  |  31 במאי 2026', CX, vbY + 126);
 
   // ── Signature ───────────────────────────────────────────────────────────────
-  const sigY = vbY + vbH + 68;
+  const sigY = vbY + vbH + 42;
   ctx.font = '30px "Assistant","Heebo",Arial,sans-serif'; ctx.fillStyle = 'rgba(45,41,38,0.48)';
   ctx.fillText('בידידות ובהוקרה,', CX, sigY);
   ctx.font = 'bold 52px "Assistant","Heebo",Arial,sans-serif'; ctx.fillStyle = '#2D2926';
-  ctx.fillText('מוטי', CX, sigY + 52);
+  ctx.fillText('מוטי', CX, sigY + 46);
 
   // Bottom decorative bars (mirror of top)
   for (let i = 0; i < 3; i++) {
