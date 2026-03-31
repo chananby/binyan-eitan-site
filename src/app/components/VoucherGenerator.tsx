@@ -180,7 +180,7 @@ async function drawSmartSkyVoucher(canvas: HTMLCanvasElement, emp: Employee) {
 
   // ── Logo ──
   try {
-    const logo = await loadImage('/smart-sky-logo.png');
+    const logo = await loadImage('/smartsky.png');
     const maxW = 360, maxH = 185;
     const scale = Math.min(maxW / logo.naturalWidth, maxH / logo.naturalHeight);
     const lW = logo.naturalWidth * scale, lH = logo.naturalHeight * scale;
