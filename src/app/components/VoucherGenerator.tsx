@@ -284,15 +284,15 @@ function drawSmartSkyVoucher(canvas: HTMLCanvasElement, emp: Employee) {
   ctx.textBaseline = 'top';
   ctx.font = 'bold 33px "Assistant","Heebo",Arial,sans-serif';
   ctx.fillStyle = '#C8A04A';
-  ctx.fillText('\u05D0\u05DC\u05E7\u05D8\u05E8\u05D5 \u05E1\u05DC\u05D9\u05DC \u05D4\u05DE\u05D2\u05E8\u05E9', CX, vbY + 28);
+  ctx.fillText('אלקטרו סליל המגרש — סניף תלפיות', CX, vbY + 28);
 
   ctx.font = '27px "Assistant","Heebo",Arial,sans-serif';
   ctx.fillStyle = 'rgba(180,188,210,0.72)';
-  ctx.fillText('\u05E8\u05D7\u05D5\u05D1 \u05D1\u05D9\u05EA \u05D4\u05D3\u05E4\u05D5\u05E1 11, \u05D2\u05D1\u05E2\u05EA \u05E9\u05D0\u05D5\u05DC, \u05D9\u05E8\u05D5\u05E9\u05DC\u05D9\u05DD', CX, vbY + 82);
+  ctx.fillText('רחוב חרשי הברזל 8, תלפיות, ירושלים', CX, vbY + 82);
 
   ctx.font = '25px "Assistant","Heebo",Arial,sans-serif';
   ctx.fillStyle = 'rgba(200,160,74,0.68)';
-  ctx.fillText('\u2736   \u05D1\u05EA\u05D5\u05E7\u05E3 \u05E2\u05D3: 31/05/2026   \u2736', CX, vbY + 134);
+  ctx.fillText('בתוקף עד: ד׳ סיוון תשפ״ו  |  31 במאי 2026', CX, vbY + 134);
 
   // Signature
   ctx.font = '32px "Assistant","Heebo",Arial,sans-serif';
@@ -439,15 +439,15 @@ function drawBinyanEitanVoucher(canvas: HTMLCanvasElement, emp: Employee) {
   ctx.textBaseline = 'top';
   ctx.font = 'bold 33px "Assistant","Heebo",Arial,sans-serif';
   ctx.fillStyle = '#2D2926';
-  ctx.fillText('\u05D0\u05DC\u05E7\u05D8\u05E8\u05D5 \u05E1\u05DC\u05D9\u05DC \u05D4\u05DE\u05D2\u05E8\u05E9', CX, vbY + 28);
+  ctx.fillText('אלקטרו סליל המגרש — סניף תלפיות', CX, vbY + 28);
 
   ctx.font = '27px "Assistant","Heebo",Arial,sans-serif';
   ctx.fillStyle = 'rgba(45,41,38,0.58)';
-  ctx.fillText('\u05E8\u05D7\u05D5\u05D1 \u05D1\u05D9\u05EA \u05D4\u05D3\u05E4\u05D5\u05E1 11, \u05D2\u05D1\u05E2\u05EA \u05E9\u05D0\u05D5\u05DC, \u05D9\u05E8\u05D5\u05E9\u05DC\u05D9\u05DD', CX, vbY + 82);
+  ctx.fillText('רחוב חרשי הברזל 8, תלפיות, ירושלים', CX, vbY + 82);
 
   ctx.font = '25px "Assistant","Heebo",Arial,sans-serif';
   ctx.fillStyle = '#8D775F';
-  ctx.fillText('\u05D1\u05EA\u05D5\u05E7\u05E3 \u05E2\u05D3: 31/05/2026', CX, vbY + 134);
+  ctx.fillText('בתוקף עד: ד׳ סיוון תשפ״ו  |  31 במאי 2026', CX, vbY + 134);
 
   // Signature
   ctx.font = '32px "Assistant","Heebo",Arial,sans-serif';
