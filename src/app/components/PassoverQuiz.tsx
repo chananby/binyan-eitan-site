@@ -1,0 +1,1048 @@
+'use client';
+
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle, XCircle, Trophy, BookOpen, ChevronLeft, RotateCcw, Layers, HelpCircle } from 'lucide-react';
+import {
+  ALL_QUESTIONS,
+  CATEGORY_LABELS,
+  CATEGORY_ICONS,
+  AGE_GROUP_LABELS,
+  AGE_GROUP_ICONS,
+  type QuizCategory,
+  type AgeGroup,
+  type QuizQuestion,
+  type MultipleChoiceQuestion,
+  type TrueFalseQuestion,
+  type FillBlankQuestion,
+  type OrderingQuestion,
+  type MatchingQuestion,
+  type WhoSaidQuestion,
+} from '../../lib/passover-quiz-data';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Screen = 'start' | 'quiz' | 'results';
+
+type Answer =
+  | { type: 'multiple-choice'; selected: number | null }
+  | { type: 'true-false'; selected: boolean | null }
+  | { type: 'fill-blank'; text: string }
+  | { type: 'ordering'; order: string[] }
+  | { type: 'matching'; pairs: Array<{ left: string; right: string }> }
+  | { type: 'who-said'; selected: number | null };
+
+interface QuestionState {
+  answer: Answer;
+  revealed: boolean;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickQuestions(
+  ageGroup: AgeGroup,
+  category: QuizCategory | 'all',
+  count = 10,
+): QuizQuestion[] {
+  let pool = ALL_QUESTIONS.filter((q) => q.ageGroup === ageGroup);
+  if (category !== 'all') pool = pool.filter((q) => q.category === category);
+  return shuffle(pool).slice(0, count);
+}
+
+function isCorrect(q: QuizQuestion, answer: Answer): boolean {
+  switch (q.type) {
+    case 'multiple-choice':
+    case 'who-said':
+      return (answer as { selected: number | null }).selected === q.correctIndex;
+    case 'true-false':
+      return (answer as { selected: boolean | null }).selected === q.isTrue;
+    case 'fill-blank': {
+      const text = (answer as { text: string }).text.trim();
+      return text.toLowerCase() === q.answer.toLowerCase();
+    }
+    case 'ordering': {
+      const order = (answer as { order: string[] }).order;
+      return JSON.stringify(order) === JSON.stringify(q.items);
+    }
+    case 'matching': {
+      const pairs = (answer as { pairs: Array<{ left: string; right: string }> }).pairs;
+      if (pairs.length !== q.pairs.length) return false;
+      return q.pairs.every((p) => pairs.some((a) => a.left === p.left && a.right === p.right));
+    }
+  }
+}
+
+function getQuestionText(q: QuizQuestion): string {
+  switch (q.type) {
+    case 'multiple-choice':
+    case 'ordering':
+    case 'matching':
+      return q.question;
+    case 'who-said':
+      return q.context ?? q.quote;
+    case 'true-false':
+      return q.statement;
+    case 'fill-blank':
+      return q.questionWithBlank;
+  }
+}
+
+function scoreMessage(score: number, total: number): { title: string; body: string } {
+  const pct = score / total;
+  if (pct === 1)
+    return { title: 'מושלם! כתר תורה! 👑', body: 'ענית נכון על כל השאלות. אתה בקיא כסיני!' };
+  if (pct >= 0.8)
+    return { title: 'מצוין! ישר כוח! 🌟', body: 'שליטה נפלאה בחומר. עוד קצת ותגיע לשלמות.' };
+  if (pct >= 0.6)
+    return { title: 'טוב מאוד! 📖', body: 'יש לך בסיס מוצק. חזור על החומר וגדל.' };
+  if (pct >= 0.4)
+    return { title: 'לא רע, אבל אפשר יותר', body: '"עשה לך רב" — שוב על ההסברים ותתקדם.' };
+  return { title: 'ניסיון ראשון? 🌱', body: '"הפוך בה והפוך בה דכולה בה" — נסה שוב!' };
+}
+
+function timerForQuestion(q: QuizQuestion): number {
+  switch (q.type) {
+    case 'ordering':
+    case 'matching':
+      return 90;
+    case 'fill-blank':
+      return 60;
+    default:
+      return 30;
+  }
+}
+
+// ─── Small shared components ──────────────────────────────────────────────────
+
+function Diamond() {
+  return <span className="text-accent/60 mx-2 text-xs select-none">◆</span>;
+}
+
+function CategoryBadge({ category }: { category: QuizCategory }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-accent/30 bg-accent/[0.06] text-accent text-xs font-medium">
+      <span>{CATEGORY_ICONS[category]}</span>
+      {CATEGORY_LABELS[category]}
+    </span>
+  );
+}
+
+function TypeBadge({ type }: { type: QuizQuestion['type'] }) {
+  const labels: Record<QuizQuestion['type'], string> = {
+    'multiple-choice': 'רב-ברירה',
+    'true-false': 'נכון/לא נכון',
+    'fill-blank': 'השלמת משפט',
+    'ordering': 'סידור',
+    'matching': 'התאמה',
+    'who-said': 'מי אמר?',
+  };
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-warm-gray-light text-charcoal/40 text-xs">
+      {labels[type]}
+    </span>
+  );
+}
+
+function TimerRing({ seconds, total }: { seconds: number; total: number }) {
+  const r = 20;
+  const circ = 2 * Math.PI * r;
+  const progress = seconds / total;
+  const color = seconds <= 10 ? '#c0392b' : seconds <= 20 ? '#e67e22' : '#8D775F';
+  return (
+    <div className="relative w-14 h-14 flex items-center justify-center flex-shrink-0">
+      <svg width="56" height="56" className="-rotate-90">
+        <circle cx="28" cy="28" r={r} fill="none" stroke="#E8E7E3" strokeWidth="3" />
+        <circle
+          cx="28" cy="28" r={r} fill="none"
+          stroke={color} strokeWidth="3"
+          strokeDasharray={`${circ * progress} ${circ}`}
+          strokeLinecap="round"
+          style={{ transition: 'stroke-dasharray 1s linear, stroke 0.5s' }}
+        />
+      </svg>
+      <span className="absolute text-sm font-bold tabular-nums" style={{ color }}>{seconds}</span>
+    </div>
+  );
+}
+
+// ─── Question renderers ───────────────────────────────────────────────────────
+
+function MultipleChoiceRenderer({
+  q, answer, revealed, onAnswer,
+}: { q: MultipleChoiceQuestion | WhoSaidQuestion; answer: Answer; revealed: boolean; onAnswer: (a: Answer) => void }) {
+  const selected = (answer as { selected: number | null }).selected;
+
+  const buttonClass = (i: number) => {
+    if (!revealed) {
+      return selected === i
+        ? 'border-accent bg-accent/[0.08] text-charcoal'
+        : 'border-warm-gray-light bg-white text-charcoal hover:border-accent/60 hover:bg-accent/[0.04]';
+    }
+    if (i === q.correctIndex) return 'border-green-500 bg-green-50 text-green-800 font-semibold';
+    if (i === selected && selected !== q.correctIndex) return 'border-red-400 bg-red-50 text-red-700';
+    return 'border-warm-gray-light bg-white text-charcoal/40';
+  };
+
+  const isWhoSaid = q.type === 'who-said';
+  const items = q.options;
+
+  return (
+    <div className="space-y-3">
+      {isWhoSaid && (
+        <div className="bg-accent/[0.04] border border-accent/20 rounded-xl px-5 py-4 mb-2">
+          <p className="text-charcoal font-heading text-lg text-center leading-relaxed">
+            {(q as WhoSaidQuestion).quote}
+          </p>
+          {(q as WhoSaidQuestion).context && (
+            <p className="text-charcoal/50 text-sm text-center mt-1">{(q as WhoSaidQuestion).context}</p>
+          )}
+        </div>
+      )}
+      <div className="grid grid-cols-1 gap-2.5">
+        {items.map((opt, i) => (
+          <button
+            key={i}
+            onClick={() => !revealed && onAnswer({ type: q.type as 'multiple-choice', selected: i })}
+            disabled={revealed}
+            className={`w-full text-right px-4 py-3 rounded-xl border text-sm transition-all leading-snug ${buttonClass(i)}`}
+          >
+            <span className="text-accent/60 font-mono text-xs ml-2">{['א', 'ב', 'ג', 'ד'][i]}.</span>
+            {opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TrueFalseRenderer({
+  q, answer, revealed, onAnswer,
+}: { q: TrueFalseQuestion; answer: Answer; revealed: boolean; onAnswer: (a: Answer) => void }) {
+  const selected = (answer as { selected: boolean | null }).selected;
+
+  const btnClass = (val: boolean) => {
+    if (!revealed) {
+      return selected === val
+        ? 'border-accent bg-accent/[0.08] text-charcoal font-semibold'
+        : 'border-warm-gray-light bg-white text-charcoal hover:border-accent/60';
+    }
+    if (val === q.isTrue) return 'border-green-500 bg-green-50 text-green-800 font-semibold';
+    if (selected === val && val !== q.isTrue) return 'border-red-400 bg-red-50 text-red-700';
+    return 'border-warm-gray-light bg-white text-charcoal/40';
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      {[true, false].map((val) => (
+        <button
+          key={String(val)}
+          onClick={() => !revealed && onAnswer({ type: 'true-false', selected: val })}
+          disabled={revealed}
+          className={`py-5 rounded-2xl border text-xl font-heading transition-all ${btnClass(val)}`}
+        >
+          {val ? '✓ נכון' : '✗ לא נכון'}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function FillBlankRenderer({
+  q, answer, revealed, onAnswer,
+}: { q: FillBlankQuestion; answer: Answer; revealed: boolean; onAnswer: (a: Answer) => void }) {
+  const text = (answer as { text: string }).text;
+  const correct = revealed && text.trim().toLowerCase() === q.answer.toLowerCase();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!revealed) inputRef.current?.focus();
+  }, [revealed]);
+
+  return (
+    <div className="space-y-4">
+      {q.hint && !revealed && (
+        <p className="text-xs text-charcoal/40 flex items-center gap-1.5">
+          <HelpCircle size={12} /> רמז: {q.hint}
+        </p>
+      )}
+      <input
+        ref={inputRef}
+        type="text"
+        dir="rtl"
+        value={text}
+        onChange={(e) => !revealed && onAnswer({ type: 'fill-blank', text: e.target.value })}
+        disabled={revealed}
+        placeholder="כתוב את תשובתך כאן..."
+        className={`w-full px-4 py-3 rounded-xl border text-sm text-charcoal placeholder-charcoal/30 outline-none transition-all ${
+          revealed
+            ? correct
+              ? 'border-green-500 bg-green-50'
+              : 'border-red-400 bg-red-50'
+            : 'border-warm-gray-light bg-white focus:border-accent'
+        }`}
+      />
+      {revealed && !correct && (
+        <p className="text-sm text-charcoal/60">
+          תשובה נכונה: <span className="font-semibold text-green-700">{q.answer}</span>
+        </p>
+      )}
+    </div>
+  );
+}
+
+function OrderingRenderer({
+  q, answer, revealed, onAnswer,
+}: { q: OrderingQuestion; answer: Answer; revealed: boolean; onAnswer: (a: Answer) => void }) {
+  const order = (answer as { order: string[] }).order;
+  const [shuffledPool] = useState(() => shuffle(q.items));
+  const remaining = shuffledPool.filter((item) => !order.includes(item));
+
+  const addItem = (item: string) => {
+    if (revealed) return;
+    onAnswer({ type: 'ordering', order: [...order, item] });
+  };
+
+  const removeItem = (item: string) => {
+    if (revealed) return;
+    onAnswer({ type: 'ordering', order: order.filter((i) => i !== item) });
+  };
+
+  const itemClass = (item: string, idx: number) => {
+    if (!revealed) return 'border-accent/30 bg-accent/[0.04] text-charcoal';
+    const correctItem = q.items[idx];
+    return item === correctItem
+      ? 'border-green-500 bg-green-50 text-green-800'
+      : 'border-red-400 bg-red-50 text-red-700';
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Ordered (user's answer) */}
+      <div>
+        <p className="text-xs text-charcoal/40 uppercase tracking-widest mb-2">הסדר שלך:</p>
+        <div className="space-y-1.5 min-h-[48px] p-2 bg-bone rounded-xl border border-dashed border-warm-gray-light">
+          {order.length === 0 && (
+            <p className="text-xs text-charcoal/30 text-center py-2">לחץ על פריט למטה להוסיפו</p>
+          )}
+          {order.map((item, idx) => (
+            <button
+              key={item}
+              onClick={() => removeItem(item)}
+              disabled={revealed}
+              className={`w-full text-right px-3 py-2 rounded-lg border text-sm flex items-center gap-2 transition-all ${itemClass(item, idx)}`}
+            >
+              <span className="text-accent/60 font-mono text-xs w-5">{idx + 1}.</span>
+              <span className="flex-1">{item}</span>
+              {!revealed && <span className="text-charcoal/30 text-xs">הסר ✕</span>}
+              {revealed && (item === q.items[idx] ? <CheckCircle size={14} className="text-green-500" /> : <XCircle size={14} className="text-red-400" />)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Remaining pool */}
+      {!revealed && remaining.length > 0 && (
+        <div>
+          <p className="text-xs text-charcoal/40 uppercase tracking-widest mb-2">פריטים:</p>
+          <div className="flex flex-wrap gap-2">
+            {remaining.map((item) => (
+              <button
+                key={item}
+                onClick={() => addItem(item)}
+                className="px-3 py-1.5 rounded-lg border border-warm-gray-light bg-white text-charcoal text-sm hover:border-accent/60 hover:bg-accent/[0.04] transition-all"
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {revealed && (
+        <div>
+          <p className="text-xs text-charcoal/40 uppercase tracking-widest mb-2">הסדר הנכון:</p>
+          <div className="space-y-1">
+            {q.items.map((item, idx) => (
+              <div key={item} className="flex items-center gap-2 text-sm text-charcoal/70">
+                <span className="font-mono text-xs text-accent/60 w-5">{idx + 1}.</span>
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MatchingRenderer({
+  q, answer, revealed, onAnswer,
+}: { q: MatchingQuestion; answer: Answer; revealed: boolean; onAnswer: (a: Answer) => void }) {
+  const pairs = (answer as { pairs: Array<{ left: string; right: string }> }).pairs;
+  const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
+  const [shuffledRight] = useState(() => shuffle(q.pairs.map((p) => p.right)));
+
+  const matchedRights = pairs.map((p) => p.right);
+  const matchedLefts = pairs.map((p) => p.left);
+
+  const handleLeft = (left: string) => {
+    if (revealed) return;
+    if (matchedLefts.includes(left)) {
+      onAnswer({ type: 'matching', pairs: pairs.filter((p) => p.left !== left) });
+      setSelectedLeft(null);
+      return;
+    }
+    setSelectedLeft(left === selectedLeft ? null : left);
+  };
+
+  const handleRight = (right: string) => {
+    if (revealed || !selectedLeft) return;
+    if (matchedRights.includes(right)) return;
+    onAnswer({ type: 'matching', pairs: [...pairs, { left: selectedLeft, right }] });
+    setSelectedLeft(null);
+  };
+
+  const matchColor = (left: string) => {
+    if (!revealed) return '';
+    const userPair = pairs.find((p) => p.left === left);
+    if (!userPair) return 'border-warm-gray-light text-charcoal/40';
+    const correct = q.pairs.find((p) => p.left === left)?.right === userPair.right;
+    return correct ? 'border-green-500 bg-green-50 text-green-800' : 'border-red-400 bg-red-50 text-red-700';
+  };
+
+  const rightMatchColor = (right: string) => {
+    if (!revealed) return '';
+    const userPair = pairs.find((p) => p.right === right);
+    if (!userPair) return 'border-warm-gray-light text-charcoal/40';
+    const correct = q.pairs.find((p) => p.right === right && p.left === userPair.left);
+    return correct ? 'border-green-500 bg-green-50 text-green-800' : 'border-red-400 bg-red-50 text-red-700';
+  };
+
+  return (
+    <div className="space-y-2">
+      {!revealed && (
+        <p className="text-xs text-charcoal/40 mb-3">
+          לחץ על פריט משמאל, ואז על ההתאמה מימין
+        </p>
+      )}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Left column */}
+        <div className="space-y-2">
+          {q.pairs.map((p) => {
+            const matched = pairs.find((a) => a.left === p.left);
+            const isSelected = selectedLeft === p.left;
+            return (
+              <button
+                key={p.left}
+                onClick={() => handleLeft(p.left)}
+                disabled={revealed}
+                className={`w-full text-right px-3 py-2.5 rounded-xl border text-sm transition-all leading-snug ${
+                  revealed
+                    ? matchColor(p.left)
+                    : isSelected
+                    ? 'border-accent bg-accent text-bone'
+                    : matched
+                    ? 'border-accent/60 bg-accent/[0.06] text-charcoal'
+                    : 'border-warm-gray-light bg-white text-charcoal hover:border-accent/40'
+                }`}
+              >
+                {p.left}
+                {matched && !revealed && (
+                  <span className="block text-xs text-accent/60 mt-0.5 truncate">{matched.right}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right column */}
+        <div className="space-y-2">
+          {shuffledRight.map((right) => {
+            const isMatched = matchedRights.includes(right);
+            return (
+              <button
+                key={right}
+                onClick={() => handleRight(right)}
+                disabled={revealed || isMatched}
+                className={`w-full text-right px-3 py-2.5 rounded-xl border text-sm transition-all leading-snug ${
+                  revealed
+                    ? rightMatchColor(right)
+                    : isMatched
+                    ? 'border-accent/40 bg-accent/[0.04] text-charcoal/50'
+                    : selectedLeft
+                    ? 'border-accent/40 bg-white text-charcoal hover:border-accent hover:bg-accent/[0.04]'
+                    : 'border-warm-gray-light bg-white text-charcoal/50'
+                }`}
+              >
+                {right}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {revealed && (
+        <div className="mt-3 pt-3 border-t border-warm-gray-light">
+          <p className="text-xs text-charcoal/40 mb-2">ההתאמות הנכונות:</p>
+          <div className="space-y-1">
+            {q.pairs.map((p) => (
+              <div key={p.left} className="flex items-center gap-2 text-xs text-charcoal/60">
+                <span className="font-semibold">{p.left}</span>
+                <span className="text-accent/40">←</span>
+                <span>{p.right}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Start screen ─────────────────────────────────────────────────────────────
+
+const CATEGORIES: { key: QuizCategory | 'all'; label: string; icon: string }[] = [
+  { key: 'all', label: 'כל הנושאים', icon: '✨' },
+  { key: 'haggadah', label: CATEGORY_LABELS.haggadah, icon: CATEGORY_ICONS.haggadah },
+  { key: 'halacha', label: CATEGORY_LABELS.halacha, icon: CATEGORY_ICONS.halacha },
+  { key: 'minhagim', label: CATEGORY_LABELS.minhagim, icon: CATEGORY_ICONS.minhagim },
+  { key: 'torah', label: CATEGORY_LABELS.torah, icon: CATEGORY_ICONS.torah },
+  { key: 'chazal', label: CATEGORY_LABELS.chazal, icon: CATEGORY_ICONS.chazal },
+  { key: 'zmanim', label: CATEGORY_LABELS.zmanim, icon: CATEGORY_ICONS.zmanim },
+];
+
+const AGE_GROUPS: AgeGroup[] = ['kids', 'teens', 'adults'];
+
+function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory | 'all') => void }) {
+  const [age, setAge] = useState<AgeGroup>('teens');
+  const [cat, setCat] = useState<QuizCategory | 'all'>('all');
+
+  const available = ALL_QUESTIONS.filter(
+    (q) => q.ageGroup === age && (cat === 'all' || q.category === cat),
+  ).length;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -24 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="max-w-2xl mx-auto px-4 py-8"
+    >
+      {/* Hero */}
+      <div className="text-center mb-10">
+        <p className="text-accent text-xs font-semibold uppercase tracking-[0.2em] mb-3">
+          חידון <Diamond /> פסח תשפ״ה
+        </p>
+        <h1 className="font-heading text-4xl md:text-5xl text-charcoal leading-tight mb-4">
+          ליל הסדר
+          <br />
+          <span className="text-accent">בשאלות ותשובות</span>
+        </h1>
+        <p className="text-charcoal/60 text-base max-w-md mx-auto">
+          תורה, הגדה, חז"ל, הלכות ומנהגים — לכל גיל ורמה
+        </p>
+      </div>
+
+      <div className="flex items-center gap-3 mb-8">
+        <div className="flex-1 h-px bg-warm-gray-light" />
+        <BookOpen size={14} className="text-accent/50" />
+        <div className="flex-1 h-px bg-warm-gray-light" />
+      </div>
+
+      {/* Age group */}
+      <div className="mb-7">
+        <p className="text-xs text-charcoal/50 uppercase tracking-widest mb-3 font-medium">
+          בחר את הרמה שלך
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          {AGE_GROUPS.map((a) => (
+            <button
+              key={a}
+              onClick={() => setAge(a)}
+              className={`flex flex-col items-center gap-1.5 py-4 rounded-xl border text-sm transition-all ${
+                age === a
+                  ? 'border-accent bg-accent text-bone font-semibold shadow-md'
+                  : 'border-warm-gray-light bg-white text-charcoal hover:border-accent/50 hover:bg-accent/[0.04]'
+              }`}
+            >
+              <span className="text-2xl">{AGE_GROUP_ICONS[a]}</span>
+              <span className="text-xs leading-tight text-center">{AGE_GROUP_LABELS[a]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Category */}
+      <div className="mb-8">
+        <p className="text-xs text-charcoal/50 uppercase tracking-widest mb-3 font-medium">נושא</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.key}
+              onClick={() => setCat(c.key)}
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm transition-all text-right ${
+                cat === c.key
+                  ? 'border-accent bg-accent text-bone font-semibold'
+                  : 'border-warm-gray-light bg-white text-charcoal hover:border-accent/50 hover:bg-accent/[0.04]'
+              }`}
+            >
+              <span className="text-base">{c.icon}</span>
+              <span className="leading-tight">{c.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Start */}
+      <div className="text-center">
+        {available < 10 && available > 0 && (
+          <p className="text-xs text-charcoal/40 mb-3">{available} שאלות זמינות בסינון זה</p>
+        )}
+        {available === 0 && (
+          <p className="text-xs text-red-400 mb-3">אין שאלות בסינון זה — בחר נושא אחר</p>
+        )}
+        <button
+          onClick={() => available > 0 && onStart(age, cat)}
+          disabled={available === 0}
+          className="inline-flex items-center gap-2 bg-accent text-bone px-10 py-3.5 rounded-lg font-semibold text-base hover:bg-accent-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          התחל חידון
+          <ChevronLeft size={18} />
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Quiz screen ──────────────────────────────────────────────────────────────
+
+function QuizScreen({
+  questions,
+  onFinish,
+}: {
+  questions: QuizQuestion[];
+  onFinish: (answers: Answer[]) => void;
+}) {
+  const [index, setIndex] = useState(0);
+  const [answers, setAnswers] = useState<Answer[]>(
+    questions.map((q) => {
+      switch (q.type) {
+        case 'multiple-choice':
+        case 'who-said':
+          return { type: q.type, selected: null };
+        case 'true-false':
+          return { type: 'true-false', selected: null };
+        case 'fill-blank':
+          return { type: 'fill-blank', text: '' };
+        case 'ordering':
+          return { type: 'ordering', order: [] };
+        case 'matching':
+          return { type: 'matching', pairs: [] };
+      }
+    }),
+  );
+  const [state, setState] = useState<{ revealed: boolean }>({ revealed: false });
+  const [timer, setTimer] = useState(30);
+  const [leaving, setLeaving] = useState(false);
+
+  const q = questions[index];
+  const currentAnswer = answers[index];
+  const totalTime = timerForQuestion(q);
+
+  const hasAnswer = (() => {
+    switch (currentAnswer.type) {
+      case 'multiple-choice':
+      case 'who-said':
+        return (currentAnswer as { selected: number | null }).selected !== null;
+      case 'true-false':
+        return (currentAnswer as { selected: boolean | null }).selected !== null;
+      case 'fill-blank':
+        return (currentAnswer as { text: string }).text.trim().length > 0;
+      case 'ordering':
+        return (currentAnswer as { order: string[] }).order.length > 0;
+      case 'matching':
+        return (currentAnswer as { pairs: Array<{ left: string; right: string }> }).pairs.length > 0;
+    }
+  })();
+
+  const reveal = useCallback(() => {
+    if (state.revealed) return;
+    setState({ revealed: true });
+  }, [state.revealed]);
+
+  // Auto-reveal on timer
+  useEffect(() => {
+    if (state.revealed) return;
+    setTimer(totalTime);
+    const id = setInterval(() => {
+      setTimer((t) => {
+        if (t <= 1) { reveal(); return 0; }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [index, state.revealed, reveal, totalTime]);
+
+  const updateAnswer = (a: Answer) => {
+    const next = [...answers];
+    next[index] = a;
+    setAnswers(next);
+  };
+
+  const next = () => {
+    setLeaving(true);
+    setTimeout(() => {
+      if (index + 1 >= questions.length) {
+        onFinish(answers);
+      } else {
+        setIndex((i) => i + 1);
+        setState({ revealed: false });
+        setLeaving(false);
+      }
+    }, 320);
+  };
+
+  const correct = state.revealed && isCorrect(q, currentAnswer);
+
+  // Check if answer is completable for ordering/matching
+  const isComplete = (() => {
+    if (q.type === 'ordering') {
+      return (currentAnswer as { order: string[] }).order.length === (q as OrderingQuestion).items.length;
+    }
+    if (q.type === 'matching') {
+      return (currentAnswer as { pairs: Array<{ left: string; right: string }> }).pairs.length === (q as MatchingQuestion).pairs.length;
+    }
+    return hasAnswer;
+  })();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 40 }}
+      animate={{ opacity: leaving ? 0 : 1, x: leaving ? -40 : 0 }}
+      transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+      className="max-w-2xl mx-auto px-4 py-6"
+    >
+      {/* Progress */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between text-xs text-charcoal/50 mb-2">
+          <span>שאלה {index + 1} מתוך {questions.length}</span>
+          <div className="flex items-center gap-2">
+            <TypeBadge type={q.type} />
+            <CategoryBadge category={q.category} />
+          </div>
+        </div>
+        <div className="h-1.5 bg-bone-dark rounded-full overflow-hidden">
+          <motion.div
+            className="h-full rounded-full"
+            style={{ backgroundColor: '#8D775F' }}
+            initial={{ width: `${(index / questions.length) * 100}%` }}
+            animate={{ width: `${((index + 1) / questions.length) * 100}%` }}
+            transition={{ duration: 0.4 }}
+          />
+        </div>
+      </div>
+
+      {/* Question card */}
+      <div className="bg-white border border-warm-gray-light rounded-2xl p-6 md:p-8 mb-5 shadow-sm">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 mb-5">
+          <h2 className="text-xl md:text-2xl text-charcoal font-heading leading-snug flex-1">
+            {getQuestionText(q)}
+          </h2>
+          {!state.revealed
+            ? <TimerRing seconds={timer} total={totalTime} />
+            : (
+              <div className="flex-shrink-0 mt-1">
+                {correct
+                  ? <CheckCircle size={32} className="text-green-500" />
+                  : <XCircle size={32} className="text-red-400" />}
+              </div>
+            )
+          }
+        </div>
+
+        {/* Renderer */}
+        {(q.type === 'multiple-choice' || q.type === 'who-said') && (
+          <MultipleChoiceRenderer
+            q={q as MultipleChoiceQuestion | WhoSaidQuestion}
+            answer={currentAnswer}
+            revealed={state.revealed}
+            onAnswer={updateAnswer}
+          />
+        )}
+        {q.type === 'true-false' && (
+          <TrueFalseRenderer
+            q={q as TrueFalseQuestion}
+            answer={currentAnswer}
+            revealed={state.revealed}
+            onAnswer={updateAnswer}
+          />
+        )}
+        {q.type === 'fill-blank' && (
+          <FillBlankRenderer
+            q={q as FillBlankQuestion}
+            answer={currentAnswer}
+            revealed={state.revealed}
+            onAnswer={updateAnswer}
+          />
+        )}
+        {q.type === 'ordering' && (
+          <OrderingRenderer
+            q={q as OrderingQuestion}
+            answer={currentAnswer}
+            revealed={state.revealed}
+            onAnswer={updateAnswer}
+          />
+        )}
+        {q.type === 'matching' && (
+          <MatchingRenderer
+            q={q as MatchingQuestion}
+            answer={currentAnswer}
+            revealed={state.revealed}
+            onAnswer={updateAnswer}
+          />
+        )}
+
+        {/* Explanation */}
+        <AnimatePresence>
+          {state.revealed && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.35 }}
+              className="mt-5 pt-5 border-t border-warm-gray-light"
+            >
+              <p className="text-xs font-semibold text-accent uppercase tracking-wider mb-1.5">הסבר</p>
+              <p className="text-sm text-charcoal/70 leading-relaxed">{q.explanation}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Check / Next button */}
+      <div className="text-center space-y-2">
+        {!state.revealed && isComplete && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <button
+              onClick={reveal}
+              className="inline-flex items-center gap-2 bg-charcoal text-bone px-8 py-3 rounded-lg font-semibold hover:bg-charcoal/80 transition-colors"
+            >
+              בדוק תשובה
+            </button>
+          </motion.div>
+        )}
+        <AnimatePresence>
+          {state.revealed && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <button
+                onClick={next}
+                className="inline-flex items-center gap-2 bg-accent text-bone px-8 py-3 rounded-lg font-semibold hover:bg-accent-dark transition-colors"
+              >
+                {index + 1 < questions.length ? 'שאלה הבאה' : 'לתוצאות'}
+                <ChevronLeft size={16} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Results screen ───────────────────────────────────────────────────────────
+
+function ResultsScreen({
+  questions,
+  answers,
+  onRestart,
+  onChangeSettings,
+}: {
+  questions: QuizQuestion[];
+  answers: Answer[];
+  onRestart: () => void;
+  onChangeSettings: () => void;
+}) {
+  const score = answers.filter((a, i) => isCorrect(questions[i], a)).length;
+  const { title, body } = scoreMessage(score, questions.length);
+
+  const catStats = Object.entries(CATEGORY_LABELS).map(([key, label]) => {
+    const qs = questions.filter((q) => q.category === key);
+    if (qs.length === 0) return null;
+    const correct = qs.filter((q) => {
+      const idx = questions.indexOf(q);
+      return isCorrect(q, answers[idx]);
+    }).length;
+    return { key, label, correct, total: qs.length };
+  }).filter(Boolean) as { key: string; label: string; correct: number; total: number }[];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="max-w-2xl mx-auto px-4 py-8"
+    >
+      {/* Score hero */}
+      <div className="text-center mb-8">
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+          className="inline-flex items-center justify-center w-24 h-24 rounded-full border-2 border-accent bg-accent/[0.06] mb-5"
+        >
+          <Trophy size={40} className="text-accent" />
+        </motion.div>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <span className="font-heading text-6xl text-charcoal">{score}</span>
+          <span className="text-2xl text-charcoal/40 mt-3">/ {questions.length}</span>
+        </div>
+        <h2 className="font-heading text-2xl text-charcoal mb-2">{title}</h2>
+        <p className="text-charcoal/60 text-sm max-w-sm mx-auto">{body}</p>
+      </div>
+
+      {/* Category breakdown */}
+      {catStats.length > 1 && (
+        <div className="bg-white border border-warm-gray-light rounded-2xl p-5 mb-6 shadow-sm">
+          <p className="text-xs font-semibold text-charcoal/40 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Layers size={13} />
+            פירוט לפי נושא
+          </p>
+          <div className="space-y-3">
+            {catStats.map((s) => (
+              <div key={s.key}>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-charcoal/70">{CATEGORY_ICONS[s.key as QuizCategory]} {s.label}</span>
+                  <span className="font-semibold text-charcoal">{s.correct}/{s.total}</span>
+                </div>
+                <div className="h-1.5 bg-bone-dark rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(s.correct / s.total) * 100}%` }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    className="h-full rounded-full"
+                    style={{ backgroundColor: s.correct === s.total ? '#22c55e' : '#8D775F' }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Per-question review */}
+      <div className="bg-white border border-warm-gray-light rounded-2xl p-5 mb-6 shadow-sm">
+        <p className="text-xs font-semibold text-charcoal/40 uppercase tracking-wider mb-4">
+          סיכום שאלות
+        </p>
+        <div className="space-y-2">
+          {questions.map((q, i) => {
+            const correct = isCorrect(q, answers[i]);
+            return (
+              <div key={q.id} className="flex items-start gap-3 text-sm">
+                {correct
+                  ? <CheckCircle size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
+                  : <XCircle size={16} className="text-red-400 mt-0.5 flex-shrink-0" />}
+                <span className="text-charcoal/70 leading-snug">{getQuestionText(q)}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-3 justify-center">
+        <button
+          onClick={onRestart}
+          className="inline-flex items-center gap-2 bg-accent text-bone px-7 py-3 rounded-lg font-semibold hover:bg-accent-dark transition-colors"
+        >
+          <RotateCcw size={15} />
+          שחק שוב
+        </button>
+        <button
+          onClick={onChangeSettings}
+          className="inline-flex items-center gap-2 border border-accent text-accent px-7 py-3 rounded-lg font-semibold hover:bg-accent/[0.06] transition-colors"
+        >
+          הגדרות אחרות
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
+export default function PassoverQuiz() {
+  const [screen, setScreen] = useState<Screen>('start');
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [answers, setAnswers] = useState<Answer[]>([]);
+
+  const handleStart = (age: AgeGroup, cat: QuizCategory | 'all') => {
+    setQuestions(pickQuestions(age, cat, 10));
+    setAnswers([]);
+    setScreen('quiz');
+  };
+
+  const handleFinish = (ans: Answer[]) => {
+    setAnswers(ans);
+    setScreen('results');
+  };
+
+  const handleRestart = () => {
+    setQuestions((qs) => shuffle(qs));
+    setAnswers([]);
+    setScreen('quiz');
+  };
+
+  return (
+    <div dir="rtl" className="min-h-screen bg-bone">
+      <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #8D775F, #C8A04A, #8D775F)' }} />
+
+      {/* Header */}
+      <div className="border-b border-warm-gray-light bg-bone/90 backdrop-blur-sm sticky top-0 z-20">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-accent text-sm font-semibold">
+            <span>🍷</span>
+            <span>חידון פסח תשפ"ה</span>
+          </div>
+          {screen !== 'start' && (
+            <button
+              onClick={() => setScreen('start')}
+              className="text-xs text-charcoal/40 hover:text-charcoal transition-colors"
+            >
+              ← חזרה לתפריט
+            </button>
+          )}
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {screen === 'start' && (
+          <StartScreen key="start" onStart={handleStart} />
+        )}
+        {screen === 'quiz' && (
+          <QuizScreen key="quiz" questions={questions} onFinish={handleFinish} />
+        )}
+        {screen === 'results' && (
+          <ResultsScreen
+            key="results"
+            questions={questions}
+            answers={answers}
+            onRestart={handleRestart}
+            onChangeSettings={() => setScreen('start')}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
