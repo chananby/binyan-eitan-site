@@ -31,6 +31,8 @@ const BINYAN_EITAN: Employee[] = [
   { name: 'נריה שמעוני',     amount: 500, company: 'binyanEitan' },
   { name: 'חנן בן ישי',      amount: 600, company: 'binyanEitan' },
   { name: 'מיכאל דרגן',      amount: 600, company: 'binyanEitan' },
+  { name: 'נחמן איתן',       amount: 500, company: 'binyanEitan' },
+  { name: 'מיקי בכר',        amount: 500, company: 'binyanEitan' },
 ];
 
 // ─── Canvas helpers ───────────────────────────────────────────────────────────
