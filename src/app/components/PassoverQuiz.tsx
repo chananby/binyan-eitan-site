@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, Trophy, BookOpen, ChevronLeft, RotateCcw, Layers, HelpCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Trophy, BookOpen, ChevronLeft, RotateCcw, Layers, HelpCircle, Share2, Medal } from 'lucide-react';
 import {
   ALL_QUESTIONS,
   CATEGORY_LABELS,
@@ -19,6 +19,36 @@ import {
   type MatchingQuestion,
   type WhoSaidQuestion,
 } from '../../lib/passover-quiz-data';
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const QUIZ_URL = 'https://binyan-eitan.co.il/he/passover-quiz';
+const LS_KEY   = 'passover-quiz-leaderboard';
+
+// ─── Leaderboard types & helpers ──────────────────────────────────────────────
+
+interface LeaderboardEntry {
+  name:     string;
+  score:    number;
+  total:    number;
+  pct:      number;
+  ageGroup: AgeGroup;
+  date:     string; // ISO
+}
+
+function getLeaderboard(): LeaderboardEntry[] {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? (JSON.parse(raw) as LeaderboardEntry[]) : [];
+  } catch { return []; }
+}
+
+function saveToLeaderboard(entry: LeaderboardEntry): void {
+  const entries = getLeaderboard();
+  entries.push(entry);
+  entries.sort((a, b) => b.pct - a.pct || new Date(b.date).getTime() - new Date(a.date).getTime());
+  localStorage.setItem(LS_KEY, JSON.stringify(entries.slice(0, 50)));
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -525,6 +555,11 @@ const AGE_GROUPS: AgeGroup[] = ['kids', 'teens', 'adults'];
 function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory | 'all') => void }) {
   const [age, setAge] = useState<AgeGroup>('teens');
   const [cat, setCat] = useState<QuizCategory | 'all'>('all');
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+
+  useEffect(() => {
+    setLeaderboard(getLeaderboard().slice(0, 10));
+  }, []);
 
   const available = ALL_QUESTIONS.filter(
     (q) => q.ageGroup === age && (cat === 'all' || q.category === cat),
@@ -620,6 +655,37 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
           <ChevronLeft size={18} />
         </button>
       </div>
+
+      {/* Leaderboard */}
+      {leaderboard.length > 0 && (
+        <div className="mt-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-warm-gray-light" />
+            <p className="text-xs text-charcoal/40 uppercase tracking-widest flex items-center gap-1.5">
+              <Medal size={12} /> טבלת שיאים
+            </p>
+            <div className="flex-1 h-px bg-warm-gray-light" />
+          </div>
+          <div className="space-y-1.5">
+            {leaderboard.map((e, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 px-4 py-2.5 bg-white rounded-xl border border-warm-gray-light text-sm"
+              >
+                <span className={`font-mono text-xs w-5 text-center font-bold ${
+                  i === 0 ? 'text-yellow-500' : i === 1 ? 'text-charcoal/50' : i === 2 ? 'text-amber-600' : 'text-charcoal/30'
+                }`}>
+                  {i + 1}
+                </span>
+                <span className="flex-1 text-charcoal font-medium truncate">{e.name}</span>
+                <span className="text-xs text-charcoal/40">{AGE_GROUP_ICONS[e.ageGroup]}</span>
+                <span className="font-semibold text-accent tabular-nums">{e.score}/{e.total}</span>
+                <span className="text-xs text-charcoal/40 w-10 text-left">{e.pct}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -873,8 +939,32 @@ function ResultsScreen({
   onRestart: () => void;
   onChangeSettings: () => void;
 }) {
-  const score = answers.filter((a, i) => isCorrect(questions[i], a)).length;
+  const score    = answers.filter((a, i) => isCorrect(questions[i], a)).length;
+  const pct      = Math.round((score / questions.length) * 100);
+  const ageGroup = questions[0]?.ageGroup ?? 'adults';
   const { title, body } = scoreMessage(score, questions.length);
+
+  const [name, setName]   = useState('');
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    if (!name.trim() || saved) return;
+    saveToLeaderboard({
+      name: name.trim(),
+      score,
+      total: questions.length,
+      pct,
+      ageGroup,
+      date: new Date().toISOString(),
+    });
+    setSaved(true);
+  };
+
+  const handleWhatsApp = () => {
+    const ageLabel = AGE_GROUP_LABELS[ageGroup];
+    const text = `🍷 חידון פסח תשפ"ה — רמת ${ageLabel}\nענתי ${score}/${questions.length} (${pct}%) — ${title}\nנסה גם אתה: ${QUIZ_URL}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
 
   const catStats = Object.entries(CATEGORY_LABELS).map(([key, label]) => {
     const qs = questions.filter((q) => q.category === key);
@@ -960,20 +1050,60 @@ function ResultsScreen({
         </div>
       </div>
 
+      {/* Leaderboard save */}
+      <div className="bg-white border border-warm-gray-light rounded-2xl p-5 mb-5 shadow-sm">
+        <p className="text-xs font-semibold text-charcoal/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Medal size={13} />
+          שמור לטבלת השיאים
+        </p>
+        {saved ? (
+          <p className="text-sm text-green-600 flex items-center gap-1.5">
+            <CheckCircle size={15} /> נשמר! תוצאתך מופיעה בטבלה.
+          </p>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              dir="rtl"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+              placeholder="השם שלך..."
+              maxLength={20}
+              className="flex-1 px-3 py-2 rounded-lg border border-warm-gray-light bg-bone text-sm text-charcoal placeholder-charcoal/30 outline-none focus:border-accent transition-colors"
+            />
+            <button
+              onClick={handleSave}
+              disabled={!name.trim()}
+              className="px-4 py-2 bg-accent text-bone text-sm font-semibold rounded-lg hover:bg-accent-dark transition-colors disabled:opacity-30"
+            >
+              שמור
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Actions */}
-      <div className="flex gap-3 justify-center">
+      <div className="flex flex-wrap gap-3 justify-center mb-2">
+        <button
+          onClick={handleWhatsApp}
+          className="inline-flex items-center gap-2 bg-[#25D366] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#1ebe5a] transition-colors"
+        >
+          <Share2 size={15} />
+          שתף בוואטסאפ
+        </button>
         <button
           onClick={onRestart}
-          className="inline-flex items-center gap-2 bg-accent text-bone px-7 py-3 rounded-lg font-semibold hover:bg-accent-dark transition-colors"
+          className="inline-flex items-center gap-2 bg-accent text-bone px-6 py-3 rounded-lg font-semibold hover:bg-accent-dark transition-colors"
         >
           <RotateCcw size={15} />
           שחק שוב
         </button>
         <button
           onClick={onChangeSettings}
-          className="inline-flex items-center gap-2 border border-accent text-accent px-7 py-3 rounded-lg font-semibold hover:bg-accent/[0.06] transition-colors"
+          className="inline-flex items-center gap-2 border border-accent text-accent px-6 py-3 rounded-lg font-semibold hover:bg-accent/[0.06] transition-colors"
         >
-          הגדרות אחרות
+          רמה אחרת
         </button>
       </div>
     </motion.div>
