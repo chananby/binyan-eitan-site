@@ -50,6 +50,25 @@ function saveToLeaderboard(entry: LeaderboardEntry): void {
   localStorage.setItem(LS_KEY, JSON.stringify(entries.slice(0, 50)));
 }
 
+// ─── Play counter (countapi.xyz) ──────────────────────────────────────────────
+
+const COUNTER_NAMESPACE = 'binyan-eitan';
+const COUNTER_KEY = 'passover-quiz-2025';
+
+async function hitCounter(): Promise<void> {
+  try {
+    await fetch(`https://api.countapi.xyz/hit/${COUNTER_NAMESPACE}/${COUNTER_KEY}`);
+  } catch { /* silent */ }
+}
+
+async function getPlayCount(): Promise<number> {
+  try {
+    const r = await fetch(`https://api.countapi.xyz/get/${COUNTER_NAMESPACE}/${COUNTER_KEY}`);
+    const d = await r.json() as { value?: number };
+    return d.value ?? 0;
+  } catch { return 0; }
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Screen = 'start' | 'quiz' | 'results';
@@ -556,9 +575,11 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
   const [age, setAge] = useState<AgeGroup>('teens');
   const [cat, setCat] = useState<QuizCategory | 'all'>('all');
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [playCount, setPlayCount] = useState<number | null>(null);
 
   useEffect(() => {
     setLeaderboard(getLeaderboard().slice(0, 10));
+    getPlayCount().then((n) => setPlayCount(n));
   }, []);
 
   const available = ALL_QUESTIONS.filter(
@@ -586,6 +607,11 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
         <p className="text-charcoal/60 text-base max-w-md mx-auto">
           תורה, הגדה, חז"ל, הלכות ומנהגים — לכל גיל ורמה
         </p>
+        {playCount !== null && playCount > 0 && (
+          <p className="text-charcoal/30 text-xs mt-3">
+            • {playCount.toLocaleString('he-IL')} אנשים שיחקו עד כה
+          </p>
+        )}
       </div>
 
       <div className="flex items-center gap-3 mb-8">
@@ -819,7 +845,12 @@ function QuizScreen({
       </div>
 
       {/* Question card */}
-      <div className="bg-white border border-warm-gray-light rounded-2xl p-6 md:p-8 mb-5 shadow-sm">
+      <motion.div
+        key={`card-${index}`}
+        animate={state.revealed && !correct ? { x: [0, -8, 8, -8, 8, 0] } : {}}
+        transition={{ duration: 0.45, ease: 'easeInOut' }}
+        className="bg-white border border-warm-gray-light rounded-2xl p-6 md:p-8 mb-5 shadow-sm"
+      >
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-5">
           <h2 className="text-xl md:text-2xl text-charcoal font-heading leading-snug flex-1">
@@ -828,11 +859,16 @@ function QuizScreen({
           {!state.revealed
             ? <TimerRing seconds={timer} total={totalTime} />
             : (
-              <div className="flex-shrink-0 mt-1">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 14 }}
+                className="flex-shrink-0 mt-1"
+              >
                 {correct
                   ? <CheckCircle size={32} className="text-green-500" />
                   : <XCircle size={32} className="text-red-400" />}
-              </div>
+              </motion.div>
             )
           }
         </div>
@@ -894,7 +930,7 @@ function QuizScreen({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
 
       {/* Check / Next button */}
       <div className="text-center space-y-2">
@@ -1121,6 +1157,7 @@ export default function PassoverQuiz() {
     setQuestions(pickQuestions(age, cat, 10));
     setAnswers([]);
     setScreen('quiz');
+    void hitCounter();
   };
 
   const handleFinish = (ans: Answer[]) => {
