@@ -387,12 +387,12 @@ function OrderingRenderer({
               key={item}
               onClick={() => removeItem(item)}
               disabled={revealed}
-              className={`w-full text-right px-3 py-2 rounded-lg border text-sm flex items-center gap-2 transition-all ${itemClass(item, idx)}`}
+              className={`w-full text-right px-3 py-3 rounded-lg border text-sm flex items-center gap-2 transition-all min-h-[48px] ${itemClass(item, idx)}`}
             >
               <span className="text-accent/60 font-mono text-xs w-5">{idx + 1}.</span>
-              <span className="flex-1">{item}</span>
-              {!revealed && <span className="text-charcoal/30 text-xs">הסר ✕</span>}
-              {revealed && (item === q.items[idx] ? <CheckCircle size={14} className="text-green-500" /> : <XCircle size={14} className="text-red-400" />)}
+              <span className="flex-1 leading-snug">{item}</span>
+              {!revealed && <span className="text-charcoal/30 text-xs flex-shrink-0">הסר ✕</span>}
+              {revealed && (item === q.items[idx] ? <CheckCircle size={14} className="text-green-500 flex-shrink-0" /> : <XCircle size={14} className="text-red-400 flex-shrink-0" />)}
             </button>
           ))}
         </div>
@@ -407,7 +407,7 @@ function OrderingRenderer({
               <button
                 key={item}
                 onClick={() => addItem(item)}
-                className="px-3 py-1.5 rounded-lg border border-warm-gray-light bg-white text-charcoal text-sm hover:border-accent/60 hover:bg-accent/[0.04] transition-all"
+                className="px-4 py-2.5 rounded-lg border border-warm-gray-light bg-white text-charcoal text-sm hover:border-accent/60 hover:bg-accent/[0.04] transition-all min-h-[44px] leading-snug"
               >
                 {item}
               </button>
@@ -480,79 +480,161 @@ function MatchingRenderer({
     <div className="space-y-2">
       {!revealed && (
         <p className="text-xs text-charcoal/40 mb-3">
-          לחץ על פריט משמאל, ואז על ההתאמה מימין
+          בחר פריט בצד ימין, ואז את ההתאמה בצד שמאל
         </p>
       )}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Left column */}
-        <div className="space-y-2">
-          {q.pairs.map((p) => {
-            const matched = pairs.find((a) => a.left === p.left);
-            const isSelected = selectedLeft === p.left;
-            return (
-              <button
-                key={p.left}
-                onClick={() => handleLeft(p.left)}
-                disabled={revealed}
-                className={`w-full text-right px-3 py-2.5 rounded-xl border text-sm transition-all leading-snug ${
-                  revealed
-                    ? matchColor(p.left)
-                    : isSelected
-                    ? 'border-accent bg-accent text-bone'
-                    : matched
-                    ? 'border-accent/60 bg-accent/[0.06] text-charcoal'
-                    : 'border-warm-gray-light bg-white text-charcoal hover:border-accent/40'
-                }`}
-              >
-                {p.left}
-                {matched && !revealed && (
-                  <span className="block text-xs text-accent/60 mt-0.5 truncate">{matched.right}</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
 
-        {/* Right column */}
-        <div className="space-y-2">
-          {shuffledRight.map((right) => {
-            const isMatched = matchedRights.includes(right);
-            return (
-              <button
-                key={right}
-                onClick={() => handleRight(right)}
-                disabled={revealed || isMatched}
-                className={`w-full text-right px-3 py-2.5 rounded-xl border text-sm transition-all leading-snug ${
-                  revealed
-                    ? rightMatchColor(right)
-                    : isMatched
-                    ? 'border-accent/40 bg-accent/[0.04] text-charcoal/50'
-                    : selectedLeft
-                    ? 'border-accent/40 bg-white text-charcoal hover:border-accent hover:bg-accent/[0.04]'
-                    : 'border-warm-gray-light bg-white text-charcoal/50'
-                }`}
-              >
-                {right}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {revealed && (
-        <div className="mt-3 pt-3 border-t border-warm-gray-light">
-          <p className="text-xs text-charcoal/40 mb-2">ההתאמות הנכונות:</p>
-          <div className="space-y-1">
-            {q.pairs.map((p) => (
-              <div key={p.left} className="flex items-center gap-2 text-xs text-charcoal/60">
-                <span className="font-semibold">{p.left}</span>
-                <span className="text-accent/40">←</span>
-                <span>{p.right}</span>
-              </div>
-            ))}
+      {/* Mobile: stacked — Left items first, then right items */}
+      <div className="sm:hidden space-y-3">
+        {/* Left items */}
+        <div>
+          <p className="text-xs text-charcoal/30 uppercase tracking-widest mb-2">התאם:</p>
+          <div className="space-y-2">
+            {q.pairs.map((p) => {
+              const matched = pairs.find((a) => a.left === p.left);
+              const isSelected = selectedLeft === p.left;
+              return (
+                <button
+                  key={p.left}
+                  onClick={() => handleLeft(p.left)}
+                  disabled={revealed}
+                  className={`w-full text-right px-4 py-3 rounded-xl border text-sm transition-all leading-snug min-h-[48px] ${
+                    revealed
+                      ? matchColor(p.left)
+                      : isSelected
+                      ? 'border-accent bg-accent text-bone font-semibold'
+                      : matched
+                      ? 'border-accent/60 bg-accent/[0.06] text-charcoal'
+                      : 'border-warm-gray-light bg-white text-charcoal hover:border-accent/40'
+                  }`}
+                >
+                  {p.left}
+                  {matched && !revealed && (
+                    <span className="block text-xs text-accent/60 mt-0.5">← {matched.right}</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
-      )}
+
+        {/* Right items */}
+        {!revealed && (
+          <div>
+            <p className="text-xs text-charcoal/30 uppercase tracking-widest mb-2">אפשרויות:</p>
+            <div className="space-y-2">
+              {shuffledRight.map((right) => {
+                const isMatched = matchedRights.includes(right);
+                return (
+                  <button
+                    key={right}
+                    onClick={() => handleRight(right)}
+                    disabled={isMatched}
+                    className={`w-full text-right px-4 py-3 rounded-xl border text-sm transition-all leading-snug min-h-[48px] ${
+                      isMatched
+                        ? 'border-accent/30 bg-accent/[0.04] text-charcoal/40'
+                        : selectedLeft
+                        ? 'border-accent/50 bg-white text-charcoal hover:border-accent hover:bg-accent/[0.06] font-medium'
+                        : 'border-warm-gray-light bg-white text-charcoal/60'
+                    }`}
+                  >
+                    {right}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {revealed && (
+          <div className="mt-2 pt-3 border-t border-warm-gray-light">
+            <p className="text-xs text-charcoal/40 mb-2">ההתאמות הנכונות:</p>
+            <div className="space-y-1">
+              {q.pairs.map((p) => (
+                <div key={p.left} className="flex items-center gap-2 text-xs text-charcoal/60">
+                  <span className="font-semibold">{p.left}</span>
+                  <span className="text-accent/40">←</span>
+                  <span>{p.right}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* sm+: side-by-side grid */}
+      <div className="hidden sm:block">
+        <div className="grid grid-cols-2 gap-3">
+          {/* Left column */}
+          <div className="space-y-2">
+            {q.pairs.map((p) => {
+              const matched = pairs.find((a) => a.left === p.left);
+              const isSelected = selectedLeft === p.left;
+              return (
+                <button
+                  key={p.left}
+                  onClick={() => handleLeft(p.left)}
+                  disabled={revealed}
+                  className={`w-full text-right px-3 py-2.5 rounded-xl border text-sm transition-all leading-snug ${
+                    revealed
+                      ? matchColor(p.left)
+                      : isSelected
+                      ? 'border-accent bg-accent text-bone'
+                      : matched
+                      ? 'border-accent/60 bg-accent/[0.06] text-charcoal'
+                      : 'border-warm-gray-light bg-white text-charcoal hover:border-accent/40'
+                  }`}
+                >
+                  {p.left}
+                  {matched && !revealed && (
+                    <span className="block text-xs text-accent/60 mt-0.5 truncate">{matched.right}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right column */}
+          <div className="space-y-2">
+            {shuffledRight.map((right) => {
+              const isMatched = matchedRights.includes(right);
+              return (
+                <button
+                  key={right}
+                  onClick={() => handleRight(right)}
+                  disabled={revealed || isMatched}
+                  className={`w-full text-right px-3 py-2.5 rounded-xl border text-sm transition-all leading-snug ${
+                    revealed
+                      ? rightMatchColor(right)
+                      : isMatched
+                      ? 'border-accent/40 bg-accent/[0.04] text-charcoal/50'
+                      : selectedLeft
+                      ? 'border-accent/40 bg-white text-charcoal hover:border-accent hover:bg-accent/[0.04]'
+                      : 'border-warm-gray-light bg-white text-charcoal/50'
+                  }`}
+                >
+                  {right}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {revealed && (
+          <div className="mt-3 pt-3 border-t border-warm-gray-light">
+            <p className="text-xs text-charcoal/40 mb-2">ההתאמות הנכונות:</p>
+            <div className="space-y-1">
+              {q.pairs.map((p) => (
+                <div key={p.left} className="flex items-center gap-2 text-xs text-charcoal/60">
+                  <span className="font-semibold">{p.left}</span>
+                  <span className="text-accent/40">←</span>
+                  <span>{p.right}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>{/* end sm:hidden sm:block wrapper */}
     </div>
   );
 }
