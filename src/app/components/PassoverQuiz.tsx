@@ -946,10 +946,42 @@ function QuizScreen({
     }
   })();
 
+  const triggerFeedback = useCallback((correct: boolean) => {
+    // Vibration — always on mobile (patterns differ by result)
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(correct ? [60] : [80, 60, 80]);
+    }
+    // Sound via Web Audio API — plays on desktop + mobile (muted by silent mode)
+    try {
+      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      if (correct) {
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+      } else {
+        osc.frequency.setValueAtTime(300, ctx.currentTime);
+        osc.frequency.setValueAtTime(220, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+      }
+    } catch { /* silent fail — AudioContext unavailable */ }
+  }, []);
+
   const reveal = useCallback(() => {
     if (state.revealed) return;
     setState({ revealed: true });
-  }, [state.revealed]);
+    triggerFeedback(isCorrect(q, currentAnswer));
+  }, [state.revealed, triggerFeedback, q, currentAnswer]);
 
   // Auto-reveal on timer
   useEffect(() => {
