@@ -22,7 +22,7 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const QUIZ_URL = 'https://binyan-eitan.co.il/he/passover-quiz';
+const QUIZ_URL = 'https://binyaneitan.com/he/passover-quiz';
 const LS_KEY   = 'passover-quiz-leaderboard';
 
 // ─── Leaderboard types & helpers ──────────────────────────────────────────────
@@ -1217,7 +1217,7 @@ function ResultsScreen({
 
   const handleWhatsApp = () => {
     const ageLabel = AGE_GROUP_LABELS[ageGroup];
-    const text = `🍷 חידון פסח תשפ"ה — רמת ${ageLabel}\nענתי ${score}/${questions.length} (${pct}%) — ${title}\nנסה גם אתה: ${QUIZ_URL}`;
+    const text = `🍷 חידון פסח תשפ"ו — רמת ${ageLabel}\nענתי ${score}/${questions.length} (${pct}%) — ${title}\nנסה גם אתה: ${QUIZ_URL}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
