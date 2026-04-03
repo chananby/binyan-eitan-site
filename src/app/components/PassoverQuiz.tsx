@@ -1426,7 +1426,7 @@ export default function PassoverQuiz() {
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 text-accent text-sm font-semibold">
             <span>🍷</span>
-            <span>חידון פסח תשפ"ה</span>
+            <span>חידון פסח תשפ"ו</span>
           </div>
           {screen !== 'start' && (
             <button
