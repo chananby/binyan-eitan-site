@@ -1339,6 +1339,15 @@ function ResultsScreen({
           רמה אחרת
         </button>
       </div>
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+        className="text-center text-xs text-charcoal/25 mt-6 tracking-[0.3em] font-medium"
+      >
+        ✦ חג כשר ושמח ✦
+      </motion.p>
     </motion.div>
   );
 }
@@ -1374,7 +1383,10 @@ export default function PassoverQuiz() {
   };
 
   return (
-    <div dir="rtl" className="min-h-screen bg-bone">
+    <div dir="rtl" className="min-h-screen bg-bone" style={{
+      backgroundImage: 'radial-gradient(circle, #c8b8a2 1px, transparent 1px)',
+      backgroundSize: '28px 28px',
+    }}>
       <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #8D775F, #C8A04A, #8D775F)' }} />
 
       {/* Header */}
