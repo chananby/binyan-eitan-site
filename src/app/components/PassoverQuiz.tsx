@@ -754,7 +754,7 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
           animate={{ opacity: 1, y: 0 }}
           className="text-accent text-xs font-semibold uppercase tracking-[0.25em] mb-4"
         >
-          חידון <Diamond /> פסח תשפ״ה
+          חידון <Diamond /> פסח תשפ״ו
         </motion.p>
         <motion.h1
           initial={{ opacity: 0, y: 12 }}
@@ -835,12 +835,19 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
 
       {/* Start */}
       <div className="text-center">
-        {available < 10 && available > 0 && (
-          <p className="text-xs text-charcoal/40 mb-3">{available} שאלות זמינות בסינון זה</p>
-        )}
+        {/* Bank size indicator */}
+        <div className="inline-flex items-center gap-2 bg-accent/[0.07] border border-accent/20 rounded-full px-4 py-1.5 mb-4 text-xs text-charcoal/60">
+          <span>🗂</span>
+          <span>
+            {available === 0
+              ? 'אין שאלות בסינון זה'
+              : <>בנק של <strong className="text-charcoal/80">{available} שאלות</strong> — כל משחק שואב 10 שאלות אקראיות</>}
+          </span>
+        </div>
         {available === 0 && (
-          <p className="text-xs text-red-400 mb-3">אין שאלות בסינון זה — בחר נושא אחר</p>
+          <p className="text-xs text-red-400 mb-3">בחר נושא אחר</p>
         )}
+        <br />
         <button
           onClick={() => available > 0 && onStart(age, cat)}
           disabled={available === 0}
