@@ -50,22 +50,20 @@ function saveToLeaderboard(entry: LeaderboardEntry): void {
   localStorage.setItem(LS_KEY, JSON.stringify(entries.slice(0, 50)));
 }
 
-// ─── Play counter (countapi.xyz) ──────────────────────────────────────────────
+// ─── Play counter (localStorage) ─────────────────────────────────────────────
 
-const COUNTER_NAMESPACE = 'binyan-eitan';
-const COUNTER_KEY = 'passover-quiz-2025';
+const PLAY_COUNT_KEY = 'pq-total-plays';
 
-async function hitCounter(): Promise<void> {
+function hitCounter(): void {
   try {
-    await fetch(`https://api.countapi.xyz/hit/${COUNTER_NAMESPACE}/${COUNTER_KEY}`);
+    const n = parseInt(localStorage.getItem(PLAY_COUNT_KEY) ?? '0', 10);
+    localStorage.setItem(PLAY_COUNT_KEY, String(n + 1));
   } catch { /* silent */ }
 }
 
-async function getPlayCount(): Promise<number> {
+function getPlayCount(): number {
   try {
-    const r = await fetch(`https://api.countapi.xyz/get/${COUNTER_NAMESPACE}/${COUNTER_KEY}`);
-    const d = await r.json() as { value?: number };
-    return d.value ?? 0;
+    return parseInt(localStorage.getItem(PLAY_COUNT_KEY) ?? '0', 10);
   } catch { return 0; }
 }
 
@@ -260,7 +258,13 @@ function MultipleChoiceRenderer({
         {items.map((opt, i) => (
           <button
             key={i}
-            onClick={() => !revealed && onAnswer({ type: q.type as 'multiple-choice', selected: i })}
+            onClick={() => {
+              if (!revealed) {
+                onAnswer(q.type === 'who-said'
+                  ? { type: 'who-said', selected: i }
+                  : { type: 'multiple-choice', selected: i });
+              }
+            }}
             disabled={revealed}
             className={`w-full text-right px-4 py-3 rounded-xl border text-sm transition-all leading-snug ${buttonClass(i)}`}
           >
@@ -639,6 +643,73 @@ function MatchingRenderer({
   );
 }
 
+// ─── Passover decorations ─────────────────────────────────────────────────────
+
+const SEDER_ITEMS = [
+  { emoji: '🍷', label: 'כוס' },
+  { emoji: '🫓', label: 'מצה' },
+  { emoji: '🌿', label: 'מרור' },
+  { emoji: '🥚', label: 'ביצה' },
+  { emoji: '🥬', label: 'כרפס' },
+  { emoji: '🥜', label: 'חרוסת' },
+] as const;
+
+function SederItems() {
+  return (
+    <div className="flex items-end justify-center gap-3 sm:gap-5 py-4">
+      {SEDER_ITEMS.map(({ emoji, label }, i) => (
+        <motion.div
+          key={label}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 * i, duration: 0.4 }}
+          className="flex flex-col items-center gap-1.5"
+        >
+          <div className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-full bg-white border border-accent/25 shadow-sm text-xl sm:text-2xl">
+            {emoji}
+          </div>
+          <span className="text-[9px] tracking-widest text-charcoal/35 uppercase font-medium">{label}</span>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function OrnamentalDivider({ label }: { label?: string }) {
+  return (
+    <div className="flex items-center gap-3 my-5">
+      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-accent/30 to-accent/30" />
+      <span className="text-accent/50 text-sm">✦</span>
+      {label && (
+        <>
+          <span className="font-heading text-accent/40 text-xs tracking-[0.25em]">{label}</span>
+          <span className="text-accent/50 text-sm">✦</span>
+        </>
+      )}
+      <div className="flex-1 h-px bg-gradient-to-l from-transparent via-accent/30 to-accent/30" />
+    </div>
+  );
+}
+
+function HaggadahBanner() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.3, duration: 0.5 }}
+      className="relative overflow-hidden rounded-xl border border-accent/20 bg-gradient-to-br from-accent/[0.04] to-accent/[0.08] px-5 py-4 text-center my-5"
+    >
+      {/* Decorative corner dots */}
+      <span className="absolute top-2 right-3 text-accent/20 text-xs">✦</span>
+      <span className="absolute bottom-2 left-3 text-accent/20 text-xs">✦</span>
+      <p className="font-heading text-base sm:text-lg text-charcoal/75 leading-loose tracking-wide">
+        "הָא לַחְמָא עַנְיָא דִּי אֲכָלוּ אַבְהָתָנָא בְּאַרְעָא דְמִצְרָיִם"
+      </p>
+      <p className="text-[10px] text-charcoal/35 mt-1.5 tracking-widest uppercase">הגדה של פסח — מגיד</p>
+    </motion.div>
+  );
+}
+
 // ─── Start screen ─────────────────────────────────────────────────────────────
 
 const CATEGORIES: { key: QuizCategory | 'all'; label: string; icon: string }[] = [
@@ -661,7 +732,7 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
 
   useEffect(() => {
     setLeaderboard(getLeaderboard().slice(0, 10));
-    getPlayCount().then((n) => setPlayCount(n));
+    setPlayCount(getPlayCount());
   }, []);
 
   const available = ALL_QUESTIONS.filter(
@@ -677,33 +748,49 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
       className="max-w-2xl mx-auto px-4 py-8"
     >
       {/* Hero */}
-      <div className="text-center mb-10">
-        <p className="text-accent text-xs font-semibold uppercase tracking-[0.2em] mb-3">
+      <div className="text-center mb-6">
+        <motion.p
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-accent text-xs font-semibold uppercase tracking-[0.25em] mb-4"
+        >
           חידון <Diamond /> פסח תשפ״ה
-        </p>
-        <h1 className="font-heading text-4xl md:text-5xl text-charcoal leading-tight mb-4">
+        </motion.p>
+        <motion.h1
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="font-heading text-4xl md:text-5xl text-charcoal leading-tight mb-3"
+        >
           ליל הסדר
           <br />
           <span className="text-accent">בשאלות ותשובות</span>
-        </h1>
-        <p className="text-charcoal/60 text-base max-w-md mx-auto">
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-charcoal/55 text-base max-w-md mx-auto"
+        >
           תורה, הגדה, חז"ל, הלכות ומנהגים — לכל גיל ורמה
-        </p>
+        </motion.p>
         {playCount !== null && playCount > 0 && (
-          <p className="text-charcoal/30 text-xs mt-3">
-            • {playCount.toLocaleString('he-IL')} אנשים שיחקו עד כה
+          <p className="text-charcoal/25 text-xs mt-3 tracking-wide">
+            ✦ {playCount.toLocaleString('he-IL')} פעמים שוחק עד כה
           </p>
         )}
       </div>
 
-      <div className="flex items-center gap-3 mb-8">
-        <div className="flex-1 h-px bg-warm-gray-light" />
-        <BookOpen size={14} className="text-accent/50" />
-        <div className="flex-1 h-px bg-warm-gray-light" />
-      </div>
+      {/* Seder plate items */}
+      <SederItems />
+
+      {/* Haggadah quote */}
+      <HaggadahBanner />
+
+      <OrnamentalDivider label="בחר רמה ונושא" />
 
       {/* Age group */}
-      <div className="mb-7">
+      <div className="mb-6">
         <p className="text-xs text-charcoal/50 uppercase tracking-widest mb-3 font-medium">
           בחר את הרמה שלך
         </p>
@@ -763,6 +850,16 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
           <ChevronLeft size={18} />
         </button>
       </div>
+
+      {/* Festive footer */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className="text-center text-xs text-charcoal/25 mt-8 tracking-[0.3em] font-medium"
+      >
+        ✦ חג כשר ושמח ✦
+      </motion.p>
 
       {/* Leaderboard */}
       {leaderboard.length > 0 && (
@@ -931,7 +1028,8 @@ function QuizScreen({
         key={`card-${index}`}
         animate={state.revealed && !correct ? { x: [0, -8, 8, -8, 8, 0] } : {}}
         transition={{ duration: 0.45, ease: 'easeInOut' }}
-        className="bg-white border border-warm-gray-light rounded-2xl p-6 md:p-8 mb-5 shadow-sm"
+        className="bg-white rounded-2xl p-6 md:p-8 mb-5 shadow-sm"
+        style={{ border: '1px solid #E8E7E3', borderTop: '2px solid #8D775F' }}
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-5">
@@ -982,6 +1080,7 @@ function QuizScreen({
         )}
         {q.type === 'ordering' && (
           <OrderingRenderer
+            key={q.id}
             q={q as OrderingQuestion}
             answer={currentAnswer}
             revealed={state.revealed}
@@ -990,6 +1089,7 @@ function QuizScreen({
         )}
         {q.type === 'matching' && (
           <MatchingRenderer
+            key={q.id}
             q={q as MatchingQuestion}
             answer={currentAnswer}
             revealed={state.revealed}
@@ -1009,6 +1109,11 @@ function QuizScreen({
             >
               <p className="text-xs font-semibold text-accent uppercase tracking-wider mb-1.5">הסבר</p>
               <p className="text-sm text-charcoal/70 leading-relaxed">{q.explanation}</p>
+              {q.source && (
+                <p className="text-[11px] text-charcoal/30 mt-2 font-mono tracking-wide">
+                  מקור: {q.source}
+                </p>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1117,6 +1222,16 @@ function ResultsScreen({
         </div>
         <h2 className="font-heading text-2xl text-charcoal mb-2">{title}</h2>
         <p className="text-charcoal/60 text-sm max-w-sm mx-auto">{body}</p>
+        {score === questions.length && (
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="font-heading text-accent text-lg mt-3 tracking-wide"
+          >
+            🏛️ לשנה הבאה בירושלים!
+          </motion.p>
+        )}
       </div>
 
       {/* Category breakdown */}
@@ -1202,7 +1317,7 @@ function ResultsScreen({
       </div>
 
       {/* Actions */}
-      <div className="flex flex-wrap gap-3 justify-center mb-2">
+      <div className="flex flex-wrap gap-3 justify-center mb-4">
         <button
           onClick={handleWhatsApp}
           className="inline-flex items-center gap-2 bg-[#25D366] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#1ebe5a] transition-colors"
@@ -1234,12 +1349,16 @@ export default function PassoverQuiz() {
   const [screen, setScreen] = useState<Screen>('start');
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [answers, setAnswers] = useState<Answer[]>([]);
+  const [currentAge, setCurrentAge] = useState<AgeGroup>('teens');
+  const [currentCat, setCurrentCat] = useState<QuizCategory | 'all'>('all');
 
   const handleStart = (age: AgeGroup, cat: QuizCategory | 'all') => {
+    setCurrentAge(age);
+    setCurrentCat(cat);
     setQuestions(pickQuestions(age, cat, 10));
     setAnswers([]);
     setScreen('quiz');
-    void hitCounter();
+    hitCounter();
   };
 
   const handleFinish = (ans: Answer[]) => {
@@ -1248,9 +1367,10 @@ export default function PassoverQuiz() {
   };
 
   const handleRestart = () => {
-    setQuestions((qs) => shuffle(qs));
+    setQuestions(pickQuestions(currentAge, currentCat, 10));
     setAnswers([]);
     setScreen('quiz');
+    hitCounter();
   };
 
   return (
