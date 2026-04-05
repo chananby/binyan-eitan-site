@@ -3508,7 +3508,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'chazal',
     difficulty: 'hard',
-    question: 'מהו ההבדל הסמלי בין "חמץ" ל"מצה" על פי ספרי המחשבה?',
+    question: 'מהו ההבדל הסמלי בין "חמץ" ל"מצה"?',
     options: [
       'אין הבדל סמלי, זה רק עניין של זמן אפייה',
       'החמץ (שתופח) מסמל גאווה, והמצה (השטוחה) מסמלת ענווה ופשטות',
@@ -4686,7 +4686,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'chazal',
     difficulty: 'hard',
-    question: 'על פי המחשבה היהודית, מהו ההבדל המהותי בין "עבד" ל"בן חורין"?',
+    question: 'מהו ההבדל המהותי בין "עבד" ל"בן חורין"?',
     options: [
       'עבד עובד קשה ובן חורין נח כל היום',
       'לבן חורין יש לוח זמנים משלו',
