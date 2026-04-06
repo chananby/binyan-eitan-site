@@ -67,6 +67,41 @@ function getPlayCount(): number {
   } catch { return 0; }
 }
 
+// ─── Daily streak (localStorage) ──────────────────────────────────────────────
+
+const STREAK_KEY = 'pq-streak';
+
+interface StreakData {
+  current: number;
+  best:    number;
+  lastDate: string; // YYYY-MM-DD
+}
+
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getStreak(): StreakData {
+  try {
+    const raw = localStorage.getItem(STREAK_KEY);
+    return raw ? (JSON.parse(raw) as StreakData) : { current: 0, best: 0, lastDate: '' };
+  } catch { return { current: 0, best: 0, lastDate: '' }; }
+}
+
+function hitStreak(): StreakData {
+  try {
+    const today = todayStr();
+    const data  = getStreak();
+    if (data.lastDate === today) return data; // already played today
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const current   = data.lastDate === yesterday ? data.current + 1 : 1;
+    const best      = Math.max(current, data.best);
+    const next: StreakData = { current, best, lastDate: today };
+    localStorage.setItem(STREAK_KEY, JSON.stringify(next));
+    return next;
+  } catch { return { current: 1, best: 1, lastDate: todayStr() }; }
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Screen = 'start' | 'quiz' | 'results';
@@ -748,10 +783,12 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
   const [age, setAge] = useState<AgeGroup>('teens');
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [playCount, setPlayCount] = useState<number | null>(null);
+  const [streak, setStreak] = useState<StreakData | null>(null);
 
   useEffect(() => {
     setLeaderboard(getLeaderboard().slice(0, 10));
     setPlayCount(getPlayCount());
+    setStreak(getStreak());
   }, []);
 
   const available = ALL_QUESTIONS.filter((q) => q.ageGroup === age).length;
@@ -791,11 +828,18 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
         >
           תורה, הגדה, חז"ל, הלכות ומנהגים — לכל גיל ורמה
         </motion.p>
-        {playCount !== null && playCount > 0 && (
-          <p className="text-charcoal/25 text-xs mt-3 tracking-wide">
-            ✦ {playCount.toLocaleString('he-IL')} פעמים שוחק עד כה
-          </p>
-        )}
+        <div className="flex items-center justify-center gap-4 mt-3">
+          {playCount !== null && playCount > 0 && (
+            <p className="text-charcoal/25 text-xs tracking-wide">
+              ✦ {playCount.toLocaleString('he-IL')} פעמים שוחק עד כה
+            </p>
+          )}
+          {streak !== null && streak.current > 0 && (
+            <p className="text-xs font-semibold text-orange-400">
+              🔥 {streak.current} {streak.current === 1 ? 'יום' : 'ימים'} ברצף
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Seder plate items */}
@@ -1431,6 +1475,7 @@ export default function PassoverQuiz() {
     setAnswers([]);
     setScreen('quiz');
     hitCounter();
+    hitStreak();
   };
 
   const handleFinish = (ans: Answer[], qs: QuizQuestion[]) => {
@@ -1445,6 +1490,7 @@ export default function PassoverQuiz() {
     setAnswers([]);
     setScreen('quiz');
     hitCounter();
+    hitStreak();
   };
 
   return (
