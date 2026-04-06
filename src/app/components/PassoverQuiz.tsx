@@ -95,14 +95,34 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function pickQuestions(
-  ageGroup: AgeGroup,
-  category: QuizCategory | 'all',
-  count = 10,
-): QuizQuestion[] {
+function buildPool(ageGroup: AgeGroup, category: QuizCategory | 'all'): QuizQuestion[] {
   let pool = ALL_QUESTIONS.filter((q) => q.ageGroup === ageGroup);
   if (category !== 'all') pool = pool.filter((q) => q.category === category);
-  return shuffle(pool).slice(0, count);
+  return pool;
+}
+
+function nextDifficulty(
+  current: 'easy' | 'medium' | 'hard',
+  wasCorrect: boolean,
+): 'easy' | 'medium' | 'hard' {
+  if (wasCorrect) return current === 'easy' ? 'medium' : 'hard';
+  return current === 'hard' ? 'medium' : 'easy';
+}
+
+function initAnswer(q: QuizQuestion): Answer {
+  switch (q.type) {
+    case 'multiple-choice':
+    case 'who-said':
+      return { type: q.type, selected: null };
+    case 'true-false':
+      return { type: 'true-false', selected: null };
+    case 'fill-blank':
+      return { type: 'fill-blank', text: '' };
+    case 'ordering':
+      return { type: 'ordering', order: [] };
+    case 'matching':
+      return { type: 'matching', pairs: [] };
+  }
 }
 
 function isCorrect(q: QuizQuestion, answer: Answer): boolean {
@@ -905,38 +925,57 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
 // ─── Quiz screen ──────────────────────────────────────────────────────────────
 
 function QuizScreen({
-  questions,
+  pool,
+  totalCount = 10,
   onFinish,
 }: {
-  questions: QuizQuestion[];
-  onFinish: (answers: Answer[]) => void;
+  pool: QuizQuestion[];
+  totalCount: number;
+  onFinish: (answers: Answer[], questions: QuizQuestion[]) => void;
 }) {
-  const [index, setIndex] = useState(0);
-  const [answers, setAnswers] = useState<Answer[]>(
-    questions.map((q) => {
-      switch (q.type) {
-        case 'multiple-choice':
-        case 'who-said':
-          return { type: q.type, selected: null };
-        case 'true-false':
-          return { type: 'true-false', selected: null };
-        case 'fill-blank':
-          return { type: 'fill-blank', text: '' };
-        case 'ordering':
-          return { type: 'ordering', order: [] };
-        case 'matching':
-          return { type: 'matching', pairs: [] };
-      }
-    }),
-  );
-  const [state, setState] = useState<{ revealed: boolean }>({ revealed: false });
-  const [timer, setTimer] = useState(30);
-  const [leaving, setLeaving] = useState(false);
+  // ── Adaptive buckets (shuffled once per mount) ─────────────────────
+  const bucketsRef = useRef<Record<'easy' | 'medium' | 'hard', QuizQuestion[]> | null>(null);
+  if (!bucketsRef.current) {
+    bucketsRef.current = {
+      easy:   shuffle(pool.filter((q) => q.difficulty === 'easy')),
+      medium: shuffle(pool.filter((q) => q.difficulty === 'medium')),
+      hard:   shuffle(pool.filter((q) => q.difficulty === 'hard')),
+    };
+  }
+  const usedIds = useRef(new Set<string>());
 
-  const q = questions[index];
-  const currentAnswer = answers[index];
+  function pickNextQ(diff: 'easy' | 'medium' | 'hard'): QuizQuestion | null {
+    const order: ('easy' | 'medium' | 'hard')[] =
+      diff === 'easy' ? ['easy', 'medium', 'hard'] :
+      diff === 'hard' ? ['hard', 'medium', 'easy'] :
+                        ['medium', 'hard', 'easy'];
+    for (const d of order) {
+      const found = bucketsRef.current![d].find((q) => !usedIds.current.has(q.id));
+      if (found) { usedIds.current.add(found.id); return found; }
+    }
+    return null;
+  }
+
+  // Pick first question synchronously (medium difficulty)
+  const initRef = useRef<QuizQuestion | null>(null);
+  if (!initRef.current) initRef.current = pickNextQ('medium');
+  const firstQ = initRef.current!;
+
+  // ── State ──────────────────────────────────────────────────────────
+  const [displayedQs, setDisplayedQs]           = useState<QuizQuestion[]>([firstQ]);
+  const [completedAnswers, setCompletedAnswers]  = useState<Answer[]>([]);
+  const [currentAnswer, setCurrentAnswer]        = useState<Answer>(() => initAnswer(firstQ));
+  const [difficulty, setDifficulty]              = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [revealed, setRevealed]                  = useState(false);
+  const [timer, setTimer]                        = useState(30);
+  const [leaving, setLeaving]                    = useState(false);
+
+  const index     = completedAnswers.length;
+  const q         = displayedQs[index];
   const totalTime = timerForQuestion(q);
+  const correct   = revealed && isCorrect(q, currentAnswer);
 
+  // ── hasAnswer / isComplete ─────────────────────────────────────────
   const hasAnswer = (() => {
     switch (currentAnswer.type) {
       case 'multiple-choice':
@@ -953,12 +992,19 @@ function QuizScreen({
     }
   })();
 
-  const triggerFeedback = useCallback((correct: boolean) => {
-    // Vibration — always on mobile (patterns differ by result)
+  const isComplete = (() => {
+    if (q.type === 'ordering')
+      return (currentAnswer as { order: string[] }).order.length === (q as OrderingQuestion).items.length;
+    if (q.type === 'matching')
+      return (currentAnswer as { pairs: Array<{ left: string; right: string }> }).pairs.length === (q as MatchingQuestion).pairs.length;
+    return hasAnswer;
+  })();
+
+  // ── Feedback ───────────────────────────────────────────────────────
+  const triggerFeedback = useCallback((wasCorrect: boolean) => {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(correct ? [60] : [80, 60, 80]);
+      navigator.vibrate(wasCorrect ? [60] : [80, 60, 80]);
     }
-    // Sound via Web Audio API — plays on desktop + mobile (muted by silent mode)
     try {
       const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       const osc = ctx.createOscillator();
@@ -966,7 +1012,7 @@ function QuizScreen({
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.type = 'sine';
-      if (correct) {
+      if (wasCorrect) {
         osc.frequency.setValueAtTime(880, ctx.currentTime);
         osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
         gain.gain.setValueAtTime(0.25, ctx.currentTime);
@@ -981,18 +1027,19 @@ function QuizScreen({
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.4);
       }
-    } catch { /* silent fail — AudioContext unavailable */ }
+    } catch { /* silent */ }
   }, []);
 
+  // ── Reveal ─────────────────────────────────────────────────────────
   const reveal = useCallback(() => {
-    if (state.revealed) return;
-    setState({ revealed: true });
+    if (revealed) return;
+    setRevealed(true);
     triggerFeedback(isCorrect(q, currentAnswer));
-  }, [state.revealed, triggerFeedback, q, currentAnswer]);
+  }, [revealed, triggerFeedback, q, currentAnswer]);
 
-  // Auto-reveal on timer
+  // ── Timer ──────────────────────────────────────────────────────────
   useEffect(() => {
-    if (state.revealed) return;
+    if (revealed) return;
     setTimer(totalTime);
     const id = setInterval(() => {
       setTimer((t) => {
@@ -1001,40 +1048,37 @@ function QuizScreen({
       });
     }, 1000);
     return () => clearInterval(id);
-  }, [index, state.revealed, reveal, totalTime]);
+  }, [index, revealed, reveal, totalTime]);
 
-  const updateAnswer = (a: Answer) => {
-    const next = [...answers];
-    next[index] = a;
-    setAnswers(next);
-  };
+  // ── Next question (adaptive) ───────────────────────────────────────
+  const goNext = () => {
+    const wasCorrect    = isCorrect(q, currentAnswer);
+    const newCompleted  = [...completedAnswers, currentAnswer];
+    const newDisplayed  = displayedQs;
 
-  const next = () => {
+    if (newCompleted.length >= totalCount) {
+      setLeaving(true);
+      setTimeout(() => onFinish(newCompleted, newDisplayed), 320);
+      return;
+    }
+
+    const newDiff = nextDifficulty(difficulty, wasCorrect);
+    const nextQ   = pickNextQ(newDiff);
+
     setLeaving(true);
     setTimeout(() => {
-      if (index + 1 >= questions.length) {
-        onFinish(answers);
-      } else {
-        setIndex((i) => i + 1);
-        setState({ revealed: false });
-        setLeaving(false);
+      setCompletedAnswers(newCompleted);
+      if (nextQ) {
+        setDisplayedQs([...newDisplayed, nextQ]);
+        setCurrentAnswer(initAnswer(nextQ));
       }
+      setDifficulty(newDiff);
+      setRevealed(false);
+      setLeaving(false);
     }, 320);
   };
 
-  const correct = state.revealed && isCorrect(q, currentAnswer);
-
-  // Check if answer is completable for ordering/matching
-  const isComplete = (() => {
-    if (q.type === 'ordering') {
-      return (currentAnswer as { order: string[] }).order.length === (q as OrderingQuestion).items.length;
-    }
-    if (q.type === 'matching') {
-      return (currentAnswer as { pairs: Array<{ left: string; right: string }> }).pairs.length === (q as MatchingQuestion).pairs.length;
-    }
-    return hasAnswer;
-  })();
-
+  // ── JSX ────────────────────────────────────────────────────────────
   return (
     <motion.div
       initial={{ opacity: 0, x: 40 }}
@@ -1045,7 +1089,7 @@ function QuizScreen({
       {/* Progress */}
       <div className="mb-6">
         <div className="flex items-center justify-between text-xs text-charcoal/50 mb-2">
-          <span>שאלה {index + 1} מתוך {questions.length}</span>
+          <span>שאלה {index + 1} מתוך {totalCount}</span>
           <div className="flex items-center gap-2">
             <TypeBadge type={q.type} />
             <CategoryBadge category={q.category} />
@@ -1055,8 +1099,8 @@ function QuizScreen({
           <motion.div
             className="h-full rounded-full"
             style={{ backgroundColor: '#8D775F' }}
-            initial={{ width: `${(index / questions.length) * 100}%` }}
-            animate={{ width: `${((index + 1) / questions.length) * 100}%` }}
+            initial={{ width: `${(index / totalCount) * 100}%` }}
+            animate={{ width: `${((index + 1) / totalCount) * 100}%` }}
             transition={{ duration: 0.4 }}
           />
         </div>
@@ -1065,7 +1109,7 @@ function QuizScreen({
       {/* Question card */}
       <motion.div
         key={`card-${index}`}
-        animate={state.revealed && !correct ? { x: [0, -8, 8, -8, 8, 0] } : {}}
+        animate={revealed && !correct ? { x: [0, -8, 8, -8, 8, 0] } : {}}
         transition={{ duration: 0.45, ease: 'easeInOut' }}
         className="bg-white rounded-2xl p-6 md:p-8 mb-5 shadow-sm"
         style={{ border: '1px solid #E8E7E3', borderTop: '2px solid #8D775F' }}
@@ -1075,7 +1119,7 @@ function QuizScreen({
           <h2 className="text-xl md:text-2xl text-charcoal font-heading leading-snug flex-1">
             {getQuestionText(q)}
           </h2>
-          {!state.revealed
+          {!revealed
             ? <TimerRing seconds={timer} total={totalTime} />
             : (
               <motion.div
@@ -1097,24 +1141,24 @@ function QuizScreen({
           <MultipleChoiceRenderer
             q={q as MultipleChoiceQuestion | WhoSaidQuestion}
             answer={currentAnswer}
-            revealed={state.revealed}
-            onAnswer={updateAnswer}
+            revealed={revealed}
+            onAnswer={setCurrentAnswer}
           />
         )}
         {q.type === 'true-false' && (
           <TrueFalseRenderer
             q={q as TrueFalseQuestion}
             answer={currentAnswer}
-            revealed={state.revealed}
-            onAnswer={updateAnswer}
+            revealed={revealed}
+            onAnswer={setCurrentAnswer}
           />
         )}
         {q.type === 'fill-blank' && (
           <FillBlankRenderer
             q={q as FillBlankQuestion}
             answer={currentAnswer}
-            revealed={state.revealed}
-            onAnswer={updateAnswer}
+            revealed={revealed}
+            onAnswer={setCurrentAnswer}
           />
         )}
         {q.type === 'ordering' && (
@@ -1122,8 +1166,8 @@ function QuizScreen({
             key={q.id}
             q={q as OrderingQuestion}
             answer={currentAnswer}
-            revealed={state.revealed}
-            onAnswer={updateAnswer}
+            revealed={revealed}
+            onAnswer={setCurrentAnswer}
           />
         )}
         {q.type === 'matching' && (
@@ -1131,14 +1175,14 @@ function QuizScreen({
             key={q.id}
             q={q as MatchingQuestion}
             answer={currentAnswer}
-            revealed={state.revealed}
-            onAnswer={updateAnswer}
+            revealed={revealed}
+            onAnswer={setCurrentAnswer}
           />
         )}
 
         {/* Explanation */}
         <AnimatePresence>
-          {state.revealed && (
+          {revealed && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -1160,7 +1204,7 @@ function QuizScreen({
 
       {/* Check / Next button */}
       <div className="text-center space-y-2">
-        {!state.revealed && isComplete && (
+        {!revealed && isComplete && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             <button
               onClick={reveal}
@@ -1171,13 +1215,13 @@ function QuizScreen({
           </motion.div>
         )}
         <AnimatePresence>
-          {state.revealed && (
+          {revealed && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
               <button
-                onClick={next}
+                onClick={goNext}
                 className="inline-flex items-center gap-2 bg-accent text-bone px-8 py-3 rounded-lg font-semibold hover:bg-accent-dark transition-colors"
               >
-                {index + 1 < questions.length ? 'שאלה הבאה' : 'לתוצאות'}
+                {index + 1 < totalCount ? 'שאלה הבאה' : 'לתוצאות'}
                 <ChevronLeft size={16} />
               </button>
             </motion.div>
@@ -1394,28 +1438,33 @@ function ResultsScreen({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function PassoverQuiz() {
-  const [screen, setScreen] = useState<Screen>('start');
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [answers, setAnswers] = useState<Answer[]>([]);
+  const [screen, setScreen]         = useState<Screen>('start');
+  const [quizPool, setQuizPool]     = useState<QuizQuestion[]>([]);
+  const [quizKey, setQuizKey]       = useState(0);
+  const [questions, setQuestions]   = useState<QuizQuestion[]>([]);
+  const [answers, setAnswers]       = useState<Answer[]>([]);
   const [currentAge, setCurrentAge] = useState<AgeGroup>('teens');
   const [currentCat, setCurrentCat] = useState<QuizCategory | 'all'>('all');
 
   const handleStart = (age: AgeGroup, cat: QuizCategory | 'all') => {
     setCurrentAge(age);
     setCurrentCat(cat);
-    setQuestions(pickQuestions(age, cat, 10));
+    setQuizPool(buildPool(age, cat));
+    setQuizKey((k) => k + 1);
     setAnswers([]);
     setScreen('quiz');
     hitCounter();
   };
 
-  const handleFinish = (ans: Answer[]) => {
+  const handleFinish = (ans: Answer[], qs: QuizQuestion[]) => {
     setAnswers(ans);
+    setQuestions(qs);
     setScreen('results');
   };
 
   const handleRestart = () => {
-    setQuestions(pickQuestions(currentAge, currentCat, 10));
+    setQuizPool(buildPool(currentAge, currentCat));
+    setQuizKey((k) => k + 1);
     setAnswers([]);
     setScreen('quiz');
     hitCounter();
@@ -1451,7 +1500,7 @@ export default function PassoverQuiz() {
           <StartScreen key="start" onStart={handleStart} />
         )}
         {screen === 'quiz' && (
-          <QuizScreen key="quiz" questions={questions} onFinish={handleFinish} />
+          <QuizScreen key={`quiz-${quizKey}`} pool={quizPool} totalCount={10} onFinish={handleFinish} />
         )}
         {screen === 'results' && (
           <ResultsScreen
