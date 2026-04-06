@@ -6305,7 +6305,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     id: 'tm-elite-05',
     ageGroup: 'teens',
     type: 'multiple-choice',
-    category: 'history',
+    category: 'torah',
     difficulty: 'hard',
     question: 'מדוע בכתבים המצריים העתיקים (כמו פפירוסים) כמעט ולא נמצא תיעוד רשמי של עשר המכות ויציאת מצרים?',
     options: [
