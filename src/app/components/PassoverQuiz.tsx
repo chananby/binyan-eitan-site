@@ -102,6 +102,67 @@ function hitStreak(): StreakData {
   } catch { return { current: 1, best: 1, lastDate: todayStr() }; }
 }
 
+// ─── Achievements (localStorage) ─────────────────────────────────────────────
+
+const ACHIEVEMENTS_KEY = 'pq-achievements';
+
+interface AchievementsData {
+  perfect: boolean; // 10/10
+  streak5: boolean; // 5 correct in a row in one game
+  loyal7:  boolean; // 7-day streak
+}
+
+const ACHIEVEMENT_META: Record<keyof AchievementsData, { icon: string; label: string; desc: string }> = {
+  perfect: { icon: '🏆', label: 'מושלם',  desc: '10/10 במשחק אחד'       },
+  streak5: { icon: '⚡', label: 'רצף',     desc: '5 תשובות נכונות ברצף'  },
+  loyal7:  { icon: '🔥', label: 'נאמן',    desc: '7 ימים ברצף'            },
+};
+
+function getAchievements(): AchievementsData {
+  try {
+    const raw = localStorage.getItem(ACHIEVEMENTS_KEY);
+    return raw ? (JSON.parse(raw) as AchievementsData) : { perfect: false, streak5: false, loyal7: false };
+  } catch { return { perfect: false, streak5: false, loyal7: false }; }
+}
+
+function saveAchievements(data: AchievementsData): void {
+  try { localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(data)); } catch { /* silent */ }
+}
+
+// Returns keys of newly earned achievements
+function computeNewAchievements(
+  answers: Answer[],
+  questions: QuizQuestion[],
+): (keyof AchievementsData)[] {
+  const existing = getAchievements();
+  const next     = { ...existing };
+  const newKeys: (keyof AchievementsData)[] = [];
+
+  const score = answers.filter((a, i) => isCorrect(questions[i], a)).length;
+
+  // Perfect
+  if (!existing.perfect && score === questions.length && questions.length >= 10) {
+    next.perfect = true;
+    newKeys.push('perfect');
+  }
+
+  // 5 in a row
+  if (!existing.streak5) {
+    let best = 0, cur = 0;
+    answers.forEach((a, i) => { if (isCorrect(questions[i], a)) { cur++; best = Math.max(best, cur); } else { cur = 0; } });
+    if (best >= 5) { next.streak5 = true; newKeys.push('streak5'); }
+  }
+
+  // 7-day streak
+  if (!existing.loyal7 && getStreak().current >= 7) {
+    next.loyal7 = true;
+    newKeys.push('loyal7');
+  }
+
+  if (newKeys.length > 0) saveAchievements(next);
+  return newKeys;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Screen = 'start' | 'quiz' | 'results';
@@ -1271,8 +1332,16 @@ function ResultsScreen({
   const ageGroup = questions[0]?.ageGroup ?? 'adults';
   const { title, body } = scoreMessage(score, questions.length);
 
-  const [name, setName]   = useState('');
-  const [saved, setSaved] = useState(false);
+  const [name, setName]         = useState('');
+  const [saved, setSaved]       = useState(false);
+  const [newBadges, setNewBadges]   = useState<(keyof AchievementsData)[]>([]);
+  const [allBadges, setAllBadges]   = useState<AchievementsData>({ perfect: false, streak5: false, loyal7: false });
+
+  useEffect(() => {
+    const earned = computeNewAchievements(answers, questions);
+    setNewBadges(earned);
+    setAllBadges(getAchievements());
+  }, []);
 
   const handleSave = () => {
     if (!name.trim() || saved) return;
@@ -1337,6 +1406,45 @@ function ResultsScreen({
           </motion.p>
         )}
       </div>
+
+      {/* Achievements */}
+      {Object.values(allBadges).some(Boolean) && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white border border-warm-gray-light rounded-2xl p-5 mb-6 shadow-sm"
+        >
+          <p className="text-xs font-semibold text-charcoal/40 uppercase tracking-wider mb-4">הישגים</p>
+          <div className="flex flex-wrap gap-3">
+            {(Object.keys(ACHIEVEMENT_META) as (keyof AchievementsData)[]).map((key) => {
+              if (!allBadges[key]) return null;
+              const { icon, label, desc } = ACHIEVEMENT_META[key];
+              const isNew = newBadges.includes(key);
+              return (
+                <motion.div
+                  key={key}
+                  initial={isNew ? { scale: 0.5, opacity: 0 } : false}
+                  animate={isNew ? { scale: 1, opacity: 1 } : {}}
+                  transition={{ type: 'spring', stiffness: 300, damping: 12 }}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${
+                    isNew
+                      ? 'border-accent bg-accent/[0.08] text-charcoal'
+                      : 'border-warm-gray-light bg-bone text-charcoal/60'
+                  }`}
+                >
+                  <span className="text-lg">{icon}</span>
+                  <div>
+                    <p className="font-semibold leading-tight">{label}</p>
+                    <p className="text-[11px] text-charcoal/40">{desc}</p>
+                  </div>
+                  {isNew && <span className="text-[10px] font-bold text-accent uppercase tracking-wide mr-1">חדש!</span>}
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
 
       {/* Category breakdown */}
       {catStats.length > 1 && (
