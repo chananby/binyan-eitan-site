@@ -1041,12 +1041,14 @@ function QuizScreen({
   // Pick first question synchronously (medium difficulty)
   const initRef = useRef<QuizQuestion | null>(null);
   if (!initRef.current) initRef.current = pickNextQ('medium');
-  const firstQ = initRef.current!;
+  const firstQ = initRef.current;
 
   // ── State ──────────────────────────────────────────────────────────
-  const [displayedQs, setDisplayedQs]           = useState<QuizQuestion[]>([firstQ]);
+  const [displayedQs, setDisplayedQs]           = useState<QuizQuestion[]>(firstQ ? [firstQ] : []);
   const [completedAnswers, setCompletedAnswers]  = useState<Answer[]>([]);
-  const [currentAnswer, setCurrentAnswer]        = useState<Answer>(() => initAnswer(firstQ));
+  const [currentAnswer, setCurrentAnswer]        = useState<Answer>(() =>
+    firstQ ? initAnswer(firstQ) : { type: 'multiple-choice', selected: null }
+  );
   const [difficulty, setDifficulty]              = useState<'easy' | 'medium' | 'hard'>('medium');
   const [revealed, setRevealed]                  = useState(false);
   const [timer, setTimer]                        = useState(30);
@@ -1054,6 +1056,16 @@ function QuizScreen({
 
   const index     = completedAnswers.length;
   const q         = displayedQs[index];
+
+  // Guard: empty pool
+  if (!q) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-charcoal/50">
+        אין שאלות זמינות
+      </div>
+    );
+  }
+
   const totalTime = timerForQuestion(q);
   const correct   = revealed && isCorrect(q, currentAnswer);
 
@@ -1134,26 +1146,31 @@ function QuizScreen({
 
   // ── Next question (adaptive) ───────────────────────────────────────
   const goNext = () => {
-    const wasCorrect    = isCorrect(q, currentAnswer);
-    const newCompleted  = [...completedAnswers, currentAnswer];
-    const newDisplayed  = displayedQs;
+    if (leaving) return; // prevent double-click during animation
+    const wasCorrect   = isCorrect(q, currentAnswer);
+    const newCompleted = [...completedAnswers, currentAnswer];
 
     if (newCompleted.length >= totalCount) {
       setLeaving(true);
-      setTimeout(() => onFinish(newCompleted, newDisplayed), 320);
+      setTimeout(() => onFinish(newCompleted, displayedQs), 320);
       return;
     }
 
     const newDiff = nextDifficulty(difficulty, wasCorrect);
     const nextQ   = pickNextQ(newDiff);
 
+    // Pool exhausted mid-quiz — end early
+    if (!nextQ) {
+      setLeaving(true);
+      setTimeout(() => onFinish(newCompleted, displayedQs), 320);
+      return;
+    }
+
     setLeaving(true);
     setTimeout(() => {
       setCompletedAnswers(newCompleted);
-      if (nextQ) {
-        setDisplayedQs([...newDisplayed, nextQ]);
-        setCurrentAnswer(initAnswer(nextQ));
-      }
+      setDisplayedQs((prev) => [...prev, nextQ]);
+      setCurrentAnswer(initAnswer(nextQ));
       setDifficulty(newDiff);
       setRevealed(false);
       setLeaving(false);
@@ -1301,7 +1318,8 @@ function QuizScreen({
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
               <button
                 onClick={goNext}
-                className="inline-flex items-center gap-2 bg-accent text-bone px-8 py-3 rounded-lg font-semibold hover:bg-accent-dark transition-colors"
+                disabled={leaving}
+                className="inline-flex items-center gap-2 bg-accent text-bone px-8 py-3 rounded-lg font-semibold hover:bg-accent-dark transition-colors disabled:opacity-50"
               >
                 {index + 1 < totalCount ? 'שאלה הבאה' : 'לתוצאות'}
                 <ChevronLeft size={16} />
@@ -1341,7 +1359,7 @@ function ResultsScreen({
     const earned = computeNewAchievements(answers, questions);
     setNewBadges(earned);
     setAllBadges(getAchievements());
-  }, []);
+  }, [answers, questions]);
 
   const handleSave = () => {
     if (!name.trim() || saved) return;
