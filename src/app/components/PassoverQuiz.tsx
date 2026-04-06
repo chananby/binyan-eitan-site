@@ -746,7 +746,6 @@ const AGE_GROUPS: AgeGroup[] = ['kids', 'teens', 'adults'];
 
 function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory | 'all') => void }) {
   const [age, setAge] = useState<AgeGroup>('teens');
-  const [cat, setCat] = useState<QuizCategory | 'all'>('all');
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [playCount, setPlayCount] = useState<number | null>(null);
 
@@ -755,9 +754,7 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
     setPlayCount(getPlayCount());
   }, []);
 
-  const available = ALL_QUESTIONS.filter(
-    (q) => q.ageGroup === age && (cat === 'all' || q.category === cat),
-  ).length;
+  const available = ALL_QUESTIONS.filter((q) => q.ageGroup === age).length;
 
   return (
     <motion.div
@@ -807,7 +804,7 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
       {/* Haggadah quote */}
       <HaggadahBanner />
 
-      <OrnamentalDivider label="בחר רמה ונושא" />
+      <OrnamentalDivider label="בחר רמה" />
 
       {/* Age group */}
       <div className="mb-6">
@@ -832,26 +829,6 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
         </div>
       </div>
 
-      {/* Category */}
-      <div className="mb-8">
-        <p className="text-xs text-charcoal/50 uppercase tracking-widest mb-3 font-medium">נושא</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.key}
-              onClick={() => setCat(c.key)}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm transition-all text-right ${
-                cat === c.key
-                  ? 'border-accent bg-accent text-bone font-semibold'
-                  : 'border-warm-gray-light bg-white text-charcoal hover:border-accent/50 hover:bg-accent/[0.04]'
-              }`}
-            >
-              <span className="text-base">{c.icon}</span>
-              <span className="leading-tight">{c.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Start */}
       <div className="text-center">
@@ -869,7 +846,7 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
         )}
         <br />
         <button
-          onClick={() => available > 0 && onStart(age, cat)}
+          onClick={() => available > 0 && onStart(age, 'all')}
           disabled={available === 0}
           className="inline-flex items-center gap-2 bg-accent text-bone px-10 py-3.5 rounded-lg font-semibold text-base hover:bg-accent-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
