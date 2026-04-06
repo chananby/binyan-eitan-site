@@ -1334,21 +1334,28 @@ function QuizScreen({
 
 // ─── Results screen ───────────────────────────────────────────────────────────
 
+const NEXT_AGE: Partial<Record<AgeGroup, AgeGroup>> = { kids: 'teens', teens: 'adults' };
+const NEXT_AGE_LABEL: Partial<Record<AgeGroup, string>> = { kids: 'נוער', teens: 'מבוגרים' };
+
 function ResultsScreen({
   questions,
   answers,
   onRestart,
   onChangeSettings,
+  onLevelUp,
 }: {
   questions: QuizQuestion[];
   answers: Answer[];
   onRestart: () => void;
   onChangeSettings: () => void;
+  onLevelUp: (nextAge: AgeGroup) => void;
 }) {
   const score    = answers.filter((a, i) => isCorrect(questions[i], a)).length;
   const pct      = Math.round((score / questions.length) * 100);
   const ageGroup = questions[0]?.ageGroup ?? 'adults';
   const { title, body } = scoreMessage(score, questions.length);
+  const nextAge  = NEXT_AGE[ageGroup];
+  const suggestLevelUp = pct >= 80 && nextAge !== undefined;
 
   const [name, setName]         = useState('');
   const [saved, setSaved]       = useState(false);
@@ -1425,6 +1432,31 @@ function ResultsScreen({
         )}
       </div>
 
+      {/* Level-up suggestion */}
+      {suggestLevelUp && nextAge && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, type: 'spring', stiffness: 180 }}
+          className="bg-gradient-to-br from-accent/[0.07] to-accent/[0.12] border border-accent/30 rounded-2xl p-5 mb-6 text-center"
+        >
+          <p className="text-2xl mb-2">🚀</p>
+          <p className="font-heading text-charcoal text-lg mb-1">
+            נראה שאתה מוכן לרמה הבאה
+          </p>
+          <p className="text-charcoal/55 text-sm mb-4">
+            ענית {pct}% נכון — מוכן לנסות רמת <strong>{NEXT_AGE_LABEL[ageGroup]}</strong>?
+          </p>
+          <button
+            onClick={() => onLevelUp(nextAge)}
+            className="inline-flex items-center gap-2 bg-accent text-bone px-6 py-2.5 rounded-lg font-semibold hover:bg-accent-dark transition-colors text-sm"
+          >
+            עבור לרמת {NEXT_AGE_LABEL[ageGroup]}
+            <ChevronLeft size={15} />
+          </button>
+        </motion.div>
+      )}
+
       {/* Achievements */}
       {Object.values(allBadges).some(Boolean) && (
         <motion.div
@@ -1495,18 +1527,34 @@ function ResultsScreen({
 
       {/* Per-question review */}
       <div className="bg-white border border-warm-gray-light rounded-2xl p-5 mb-6 shadow-sm">
-        <p className="text-xs font-semibold text-charcoal/40 uppercase tracking-wider mb-4">
+        <p className="text-xs font-semibold text-charcoal/40 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <BookOpen size={13} />
           סיכום שאלות
         </p>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {questions.map((q, i) => {
             const correct = isCorrect(q, answers[i]);
             return (
-              <div key={q.id} className="flex items-start gap-3 text-sm">
-                {correct
-                  ? <CheckCircle size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
-                  : <XCircle size={16} className="text-red-400 mt-0.5 flex-shrink-0" />}
-                <span className="text-charcoal/70 leading-snug">{getQuestionText(q)}</span>
+              <div key={q.id} className={`rounded-xl border p-3 text-sm ${correct ? 'border-green-100 bg-green-50/50' : 'border-red-100 bg-red-50/50'}`}>
+                <div className="flex items-start gap-2.5">
+                  {correct
+                    ? <CheckCircle size={15} className="text-green-500 mt-0.5 flex-shrink-0" />
+                    : <XCircle size={15} className="text-red-400 mt-0.5 flex-shrink-0" />}
+                  <span className={`leading-snug ${correct ? 'text-charcoal/60' : 'text-charcoal/80 font-medium'}`}>
+                    {getQuestionText(q)}
+                  </span>
+                </div>
+                {!correct && (
+                  <div className="mt-2.5 ms-6 space-y-1.5">
+                    <p className="text-xs text-charcoal/70 leading-relaxed">
+                      <span className="font-semibold text-accent">הסבר: </span>
+                      {q.explanation}
+                    </p>
+                    {q.source && (
+                      <p className="text-[11px] text-charcoal/35 font-mono">מקור: {q.source}</p>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -1619,6 +1667,17 @@ export default function PassoverQuiz() {
     hitStreak();
   };
 
+  const handleLevelUp = (nextAge: AgeGroup) => {
+    setCurrentAge(nextAge);
+    setCurrentCat('all');
+    setQuizPool(buildPool(nextAge, 'all'));
+    setQuizKey((k) => k + 1);
+    setAnswers([]);
+    setScreen('quiz');
+    hitCounter();
+    hitStreak();
+  };
+
   return (
     <div dir="rtl" className="min-h-screen bg-bone" style={{
       backgroundImage: 'radial-gradient(circle, #c8b8a2 1px, transparent 1px)',
@@ -1658,6 +1717,7 @@ export default function PassoverQuiz() {
             answers={answers}
             onRestart={handleRestart}
             onChangeSettings={() => setScreen('start')}
+            onLevelUp={handleLevelUp}
           />
         )}
       </AnimatePresence>
