@@ -70,7 +70,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
         <p className="text-sm font-semibold tracking-widest mb-2" style={{ color: '#4A8FE0' }}>
           יום העצמאות תשפ"ה
         </p>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: '#003F8C' }}>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4" style={{ color: '#003F8C' }}>
           חידון עצמאות
         </h1>
         <p className="text-lg text-charcoal/70 max-w-md mx-auto leading-relaxed">
@@ -172,7 +172,7 @@ function QuestionScreen({
           <img
             src={question.image}
             alt=""
-            className="w-full object-cover max-h-56"
+            className="w-full object-cover max-h-48 sm:max-h-64"
           />
         </div>
       )}
@@ -216,11 +216,11 @@ function QuestionScreen({
               style={{ background: bg, borderColor: border, color: text }}
             >
               <span className="flex items-center justify-between gap-3">
-                <span>
-                  {answered && i === question.correctIndex && <CheckCircle size={18} className="text-green-500 shrink-0" />}
-                  {answered && i === selected && i !== question.correctIndex && <XCircle size={18} className="text-red-500 shrink-0" />}
-                </span>
                 <span>{opt}</span>
+                <span className="shrink-0">
+                  {answered && i === question.correctIndex && <CheckCircle size={18} className="text-green-500" />}
+                  {answered && i === selected && i !== question.correctIndex && <XCircle size={18} className="text-red-500" />}
+                </span>
               </span>
             </motion.button>
           );
@@ -248,7 +248,7 @@ function QuestionScreen({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           onClick={next}
-          className="self-center px-8 py-3 rounded-xl text-white font-bold flex items-center gap-2 shadow-md"
+          className="w-full py-3 rounded-xl text-white font-bold flex items-center justify-center gap-2 shadow-md"
           style={{ background: 'linear-gradient(135deg, #003F8C, #1B6FD8)' }}
         >
           <ChevronLeft size={18} />
@@ -290,7 +290,7 @@ function ResultsScreen({
     >
       {/* Score card */}
       <div
-        className="rounded-2xl p-8 text-center text-white shadow-xl"
+        className="rounded-2xl p-6 sm:p-8 text-center text-white shadow-xl"
         style={{ background: 'linear-gradient(135deg, #003F8C, #1B6FD8)' }}
       >
         <div className="text-5xl mb-3">{scoreEmoji(pct)}</div>
@@ -300,7 +300,7 @@ function ResultsScreen({
       </div>
 
       {/* Action buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+      <div className="flex flex-col gap-3">
         <button
           onClick={onRestart}
           className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl border-2 font-semibold transition-colors hover:bg-blue-50"
@@ -348,13 +348,13 @@ function ResultsScreen({
                       style={{ borderColor: '#EF4444', background: '#FFF5F5' }}
                     >
                       <p className="font-semibold text-charcoal mb-2">{q.question}</p>
-                      <p className="text-red-600 mb-1">
-                        <XCircle size={13} className="inline ml-1" />
+                      <p className="text-red-600 mb-1 flex items-center gap-1 justify-end">
                         ענית: {q.options[answers[i]]}
+                        <XCircle size={13} className="shrink-0" />
                       </p>
-                      <p className="text-green-700 mb-2">
-                        <CheckCircle size={13} className="inline ml-1" />
+                      <p className="text-green-700 mb-2 flex items-center gap-1 justify-end">
                         נכון: {q.options[q.correctIndex]}
+                        <CheckCircle size={13} className="shrink-0" />
                       </p>
                       <p className="text-charcoal/70 leading-relaxed border-t pt-2 mt-2" style={{ borderColor: '#FED7D7' }}>
                         {q.explanation}
@@ -402,7 +402,7 @@ export default function IndependenceQuiz() {
       {/* Top flag bar */}
       <div className="h-1.5 w-full" style={{ background: 'linear-gradient(90deg, #003F8C 0%, #4A8FE0 50%, #003F8C 100%)' }} />
 
-      <div className="max-w-2xl mx-auto px-4 py-10">
+      <div className="max-w-2xl mx-auto px-3 sm:px-6 py-6 sm:py-10">
         {/* Header badge */}
         <div className="flex justify-center mb-8">
           <span
