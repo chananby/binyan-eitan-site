@@ -173,6 +173,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'הכרזת העצמאות נקראה בבניין מוזיאון תל אביב, כיום "אולם העצמאות", ברחוב רוטשילד 16.',
+    image: '/quiz/independence/iy-08.jpg',
   },
 
   {
@@ -188,6 +189,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'ב-2 בנובמבר 1917 כתב לורד בלפור למנהיג הציוני לורד רוטשילד מכתב שבו ממשלת בריטניה מצהירה על תמיכתה ב"הקמת בית לאומי לעם היהודי בארץ ישראל".',
+    image: '/quiz/independence/iy-09.jpg',
   },
 
   {
@@ -236,6 +238,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'הקונגרס הציוני הראשון התקיים בבזל (29–31 באוגוסט 1897). הרצל כתב ביומנו: "בבזל ייסדתי את המדינה היהודית. אמרו זאת בקול רם — וכולם יצחקו. אך עוד חמש שנים, ואולי חמישים, וזה יהיה מציאות לכולם".',
+    image: '/quiz/independence/iy-12.jpg',
   },
 
   {
@@ -359,6 +362,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'ב-4 ביולי 1976 חילצה יחידת סיירת מטכ"ל 102 בני ערובה מנמל אנטבה. המפקד, לייט. קול. יונתן נתניהו, נפל בקרב — הקורבן הישראלי היחיד בפעולה. מבצע אגדי.',
+    image: '/quiz/independence/iy-20.jpg',
   },
 
   {
@@ -374,6 +378,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'יצחק רבין (1922–1995) נולד בירושלים — ראש הממשלה הראשון שנולד בארץ ישראל. פיקד בגיל 27 על חטיבת הראל במלחמת העצמאות.',
+    image: '/quiz/independence/iy-21.jpg',
   },
 
   {
