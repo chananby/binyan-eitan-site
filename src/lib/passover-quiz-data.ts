@@ -405,7 +405,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'halacha',
     difficulty: 'hard',
-    question: 'מה הדין כאשר מוצאים חמץ בחג הפסח עצמו?',
+    question: 'מצאתם חמץ בתוך חג הפסח — מה עושים?',
     options: [
       'מותר לאוכלו שלא יעבור על "בל יראה"',
       'שורפים אותו מיד, אפילו ביום טוב',
@@ -456,7 +456,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'halacha',
     difficulty: 'medium',
-    question: 'מה הדין לגבי הסיבה בליל הסדר?',
+    question: 'מי חייב להסב בסדר ומי פטור?',
     options: [
       'חייב להסב בכל אכילה ושתייה',
       'מסב בארבע כוסות ובאכילת מצה; לגבי מרור — מחלוקת',
@@ -790,7 +790,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'torah',
     difficulty: 'hard',
-    question: 'מה פשר "ויחזק לב פרעה" לעומת "ויכבד לב פרעה"?',
+    question: 'מה ההבדל בין "ויחזק לב פרעה" לבין "ויכבד לב פרעה"?',
     options: [
       'אין הבדל — שתי הלשונות זהות',
       '"ויחזק" — ה\' הקשה, "ויכבד" — פרעה הקשה בעצמו',
@@ -928,7 +928,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'chazal',
     difficulty: 'hard',
-    question: 'מה ייחודה של הגאולה ממצרים לעומת גלויות אחרות לפי חז"ל?',
+    question: 'מה ייחודה של הגאולה ממצרים לעומת גלויות אחרות?',
     options: [
       'הגאולה ממצרים הייתה בזכות, שאר הגלויות בחינם',
       'ממצרים יצאו "בחיפזון" — הגאולה לא הייתה שלמה; הגאולה העתידה תהיה "לא בחיפזון"',
@@ -1049,7 +1049,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'zmanim',
     difficulty: 'hard',
-    question: 'מה פשר "ליל שימורים"?',
+    question: 'מה פירוש "ליל שימורים"?',
     options: [
       'הלילה שבו שמרו ישראל על ילדיהם מפני מלאך המוות',
       '"שמור" ו"זכור" — שני שמות לשבת שיחולו בו ביחד',
@@ -2261,7 +2261,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'haggadah',
     difficulty: 'medium',
-    question: 'מה פשר "מתחיל בגנות ומסיים בשבח"?',
+    question: 'מה הרעיון מאחורי "מתחיל בגנות ומסיים בשבח"?',
     options: [
       'מתחילים את הסדר בבכי ומסיימים בשמחה',
       'מספרים תחילה על שפל הגלות ועל עבודת האלילים, ומסיימים בגאולה ובשבח ה\'',
@@ -2295,7 +2295,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'haggadah',
     difficulty: 'medium',
-    question: 'מה פשר "בכל דור ודור חייב אדם לראות את עצמו כאילו הוא יצא ממצרים"?',
+    question: '"בכל דור ודור חייב אדם לראות את עצמו כאילו הוא יצא ממצרים" — מה המשמעות המעשית?',
     options: [
       'לדמיין שהיה שם כתרגיל דמיון בלבד',
       'לחוות אישית את הגאולה — לא כהיסטוריה רחוקה אלא כחוויה אישית ממשית',
@@ -2346,7 +2346,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'chazal',
     difficulty: 'medium',
-    question: 'מה פשר "דיינו"? על איזה עיקרון הוא מבוסס?',
+    question: '"דיינו" — מה הרעיון שמאחוריו?',
     options: [
       'תפילה שנזכה לנסים נוספים',
       'הוכחה שה\' אוהב אותנו יותר מכל האומות',
@@ -2431,7 +2431,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'haggadah',
     difficulty: 'medium',
-    question: 'מה פשר "דצ"ך עד"ש באח"ב"?',
+    question: '"דצ"ך עד"ש באח"ב" — מה זה אומר?',
     options: [
       'שמות שלושה מלאכים שהביאו את המכות',
       'ר\' יהודה עשה ראשי תיבות לעשר המכות כדי לסדרן ולזכור אותן',
@@ -2499,7 +2499,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'haggadah',
     difficulty: 'medium',
-    question: 'מה פשר השיר "אחד מי יודע"?',
+    question: 'השיר "אחד מי יודע" — מה הרעיון שמאחוריו?',
     options: [
       'שאלות על מספרים בתורה — 13 מידות, 12 שבטים, 11 כוכבי יוסף ועוד',
       'שיר ספירה לבדיקת הילדים שנרדמו',
@@ -3372,7 +3372,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'halacha',
     difficulty: 'hard',
-    question: 'מה הדין של "זרוע" שעל קערת הסדר?',
+    question: 'האם מותר לאכול את ה\'זרוע\' שבקערת הסדר?',
     options: [
       'בשר צלוי שאוכלים בסדר לזכר קרבן הפסח',
       'עצם עם מעט בשר — זכר לקרבן פסח; אסור לאכול אותה בסדר כי נראה כאוכל קרבן פסח בזמן הזה',
@@ -3508,7 +3508,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'chazal',
     difficulty: 'hard',
-    question: 'מה ייחודה של גאולת מצרים לעומת הגאולה העתידה לפי חז"ל?',
+    question: 'מה ייחודה של גאולת מצרים לעומת הגאולה העתידה?',
     options: [
       'גאולת מצרים גדולה יותר — לכן נזכרת יותר',
       'גאולת מצרים הייתה "בחיפזון"; הגאולה העתידה תהיה "לא בחיפזון" — מושלמת ונצחית',
@@ -3525,7 +3525,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'halacha',
     difficulty: 'hard',
-    question: 'מה הדין של גר שנתגייר — האם חייב במצות סיפור יציאת מצרים?',
+    question: 'גר שהתגייר — האם חייב לספר ביציאת מצרים בסדר?',
     options: [
       'פטור — כי לא היה בישראל ביציאת מצרים',
       'חייב — כי בגיורו נעשה חלק מישראל וכל ישראל יצאו ממצרים',
@@ -3994,7 +3994,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'chazal',
     difficulty: 'easy',
-    question: 'לפי הגמרא (פסחים קטז.), כיצד בנוי "מגיד" — מה עקרון הסיפור?',
+    question: '"מגיד" — על איזה עיקרון בנוי הסיפור?',
     options: [
       'מסיים בגנות — נזכרים תמיד בעבדות',
       'מתחיל בשבח ומסיים בגנות',
@@ -4028,7 +4028,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'chazal',
     difficulty: 'easy',
-    question: 'לפי חז"ל, מה טעם החרוסת — ומה מחלוקת ר\' לוי ור\' יוחנן בשאלה זו?',
+    question: 'מה טעם החרוסת — ומה מחלוקת ר\' לוי ור\' יוחנן בשאלה זו?',
     options: [
       'ר\' לוי: זכר לדם; ר\' יוחנן: זכר לטיט שבנו ישראל',
       'ר\' לוי: זכר לים סוף; ר\' יוחנן: זכר לתפוח',
@@ -5387,7 +5387,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'haggadah',
     difficulty: 'medium',
-    question: 'מה פשר שיר "חד גדיא"?',
+    question: 'שיר "חד גדיא" — מה הרעיון שמאחוריו?',
     options: [
       'שיר על חיות בחווה',
       'אלגוריה להיסטוריה: האימפריות טורפות זו את זו, ובסוף הקדוש ברוך הוא מנצח את כוחות הרע',
@@ -5788,7 +5788,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'minhagim',
     difficulty: 'hard',
-    question: 'קרבן העומר (ט"ז בניסן) היה משעורים — מזון בהמות. קרבן שתי הלחם (שבועות) היה מחיטה — מזון אדם. מה פשר העלייה הזו?',
+    question: 'קרבן העומר (ט"ז בניסן) היה משעורים — מזון בהמות. קרבן שתי הלחם (שבועות) היה מחיטה — מזון אדם. מה הרעיון מאחורי המעבר הזה?',
     options: [
       'שינוי עונות בלבד — שעורה מתבשלת לפני חיטה',
       'עם ישראל יצא ממצרים ברמה נפשית של "בהמה" ובמשך 49 ימי הספירה עלה לרמת "אדם" הראוי לקבל תורה',
@@ -6400,7 +6400,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'chazal',
     difficulty: 'easy',
-    question: 'ה"רשע" שואל "מה העבודה הזאת לָכֶם" — מה הבעיה במילה "לָכֶם" לפי חז"ל?',
+    question: 'ה"רשע" שואל "מה העבודה הזאת לָכֶם" — מה הבעיה במילה "לָכֶם"?',
     options: [
       'הוא משתמש בלשון קשה מדי',
       '"לָכֶם" ולא "לָנוּ" — הוציא עצמו מן הכלל ואינו רואה את עצמו חלק מהעם',
@@ -6574,7 +6574,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     options: [
       'כי ביצה היא מאכל מסורתי בכל חג',
       'זכר לקרבן החגיגה שהקריבו בבית המקדש בפסח',
-      'כי ביצה מסמלת את תחילת האביב',
+      'כי הביצה מביאה את הרעיון של תחילת האביב',
       'כי כך נהג אברהם אבינו',
     ],
     correctIndex: 1,
@@ -6641,7 +6641,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     question: 'מה "חד גדיא" — השיר האחרון בהגדה?',
     options: [
       'שיר ילדים פשוט שנוסף כדי להשאיר ילדים ערים',
-      'שיר ארמי עם משמעות עמוקה — שרשרת אירועים המסמלת את ההיסטוריה עד לגאולה האלוהית',
+      'שיר ארמי עם משמעות עמוקה — שרשרת אירועים שמייצגת את ההיסטוריה עד לגאולה האלוהית',
       'תפילה לבניין בית המקדש',
       'שיר שמקורו בתקופת גלות בבל',
     ],
@@ -6944,7 +6944,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'haggadah',
     difficulty: 'hard',
-    question: 'מה פשר המנהג לשפוך יין מהכוס בצירוף "דצ"ך עד"ש באח"ב"?',
+    question: 'למה שופכים יין מהכוס כשאומרים "דצ"ך עד"ש באח"ב"?',
     options: [
       'סימן למזל טוב',
       'להראות שהשמחה אינה שלמה כשאויבינו סובלים, וכן להפחית את הדינים מהכוס',
@@ -7972,7 +7972,7 @@ export const ALL_QUESTIONS: QuizQuestion[] = [
     type: 'multiple-choice',
     category: 'chazal',
     difficulty: 'hard',
-    question: 'מה פשר המצה כ"לחם עוני" וכ"לחם חירות" בו זמנית?',
+    question: 'איך יכולה המצה להיות גם "לחם עוני" וגם "לחם חירות"?',
     options: [
       'שהיא זולה מאוד לקנייה',
       'היא מבטאת את המעבר המהיר: את העוני שהיה לנו במצרים ואת המהירות המופלאה של הגאולה שבה לא היה זמן לבצק לתפוח',
