@@ -220,6 +220,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'הרב קוק (הראי"ה, 1865–1935) ראה בציונות ביטוי להשגחה אלוהית. הוא לימד שגם הציונות החילונית משמשת ככלי בידי ה\' להשבת ישראל לארצו, ופיתח תפיסת "ראשית צמיחת גאולתנו".',
+    image: '/quiz/independence/iy-11.jpg',
   },
 
   {
@@ -265,6 +266,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'האצ"ל הביא אוניית נשק ("אלטלנה" — כינויו הספרותי של ז\'בוטינסקי). בן גוריון הורה על הצתתה כדי לכפות את פירוק המיליציות ואיחוד הכוחות תחת צה"ל. הפרשה עדיין שנויה במחלוקת.',
+    image: '/quiz/independence/iy-14.jpg',
   },
 
   {
@@ -326,6 +328,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'זאב ז\'בוטינסקי (1880–1940) ייסד את הציונות הרביזיוניסטית, תנועה שדגלה בהקמת מדינה יהודית בשני עברי הירדן. הוא גם צפה את השואה והפציר ביהודי אירופה לעלות לארץ.',
+    image: '/quiz/independence/iy-18.jpg',
   },
 
   {
@@ -386,6 +389,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'מנחם בגין וסאדאת — בגישור ג\'ימי קרטר — חתמו על הסכם שלום ב-26 במרץ 1979. ישראל החזירה את סיני. הסכם השלום הראשון בין ישראל למדינה ערבית. שניהם זכו בפרס נובל לשלום.',
+    image: '/quiz/independence/iy-22.jpg',
   },
 
   // ── Hard ──────────────────────────────────────────────────────────────────
@@ -493,6 +497,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'ב-1947 נשאה אוניה 4,500 ניצולי שואה לארץ ישראל. הבריטים עצרו אותה, פצעו עולים ושלחו את כולם חזרה לגרמניה. האסון — שצולם ועלה לכותרות — שינה את הדעה הציבורית העולמית וזירז את פתרון שאלת המנדט.',
+    image: '/quiz/independence/iy-29.jpg',
   },
 
   {
