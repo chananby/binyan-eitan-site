@@ -165,6 +165,18 @@ function QuestionScreen({
         </div>
       </div>
 
+      {/* Image */}
+      {question.image && (
+        <div className="rounded-2xl overflow-hidden border" style={{ borderColor: '#003F8C22' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={question.image}
+            alt=""
+            className="w-full object-cover max-h-56"
+          />
+        </div>
+      )}
+
       {/* Question */}
       <div
         className="rounded-2xl p-6 border"

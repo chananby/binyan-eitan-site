@@ -66,6 +66,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'דוד בן גוריון קרא את מגילת העצמאות באולם מוזיאון תל אביב (בית דיזנגוף) בערב שבת, ה\' באייר תש"ח — 14 במאי 1948.',
+    image: '/quiz/independence/iy-01.jpg',
   },
 
   {
@@ -111,6 +112,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'הרצל כינס את הקונגרס הציוני הראשון ב-1897 בבזל וייסד את ההסתדרות הציונית העולמית. ספרו "מדינת היהודים" (1896) הוא המניפסט הציוני.',
+    image: '/quiz/independence/iy-04.jpg',
   },
 
   {
@@ -278,6 +280,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'ב-7 ביוני 1967 — כ"ח באייר תשכ"ז — פרצו חיילי הצנחנים לעיר העתיקה. הגנרל מוטה גור קרא ברדיו: "הר הבית בידינו". נס היסטורי.',
+    image: '/quiz/independence/iy-15.jpg',
   },
 
   {
