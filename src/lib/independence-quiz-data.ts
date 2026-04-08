@@ -82,6 +82,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'המנורה — שבעת הקנים — היא הסמל הרשמי של המדינה, מבוסס על המנורה שבמקדש. מעוצב לפי הדגם שבשער טיטוס ברומא.',
+    image: '/quiz/independence/iy-02.jpg',
   },
 
   {
@@ -128,6 +129,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'מלחמת העצמאות (תש"ח–תש"ט) פרצה ברגע הכרזת המדינה. חמש מדינות ערב תקפו. כ-6,000 חללים ישראלים נפלו — כאחוז מהאוכלוסייה דאז.',
+    image: '/quiz/independence/iy-05.jpg',
   },
 
   {
@@ -143,6 +145,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'ירושלים היא בירת ישראל מאז 1948, ועיר הבירה של ממלכות ישראל ויהודה לפני אלפי שנה. ב-1980 חוקק "חוק ירושלים" שמכריז עליה כבירה מאוחדת ונצחית.',
+    image: '/quiz/independence/iy-06.jpg',
   },
 
   {
@@ -158,6 +161,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'דגל ישראל — לבן עם שני פסים כחולים ומגן דוד כחול — מבוסס על עיצוב שהוצג בקונגרס הציוני הראשון. הפסים מזכירים את הטלית.',
+    image: '/quiz/independence/iy-07.jpg',
   },
 
   {
@@ -254,6 +258,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'הספר הלבן של מקדונלד (מאי 1939) הגביל את העלייה היהודית בדיוק כשהיהודים נאלצו לברוח מאירופה הנאצית. הבגידה הבריטית האיצה את המאבק המזוין של ההגנה והאצ"ל.',
+    image: '/quiz/independence/iy-13.jpg',
   },
 
   {
@@ -316,6 +321,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'ב-29 בנובמבר 1947 — כ"ט בנובמבר — הצביע האו"ם 33:13 לטובת חלוקת ארץ ישראל. המנהיגות הציונית קיבלה את ההחלטה; המנהיגות הערבית דחתה אותה ופתחה במלחמה.',
+    image: '/quiz/independence/iy-17.jpg',
   },
 
   {
@@ -442,6 +448,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'מבצע קדש (אוקטובר-נובמבר 1956) — בתיאום עם בריטניה וצרפת — נועד לפתוח את מצר טיראן לאחר חסימתו ולחסל בסיסי הפדאיון. כיבוש סיני הושלם ב-100 שעות, אך לחץ ארה"ב וסובייטים הביא לנסיגה.',
+    image: '/quiz/independence/iy-25.jpg',
   },
 
   {
@@ -518,6 +525,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'בדרשת יום העצמאות תשי"ז, הרב צבי יהודה קוק בכה בריש גלי: "היכן חברוננו? היכן שכמנו? היכן יריחונו?" — כיצד ניתן לחגוג כשחלק מארץ ישראל ביד זרה? שלושה שבועות לאחר מכן שוחררו השטחים במלחמת ששת הימים.',
+    image: '/quiz/independence/iy-30.jpg',
   },
 
 ];
