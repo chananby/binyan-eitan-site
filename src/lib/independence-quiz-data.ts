@@ -98,6 +98,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'נפתלי הרץ אימבר כתב את השיר "תקוותנו" ב-1877. שמואל כהן הלחין אותו על בסיס מנגינה מולדבית. השיר אומץ כהמנון הציוני ולאחר מכן כהמנון המדינה.',
+    image: '/quiz/independence/iy-03.jpg',
   },
 
   {
@@ -209,6 +210,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'ה"תקווה" מביעה את הכיסוף הנצחי של עם ישראל לארצו. "נפש יהודי הומייה" — הנשמה היהודית ששמרה על הזיקה לארץ ישראל לאורך אלפיים שנה.',
+    image: '/quiz/independence/iy-10.jpg',
   },
 
   // ── Medium ────────────────────────────────────────────────────────────────
@@ -306,6 +308,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'הרצל סיים את "אלטנוילנד" (1902) במשפט: "Wenn Ihr wollt, ist es kein Märchen" — "אם תרצו אין זו אגדה". החזון שנראה בלתי מציאותי — מדינה יהודית — הפך לעובדה 51 שנה לאחר מכן.',
+    image: '/quiz/independence/iy-16.jpg',
   },
 
   {
@@ -353,6 +356,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'הרב קוק לימד שהציונות — גם בגילוייה החילוניים — היא "אתחלתא דגאולה". הביטוי "ראשית צמיחת גאולתנו" נוסח על ידי הרב הרצוג ומופיע בתפילה המיוחדת ליום העצמאות.',
+    image: '/quiz/independence/iy-19.jpg',
   },
 
   {
@@ -418,6 +422,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'הוועדה המשותפת (1946) המליצה לאפשר כניסת 100,000 ניצולי שואה לארץ ישראל — אך המנדט יישאר בריטי ולא תוקם מדינה. בריטניה דחתה גם זאת. הדחייה חיזקה את המאבק המזוין.',
+    image: '/quiz/independence/iy-23.jpg',
   },
 
   {
@@ -433,6 +438,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'הרב קוק כתב שאפילו מי שחושב שהוא בונה "ארץ בשר ודם" בונה בפועל את "ארץ הקודש". הוא ראה בכינוס ישראל לארצו תהליך אלוקי שמתנהל גם דרך יהודים שאינם שומרי תורה.',
+    image: '/quiz/independence/iy-24.jpg',
   },
 
   {
@@ -464,6 +470,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'ועדת פיל (1937) הייתה הראשונה שהציעה רשמית חלוקה לשתי מדינות. המדינה היהודית הייתה קטנה מאוד. הנהגת הציונות התפצלה; ז\'בוטינסקי והערבים דחו. הצעה זו הניחה את התשתית לרזולוציה 181.',
+    image: '/quiz/independence/iy-26.jpg',
   },
 
   {
@@ -479,6 +486,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'הפסוק נאמר במקור על אי-חזרתו של ה\' מהסרת שאול. בהקשר הלאומי — הדורות ראו בו ביטוי לאל-כיליון של ישראל. לאחר השואה ולאחר קום המדינה, הפסוק קיבל עוצמה מחודשת: עם שרד, קם, ושב.',
+    image: '/quiz/independence/iy-27.jpg',
   },
 
   {
@@ -494,6 +502,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'ז\'בוטינסקי ביקר את מדיניות ה"הבלגה" של ההגנה כחולשה מסוכנת. הוא האמין שרק כוח יבטיח את הבית הלאומי. שתי הגישות ממשיכות להדהד בוויכוחים הישראליים על ביטחון וגבולות.',
+    image: '/quiz/independence/iy-28.jpg',
   },
 
   {
