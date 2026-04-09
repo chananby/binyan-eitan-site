@@ -167,12 +167,15 @@ function QuestionScreen({
 
       {/* Image */}
       {question.image && (
-        <div className="rounded-2xl overflow-hidden border" style={{ borderColor: '#003F8C22' }}>
+        <div
+          className="w-full flex items-center justify-center rounded-2xl overflow-hidden border"
+          style={{ background: '#EEF3FB', borderColor: '#003F8C22', minHeight: '160px', maxHeight: '260px' }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={question.image}
             alt=""
-            className="w-full object-cover max-h-48 sm:max-h-64"
+            style={{ maxHeight: '260px', maxWidth: '100%', objectFit: 'contain' }}
           />
         </div>
       )}
