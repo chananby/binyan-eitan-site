@@ -776,6 +776,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 1,
     explanation: 'הרבנות הראשית (הרב הרצוג, הרב עוזיאל, ובהמשך הרב אונטרמן) קבעה תפילה מיוחדת ליום העצמאות ופסקה לאמור הלל שלם עם ברכה.',
+    image: '/quiz/independence/iy-47.jpg',
   },
 
   {
@@ -791,6 +792,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 3,
     explanation: 'הרב עובדיה (שו"ת יביע אומר) פסק לאמור הלל ביום העצמאות — אך ללא ברכה, מכמה טעמים: הנס טרם הושלם, לא כל ישראל בארץ, והיום לא נקבע על ידי חז"ל.',
+    image: '/quiz/independence/iy-48.jpg',
   },
 
   {
@@ -806,6 +808,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'הפוסקים המחייבים הלל מדמים את יום העצמאות לחנוכה ופורים: כשנעשה לכלל ישראל נס גלוי — חייבים להודות. ההבדל: בחנוכה תיקנו חז"ל, כאן תיקנה הרבנות.',
+    image: '/quiz/independence/iy-49.jpg',
   },
 
   {
@@ -821,6 +824,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 3,
     explanation: 'הגאולה עדיין אינה שלמה, לא כל ישראל נקבצו לארצם, ויש יהודים שאינם חוגגים את היום. לפי הרב עובדיה ואחרים — הלל בלא ברכה שומר על ההודיה מבלי להיכנס לספק ברכה לבטלה.',
+    image: '/quiz/independence/iy-50.jpg',
   },
 
   {
@@ -836,6 +840,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 2,
     explanation: 'ה"ויואל משה" (תשי"ח) בנה שיטה מקיפה על סמך הסוגיה בכתובות: שלוש שבועות שנשבעו ישראל — שלא יעלו בחומה, שלא יכפו את הקץ, ושלא ימרדו באומות. המדינה הוקמה בדרך של "עלייה בחומה" ולכן — לדעתו — אינה אלא חילול ה\'.',
+    image: '/quiz/independence/iy-51.jpg',
   },
 
   {
@@ -851,6 +856,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 1,
     explanation: 'הרב סולובייצ\'יק ראה בהקמת המדינה ניסים היסטוריים: "שיר המעלות" — עלייה לגדולה לאחר שפל. אמר הלל, אך מעולם לא כתב תשובה מחייבת בנושא — שמר על אמביוולנטיות מכוונת.',
+    image: '/quiz/independence/iy-52.jpg',
   },
 
 ];
