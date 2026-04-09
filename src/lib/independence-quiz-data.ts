@@ -874,6 +874,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 2,
     explanation: 'הרב עובדיה יוסף התיר תספורת ביום העצמאות. הרב צבי יהודה קוק אמר על אלו שהתגלחו והסתפרו לכבוד היום: "הכרת פניהם ענתה בם" — פניהם מעידים על שמחתם. קהילות הציונות הדתית נוהגות להקל; חוגים חרדיים — לא.',
+    image: '/quiz/independence/iy-53.jpg',
   },
 
   {
@@ -889,6 +890,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 3,
     explanation: 'הרב גורן ופוסקים רבים פסקו שיום העצמאות כ"יום שמחה" מתיר ריקודים ומוסיקה חיה — בדומה לל"ג בעומר.',
+    image: '/quiz/independence/iy-54.jpg',
   },
 
   {
@@ -904,6 +906,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'הרב גורן ופוסקים נוספים התירו נישואין ביום העצמאות. בפועל יש חתונות ביום זה בקהילות דתיות-לאומיות.',
+    image: '/quiz/independence/iy-55.jpg',
   },
 
   {
@@ -919,6 +922,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 3,
     explanation: 'בשונה מפורים ופסח שיש בהם חיוב סעודה מדרבנן, ביום העצמאות יש מנהג לאכול סעודת הודיה — אך ללא חיוב מוגדר שנקבע בפוסקים.',
+    image: '/quiz/independence/iy-56.jpg',
   },
 
   {
@@ -934,6 +938,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 1,
     explanation: 'אבלות ספירת העומר היא מנהג, לא דין. לפי הכלל שמנהג בטל ביום שמחה לאומי-דתי מוכר — פסקו פוסקי הציונות הדתית שיום העצמאות מבטל מנהגי האבלות, בדומה לל"ג בעומר.',
+    image: '/quiz/independence/iy-57.jpg',
   },
 
   {
@@ -949,6 +954,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 2,
     explanation: 'שאלת "בעומר"/"לעומר" היא מחלוקת עצמאית בין ספרדים לאשכנזים, ואינה משתנה ביום העצמאות.',
+    image: '/quiz/independence/iy-58.jpg',
   },
 
 
