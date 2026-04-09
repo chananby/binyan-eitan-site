@@ -550,6 +550,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'חיים ויצמן שהה בניו יורק בעת הכרזת המדינה. הוא מונה לנשיא הראשון ב-1949, אך לא היה נוכח ולא חתם על מגילת העצמאות. 37 חברי מועצת העם חתמו — חלקם מרחוק.',
+    image: '/quiz/independence/iy-31.jpg',
   },
 
   {
@@ -565,6 +566,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 0,
     explanation: 'ארה"ב נתנה הכרה דה-פקטו (הכרה הלכה למעשה) תוך 11 דקות. ברית המועצות — לתדהמת רבים — הייתה הראשונה לתת הכרה דה-יורה (הכרה משפטית מלאה), שלושה ימים מאוחר יותר, ב-17 במאי 1948.',
+    image: '/quiz/independence/iy-32.jpg',
   },
 
   {
@@ -580,6 +582,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 3,
     explanation: 'הקונגרס הציוני הראשון: 1897. הכרזת המדינה: 1948. הפרש של 51 שנה — שנה אחת מעבר לתחזית של הרצל עצמו. הרצל נפטר ב-1904 ולא זכה לראות זאת.',
+    image: '/quiz/independence/iy-34.jpg',
   },
 
   {
@@ -595,6 +598,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 2,
     explanation: 'מבצע משה (1984) ומבצע שלמה (1991) הביאו לישראל עשרות אלפי יהודים מאתיופיה (יהודי ביתא ישראל / פלשמורה). מבצע שלמה לבדו — 14,325 עולים ב-36 שעות. אחת העליות המהירות בהיסטוריה.',
+    image: '/quiz/independence/iy-35.jpg',
   },
 
   {
@@ -610,6 +614,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     ],
     correctIndex: 1,
     explanation: 'בדיוני הנהגה הוצעו "ציון", "יהודה" ואפילו "עבר". בן גוריון דחה "ציון" כי אז תושביה ייקראו "ציונים" — שם שכבר שייך לתנועה. "ישראל" אושר ברוב קולות בישיבת מועצת העם, יומיים לפני ההכרזה.',
+    image: '/quiz/independence/iy-36.jpg',
   },
 
 ];
