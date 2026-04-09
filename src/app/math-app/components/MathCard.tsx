@@ -158,7 +158,7 @@ export default function MathCard({
         shake ? "animate-shake" : "",
       ].join(" ")}>
 
-        <p className={`text-2xl font-bold leading-relaxed mb-6 ${questionText}`}>
+        <p dir="rtl" className={`text-2xl font-bold leading-relaxed mb-6 whitespace-pre-line ${questionText}`}>
           {question.text}
         </p>
 
