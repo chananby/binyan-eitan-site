@@ -156,7 +156,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     question: 'מה מופיע על דגל ישראל?',
     options: [
       'נשר ופסים כחולים',
-      'שתי פסים כחולים ומגן דוד',
+      'שני פסים כחולים ומגן דוד',
       'מנורה על רקע לבן',
       'ארז ומגן דוד',
     ],
@@ -749,7 +749,7 @@ export const ALL_QUESTIONS: IndependenceQuestion[] = [
     id: 'iy-46',
     difficulty: 'medium',
     category: 'symbols',
-    question: '"צבא הגנה לישראל" — מאין בא המילה "הגנה"?',
+    question: '"צבא הגנה לישראל" — מאין באה המילה "הגנה"?',
     options: [
       'מאמנת ז\'נבה שאוסרת מלחמת התקפה',
       '"הגנה" היה שמה של ארגון המחתרת הראשי שקדם לצה"ל, והשם נשמר לכבודו',
