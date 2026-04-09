@@ -33,7 +33,7 @@ function genId(): string {
 }
 
 export function genSyncKey(name: string): string {
-  const digits = String(Math.floor(Math.random() * 900) + 100); // 100-999
+  const digits = String(Math.floor(Math.random() * 900000) + 100000); // 100000–999999
   return name.trim() + digits;
 }
 
@@ -42,10 +42,11 @@ export function genSyncKey(name: string): string {
 export interface Profile {
   id: string;
   name: string;
-  syncKey: string;   // "נועה123" — doubles as cloud row key
+  syncKey: string;   // "נועה123456" — doubles as cloud row key
   avatar: string;    // emoji
   createdAt: string; // ISO
   stats: StoredStats;
+  pin?: string;      // 4-digit PIN (plain text — no sensitive data here)
 }
 
 export interface ProfileStore {
@@ -59,6 +60,7 @@ export function makeProfile(
   name: string,
   stats: StoredStats = { ...EMPTY_STATS },
   syncKey?: string,
+  pin?: string,
 ): Profile {
   const id = genId();
   return {
@@ -68,6 +70,7 @@ export function makeProfile(
     avatar: pickAvatar(id),
     createdAt: new Date().toISOString(),
     stats,
+    ...(pin ? { pin } : {}),
   };
 }
 

@@ -74,8 +74,8 @@ export function useProfiles(storageKey = STORE_KEY) {
   // ── Create ────────────────────────────────────────────────────────────────
 
   const createProfile = useCallback(
-    (name: string): Profile => {
-      const profile = makeProfile(name);
+    (name: string, pin?: string): Profile => {
+      const profile = makeProfile(name, undefined, undefined, pin);
       const next: ProfileStore = {
         activeProfileId: profile.id,
         profiles: [...storeRef.current.profiles, profile],
