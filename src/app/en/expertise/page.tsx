@@ -19,14 +19,14 @@ export const metadata: Metadata = {
     siteName: "Binyan Eitan",
     locale: "en_US",
     type: "article",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Binyan Eitan — Luxury Construction & Engineering in Israel" }],
+    images: [{ url: "/luxury-interior-finish-transformation.jpg", width: 1600, height: 900, alt: "Binyan Eitan — Luxury Construction & Engineering in Israel" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Binyan Eitan | Luxury Construction & Engineering in Israel",
     description:
       "Building in Israel from abroad? Binyan Eitan is a G1 registered contractor with 20+ years of elite engineering experience.",
-    images: ["/og-image.jpg"],
+    images: ["/luxury-interior-finish-transformation.jpg"],
   },
 };
 

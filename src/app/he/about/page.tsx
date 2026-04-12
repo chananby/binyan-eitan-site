@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description: "שני עשורים של בנייה מורכבת ויוקרתית בישראל. קבלן רשום ג1 בניהולו של מוטי איתן.",
     url: "https://binyaneitan.com/he/about",
     siteName: "בניין איתן",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "בניין איתן — המשרד" }],
+    images: [{ url: "/luxury-interior-finish-transformation.jpg", width: 1600, height: 900, alt: "בניין איתן — המשרד" }],
     locale: "he_IL",
     type: "website",
   },
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "המשרד | בניין איתן",
     description: "שני עשורים של בנייה מורכבת ויוקרתית בישראל. קבלן רשום ג1.",
-    images: ["/og-image.jpg"],
+    images: ["/luxury-interior-finish-transformation.jpg"],
   },
   alternates: {
     canonical: "https://binyaneitan.com/he/about",

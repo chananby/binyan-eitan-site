@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     description: "Two decades of complex, luxury construction across Israel. G1 Registered Contractor led by founder Moti Eitan.",
     url: "https://binyaneitan.com/en/about",
     siteName: "Binyan Eitan",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Binyan Eitan — The Firm" }],
+    images: [{ url: "/luxury-interior-finish-transformation.jpg", width: 1600, height: 900, alt: "Binyan Eitan — The Firm" }],
     locale: "en_IL",
     type: "website",
   },
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "The Firm | Binyan Eitan",
     description: "Two decades of complex, luxury construction across Israel. G1 Registered Contractor.",
-    images: ["/og-image.jpg"],
+    images: ["/luxury-interior-finish-transformation.jpg"],
   },
   alternates: {
     canonical: "https://binyaneitan.com/en/about",

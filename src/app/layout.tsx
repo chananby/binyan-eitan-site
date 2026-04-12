@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Assistant, Heebo } from "next/font/google";
 import Script from "next/script";
+import { headers } from "next/headers";
 import "./globals.css";
 import AccessibilityMenu from "./components/AccessibilityMenu";
 import { TranslationsProvider } from "./components/TranslationsProvider";
@@ -133,8 +134,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = headers().get("x-pathname") ?? "";
+  const lang = pathname.startsWith("/en") ? "en" : "he";
+  const dir  = lang === "en" ? "ltr" : "rtl";
+
   return (
-    <html suppressHydrationWarning lang="he" className={`${assistant.variable} ${heebo.variable}`}>
+    <html suppressHydrationWarning lang={lang} dir={dir} className={`${assistant.variable} ${heebo.variable}`}>
       <head>
         <script
           type="application/ld+json"
