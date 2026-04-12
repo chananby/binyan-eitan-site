@@ -4,13 +4,42 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import {
   Plus, Trash2, Mic, MicOff, AlertCircle, Loader2,
-  Zap, LogOut, X, ChevronLeft,
+  Zap, LogOut, X, ChevronLeft, Calendar, Clock,
   FolderOpen, Filter, Pencil, Paperclip, UserCheck, ExternalLink, Upload,
   // Company icons (Lucide names stored in DB)
   Crown, Construction, Utensils, DoorOpen, CloudSun, Box, User,
   Building2, Hammer, HardHat, Wrench, Store, Briefcase, Globe,
   type LucideProps,
 } from "lucide-react";
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+/** Extract a readable filename from a storage URL */
+function filenameFromUrl(url: string): string {
+  try {
+    const parts = new URL(url).pathname.split("/");
+    const raw = decodeURIComponent(parts[parts.length - 1]);
+    return raw.split("?")[0] || "קובץ מצורף";
+  } catch {
+    return "קובץ מצורף";
+  }
+}
+
+/** Returns Tailwind color classes and icon for a due date */
+function dueDateStyle(due: string): { text: string; icon: "red" | "amber" | "slate" } {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const d     = new Date(due); d.setHours(0, 0, 0, 0);
+  const diff  = Math.round((d.getTime() - today.getTime()) / 86400000);
+  if (diff < 0)  return { text: "text-red-500",    icon: "red" };
+  if (diff <= 2) return { text: "text-amber-600",  icon: "amber" };
+  return           { text: "text-[#2D2926]/35",   icon: "slate" };
+}
+
+function formatDueDate(due: string, short = false): string {
+  const d = new Date(due);
+  if (short) return d.toLocaleDateString("he-IL", { day: "numeric", month: "short" });
+  return d.toLocaleDateString("he-IL", { weekday: "short", day: "numeric", month: "short" });
+}
 
 // ── Icon renderer — handles both emoji strings and Lucide icon names ───────────
 const LUCIDE_ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
@@ -44,6 +73,9 @@ interface Task {
   holding_companies?: Company | null;
   assigned_to?: string;
   attachment_url?: string;
+  due_date?: string;
+  updated_by?: string;
+  updated_at?: string;
 }
 
 // ── Column config ─────────────────────────────────────────────────────────────
@@ -169,15 +201,32 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
           onClick={e => e.stopPropagation()}
           className="flex items-center gap-1 mt-1.5 text-[0.62rem] text-blue-500 hover:text-blue-700 transition-colors">
           <Paperclip size={9} className="shrink-0" />
-          <span className="truncate">קובץ מצורף</span>
+          <span className="truncate max-w-[120px]">{filenameFromUrl(task.attachment_url)}</span>
           <ExternalLink size={8} className="shrink-0 opacity-60" />
         </a>
       )}
+      {task.due_date && (() => {
+        const { text, icon } = dueDateStyle(task.due_date);
+        return (
+          <div className={`flex items-center gap-1 mt-1.5 ${text}`}>
+            {icon === "red" ? <AlertCircle size={9} className="shrink-0" /> : <Calendar size={9} className="shrink-0" />}
+            <span className="text-[0.62rem] font-medium">{formatDueDate(task.due_date, true)}</span>
+            {icon === "red" && <span className="text-[0.58rem] font-bold">· באיחור</span>}
+          </div>
+        );
+      })()}
       <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-[#F3F2EE]">
-        <span className={`text-[0.6rem] font-bold px-2 py-0.5 rounded-full
-          ${task.author === "Hanan" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
-          {task.author === "Hanan" ? "חנן" : "מוטי"}
-        </span>
+        <div className="flex flex-col gap-0.5">
+          <span className={`text-[0.6rem] font-bold px-2 py-0.5 rounded-full self-start
+            ${task.author === "Hanan" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
+            {task.author === "Hanan" ? "חנן" : "מוטי"}
+          </span>
+          {task.updated_by && task.updated_by !== task.author && (
+            <span className="text-[0.58rem] text-[#2D2926]/25 flex items-center gap-0.5 px-0.5">
+              <Clock size={7} /> עודכן: {task.updated_by === "Hanan" ? "חנן" : "מוטי"}
+            </span>
+          )}
+        </div>
         <span className="text-[0.6rem] text-[#2D2926]/25">{date}</span>
       </div>
       {/* Edit button — always slightly visible for touch devices */}
@@ -202,7 +251,7 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
 function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   colKey: ColKey; companies: Company[];
   defaultCompanyId: string;
-  onAdd: (title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string) => Promise<string | null>;
+  onAdd: (title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string, dueDate: string) => Promise<string | null>;
   onClose: () => void;
 }) {
   const [title,         setTitle]         = useState("");
@@ -210,6 +259,7 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   const [companyId,     setCompanyId]     = useState(defaultCompanyId);
   const [assignedTo,    setAssignedTo]    = useState("");
   const [attachmentUrl, setAttachmentUrl] = useState("");
+  const [dueDate,       setDueDate]       = useState("");
   const [uploading,     setUploading]     = useState(false);
   const [uploadErr,     setUploadErr]     = useState<string | null>(null);
   const [saving,        setSaving]        = useState(false);
@@ -240,7 +290,7 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   const submit = async () => {
     if (!canSubmit || saving) return;
     setSaving(true); setAddErr(null);
-    const err = await onAdd(title.trim(), notes, companyId, assignedTo.trim(), attachmentUrl);
+    const err = await onAdd(title.trim(), notes, companyId, assignedTo.trim(), attachmentUrl, dueDate);
     setSaving(false);
     if (err) setAddErr(err);
   };
@@ -277,6 +327,12 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
         placeholder="מיועד ל (אופציונלי)"
         className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/80 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20"
       />
+      <div className="flex items-center gap-2">
+        <Calendar size={12} className="text-[#2D2926]/30 shrink-0" />
+        <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
+          className="flex-1 bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/70 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F]"
+          title="תאריך יעד (אופציונלי)" />
+      </div>
       <select
         value={companyId} onChange={e => setCompanyId(e.target.value)}
         className={`w-full bg-[#FAFAF9] border text-[0.75rem] px-3 py-2 rounded focus:outline-none
@@ -292,7 +348,8 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
       {attachmentUrl ? (
         <div className="flex items-center justify-between px-2.5 py-1.5 bg-[#F3F2EE] rounded border border-[#E8E7E3]">
           <span className="flex items-center gap-1.5 text-[0.65rem] text-[#2D2926]/60 truncate">
-            <Paperclip size={10} /> קובץ מצורף
+            <Paperclip size={10} className="shrink-0" />
+            <span className="truncate max-w-[160px]">{filenameFromUrl(attachmentUrl)}</span>
           </span>
           <button type="button" onClick={() => setAttachmentUrl("")}
             className="text-[0.62rem] text-red-400 hover:text-red-600 font-medium shrink-0">הסר</button>
@@ -319,7 +376,7 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
 // ── Edit Modal ────────────────────────────────────────────────────────────────
 function EditModal({ task, companies, onSave, onClose }: {
   task: Task; companies: Company[];
-  onSave: (id: string, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string, newStatus: ColKey) => Promise<string | null>;
+  onSave: (id: string, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string, newStatus: ColKey, dueDate: string) => Promise<string | null>;
   onClose: () => void;
 }) {
   const [title,         setTitle]         = useState(task.title);
@@ -327,6 +384,7 @@ function EditModal({ task, companies, onSave, onClose }: {
   const [companyId,     setCompanyId]     = useState(task.company_id ?? "");
   const [assignedTo,    setAssignedTo]    = useState(task.assigned_to ?? "");
   const [attachmentUrl, setAttachmentUrl] = useState(task.attachment_url ?? "");
+  const [dueDate,       setDueDate]       = useState(task.due_date ?? "");
   const [newStatus,     setNewStatus]     = useState<ColKey>(task.status);
   const [uploading,     setUploading]     = useState(false);
   const [uploadErr,     setUploadErr]     = useState<string | null>(null);
@@ -359,7 +417,7 @@ function EditModal({ task, companies, onSave, onClose }: {
   const submit = async () => {
     if (!title.trim() || saving) return;
     setSaving(true); setErr(null);
-    const e = await onSave(task.id, title.trim(), notes, companyId, assignedTo.trim(), attachmentUrl, newStatus);
+    const e = await onSave(task.id, title.trim(), notes, companyId, assignedTo.trim(), attachmentUrl, newStatus, dueDate);
     setSaving(false);
     if (e) setErr(e); else onClose();
   };
@@ -391,6 +449,16 @@ function EditModal({ task, companies, onSave, onClose }: {
           placeholder="מיועד ל (אופציונלי)"
           className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/80 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20"
         />
+        <div className="flex items-center gap-2">
+          <Calendar size={13} className="text-[#2D2926]/30 shrink-0" />
+          <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
+            className="flex-1 bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/70 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F]"
+            title="תאריך יעד (אופציונלי)" />
+          {dueDate && (
+            <button type="button" onClick={() => setDueDate("")}
+              className="text-[#2D2926]/30 hover:text-red-400 transition-colors"><X size={13} /></button>
+          )}
+        </div>
         <select
           value={companyId} onChange={e => setCompanyId(e.target.value)}
           className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/70 text-[0.75rem] px-3 py-2 rounded focus:outline-none"
@@ -419,9 +487,9 @@ function EditModal({ task, companies, onSave, onClose }: {
                 </a>
               )}
               <div className="flex items-center justify-between px-3 py-1.5 bg-[#FAFAF9] border-t border-[#E8E7E3]">
-                <span className="text-[0.62rem] text-[#2D2926]/40">קובץ מצורף</span>
+                <span className="text-[0.62rem] text-[#2D2926]/40 truncate max-w-[160px]">{filenameFromUrl(attachmentUrl)}</span>
                 <button type="button" onClick={() => setAttachmentUrl("")}
-                  className="text-[0.62rem] text-red-400 hover:text-red-600 font-medium">הסר</button>
+                  className="text-[0.62rem] text-red-400 hover:text-red-600 font-medium shrink-0">הסר</button>
               </div>
             </div>
           ) : (
@@ -634,7 +702,7 @@ export default function Cockpit() {
     touchGhostRef.current = ghost;
   }, []);
 
-  const addTask = useCallback(async (colKey: ColKey, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string): Promise<string | null> => {
+  const addTask = useCallback(async (colKey: ColKey, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string, dueDate: string): Promise<string | null> => {
     try {
       const res = await fetch("/api/holding/tasks", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -643,6 +711,7 @@ export default function Cockpit() {
           company_id:     companyId     || undefined,
           assigned_to:    assignedTo    || undefined,
           attachment_url: attachmentUrl || undefined,
+          due_date:       dueDate       || undefined,
         }),
       });
       if (res.ok) { await loadData(); setAddingTo(null); return null; }
@@ -657,7 +726,7 @@ export default function Cockpit() {
   }, []);
 
   const saveEdit = useCallback(async (
-    id: string, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string, newStatus: ColKey,
+    id: string, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string, newStatus: ColKey, dueDate: string,
   ): Promise<string | null> => {
     try {
       const res = await fetch(`/api/holding/tasks/${id}`, {
@@ -666,13 +735,15 @@ export default function Cockpit() {
         body: JSON.stringify({
           title, notes: notes || null, company_id: companyId || null,
           assigned_to: assignedTo || null, attachment_url: attachmentUrl || null,
-          status: newStatus,
+          status: newStatus, due_date: dueDate || null,
+          updated_by: author, updated_at: new Date().toISOString(),
         }),
       });
       if (res.ok) {
         setTasks(prev => prev.map(t => t.id === id
           ? { ...t, title, status: newStatus, notes: notes || undefined, company_id: companyId || undefined,
-              assigned_to: assignedTo || undefined, attachment_url: attachmentUrl || undefined }
+              assigned_to: assignedTo || undefined, attachment_url: attachmentUrl || undefined,
+              due_date: dueDate || undefined, updated_by: author ?? undefined, updated_at: new Date().toISOString() }
           : { ...t }
         ));
         return null;
@@ -902,7 +973,7 @@ export default function Cockpit() {
                     <div className="px-2">
                       <QuickAdd colKey={col.key} companies={companies}
                         defaultCompanyId={filterCompany ?? ""}
-                        onAdd={(title, notes, cid, assignedTo, attachUrl) => addTask(col.key, title, notes, cid, assignedTo, attachUrl)}
+                        onAdd={(title, notes, cid, assignedTo, attachUrl, dueDate) => addTask(col.key, title, notes, cid, assignedTo, attachUrl, dueDate)}
                         onClose={() => setAddingTo(null)} />
                     </div>
                   )}
@@ -973,7 +1044,7 @@ export default function Cockpit() {
                   <div className="mb-3">
                     <QuickAdd colKey={mobileCol} companies={companies}
                       defaultCompanyId={filterCompany ?? ""}
-                      onAdd={(title, notes, cid, assignedTo, attachUrl) => addTask(mobileCol, title, notes, cid, assignedTo, attachUrl)}
+                      onAdd={(title, notes, cid, assignedTo, attachUrl, dueDate) => addTask(mobileCol, title, notes, cid, assignedTo, attachUrl, dueDate)}
                       onClose={() => setAddingTo(null)} />
                   </div>
                 )}

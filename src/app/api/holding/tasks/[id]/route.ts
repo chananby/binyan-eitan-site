@@ -66,6 +66,9 @@ export async function PATCH(
     if ("company_id" in body)     patch.company_id      = body.company_id      ? String(body.company_id)             : null;
     if ("assigned_to" in body)    patch.assigned_to     = body.assigned_to     ? String(body.assigned_to).trim()     : null;
     if ("attachment_url" in body) patch.attachment_url  = body.attachment_url  ? String(body.attachment_url).trim()  : null;
+    if ("due_date" in body)       patch.due_date        = body.due_date        ? String(body.due_date)               : null;
+    if ("updated_by" in body)     patch.updated_by      = body.updated_by      ? String(body.updated_by)             : null;
+    if ("updated_at" in body)     patch.updated_at      = body.updated_at      ? String(body.updated_at)             : null;
 
     if (Object.keys(patch).length === 0) {
       return NextResponse.json({ error: "אין שדות לעדכון" }, { status: 400 });
