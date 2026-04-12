@@ -17,7 +17,7 @@ export const metadata: Metadata = {
       "Building in Israel from abroad? Binyan Eitan is a G1 registered contractor bringing elite engineering and transparent project management to international clients.",
     url: "https://binyaneitan.com/en/expertise",
     siteName: "Binyan Eitan",
-    locale: "en_US",
+    locale: "en_IL",
     type: "article",
     images: [{ url: "/luxury-interior-finish-transformation.jpg", width: 1600, height: 900, alt: "Binyan Eitan — Luxury Construction & Engineering in Israel" }],
   },
