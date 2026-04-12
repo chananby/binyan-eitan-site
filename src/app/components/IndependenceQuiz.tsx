@@ -174,7 +174,7 @@ function QuestionScreen({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={question.image}
-            alt=""
+            alt={`תמונה לשאלה: ${question.question}`}
             style={{ maxHeight: '260px', maxWidth: '100%', objectFit: 'contain' }}
           />
         </div>

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import AdminPortal from "../components/AdminPortal";
+import dynamic from "next/dynamic";
+
+const AdminPortal = dynamic(() => import("../components/AdminPortal"), { ssr: false });
 
 export const metadata: Metadata = {
   title: "ניהול | בניין איתן",

@@ -452,7 +452,7 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
                   >
                     <Image
                       src={src}
-                      alt=""
+                      alt={`${project?.[lang].title ?? ""} — ${i + 1}`}
                       fill
                       className="object-cover"
                       sizes="48px"
