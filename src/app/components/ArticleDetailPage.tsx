@@ -67,6 +67,40 @@ function renderBold(text: string): React.ReactNode {
   );
 }
 
+/**
+ * Splits body text on blank lines and renders each paragraph.
+ * Paragraphs that start with **Heading** get a visual sub-heading treatment
+ * (small accent label + body text) to match the site design language.
+ */
+function renderBody(text: string): React.ReactNode {
+  const paragraphs = text.split(/\n\n+/).filter(Boolean);
+  return (
+    <div className="space-y-7">
+      {paragraphs.map((para, i) => {
+        // Match: **Heading** — rest  or  **Heading** rest
+        const m = para.match(/^\*\*(.+?)\*\*(?:\s*[—–-]\s*|\s+)([\s\S]*)/);
+        if (m) {
+          return (
+            <div key={i} className="ps-5 border-s-2 border-accent/40">
+              <p className="font-body text-[0.65rem] font-bold tracking-[0.2em] uppercase text-accent mb-2">
+                {m[1]}
+              </p>
+              <p className="font-body text-lg leading-loose text-charcoal/80">
+                {m[2]}
+              </p>
+            </div>
+          );
+        }
+        return (
+          <p key={i} className="font-body text-lg leading-loose text-charcoal/80">
+            {renderBold(para)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 function readingMinutes(article: Article, lang: "en" | "he"): number {
   const fields = ["intro", "s1_body", "s2_body", "s3_body", "s4_body", "s5_body", "tip", "summary"] as const;
   const text = fields.map((f) => (article[`${f}_${lang}` as keyof Article] as string) ?? "").join(" ");
@@ -216,11 +250,7 @@ export default function ArticleDetailPage({ slug }: Props) {
                     {sTitle}
                   </h2>
                 )}
-                {sBody && (
-                  <p className="font-body text-lg leading-loose text-charcoal/80 whitespace-pre-wrap">
-                    {renderBold(sBody)}
-                  </p>
-                )}
+                {sBody && renderBody(sBody)}
               </section>
             );
           })}
