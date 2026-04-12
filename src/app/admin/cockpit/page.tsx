@@ -570,6 +570,7 @@ export default function Cockpit() {
   const [loading,       setLoading]       = useState(false);
   const [error,         setError]         = useState<string | null>(null);
   const [filterCompany, setFilterCompany] = useState<string | null>(null);
+  const [searchQuery,   setSearchQuery]   = useState("");
   const [dragTaskId,    setDragTaskId]    = useState<string | null>(null); // visual only
   const dragIdRef = useRef<string | null>(null);                           // authoritative source for handleDrop
   const [dragOverCol,   setDragOverCol]   = useState<ColKey | null>(null);
@@ -812,9 +813,14 @@ export default function Cockpit() {
   const logout    = async () => { await fetch("/api/executive/auth", { method: "DELETE" }); setAuthed(false); setAuthor(null); };
 
   const safeTasks   = tasks.filter(Boolean) as Task[];
-  const visibleTasks = filterCompany
-    ? safeTasks.filter(t => t.company_id === filterCompany || t.holding_companies?.id === filterCompany)
-    : safeTasks;
+  const visibleTasks = safeTasks.filter(t => {
+    if (filterCompany && t.company_id !== filterCompany && t.holding_companies?.id !== filterCompany) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      return t.title.toLowerCase().includes(q) || (t.notes ?? "").toLowerCase().includes(q);
+    }
+    return true;
+  });
   const urgentAll = safeTasks.filter(t => t.status === "urgent");
   const colTasks  = (key: ColKey) => visibleTasks.filter(t => t.status === key);
 
@@ -881,6 +887,23 @@ export default function Cockpit() {
               <LogOut size={14} />
             </button>
           </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative mb-3">
+          <input
+            type="text"
+            placeholder="חיפוש משימה..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full bg-[#F3F2EE] border border-[#E8E7E3] rounded-full px-4 py-1.5 text-[0.78rem] text-[#2D2926] placeholder:text-[#2D2926]/30 focus:outline-none focus:border-[#8D775F]/50 transition-colors pr-8"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")}
+              className="absolute start-3 top-1/2 -translate-y-1/2 text-[#2D2926]/30 hover:text-[#2D2926]/60 transition-colors">
+              <X size={13} />
+            </button>
+          )}
         </div>
 
         {/* Company chips */}
