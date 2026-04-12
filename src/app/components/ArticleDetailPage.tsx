@@ -56,6 +56,7 @@ interface Article {
   summary_en?: string;
   cta_label_en?: string;
   cta_label_he?: string;
+  related?: string; // pipe-separated slugs, e.g. "slug-a|slug-b"
 }
 
 /** Renders **bold** markdown markers as <strong> inline elements. */
@@ -327,6 +328,46 @@ export default function ArticleDetailPage({ slug }: Props) {
               </a>
             </div>
           </div>
+
+          {/* ── מאמרים קשורים ── */}
+          {article.related && (() => {
+            const relatedSlugs = article.related!.split("|").filter(Boolean);
+            const relatedArticles = (rawData?.articles as Article[] | undefined)
+              ?.filter(a => relatedSlugs.includes(a.slug) && !("archived" in a && (a as Record<string, unknown>).archived)) ?? [];
+            if (!relatedArticles.length) return null;
+            return (
+              <div className="mt-16 pt-12 border-t border-warm-gray-light">
+                <p className="font-body text-[0.6rem] font-bold tracking-[0.22em] uppercase text-charcoal/35 mb-5">
+                  {lang === "he" ? "המשך קריאה" : "Continue Reading"}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {relatedArticles.map(rel => {
+                    const relTitle = lang === "he" ? rel.title_he : rel.title_en;
+                    const relCat   = lang === "he" ? rel.category_he : rel.category_en;
+                    return (
+                      <Link
+                        key={rel.slug}
+                        href={`/${lang}/expertise/${rel.slug}`}
+                        className="group flex gap-4 border border-warm-gray-light hover:border-accent/40 bg-white hover:bg-bone transition-colors duration-200 p-4"
+                      >
+                        {rel.heroImage && (
+                          <div className="relative w-20 h-20 shrink-0 overflow-hidden bg-charcoal/5">
+                            <Image src={rel.heroImage} alt={relTitle} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="80px" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          {relCat && (
+                            <p className="font-body text-[0.55rem] font-semibold tracking-[0.2em] uppercase text-accent/70 mb-1">{relCat}</p>
+                          )}
+                          <p className="font-heading text-sm font-bold text-charcoal leading-snug group-hover:text-accent transition-colors duration-200 line-clamp-2">{relTitle}</p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
 
             </div>{/* end main content column */}
 
