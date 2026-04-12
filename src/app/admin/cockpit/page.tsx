@@ -155,6 +155,29 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
   );
 }
 
+// ── Toast ─────────────────────────────────────────────────────────────────────
+interface ToastMsg { id: number; text: string; type: "error" | "info" }
+
+function ToastStack({ toasts, onDismiss }: { toasts: ToastMsg[]; onDismiss: (id: number) => void }) {
+  if (toasts.length === 0) return null;
+  return (
+    <div className="fixed bottom-5 start-5 z-[9999] flex flex-col gap-2 max-w-xs" dir="rtl">
+      {toasts.map(t => (
+        <div key={t.id}
+          className={`flex items-start gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium cursor-pointer
+            ${t.type === "error"
+              ? "bg-red-600 border-red-500 text-white"
+              : "bg-[#2D2926] border-[#2D2926]/80 text-white"}`}
+          onClick={() => onDismiss(t.id)}
+        >
+          <AlertCircle size={15} className="shrink-0 mt-0.5" />
+          <span className="leading-snug">{t.text}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Task Card ─────────────────────────────────────────────────────────────────
 function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, onTouchStart, companies }: {
   task: Task; isDragging: boolean;
@@ -533,6 +556,14 @@ export default function Cockpit() {
   const [authed,   setAuthed]   = useState(false);
   const [checking, setChecking] = useState(true);
   const [author,   setAuthor]   = useState<Author | null>(null);
+  const [toasts,   setToasts]   = useState<ToastMsg[]>([]);
+  const toastCounter = useRef(0);
+
+  const showToast = useCallback((text: string, type: ToastMsg["type"] = "error") => {
+    const id = ++toastCounter.current;
+    setToasts(prev => [...prev, { id, text, type }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 5000);
+  }, []);
 
   const [companies,     setCompanies]     = useState<Company[]>([]);
   const [tasks,         setTasks]         = useState<Task[]>([]);
@@ -619,11 +650,11 @@ export default function Cockpit() {
           try { errDetail = JSON.stringify(JSON.parse(txt), null, 2); }
           catch { errDetail = txt.slice(0, 600); }  // HTML or plain text — truncate
         } catch { errDetail = `HTTP ${res.status} ${res.statusText}`; }
-        alert(`שגיאת עדכון (${res.status}):\n\n${errDetail}`);
+        showToast(`שגיאת עדכון (${res.status}): ${errDetail.slice(0, 120)}`);
       }
     } catch (networkErr) {
       setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: prevStatus } : { ...t }));
-      alert("שגיאת רשת (גרירה ושחרור):\n" + String(networkErr));
+      showToast("שגיאת רשת בגרירה: " + String(networkErr).slice(0, 100));
     }
   }, [tasks, clearDragState]);
 
@@ -758,7 +789,7 @@ export default function Cockpit() {
     if (typeof window === "undefined") return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
-    if (!SR) { alert("הדפדפן לא תומך בזיהוי קול"); return; }
+    if (!SR) { showToast("הדפדפן לא תומך בזיהוי קול", "info"); return; }
     const r = new SR();
     r.lang = "he-IL"; r.interimResults = false; r.maxAlternatives = 1;
     r.onresult = (e: { results: { [k: number]: { [k: number]: { transcript: string } } } }) => {
@@ -1151,6 +1182,9 @@ export default function Cockpit() {
           onClose={() => setEditingTask(null)}
         />
       )}
+
+      {/* Toast notifications */}
+      <ToastStack toasts={toasts} onDismiss={id => setToasts(prev => prev.filter(t => t.id !== id))} />
     </div>
   );
 }
