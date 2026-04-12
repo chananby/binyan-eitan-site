@@ -945,6 +945,16 @@ export default function ContentEditorPage() {
     setTimeout(() => setToast(null), 3200);
   }, []);
 
+  // ── Auto-save (debounce 2s after last change) ─────────────────────────────
+  const autoSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!dirty || saving) return;
+    if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
+    autoSaveRef.current = setTimeout(() => { handleSave(); }, 2000);
+    return () => { if (autoSaveRef.current) clearTimeout(autoSaveRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty, translations, articles, faqs, testimonials]);
+
   // ── Copy section to clipboard ─────────────────────────────────────────────
   const copySectionToClipboard = useCallback((sectionKey: SectionKey, sectionLabel: string, keys: string[]) => {
     const row = (key: string, lang: "he" | "en", val: string) => `  ${lang === "he" ? "עב" : "EN"} [${key}]: ${val}`;
@@ -1206,9 +1216,15 @@ export default function ContentEditorPage() {
             >
               ⬇ גיבוי
             </a>
+            {dirty && !saving && (
+              <span className="text-xs text-amber-600 font-medium animate-pulse">שומר אוטומטית...</span>
+            )}
+            {saving && (
+              <span className="text-xs text-gray-400 font-medium">שומר...</span>
+            )}
             <button onClick={handleSave} disabled={!dirty || saving}
               className="px-6 py-2.5 bg-[#8D775F] text-white text-sm font-bold tracking-wide rounded-md disabled:opacity-40 hover:bg-[#7A6451] transition-colors shadow-sm">
-              {saving ? "שומר..." : dirty ? "💾 שמור שינויים" : "✓ נשמר"}
+              {saving ? "שומר..." : dirty ? "💾 שמור עכשיו" : "✓ נשמר"}
             </button>
           </div>
         </div>
