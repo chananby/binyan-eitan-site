@@ -16,6 +16,9 @@ const REVALIDATE_PATHS = [
   "/en/expertise/g1-contractor-certification", "/he/expertise/g1-contractor-certification",
   "/en/expertise/building-from-abroad", "/he/expertise/building-from-abroad",
   "/en/expertise/behind-the-walls", "/he/expertise/behind-the-walls",
+  "/en/expertise/building-private-home", "/he/expertise/building-private-home",
+  "/en/expertise/foundation-reinforcement", "/he/expertise/foundation-reinforcement",
+  "/en/expertise/israeli-workforce", "/he/expertise/israeli-workforce",
   "/en/legal", "/he/legal",
   "/en/change-order", "/he/change-order",
 ];
