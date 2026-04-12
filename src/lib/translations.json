@@ -712,6 +712,7 @@
     {
       "id": "10",
       "slug": "israeli-workforce",
+      "archived": true,
       "heroImage": "/bayit-vegan.jpg",
       "category_he": "ערכים מקצועיים",
       "category_en": "Professional Standards",

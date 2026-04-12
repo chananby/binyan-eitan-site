@@ -17,6 +17,7 @@ interface Article {
   category_he?: string;
   intro_en?: string;
   intro_he?: string;
+  archived?: boolean;
   s1_body_en?: string; s1_body_he?: string;
   s2_body_en?: string; s2_body_he?: string;
   s3_body_en?: string; s3_body_he?: string;
@@ -76,7 +77,9 @@ export default function ExpertiseArticle() {
   const dir = lang === "he" ? "rtl" : "ltr";
 
   const rawData = useTranslationsRaw() as Record<string, unknown>;
-  const articles: Article[] = Array.isArray(rawData?.articles) ? (rawData.articles as Article[]) : [];
+  const articles: Article[] = Array.isArray(rawData?.articles)
+    ? (rawData.articles as Article[]).filter((a) => !a.archived)
+    : [];
 
   return (
     <main className="relative bg-bone" dir={dir}>
