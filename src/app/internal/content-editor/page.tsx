@@ -232,11 +232,12 @@ function BoldTextarea({
   function applyBold() {
     const el = ref.current;
     if (!el || !onChange) return;
+    const strVal = value as string;
     const s = el.selectionStart ?? 0;
     const e = el.selectionEnd ?? 0;
-    const selected = value.slice(s, e);
-    const before = value.slice(0, s);
-    const after = value.slice(e);
+    const selected = strVal.slice(s, e);
+    const before = strVal.slice(0, s);
+    const after = strVal.slice(e);
     const isBold = selected.startsWith("**") && selected.endsWith("**") && selected.length > 4;
     const newVal = isBold
       ? before + selected.slice(2, -2) + after
