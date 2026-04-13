@@ -20,6 +20,7 @@ const REVALIDATE_PATHS = [
   "/en/expertise/foundation-reinforcement", "/he/expertise/foundation-reinforcement",
   "/en/expertise/israeli-workforce", "/he/expertise/israeli-workforce",
   "/en/expertise/renovation-budget-planning", "/he/expertise/renovation-budget-planning",
+  "/en/expertise/choosing-a-contractor", "/he/expertise/choosing-a-contractor",
   "/en/legal", "/he/legal",
   "/en/change-order", "/he/change-order",
 ];
