@@ -182,7 +182,7 @@ export default function BannerPage() {
                 </span>
               </div>
               {/* Office */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "ltr" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, direction: "ltr", width: "100%" }}>
                 <PhoneIcon size={30} />
                 <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", letterSpacing: "0.04em", lineHeight: 1 }}>
                   02-5000-447
