@@ -25,7 +25,7 @@ export default function BannerPage() {
         style={{
           width: 1000,
           height: 600,
-          backgroundColor: "#1C1A18",
+          backgroundColor: "#EDE9E1",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -68,7 +68,7 @@ export default function BannerPage() {
               justifyContent: "center",
               padding: "20px 32px",
               gap: 10,
-              borderLeft: "1px solid #3a3632",
+              borderLeft: "1px solid #C8BFB5",
             }}
           >
             <Image
@@ -76,13 +76,13 @@ export default function BannerPage() {
               alt="לוגו בניין איתן"
               width={150}
               height={75}
-              style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.9 }}
+              style={{ objectFit: "contain" }}
             />
             <div
               style={{
                 fontSize: 56,
                 fontWeight: 900,
-                color: "#FFFFFF",
+                color: "#1C1A18",
                 letterSpacing: "0.05em",
                 lineHeight: 1,
               }}
@@ -91,7 +91,7 @@ export default function BannerPage() {
             </div>
             <div style={{ width: 48, height: 3, background: "#B8956A", borderRadius: 2 }} />
             <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: 18, fontWeight: 300, color: "#C8BFB5", lineHeight: 1.6, margin: 0 }}>
+              <p style={{ fontSize: 18, fontWeight: 300, color: "#5a4e45", lineHeight: 1.6, margin: 0 }}>
                 בונים עתיד יציב. אתכם ובשבילכם.
               </p>
             </div>
@@ -107,7 +107,7 @@ export default function BannerPage() {
               justifyContent: "center",
               padding: "24px 28px 24px 20px",
               gap: 14,
-              backgroundColor: "#242220",
+              backgroundColor: "#E0DAD0",
             }}
           >
             {/* WhatsApp */}
@@ -117,7 +117,7 @@ export default function BannerPage() {
                 style={{
                   fontSize: 36,
                   fontWeight: 900,
-                  color: "#FFFFFF",
+                  color: "#1C1A18",
                   direction: "ltr",
                   letterSpacing: "0.04em",
                   lineHeight: 1,
@@ -134,7 +134,7 @@ export default function BannerPage() {
                 style={{
                   fontSize: 32,
                   fontWeight: 700,
-                  color: "#C8BFB5",
+                  color: "#2D2926",
                   direction: "ltr",
                   letterSpacing: "0.04em",
                   lineHeight: 1,
@@ -145,7 +145,7 @@ export default function BannerPage() {
             </div>
 
             {/* Divider */}
-            <div style={{ height: 1, background: "#3a3632" }} />
+            <div style={{ height: 1, background: "#C8BFB5" }} />
 
             {/* QR + web/email row */}
             <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
@@ -153,7 +153,7 @@ export default function BannerPage() {
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://wa.me/972585008447&color=ffffff&bgcolor=242220&margin=4"
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://wa.me/972585008447&color=1C1A18&bgcolor=E0DAD0&margin=4"
                   alt="QR וואטסאפ"
                   width={88}
                   height={88}
@@ -166,11 +166,11 @@ export default function BannerPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <GlobeIcon />
-                  <span style={{ fontSize: 16, color: "#C8BFB5", direction: "ltr" }}>www.binyaneitan.com</span>
+                  <span style={{ fontSize: 16, color: "#2D2926", direction: "ltr" }}>www.binyaneitan.com</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <MailIcon />
-                  <span style={{ fontSize: 16, color: "#C8BFB5", direction: "ltr" }}>office@binyaneitan.com</span>
+                  <span style={{ fontSize: 16, color: "#2D2926", direction: "ltr" }}>office@binyaneitan.com</span>
                 </div>
               </div>
             </div>
