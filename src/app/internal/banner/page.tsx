@@ -5,7 +5,7 @@ export default function BannerPage() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#888",
+        background: "#555",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -19,34 +19,34 @@ export default function BannerPage() {
         rel="stylesheet"
       />
 
-      {/* Banner: 100×60 cm → 1000×600 px — landscape */}
+      {/* ── Banner 100×60 cm → 1000×600 px ── */}
       <div
         dir="rtl"
         style={{
           width: 1000,
           height: 600,
-          backgroundColor: "#F0EDE6",
+          backgroundColor: "#1C1A18",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
-          boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
+          boxShadow: "0 12px 60px rgba(0,0,0,0.6)",
         }}
       >
-        {/* ── TOP BAND: כאן בונים בכיף ── */}
+        {/* ══ TOP GOLD BAND ══ */}
         <div
           style={{
-            backgroundColor: "#2D2926",
-            padding: "18px 48px 14px",
+            backgroundColor: "#B8956A",
+            padding: "14px 40px",
             textAlign: "center",
             flexShrink: 0,
           }}
         >
           <h1
             style={{
-              color: "#F0EDE6",
-              fontSize: 52,
+              color: "#1C1A18",
+              fontSize: 58,
               fontWeight: 900,
-              letterSpacing: "0.04em",
+              letterSpacing: "0.06em",
               lineHeight: 1,
               margin: 0,
             }}
@@ -55,15 +55,10 @@ export default function BannerPage() {
           </h1>
         </div>
 
-        {/* ── MAIN AREA: two columns ── */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "row",
-          }}
-        >
-          {/* RIGHT COLUMN — Logo + Name + Slogan */}
+        {/* ══ MAIN BODY ══ */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "row" }}>
+
+          {/* ── RIGHT: branding ── */}
           <div
             style={{
               flex: 1,
@@ -71,166 +66,155 @@ export default function BannerPage() {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              padding: "24px 32px",
-              gap: 12,
-              borderLeft: "2px solid #C8BFB5",
+              padding: "20px 32px",
+              gap: 10,
+              borderLeft: "1px solid #3a3632",
             }}
           >
             <Image
               src="/logo.png"
               alt="לוגו בניין איתן"
-              width={180}
-              height={90}
-              style={{ objectFit: "contain" }}
+              width={150}
+              height={75}
+              style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.9 }}
             />
             <div
               style={{
-                fontSize: 44,
+                fontSize: 56,
                 fontWeight: 900,
-                color: "#2D2926",
-                letterSpacing: "0.04em",
+                color: "#FFFFFF",
+                letterSpacing: "0.05em",
                 lineHeight: 1,
               }}
             >
               בניין איתן
             </div>
-            {/* Bronze rule */}
-            <div style={{ width: 50, height: 2, background: "#8D775F", borderRadius: 2 }} />
+            <div style={{ width: 48, height: 3, background: "#B8956A", borderRadius: 2 }} />
             <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: 19, fontWeight: 400, color: "#5a4e45", lineHeight: 1.55, margin: 0 }}>
-                בונים עתיד יציב.
-              </p>
-              <p style={{ fontSize: 19, fontWeight: 400, color: "#5a4e45", lineHeight: 1.55, margin: 0 }}>
-                אתכם ובשבילכם.
+              <p style={{ fontSize: 18, fontWeight: 300, color: "#C8BFB5", lineHeight: 1.6, margin: 0 }}>
+                בונים עתיד יציב. אתכם ובשבילכם.
               </p>
             </div>
           </div>
 
-          {/* LEFT COLUMN — Contacts */}
+          {/* ── LEFT: contacts ── */}
           <div
             style={{
-              width: 420,
+              width: 410,
               flexShrink: 0,
               display: "flex",
-              flexDirection: "row",
-              alignItems: "stretch",
+              flexDirection: "column",
+              justifyContent: "center",
+              padding: "24px 28px 24px 20px",
+              gap: 14,
+              backgroundColor: "#242220",
             }}
           >
-            {/* Phones + web/email */}
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                padding: "20px 24px",
-                gap: 10,
-                borderLeft: "2px solid #C8BFB5",
-              }}
-            >
-              {/* WhatsApp */}
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <WhatsAppIcon />
-                  <span style={{ fontSize: 26, fontWeight: 700, color: "#2D2926", direction: "ltr", letterSpacing: "0.04em" }}>
-                    058-500-8447
-                  </span>
-                </div>
-              </div>
-
-              {/* Office */}
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <PhoneIcon />
-                  <span style={{ fontSize: 26, fontWeight: 700, color: "#2D2926", direction: "ltr", letterSpacing: "0.04em" }}>
-                    02-5000-447
-                  </span>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div style={{ height: 1, background: "#C8BFB5", margin: "2px 0" }} />
-
-              {/* Website */}
-              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                <GlobeIcon />
-                <span style={{ fontSize: 15, color: "#3a302a", direction: "ltr" }}>www.binyaneitan.com</span>
-              </div>
-
-              {/* Email */}
-              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                <MailIcon />
-                <span style={{ fontSize: 15, color: "#3a302a", direction: "ltr" }}>office@binyaneitan.com</span>
-              </div>
+            {/* WhatsApp */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <WhatsAppIcon size={36} />
+              <span
+                style={{
+                  fontSize: 36,
+                  fontWeight: 900,
+                  color: "#FFFFFF",
+                  direction: "ltr",
+                  letterSpacing: "0.04em",
+                  lineHeight: 1,
+                }}
+              >
+                058-500-8447
+              </span>
             </div>
 
-            {/* QR column */}
-            <div
-              style={{
-                width: 130,
-                flexShrink: 0,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                padding: "16px 12px",
-                background: "#E8E4DC",
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://wa.me/972585008447&color=2D2926&bgcolor=ffffff&margin=4"
-                alt="QR וואטסאפ"
-                width={100}
-                height={100}
-                style={{ border: "3px solid #2D2926", padding: 5, background: "#fff" }}
-              />
-              <span style={{ fontSize: 10, color: "#8D775F", letterSpacing: "0.1em", textAlign: "center" }}>
-                סרוק לוואטסאפ
+            {/* Office phone */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <PhoneIcon size={32} />
+              <span
+                style={{
+                  fontSize: 32,
+                  fontWeight: 700,
+                  color: "#C8BFB5",
+                  direction: "ltr",
+                  letterSpacing: "0.04em",
+                  lineHeight: 1,
+                }}
+              >
+                02-5000-447
               </span>
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: "#3a3632" }} />
+
+            {/* QR + web/email row */}
+            <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+              {/* QR */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://wa.me/972585008447&color=ffffff&bgcolor=242220&margin=4"
+                  alt="QR וואטסאפ"
+                  width={88}
+                  height={88}
+                  style={{ border: "2px solid #B8956A", padding: 4 }}
+                />
+                <span style={{ fontSize: 9, color: "#B8956A", letterSpacing: "0.1em" }}>סרוק לוואטסאפ</span>
+              </div>
+
+              {/* Web + email */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <GlobeIcon />
+                  <span style={{ fontSize: 16, color: "#C8BFB5", direction: "ltr" }}>www.binyaneitan.com</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <MailIcon />
+                  <span style={{ fontSize: 16, color: "#C8BFB5", direction: "ltr" }}>office@binyaneitan.com</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ── BOTTOM BAND ── */}
-        <div style={{ backgroundColor: "#2D2926", height: 14, flexShrink: 0 }} />
+        {/* ══ BOTTOM GOLD STRIP ══ */}
+        <div style={{ backgroundColor: "#B8956A", height: 12, flexShrink: 0 }} />
       </div>
     </div>
   );
 }
 
-function WhatsAppIcon() {
+function WhatsAppIcon({ size = 28 }: { size?: number }) {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
       <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.402A9.953 9.953 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" fill="#25D366"/>
       <path d="M16.75 14.49c-.27-.135-1.6-.79-1.847-.879-.247-.09-.427-.135-.607.135-.18.27-.697.879-.854 1.059-.157.18-.314.202-.584.067-.27-.135-1.14-.42-2.172-1.34-.803-.716-1.345-1.6-1.503-1.87-.157-.27-.017-.416.118-.55.12-.12.27-.315.405-.472.134-.157.18-.27.27-.45.089-.18.044-.337-.022-.472-.067-.135-.607-1.462-.832-2.002-.219-.526-.441-.454-.607-.463l-.517-.009c-.18 0-.472.067-.72.337-.246.27-.942.92-.942 2.244s.965 2.602 1.1 2.782c.134.18 1.9 2.9 4.603 4.066.643.278 1.145.444 1.535.568.645.205 1.232.176 1.696.107.517-.077 1.6-.654 1.826-1.285.225-.63.225-1.17.157-1.285-.067-.112-.247-.18-.517-.315z" fill="#fff"/>
     </svg>
   );
 }
 
-function PhoneIcon() {
+function PhoneIcon({ size = 24 }: { size?: number }) {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.01l-2.21 2.21z" fill="#8D775F"/>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.18 21 3 13.82 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.01l-2.21 2.21z" fill="#B8956A"/>
     </svg>
   );
 }
 
 function GlobeIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="9" stroke="#2D2926" strokeWidth="1.5"/>
-      <path d="M12 3c-2 2.5-3 5-3 9s1 6.5 3 9M12 3c2 2.5 3 5 3 9s-1 6.5-3 9M3 12h18" stroke="#2D2926" strokeWidth="1.5"/>
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+      <circle cx="12" cy="12" r="9" stroke="#B8956A" strokeWidth="1.5"/>
+      <path d="M12 3c-2 2.5-3 5-3 9s1 6.5 3 9M12 3c2 2.5 3 5 3 9s-1 6.5-3 9M3 12h18" stroke="#B8956A" strokeWidth="1.5"/>
     </svg>
   );
 }
 
 function MailIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <rect x="3" y="5" width="18" height="14" rx="2" stroke="#2D2926" strokeWidth="1.5"/>
-      <path d="M3 7l9 6 9-6" stroke="#2D2926" strokeWidth="1.5"/>
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+      <rect x="3" y="5" width="18" height="14" rx="2" stroke="#B8956A" strokeWidth="1.5"/>
+      <path d="M3 7l9 6 9-6" stroke="#B8956A" strokeWidth="1.5"/>
     </svg>
   );
 }
