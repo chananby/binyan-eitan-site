@@ -8,16 +8,21 @@ export default function BannerPage() {
       <style>{`
         @media print {
           @page { size: 100cm 60cm; margin: 0; }
-          body { margin: 0; background: white !important; }
+          html, body { margin: 0; padding: 0; }
           .screen-only { display: none !important; }
           .print-wrapper {
+            display: block !important;
             padding: 0 !important;
-            background: white !important;
-            min-height: unset !important;
+            margin: 0 !important;
+            background: transparent !important;
+            min-height: 0 !important;
+            width: 100cm;
+            height: 60cm;
+            overflow: hidden;
           }
           .banner-box {
-            width: 100cm !important;
-            height: 60cm !important;
+            /* 1000px × 600px → 100cm × 60cm: scale = 3.7795 */
+            zoom: 3.7795;
             box-shadow: none !important;
           }
         }
