@@ -108,18 +108,18 @@ export default function BannerPage() {
             <Image
               src="/logo.png"
               alt="לוגו בניין איתן"
-              width={280}
-              height={140}
+              width={360}
+              height={180}
               style={{ objectFit: "contain" }}
             />
 
             {/* Gold rule */}
-            <div style={{ width: 56, height: 3, background: "#B8956A", borderRadius: 2, margin: "2px 0" }} />
+            <div style={{ width: 70, height: 4, background: "#B8956A", borderRadius: 2, margin: "6px 0" }} />
 
             {/* Sub-headline */}
             <div
               style={{
-                fontSize: 26,
+                fontSize: 36,
                 fontWeight: 700,
                 color: "#B8956A",
                 letterSpacing: "0.04em",
@@ -131,7 +131,7 @@ export default function BannerPage() {
             </div>
 
             {/* Slogan */}
-            <p style={{ fontSize: 18, fontWeight: 400, color: "#333333", lineHeight: 1.65, margin: "6px 0 0", textAlign: "center" }}>
+            <p style={{ fontSize: 24, fontWeight: 400, color: "#333333", lineHeight: 1.65, margin: "8px 0 0", textAlign: "center" }}>
               בונים עתיד יציב. אתכם ובשבילכם.
             </p>
           </div>
@@ -169,10 +169,10 @@ export default function BannerPage() {
             {/* Divider */}
             <div style={{ height: 1, background: "#C8BFB5", width: "100%" }} />
 
-            {/* Phone numbers — direction:ltr ensures digits align perfectly */}
-            <div style={{ direction: "ltr", display: "flex", flexDirection: "column", gap: 12, width: "100%" }}>
+            {/* Phone numbers — centered under QR */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center", width: "100%" }}>
               {/* WhatsApp */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "ltr" }}>
                 <WhatsAppIcon size={30} />
                 <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", letterSpacing: "0.04em", lineHeight: 1 }}>
                   058-500-8447
@@ -182,7 +182,7 @@ export default function BannerPage() {
                 </span>
               </div>
               {/* Office */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "ltr" }}>
                 <PhoneIcon size={30} />
                 <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", letterSpacing: "0.04em", lineHeight: 1 }}>
                   02-5000-447
