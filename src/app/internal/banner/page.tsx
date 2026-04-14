@@ -32,33 +32,13 @@ export default function BannerPage() {
           boxShadow: "0 12px 60px rgba(0,0,0,0.25)",
         }}
       >
-        {/* ══ TOP GOLD BAND ══ */}
-        <div
-          style={{
-            backgroundColor: "#B8956A",
-            padding: "15px 52px",
-            textAlign: "center",
-            flexShrink: 0,
-          }}
-        >
-          <h1
-            style={{
-              color: "#1C1A18",
-              fontSize: 56,
-              fontWeight: 900,
-              letterSpacing: "0.06em",
-              lineHeight: 1,
-              margin: 0,
-            }}
-          >
-            כאן בונים בכיף
-          </h1>
-        </div>
+        {/* ══ TOP GOLD STRIPE ══ */}
+        <div style={{ backgroundColor: "#B8956A", height: 10, flexShrink: 0 }} />
 
         {/* ══ MAIN BODY ══ */}
         <div style={{ flex: 1, display: "flex", flexDirection: "row" }}>
 
-          {/* ── RIGHT: logo + slogan ── */}
+          {/* ── RIGHT: branding (primary) ── */}
           <div
             style={{
               flex: 1,
@@ -66,103 +46,133 @@ export default function BannerPage() {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              padding: "32px 52px",
-              gap: 18,
+              padding: "28px 48px",
+              gap: 10,
               borderLeft: "1px solid #D5CFCA",
             }}
           >
             <Image
               src="/logo.png"
               alt="לוגו בניין איתן"
-              width={200}
-              height={100}
+              width={130}
+              height={65}
               style={{ objectFit: "contain" }}
             />
-            <div style={{ width: 48, height: 3, background: "#B8956A", borderRadius: 2 }} />
-            <p style={{ fontSize: 30, fontWeight: 700, color: "#2D2926", lineHeight: 1.65, margin: 0, textAlign: "center", letterSpacing: "0.01em" }}>
-              בונים עתיד יציב.
-              <br />
-              אתכם ובשבילכם.
+
+            {/* Company name — dominant headline */}
+            <div
+              style={{
+                fontSize: 58,
+                fontWeight: 900,
+                color: "#000000",
+                letterSpacing: "0.04em",
+                lineHeight: 1,
+                textAlign: "center",
+              }}
+            >
+              בניין איתן בע&quot;מ
+            </div>
+
+            {/* Gold rule */}
+            <div style={{ width: 56, height: 3, background: "#B8956A", borderRadius: 2, margin: "2px 0" }} />
+
+            {/* Sub-headline */}
+            <div
+              style={{
+                fontSize: 26,
+                fontWeight: 700,
+                color: "#B8956A",
+                letterSpacing: "0.04em",
+                lineHeight: 1,
+                textAlign: "center",
+              }}
+            >
+              כאן בונים בכיף
+            </div>
+
+            {/* Slogan */}
+            <p style={{ fontSize: 18, fontWeight: 400, color: "#333333", lineHeight: 1.65, margin: "6px 0 0", textAlign: "center" }}>
+              בונים עתיד יציב. אתכם ובשבילכם.
             </p>
           </div>
 
-          {/* ── LEFT: QR (top) + phones (bottom) ── */}
+          {/* ── LEFT: phones + QR ── */}
           <div
             style={{
               width: 420,
               flexShrink: 0,
               display: "flex",
               flexDirection: "column",
-              alignItems: "center",
               justifyContent: "center",
               padding: "28px 40px",
-              gap: 18,
+              gap: 14,
               backgroundColor: "#EDE8E0",
             }}
           >
-            {/* QR — big */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://wa.me/972585008447&color=1C1A18&bgcolor=EDE8E0&margin=4"
-                alt="QR וואטסאפ"
-                width={190}
-                height={190}
-                style={{ border: "2px solid #B8956A", padding: 5 }}
-              />
-              <span style={{ fontSize: 11, color: "#B8956A", letterSpacing: "0.12em" }}>סרוק לוואטסאפ</span>
+            {/* Phone numbers */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%" }}>
+              {/* WhatsApp */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <WhatsAppIcon size={30} />
+                <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", direction: "ltr", letterSpacing: "0.04em", lineHeight: 1, flex: 1 }}>
+                  058-500-8447
+                </span>
+                <span style={{ fontSize: 17, fontWeight: 700, color: "#B8956A", whiteSpace: "nowrap" }}>
+                  חנן
+                </span>
+              </div>
+              {/* Office */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <PhoneIcon size={30} />
+                <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", direction: "ltr", letterSpacing: "0.04em", lineHeight: 1, flex: 1 }}>
+                  02-5000-447
+                </span>
+              </div>
             </div>
 
             {/* Divider */}
             <div style={{ height: 1, background: "#C8BFB5", width: "100%" }} />
 
-            {/* Phone numbers */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
-              {/* WhatsApp row */}
-              <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-                <WhatsAppIcon size={30} />
-                <div style={{ width: 10 }} />
-                <span style={{ fontSize: 30, fontWeight: 900, color: "#1C1A18", direction: "ltr", letterSpacing: "0.04em", lineHeight: 1, flex: 1 }}>
-                  058-500-8447
-                </span>
-                <span style={{ fontSize: 17, fontWeight: 700, color: "#B8956A", whiteSpace: "nowrap", paddingRight: 4 }}>
-                  חנן
-                </span>
-              </div>
-              {/* Office row — icon + number identical structure */}
-              <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-                <PhoneIcon size={30} />
-                <div style={{ width: 10 }} />
-                <span style={{ fontSize: 30, fontWeight: 900, color: "#1C1A18", direction: "ltr", letterSpacing: "0.04em", lineHeight: 1, flex: 1 }}>
-                  02-5000-447
-                </span>
-              </div>
+            {/* QR CTA */}
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#B8956A", letterSpacing: "0.08em", textAlign: "center" }}>
+              לסריקה ויצירת קשר מהירה ←
+            </div>
+
+            {/* QR */}
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://wa.me/972585008447&color=000000&bgcolor=EDE8E0&margin=4"
+                alt="QR וואטסאפ"
+                width={180}
+                height={180}
+                style={{ border: "2px solid #B8956A", padding: 5 }}
+              />
             </div>
           </div>
         </div>
 
-        {/* ══ BOTTOM INFO BAR — full width ══ */}
+        {/* ══ BOTTOM INFO BAR ══ */}
         <div
           style={{
             backgroundColor: "#E8E3DA",
-            padding: "12px 52px",
+            padding: "11px 52px",
             display: "flex",
-            flexDirection: "row",
             justifyContent: "center",
             alignItems: "center",
-            gap: 48,
+            gap: 32,
             flexShrink: 0,
             borderTop: "1px solid #D5CFCA",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <GlobeIcon />
-            <span style={{ fontSize: 16, color: "#2D2926", direction: "ltr", fontWeight: 400 }}>www.binyaneitan.com</span>
+            <span style={{ fontSize: 16, color: "#111111", direction: "ltr", fontWeight: 400 }}>www.binyaneitan.com</span>
           </div>
-          <div style={{ width: 1, height: 18, background: "#C8BFB5" }} />
+          <div style={{ width: 1, height: 16, background: "#B8956A" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <MailIcon />
-            <span style={{ fontSize: 16, color: "#2D2926", direction: "ltr", fontWeight: 400 }}>office@binyaneitan.com</span>
+            <span style={{ fontSize: 16, color: "#111111", direction: "ltr", fontWeight: 400 }}>office@binyaneitan.com</span>
           </div>
         </div>
 
