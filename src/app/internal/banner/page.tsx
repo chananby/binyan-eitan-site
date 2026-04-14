@@ -169,24 +169,26 @@ export default function BannerPage() {
             {/* Divider */}
             <div style={{ height: 1, background: "#C8BFB5", width: "100%" }} />
 
-            {/* Phone numbers — centered under QR */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center", width: "100%" }}>
-              {/* WhatsApp */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "ltr" }}>
-                <WhatsAppIcon size={30} />
-                <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", letterSpacing: "0.04em", lineHeight: 1 }}>
-                  058-500-8447
-                </span>
-                <span style={{ fontSize: 17, fontWeight: 700, color: "#B8956A", marginLeft: 10, whiteSpace: "nowrap" }}>
-                  חנן
-                </span>
-              </div>
-              {/* Office */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, direction: "ltr", width: "100%" }}>
-                <PhoneIcon size={30} />
-                <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", letterSpacing: "0.04em", lineHeight: 1 }}>
-                  02-5000-447
-                </span>
+            {/* Phone numbers — group centered, rows left-aligned to each other */}
+            <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {/* WhatsApp */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "ltr" }}>
+                  <WhatsAppIcon size={30} />
+                  <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", letterSpacing: "0.04em", lineHeight: 1 }}>
+                    058-500-8447
+                  </span>
+                  <span style={{ fontSize: 17, fontWeight: 700, color: "#B8956A", marginLeft: 10, whiteSpace: "nowrap" }}>
+                    חנן
+                  </span>
+                </div>
+                {/* Office */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, direction: "ltr" }}>
+                  <PhoneIcon size={30} />
+                  <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", letterSpacing: "0.04em", lineHeight: 1 }}>
+                    02-5000-447
+                  </span>
+                </div>
               </div>
             </div>
           </div>
