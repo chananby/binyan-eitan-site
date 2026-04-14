@@ -1,8 +1,30 @@
+"use client";
 import Image from "next/image";
 
 export default function BannerPage() {
   return (
+    <>
+      {/* Print styles */}
+      <style>{`
+        @media print {
+          @page { size: 100cm 60cm; margin: 0; }
+          body { margin: 0; background: white !important; }
+          .screen-only { display: none !important; }
+          .print-wrapper {
+            padding: 0 !important;
+            background: white !important;
+            min-height: unset !important;
+          }
+          .banner-box {
+            width: 100cm !important;
+            height: 60cm !important;
+            box-shadow: none !important;
+          }
+        }
+      `}</style>
+
     <div
+      className="print-wrapper"
       style={{
         minHeight: "100vh",
         background: "#F0EBE1",
@@ -19,9 +41,31 @@ export default function BannerPage() {
         rel="stylesheet"
       />
 
+      {/* Print button */}
+      <div className="screen-only" style={{ position: "fixed", top: 20, left: 20, zIndex: 100 }}>
+        <button
+          onClick={() => window.print()}
+          style={{
+            backgroundColor: "#B8956A",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            padding: "12px 24px",
+            fontSize: 16,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          }}
+        >
+          הורד PDF ←
+        </button>
+      </div>
+
       {/* ── Banner 100×60 cm → 1000×600 px ── */}
       <div
         dir="rtl"
+        className="banner-box"
         style={{
           width: 1000,
           height: 600,
@@ -166,6 +210,7 @@ export default function BannerPage() {
         <div style={{ backgroundColor: "#B8956A", height: 12, flexShrink: 0 }} />
       </div>
     </div>
+    </>
   );
 }
 
