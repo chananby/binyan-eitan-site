@@ -6,6 +6,11 @@ export default function BannerPage() {
     <>
       {/* Print styles */}
       <style>{`
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
         @media print {
           @page { size: 100cm 60cm; margin: 0; }
           html, body { margin: 0; padding: 0; }
