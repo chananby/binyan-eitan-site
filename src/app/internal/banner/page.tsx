@@ -70,7 +70,7 @@ export default function BannerPage() {
                 textAlign: "center",
               }}
             >
-              בניין איתן בע&quot;מ
+              בניין איתן
             </div>
 
             {/* Gold rule */}
@@ -109,32 +109,8 @@ export default function BannerPage() {
               backgroundColor: "#EDE8E0",
             }}
           >
-            {/* Phone numbers */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%" }}>
-              {/* WhatsApp */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <WhatsAppIcon size={30} />
-                <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", direction: "ltr", letterSpacing: "0.04em", lineHeight: 1, flex: 1 }}>
-                  058-500-8447
-                </span>
-                <span style={{ fontSize: 17, fontWeight: 700, color: "#B8956A", whiteSpace: "nowrap" }}>
-                  חנן
-                </span>
-              </div>
-              {/* Office */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <PhoneIcon size={30} />
-                <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", direction: "ltr", letterSpacing: "0.04em", lineHeight: 1, flex: 1 }}>
-                  02-5000-447
-                </span>
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div style={{ height: 1, background: "#C8BFB5", width: "100%" }} />
-
             {/* QR CTA */}
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#B8956A", letterSpacing: "0.08em", textAlign: "center" }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#B8956A", letterSpacing: "0.06em", textAlign: "center" }}>
               לסריקה ויצירת קשר מהירה ←
             </div>
 
@@ -148,6 +124,30 @@ export default function BannerPage() {
                 height={180}
                 style={{ border: "2px solid #B8956A", padding: 5 }}
               />
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: "#C8BFB5", width: "100%" }} />
+
+            {/* Phone numbers — direction:ltr ensures digits align perfectly */}
+            <div style={{ direction: "ltr", display: "flex", flexDirection: "column", gap: 12, width: "100%" }}>
+              {/* WhatsApp */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <WhatsAppIcon size={30} />
+                <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", letterSpacing: "0.04em", lineHeight: 1 }}>
+                  058-500-8447
+                </span>
+                <span style={{ fontSize: 17, fontWeight: 700, color: "#B8956A", marginLeft: 10, whiteSpace: "nowrap" }}>
+                  חנן
+                </span>
+              </div>
+              {/* Office */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <PhoneIcon size={30} />
+                <span style={{ fontSize: 30, fontWeight: 900, color: "#000000", letterSpacing: "0.04em", lineHeight: 1 }}>
+                  02-5000-447
+                </span>
+              </div>
             </div>
           </div>
         </div>
