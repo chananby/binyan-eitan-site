@@ -54,24 +54,10 @@ export default function BannerPage() {
             <Image
               src="/logo.png"
               alt="לוגו בניין איתן"
-              width={130}
-              height={65}
+              width={280}
+              height={140}
               style={{ objectFit: "contain" }}
             />
-
-            {/* Company name — dominant headline */}
-            <div
-              style={{
-                fontSize: 58,
-                fontWeight: 900,
-                color: "#000000",
-                letterSpacing: "0.04em",
-                lineHeight: 1,
-                textAlign: "center",
-              }}
-            >
-              בניין איתן
-            </div>
 
             {/* Gold rule */}
             <div style={{ width: 56, height: 3, background: "#B8956A", borderRadius: 2, margin: "2px 0" }} />
