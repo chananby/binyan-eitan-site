@@ -130,9 +130,6 @@ export default function BannerPage() {
             >
               {/* WhatsApp */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 300, color: "#8D775F", letterSpacing: "0.12em", marginBottom: 3 }}>
-                  וואטסאפ / נייד
-                </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <WhatsAppIcon />
                   <span style={{ fontSize: 26, fontWeight: 700, color: "#2D2926", direction: "ltr", letterSpacing: "0.04em" }}>
@@ -143,9 +140,6 @@ export default function BannerPage() {
 
               {/* Office */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 300, color: "#8D775F", letterSpacing: "0.12em", marginBottom: 3 }}>
-                  טלפון משרד
-                </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <PhoneIcon />
                   <span style={{ fontSize: 26, fontWeight: 700, color: "#2D2926", direction: "ltr", letterSpacing: "0.04em" }}>
