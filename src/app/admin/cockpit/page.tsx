@@ -179,9 +179,9 @@ function ToastStack({ toasts, onDismiss }: { toasts: ToastMsg[]; onDismiss: (id:
 }
 
 // ── Task Card ─────────────────────────────────────────────────────────────────
-function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, onTouchStart, companies }: {
+function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, onView, onTouchStart, companies }: {
   task: Task; isDragging: boolean;
-  onDragStart: () => void; onDragEnd: () => void; onDelete: () => void; onEdit: () => void;
+  onDragStart: () => void; onDragEnd: () => void; onDelete: () => void; onEdit: () => void; onView: () => void;
   onTouchStart?: (e: React.TouchEvent) => void;
   companies: Company[];
 }) {
@@ -195,7 +195,7 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
       onDragEnd={onDragEnd}
       onDragOver={e => e.preventDefault()}
       onTouchStart={onTouchStart}
-      onClick={e => e.stopPropagation()}
+      onClick={e => { e.stopPropagation(); onView(); }}
       className={`group relative p-3.5 border bg-white cursor-grab active:cursor-grabbing transition-all duration-150 select-none
         ${isDragging
           ? "opacity-30 scale-[0.96] rotate-1 shadow-none border-[#D1CFCA]"
@@ -553,6 +553,113 @@ function EditModal({ task, companies, onSave, onClose }: {
   );
 }
 
+// ── Task Detail Modal ─────────────────────────────────────────────────────────
+function TaskDetailModal({ task, companies, onEdit, onClose }: {
+  task: Task; companies: Company[];
+  onEdit: () => void; onClose: () => void;
+}) {
+  const company = task.holding_companies ?? companies.find(c => c.id === task.company_id) ?? null;
+  const col     = COLUMNS.find(c => c.key === task.status)!;
+  const created = new Date(task.created_at).toLocaleDateString("he-IL", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end md:items-center md:justify-center md:p-4 bg-black/40 backdrop-blur-sm" dir="rtl"
+      onClick={onClose}>
+      <div className="bg-white w-full md:max-w-md rounded-t-2xl md:rounded-2xl shadow-2xl max-h-[90dvh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}>
+
+        {/* Drag handle — mobile only */}
+        <div className="md:hidden w-10 h-1 bg-[#D1CFCA] rounded-full mx-auto mt-3" />
+
+        {/* Colored status bar */}
+        <div className="h-1 mx-5 mt-3 rounded-full" style={{ background: col.accent }} />
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[0.65rem] font-bold px-2.5 py-1 rounded-full"
+              style={{ background: col.accent + "18", color: col.accent }}>
+              {col.label}
+            </span>
+            {company && (
+              <span className="flex items-center gap-1.5 text-[0.65rem] font-bold" style={{ color: company.color }}>
+                <CompanyIcon icon={company.icon} size={13} /> {company.name}
+              </span>
+            )}
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-full text-[#2D2926]/25 hover:text-[#2D2926]/60 hover:bg-[#F3F2EE] transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-5 pb-5 space-y-4">
+          {/* Title */}
+          <p className="text-[1.1rem] font-bold text-[#2D2926] leading-snug break-words">{task.title}</p>
+
+          {/* Notes */}
+          {task.notes && (
+            <div className="bg-[#F3F2EE] rounded-xl px-4 py-3">
+              <p className="text-[0.78rem] text-[#2D2926]/70 leading-relaxed whitespace-pre-wrap break-words">{task.notes}</p>
+            </div>
+          )}
+
+          {/* Meta rows */}
+          <div className="space-y-2.5">
+            {task.assigned_to && (
+              <div className="flex items-center gap-2.5 text-sm text-[#2D2926]/60">
+                <UserCheck size={14} className="text-[#8D775F]/60 shrink-0" />
+                <span>{task.assigned_to}</span>
+              </div>
+            )}
+            {task.due_date && (() => {
+              const { text, icon } = dueDateStyle(task.due_date);
+              return (
+                <div className={`flex items-center gap-2.5 text-sm ${text}`}>
+                  {icon === "red" ? <AlertCircle size={14} className="shrink-0" /> : <Calendar size={14} className="shrink-0" />}
+                  <span>{formatDueDate(task.due_date)}{icon === "red" ? " · באיחור" : ""}</span>
+                </div>
+              );
+            })()}
+            {task.attachment_url && (
+              <a href={task.attachment_url} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2.5 text-sm text-blue-500 hover:text-blue-700 transition-colors">
+                <Paperclip size={14} className="shrink-0" />
+                <span className="truncate">{filenameFromUrl(task.attachment_url)}</span>
+                <ExternalLink size={11} className="shrink-0 opacity-60" />
+              </a>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-1 border-t border-[#F3F2EE]">
+            <div className="flex flex-col gap-0.5">
+              <span className={`text-[0.65rem] font-bold px-2.5 py-1 rounded-full self-start
+                ${task.author === "Hanan" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
+                {task.author === "Hanan" ? "חנן" : "מוטי"}
+              </span>
+              {task.updated_by && task.updated_by !== task.author && (
+                <span className="text-[0.6rem] text-[#2D2926]/30 flex items-center gap-1 px-0.5">
+                  <Clock size={9} /> עודכן ע&quot;י {task.updated_by === "Hanan" ? "חנן" : "מוטי"}
+                </span>
+              )}
+            </div>
+            <span className="text-[0.65rem] text-[#2D2926]/30">{created}</span>
+          </div>
+
+          {/* Edit button */}
+          <button onClick={() => { onClose(); onEdit(); }}
+            className="w-full py-3 rounded-xl text-white text-sm font-bold tracking-wide transition-colors active:scale-[0.98]"
+            style={{ background: col.accent }}>
+            <Pencil size={14} className="inline me-2 -mt-0.5" />
+            עריכה
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function Cockpit() {
   const [authed,   setAuthed]   = useState(false);
@@ -581,6 +688,7 @@ export default function Cockpit() {
   const [listening,     setListening]     = useState(false);
   const [dragError,     setDragError]     = useState<string | null>(null);
   const [editingTask,   setEditingTask]   = useState<Task | null>(null);
+  const [viewingTask,   setViewingTask]   = useState<Task | null>(null);
   const [mobileCol,     setMobileCol]     = useState<ColKey>("backlog");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognizerRef  = useRef<any>(null);
@@ -1049,6 +1157,7 @@ export default function Cockpit() {
                         onTouchStart={e => startTouchDrag(task, e)}
                         onDelete={() => deleteTask(task.id)}
                         onEdit={() => setEditingTask(task)}
+                        onView={() => setViewingTask(task)}
                         companies={companies} />
                     ))}
                     {/* Always-visible add button at the bottom */}
@@ -1093,6 +1202,7 @@ export default function Cockpit() {
                       onDragEnd={() => {}}
                       onDelete={() => deleteTask(task.id)}
                       onEdit={() => setEditingTask(task)}
+                      onView={() => setViewingTask(task)}
                       companies={companies} />
                   ))}
                 </div>
@@ -1237,6 +1347,16 @@ export default function Cockpit() {
           );
         })}
       </nav>
+
+      {/* Task detail view */}
+      {viewingTask && (
+        <TaskDetailModal
+          task={viewingTask}
+          companies={companies}
+          onEdit={() => { setEditingTask(viewingTask); setViewingTask(null); }}
+          onClose={() => setViewingTask(null)}
+        />
+      )}
 
       {/* Edit modal */}
       {editingTask && (
