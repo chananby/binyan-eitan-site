@@ -161,7 +161,7 @@ interface ToastMsg { id: number; text: string; type: "error" | "info" }
 function ToastStack({ toasts, onDismiss }: { toasts: ToastMsg[]; onDismiss: (id: number) => void }) {
   if (toasts.length === 0) return null;
   return (
-    <div className="fixed bottom-5 start-5 z-[9999] flex flex-col gap-2 max-w-xs" dir="rtl">
+    <div className="fixed bottom-24 md:bottom-5 start-5 z-[9999] flex flex-col gap-2 max-w-xs" dir="rtl">
       {toasts.map(t => (
         <div key={t.id}
           className={`flex items-start gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium cursor-pointer
@@ -209,7 +209,7 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
           </span>
         </div>
       )}
-      <p className="text-[0.82rem] text-[#2D2926] leading-snug break-words pe-10 font-medium">{task.title}</p>
+      <p className="text-sm md:text-[0.82rem] text-[#2D2926] leading-snug break-words pe-10 font-medium">{task.title}</p>
       {task.notes && (
         <p className="text-[0.68rem] text-[#2D2926]/40 mt-1.5 line-clamp-2 leading-relaxed">{task.notes}</p>
       )}
@@ -252,19 +252,19 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
         </div>
         <span className="text-[0.6rem] text-[#2D2926]/25">{date}</span>
       </div>
-      {/* Edit button — always slightly visible for touch devices */}
+      {/* Edit button */}
       <button
         onClick={e => { e.stopPropagation(); onEdit(); }}
-        className="absolute top-2.5 end-8 opacity-25 group-hover:opacity-100 transition-opacity p-0.5 rounded text-[#2D2926]/40 hover:text-[#8D775F] hover:bg-[#F3F2EE]"
+        className="absolute top-2.5 end-8 opacity-70 md:opacity-25 md:group-hover:opacity-100 transition-opacity p-1 rounded text-[#2D2926]/40 hover:text-[#8D775F] hover:bg-[#F3F2EE]"
       >
-        <Pencil size={11} />
+        <Pencil size={12} />
       </button>
-      {/* Delete button — always slightly visible for touch devices */}
+      {/* Delete button */}
       <button
         onClick={e => { e.stopPropagation(); onDelete(); }}
-        className="absolute top-2.5 end-2.5 opacity-25 group-hover:opacity-100 transition-opacity p-0.5 rounded text-[#2D2926]/40 hover:text-red-500 hover:bg-red-50"
+        className="absolute top-2.5 end-2.5 opacity-70 md:opacity-25 md:group-hover:opacity-100 transition-opacity p-1 rounded text-[#2D2926]/40 hover:text-red-500 hover:bg-red-50"
       >
-        <Trash2 size={11} />
+        <Trash2 size={12} />
       </button>
     </div>
   );
@@ -448,10 +448,12 @@ function EditModal({ task, companies, onSave, onClose }: {
   const isImage = attachmentUrl && /\.(jpe?g|png|gif|webp|svg)(\?|$)/i.test(attachmentUrl);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" dir="rtl"
+    <div className="fixed inset-0 z-50 flex items-end md:items-center md:justify-center md:p-4 bg-black/40 md:bg-black/30 backdrop-blur-sm" dir="rtl"
       onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-5 space-y-3 max-h-[90dvh] overflow-y-auto"
+      <div className="bg-white w-full md:max-w-sm rounded-t-2xl md:rounded-xl shadow-2xl p-5 space-y-3 max-h-[92dvh] overflow-y-auto"
         onClick={e => e.stopPropagation()}>
+        {/* Drag handle — mobile only */}
+        <div className="md:hidden w-10 h-1 bg-[#D1CFCA] rounded-full mx-auto -mt-1 mb-2" />
         <div className="flex items-center justify-between">
           <p className="text-sm font-bold text-[#2D2926]/80">עריכת משימה</p>
           <button onClick={onClose} className="text-[#2D2926]/30 hover:text-[#2D2926]/70"><X size={15} /></button>
@@ -569,7 +571,8 @@ export default function Cockpit() {
   const [tasks,         setTasks]         = useState<Task[]>([]);
   const [loading,       setLoading]       = useState(false);
   const [error,         setError]         = useState<string | null>(null);
-  const [filterCompany, setFilterCompany] = useState<string | null>(null);
+  const [filterCompany,    setFilterCompany]    = useState<string | null>(null);
+  const [showMobileFilter, setShowMobileFilter] = useState(false);
   const [searchQuery,   setSearchQuery]   = useState("");
   const [dragTaskId,    setDragTaskId]    = useState<string | null>(null); // visual only
   const dragIdRef = useRef<string | null>(null);                           // authoritative source for handleDrop
@@ -581,7 +584,8 @@ export default function Cockpit() {
   const [editingTask,   setEditingTask]   = useState<Task | null>(null);
   const [mobileCol,     setMobileCol]     = useState<ColKey>("backlog");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recognizerRef = useRef<any>(null);
+  const recognizerRef  = useRef<any>(null);
+  const mobileListRef  = useRef<HTMLDivElement>(null);
 
   // Touch drag refs (avoid stale closures via refs, not state)
   const touchGhostRef    = useRef<HTMLDivElement | null>(null);
@@ -661,6 +665,13 @@ export default function Cockpit() {
 
   // Keep handleDropRef in sync so touch listeners (registered once) always call the current version
   useEffect(() => { handleDropRef.current = handleDrop; }, [handleDrop]);
+
+  // Scroll mobile task list to top when opening quick-add form
+  useEffect(() => {
+    if (addingTo === mobileCol) {
+      setTimeout(() => mobileListRef.current?.scrollTo({ top: 0, behavior: "smooth" }), 60);
+    }
+  }, [addingTo, mobileCol]);
 
   // Non-passive touch listeners for drag-and-drop on touch devices (tablets)
   useEffect(() => {
@@ -890,24 +901,37 @@ export default function Cockpit() {
         </div>
 
         {/* Search */}
-        <div className="relative mb-3">
-          <input
-            type="text"
-            placeholder="חיפוש משימה..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-[#F3F2EE] border border-[#E8E7E3] rounded-full px-4 py-1.5 text-[0.78rem] text-[#2D2926] placeholder:text-[#2D2926]/30 focus:outline-none focus:border-[#8D775F]/50 transition-colors pr-8"
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery("")}
-              className="absolute start-3 top-1/2 -translate-y-1/2 text-[#2D2926]/30 hover:text-[#2D2926]/60 transition-colors">
-              <X size={13} />
-            </button>
-          )}
+        <div className="flex items-center gap-2 mb-3">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="חיפוש משימה..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full bg-[#F3F2EE] border border-[#E8E7E3] rounded-full px-4 py-1.5 text-[0.78rem] text-[#2D2926] placeholder:text-[#2D2926]/30 focus:outline-none focus:border-[#8D775F]/50 transition-colors pr-8"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")}
+                className="absolute start-3 top-1/2 -translate-y-1/2 text-[#2D2926]/30 hover:text-[#2D2926]/60 transition-colors">
+                <X size={13} />
+              </button>
+            )}
+          </div>
+          {/* Filter toggle — mobile only */}
+          <button
+            className={`md:hidden relative shrink-0 w-9 h-9 rounded-full border flex items-center justify-center transition-colors
+              ${(showMobileFilter || !!filterCompany) ? "bg-[#8D775F] border-[#8D775F] text-white" : "border-[#D1CFCA] text-[#2D2926]/50"}`}
+            onClick={() => setShowMobileFilter(s => !s)}
+          >
+            <Filter size={13} />
+            {filterCompany && !showMobileFilter && (
+              <span className="absolute top-0.5 end-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white" />
+            )}
+          </button>
         </div>
 
-        {/* Company chips */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
+        {/* Company chips — always visible on desktop, toggled on mobile */}
+        <div className={`items-center gap-2 overflow-x-auto pb-0.5 ${(showMobileFilter || !!filterCompany) ? "flex" : "hidden md:flex"}`}>
           <button onClick={() => setFilterCompany(null)}
             className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[0.7rem] font-semibold transition-colors
               ${!filterCompany
@@ -938,25 +962,6 @@ export default function Cockpit() {
         </div>
       </header>
 
-      {/* ── Mobile column tabs ───────────────────────────────────────────────── */}
-      <div className="md:hidden shrink-0 bg-white border-b border-[#E8E7E3] px-2 py-2 flex gap-1 overflow-x-auto">
-        {COLUMNS.map(col => (
-          <button key={col.key} onClick={() => setMobileCol(col.key)}
-            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.7rem] font-bold transition-all
-              ${mobileCol === col.key
-                ? "text-white shadow-sm"
-                : "text-[#2D2926]/50 bg-[#F3F2EE] hover:bg-[#E8E7E3]"}`}
-            style={mobileCol === col.key ? { background: col.accent } : {}}>
-            <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: mobileCol === col.key ? "white" : col.accent, opacity: mobileCol === col.key ? 0.7 : 1 }} />
-            {col.label}
-            {colTasks(col.key).length > 0 && (
-              <span className={`text-[0.58rem] font-bold px-1 rounded-full ${mobileCol === col.key ? "bg-white/20" : "bg-[#D1CFCA]/60"}`}>
-                {colTasks(col.key).length}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
 
       {/* ── Body ─────────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
@@ -1094,15 +1099,7 @@ export default function Cockpit() {
                     {isAdding ? <><X size={11} /> ביטול</> : <><Plus size={11} /> הוסף</>}
                   </button>
                 </div>
-                {isAdding && (
-                  <div className="mb-3">
-                    <QuickAdd colKey={mobileCol} companies={companies}
-                      defaultCompanyId={filterCompany ?? ""}
-                      onAdd={(title, notes, cid, assignedTo, attachUrl, dueDate) => addTask(mobileCol, title, notes, cid, assignedTo, attachUrl, dueDate)}
-                      onClose={() => setAddingTo(null)} />
-                  </div>
-                )}
-                <div className="flex-1 overflow-y-auto space-y-2.5 pb-4">
+                <div ref={mobileListRef} className="flex-1 overflow-y-auto space-y-2.5 pb-36">
                   {loading && colItems.length === 0 && (
                     <div className="flex justify-center pt-10"><Loader2 size={16} className="animate-spin text-[#2D2926]/15" /></div>
                   )}
@@ -1131,7 +1128,12 @@ export default function Cockpit() {
 
         {/* Urgent sidebar */}
         {showSidebar && (
-          <aside className="w-72 shrink-0 border-s border-[#E8E7E3] bg-white overflow-y-auto flex flex-col">
+          <>
+          {/* Mobile backdrop */}
+          <div className="md:hidden fixed inset-0 bg-black/50 z-40" onClick={() => setShowSidebar(false)} />
+          <aside className="fixed bottom-0 inset-x-0 z-50 max-h-[85dvh] rounded-t-2xl shadow-2xl md:static md:max-h-none md:rounded-none md:shadow-none w-full md:w-72 shrink-0 md:border-s border-[#E8E7E3] bg-white overflow-y-auto flex flex-col">
+            {/* Drag handle — mobile only */}
+            <div className="md:hidden w-10 h-1 bg-[#D1CFCA] rounded-full mx-auto mt-3 mb-1 shrink-0" />
             <div className="sticky top-0 bg-white flex items-center justify-between px-4 py-3.5 border-b border-[#E8E7E3] z-10">
               <div className="flex items-center gap-2">
                 <Zap size={14} className="text-red-500" />
@@ -1182,19 +1184,84 @@ export default function Cockpit() {
               </div>
             )}
           </aside>
+          </>
         )}
       </div>
 
-      {/* Mobile bottom */}
-      <div className="shrink-0 border-t border-[#E8E7E3] bg-white px-4 py-3 flex items-center justify-between md:hidden">
-        <a href="/admin/hub" className="text-[0.68rem] text-[#2D2926]/40 hover:text-[#2D2926] font-medium">
-          ← מרכז שליטה
-        </a>
-        <button onClick={() => setAddingTo(mobileCol)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#8D775F] text-white text-sm font-bold rounded-full hover:bg-[#7A6451] transition-colors">
-          <Plus size={14} /> הוסף ל{COLUMNS.find(c => c.key === mobileCol)!.label}
-        </button>
-      </div>
+
+      {/* ── Mobile QuickAdd bottom sheet ─────────────────────────────────────── */}
+      {addingTo && (
+        <div className="md:hidden">
+          <div className="fixed inset-0 bg-black/40 z-[45]" onClick={() => setAddingTo(null)} />
+          <div className="fixed bottom-0 inset-x-0 z-[46] bg-white rounded-t-2xl shadow-2xl overflow-y-auto max-h-[92dvh]"
+            style={{ paddingBottom: "env(safe-area-inset-bottom, 16px)" }}>
+            <div className="w-10 h-1 bg-[#D1CFCA] rounded-full mx-auto mt-3 mb-1" />
+            <QuickAdd
+              colKey={addingTo}
+              companies={companies}
+              defaultCompanyId={filterCompany ?? ""}
+              onAdd={(title, notes, cid, assignedTo, attachUrl, dueDate) =>
+                addTask(addingTo, title, notes, cid, assignedTo, attachUrl, dueDate)
+              }
+              onClose={() => setAddingTo(null)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Mobile FAB ───────────────────────────────────────────────────────── */}
+      <button
+        onClick={() => setAddingTo(addingTo === mobileCol ? null : mobileCol)}
+        className="md:hidden fixed z-50 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center active:scale-95 transition-all duration-150"
+        style={{
+          bottom: "5rem",
+          insetInlineEnd: "1.25rem",
+          background: COLUMNS.find(c => c.key === mobileCol)?.accent ?? "#8D775F",
+          boxShadow: `0 6px 24px ${COLUMNS.find(c => c.key === mobileCol)?.accent ?? "#8D775F"}60`,
+        }}
+      >
+        {addingTo === mobileCol
+          ? <X size={24} className="text-white" />
+          : <Plus size={28} className="text-white" />}
+      </button>
+
+      {/* ── Mobile bottom navigation ─────────────────────────────────────────── */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-[#E8E7E3] z-40 flex" dir="rtl"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+        {COLUMNS.map(col => {
+          const count    = colTasks(col.key).length;
+          const isActive = mobileCol === col.key;
+          return (
+            <button key={col.key}
+              onClick={() => { setMobileCol(col.key); setAddingTo(null); }}
+              className="flex-1 flex flex-col items-center justify-center py-2.5 gap-1 relative"
+            >
+              {/* Dot with active halo */}
+              <div className="relative flex items-center justify-center w-7 h-7 rounded-full transition-all duration-200"
+                style={{ background: isActive ? col.accent + "20" : "transparent" }}>
+                <div className="w-2.5 h-2.5 rounded-full transition-all duration-200"
+                  style={{
+                    background: col.accent,
+                    opacity: isActive ? 1 : 0.3,
+                    transform: isActive ? "scale(1.2)" : "scale(1)",
+                  }} />
+                {/* Badge */}
+                {count > 0 && (
+                  <span className="absolute -top-1 -end-1 w-4 h-4 rounded-full text-white text-[0.48rem] font-bold flex items-center justify-center"
+                    style={{ background: col.accent, minWidth: "1rem" }}>
+                    {count > 9 ? "9+" : count}
+                  </span>
+                )}
+              </div>
+              {/* Label */}
+              <span className="text-[0.6rem] font-bold leading-none transition-colors duration-200"
+                style={{ color: isActive ? col.accent : "#2D292670" }}>
+                {col.label}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
 
       {/* Edit modal */}
       {editingTask && (
