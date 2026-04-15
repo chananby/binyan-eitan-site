@@ -842,14 +842,14 @@ export default function Cockpit() {
   if (!authed) return <PinGate onAuth={a => { setAuthed(true); setAuthor(a); }} />;
 
   return (
-    <div className="min-h-screen bg-[#F3F2EE] text-[#2D2926] flex flex-col" dir="rtl">
+    <div className="min-h-[100dvh] bg-[#F3F2EE] text-[#2D2926] flex flex-col" dir="rtl">
 
       {/* ── Header ───────────────────────────────────────────────────────────── */}
-      <header className="shrink-0 bg-white border-b border-[#E8E7E3] px-5 py-3.5 z-30">
-        <div className="flex items-center gap-4 mb-4">
+      <header className="shrink-0 bg-white border-b border-[#E8E7E3] px-4 md:px-5 py-2 md:py-3.5 z-30">
+        <div className="flex items-center gap-3 md:gap-4 mb-2 md:mb-4">
           <Image src="/logo.png" alt="" width={76} height={21} className="opacity-75 shrink-0" />
-          <div className="h-5 w-px bg-[#D1CFCA]" />
-          <div>
+          <div className="hidden md:block h-5 w-px bg-[#D1CFCA]" />
+          <div className="hidden md:block">
             <p className="text-[0.52rem] font-bold tracking-[0.22em] uppercase text-[#8D775F]/60">החזקות</p>
             <p className="text-[0.82rem] font-bold text-[#2D2926]/80 leading-none mt-0.5">לוח ניהול</p>
           </div>
@@ -900,13 +900,13 @@ export default function Cockpit() {
         </div>
 
         {/* Search */}
-        <div className="relative mb-3">
+        <div className="relative mb-2 md:mb-3">
           <input
             type="text"
             placeholder="חיפוש משימה..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-[#F3F2EE] border border-[#E8E7E3] rounded-full px-4 py-1.5 text-[0.78rem] text-[#2D2926] placeholder:text-[#2D2926]/30 focus:outline-none focus:border-[#8D775F]/50 transition-colors pr-8"
+            className="w-full bg-[#F3F2EE] border border-[#E8E7E3] rounded-full px-4 py-1 md:py-1.5 text-[0.78rem] text-[#2D2926] placeholder:text-[#2D2926]/30 focus:outline-none focus:border-[#8D775F]/50 transition-colors pr-8"
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery("")}
@@ -950,10 +950,10 @@ export default function Cockpit() {
 
 
       {/* ── Body ─────────────────────────────────────────────────────────────── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
 
         {/* Kanban */}
-        <main className="flex-1 overflow-x-auto overflow-y-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden">
           {error && (
             <div className="m-4 flex items-center gap-2 text-red-600 text-sm border border-red-200 bg-red-50 px-4 py-3 rounded">
               <AlertCircle size={14} /> {error}
@@ -966,7 +966,7 @@ export default function Cockpit() {
             </div>
           )}
           {/* Desktop kanban — horizontal scroll */}
-          <div className="hidden md:flex gap-4 h-full p-5 min-w-[950px]">
+          <div className="hidden md:flex flex-1 gap-4 overflow-x-auto overflow-y-hidden p-5 min-w-0">
             {COLUMNS.map(col => {
               const colItems     = colTasks(col.key);
               const isDragTarget = dragOverCol === col.key;
@@ -1070,31 +1070,20 @@ export default function Cockpit() {
           {(() => {
             const col      = COLUMNS.find(c => c.key === mobileCol)!;
             const colItems = colTasks(mobileCol);
-            const isAdding = addingTo === mobileCol;
             return (
-              <div className="md:hidden flex flex-col h-full p-3" key={mobileCol}>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: col.accent }} />
-                    <p className="text-sm font-bold text-[#2D2926]/85">{col.label}</p>
-                    <p className="text-[0.68rem] text-[#2D2926]/35">{col.sub}</p>
-                  </div>
-                  <button onClick={() => setAddingTo(isAdding ? null : mobileCol)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.7rem] font-bold text-white transition-colors active:scale-95"
-                    style={{ background: col.accent }}>
-                    {isAdding ? <><X size={11} /> ביטול</> : <><Plus size={11} /> הוסף</>}
-                  </button>
-                </div>
-                <div ref={mobileListRef} className="flex-1 overflow-y-auto space-y-2.5 pb-36">
+              <div className="md:hidden flex-1 min-h-0 flex flex-col" key={mobileCol}>
+                {/* Thin accent bar — shows active column */}
+                <div className="h-[3px] shrink-0" style={{ background: col.accent }} />
+                <div ref={mobileListRef} className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 space-y-2.5 pb-48">
                   {loading && colItems.length === 0 && (
                     <div className="flex justify-center pt-10"><Loader2 size={16} className="animate-spin text-[#2D2926]/15" /></div>
                   )}
-                  {!loading && colItems.length === 0 && !isAdding && (
-                    <div className="flex flex-col items-center justify-center pt-12 gap-3 text-center">
+                  {!loading && colItems.length === 0 && (
+                    <div className="flex flex-col items-center justify-center pt-16 gap-3 text-center">
                       <div className="w-12 h-12 rounded-full border-2 border-dashed border-[#D1CFCA] flex items-center justify-center">
                         <Plus size={16} className="text-[#D1CFCA]" />
                       </div>
-                      <p className="text-[0.7rem] text-[#2D2926]/25">אין משימות בעמודה זו</p>
+                      <p className="text-[0.7rem] text-[#2D2926]/25">אין משימות — לחץ + להוספה</p>
                     </div>
                   )}
                   {colItems.map(task => (
