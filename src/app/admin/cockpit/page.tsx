@@ -572,7 +572,6 @@ export default function Cockpit() {
   const [loading,       setLoading]       = useState(false);
   const [error,         setError]         = useState<string | null>(null);
   const [filterCompany,    setFilterCompany]    = useState<string | null>(null);
-  const [showMobileFilter, setShowMobileFilter] = useState(false);
   const [searchQuery,   setSearchQuery]   = useState("");
   const [dragTaskId,    setDragTaskId]    = useState<string | null>(null); // visual only
   const dragIdRef = useRef<string | null>(null);                           // authoritative source for handleDrop
@@ -901,37 +900,24 @@ export default function Cockpit() {
         </div>
 
         {/* Search */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              placeholder="חיפוש משימה..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-[#F3F2EE] border border-[#E8E7E3] rounded-full px-4 py-1.5 text-[0.78rem] text-[#2D2926] placeholder:text-[#2D2926]/30 focus:outline-none focus:border-[#8D775F]/50 transition-colors pr-8"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")}
-                className="absolute start-3 top-1/2 -translate-y-1/2 text-[#2D2926]/30 hover:text-[#2D2926]/60 transition-colors">
-                <X size={13} />
-              </button>
-            )}
-          </div>
-          {/* Filter toggle — mobile only */}
-          <button
-            className={`md:hidden relative shrink-0 w-9 h-9 rounded-full border flex items-center justify-center transition-colors
-              ${(showMobileFilter || !!filterCompany) ? "bg-[#8D775F] border-[#8D775F] text-white" : "border-[#D1CFCA] text-[#2D2926]/50"}`}
-            onClick={() => setShowMobileFilter(s => !s)}
-          >
-            <Filter size={13} />
-            {filterCompany && !showMobileFilter && (
-              <span className="absolute top-0.5 end-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white" />
-            )}
-          </button>
+        <div className="relative mb-3">
+          <input
+            type="text"
+            placeholder="חיפוש משימה..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full bg-[#F3F2EE] border border-[#E8E7E3] rounded-full px-4 py-1.5 text-[0.78rem] text-[#2D2926] placeholder:text-[#2D2926]/30 focus:outline-none focus:border-[#8D775F]/50 transition-colors pr-8"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")}
+              className="absolute start-3 top-1/2 -translate-y-1/2 text-[#2D2926]/30 hover:text-[#2D2926]/60 transition-colors">
+              <X size={13} />
+            </button>
+          )}
         </div>
 
-        {/* Company chips — always visible on desktop, toggled on mobile */}
-        <div className={`items-center gap-2 overflow-x-auto pb-0.5 ${(showMobileFilter || !!filterCompany) ? "flex" : "hidden md:flex"}`}>
+        {/* Company chips */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
           <button onClick={() => setFilterCompany(null)}
             className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[0.7rem] font-semibold transition-colors
               ${!filterCompany
