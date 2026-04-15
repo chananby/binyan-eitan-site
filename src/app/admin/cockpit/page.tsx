@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import {
   Plus, Trash2, Mic, MicOff, AlertCircle, Loader2,
@@ -270,6 +270,31 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
   );
 }
 
+// ── Auto-growing textarea ─────────────────────────────────────────────────────
+const AutoTextarea = React.forwardRef<HTMLTextAreaElement,
+  React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
+  function AutoTextarea({ value, rows = 1, className = "", ...rest }, forwardedRef) {
+    const innerRef = useRef<HTMLTextAreaElement>(null);
+    const ref = (forwardedRef as React.RefObject<HTMLTextAreaElement>) ?? innerRef;
+    useLayoutEffect(() => {
+      const el = ref.current;
+      if (!el) return;
+      el.style.height = "auto";
+      el.style.height = el.scrollHeight + "px";
+    }, [value, ref]);
+    return (
+      <textarea
+        ref={ref}
+        value={value}
+        rows={rows}
+        className={className}
+        style={{ resize: "none", overflow: "hidden" }}
+        {...rest}
+      />
+    );
+  }
+);
+
 // ── Quick Add ─────────────────────────────────────────────────────────────────
 function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   colKey: ColKey; companies: Company[];
@@ -287,7 +312,7 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   const [uploadErr,     setUploadErr]     = useState<string | null>(null);
   const [saving,        setSaving]        = useState(false);
   const [addErr,        setAddErr]        = useState<string | null>(null);
-  const inputRef   = useRef<HTMLInputElement>(null);
+  const inputRef   = useRef<HTMLTextAreaElement>(null);
   const fileInputId = useRef(`qa-file-${Math.random().toString(36).slice(2)}`).current;
   useEffect(() => { inputRef.current?.focus(); }, []);
   useEffect(() => { if (defaultCompanyId) setCompanyId(defaultCompanyId); }, [defaultCompanyId]);
@@ -327,12 +352,13 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
         <span className="text-[0.65rem] font-bold text-[#2D2926]/50">משימה חדשה · {col.label}</span>
         <button type="button" onClick={onClose} className="text-[#2D2926]/25 hover:text-[#2D2926]/70"><X size={13} /></button>
       </div>
-      <input
+      <AutoTextarea
         ref={inputRef} value={title}
         onChange={e => setTitle(e.target.value)}
-        onKeyDown={e => { if (e.key === "Enter") submit(); if (e.key === "Escape") onClose(); }}
+        onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } if (e.key === "Escape") onClose(); }}
         placeholder="מה צריך לעשות?"
         data-voice-input
+        rows={1}
         className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926] text-sm px-3 py-2.5 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/25"
       />
       {addErr && (
@@ -340,10 +366,10 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
           <AlertCircle size={11} /> {addErr}
         </div>
       )}
-      <textarea
+      <AutoTextarea
         value={notes} onChange={e => setNotes(e.target.value)}
         placeholder="הערות (אופציונלי)" rows={2}
-        className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/80 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20 resize-none"
+        className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/80 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20"
       />
       <input
         value={assignedTo} onChange={e => setAssignedTo(e.target.value)}
@@ -413,7 +439,7 @@ function EditModal({ task, companies, onSave, onClose }: {
   const [uploadErr,     setUploadErr]     = useState<string | null>(null);
   const [saving,        setSaving]        = useState(false);
   const [err,           setErr]           = useState<string | null>(null);
-  const inputRef   = useRef<HTMLInputElement>(null);
+  const inputRef   = useRef<HTMLTextAreaElement>(null);
   const fileInputId = useRef(`file-${Math.random().toString(36).slice(2)}`).current;
   useEffect(() => { inputRef.current?.focus(); }, []);
 
@@ -458,16 +484,17 @@ function EditModal({ task, companies, onSave, onClose }: {
           <p className="text-sm font-bold text-[#2D2926]/80">עריכת משימה</p>
           <button onClick={onClose} className="text-[#2D2926]/30 hover:text-[#2D2926]/70"><X size={15} /></button>
         </div>
-        <input
+        <AutoTextarea
           ref={inputRef} value={title} onChange={e => setTitle(e.target.value)}
-          onKeyDown={e => { if (e.key === "Enter") submit(); if (e.key === "Escape") onClose(); }}
+          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } if (e.key === "Escape") onClose(); }}
           placeholder="כותרת המשימה"
+          rows={1}
           className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926] text-sm px-3 py-2.5 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/25"
         />
-        <textarea
+        <AutoTextarea
           value={notes} onChange={e => setNotes(e.target.value)}
           placeholder="הערות (אופציונלי)" rows={3}
-          className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/80 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20 resize-none"
+          className="w-full bg-[#FAFAF9] border border-[#E8E7E3] text-[#2D2926]/80 text-[0.75rem] px-3 py-2 rounded focus:outline-none focus:border-[#8D775F] placeholder:text-[#2D2926]/20"
         />
         <input
           value={assignedTo} onChange={e => setAssignedTo(e.target.value)}
