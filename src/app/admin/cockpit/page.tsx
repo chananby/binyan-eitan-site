@@ -313,6 +313,19 @@ const AutoTextarea = React.forwardRef<HTMLTextAreaElement,
   }
 );
 
+// ── Draft helpers ─────────────────────────────────────────────────────────────
+function draftLoad<T>(key: string): T | null {
+  if (typeof window === "undefined") return null;
+  try { const s = localStorage.getItem(key); return s ? (JSON.parse(s) as T) : null; }
+  catch { return null; }
+}
+function draftSave<T>(key: string, data: T) {
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
+}
+function draftClear(key: string) {
+  try { localStorage.removeItem(key); } catch {}
+}
+
 // ── Quick Add ─────────────────────────────────────────────────────────────────
 function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   colKey: ColKey; companies: Company[];
@@ -320,20 +333,38 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
   onAdd: (title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string, dueDate: string) => Promise<string | null>;
   onClose: () => void;
 }) {
-  const [title,         setTitle]         = useState("");
-  const [notes,         setNotes]         = useState("");
-  const [companyId,     setCompanyId]     = useState(defaultCompanyId);
-  const [assignedTo,    setAssignedTo]    = useState("");
+  type QDraft = { title: string; notes: string; companyId: string; assignedTo: string; dueDate: string };
+  const DRAFT_KEY = `cockpit-quick-${colKey}`;
+  const restoredDraft = useRef(draftLoad<QDraft>(DRAFT_KEY));
+  const d = restoredDraft.current;
+
+  const [title,         setTitle]         = useState(d?.title         ?? "");
+  const [notes,         setNotes]         = useState(d?.notes         ?? "");
+  const [companyId,     setCompanyId]     = useState(d?.companyId     ?? defaultCompanyId);
+  const [assignedTo,    setAssignedTo]    = useState(d?.assignedTo    ?? "");
   const [attachmentUrl, setAttachmentUrl] = useState("");
-  const [dueDate,       setDueDate]       = useState("");
+  const [dueDate,       setDueDate]       = useState(d?.dueDate       ?? "");
   const [uploading,     setUploading]     = useState(false);
   const [uploadErr,     setUploadErr]     = useState<string | null>(null);
   const [saving,        setSaving]        = useState(false);
   const [addErr,        setAddErr]        = useState<string | null>(null);
+  const [draftBanner,   setDraftBanner]   = useState(!!d?.title);
   const inputRef   = useRef<HTMLTextAreaElement>(null);
   const fileInputId = useRef(`qa-file-${Math.random().toString(36).slice(2)}`).current;
   useEffect(() => { inputRef.current?.focus(); }, []);
-  useEffect(() => { if (defaultCompanyId) setCompanyId(defaultCompanyId); }, [defaultCompanyId]);
+  useEffect(() => { if (defaultCompanyId && !restoredDraft.current) setCompanyId(defaultCompanyId); }, [defaultCompanyId]);
+
+  // Autosave draft 400ms after last change
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (title || notes || assignedTo || dueDate)
+        draftSave(DRAFT_KEY, { title, notes, companyId, assignedTo, dueDate });
+      else
+        draftClear(DRAFT_KEY);
+    }, 400);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, notes, companyId, assignedTo, dueDate]);
 
   const requiresCompany = !defaultCompanyId;
   const canSubmit = title.trim() && (!requiresCompany || companyId) && !uploading;
@@ -358,6 +389,7 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
     setSaving(true); setAddErr(null);
     const err = await onAdd(title.trim(), notes, companyId, assignedTo.trim(), attachmentUrl, dueDate);
     setSaving(false);
+    if (!err) draftClear(DRAFT_KEY);
     if (err) setAddErr(err);
   };
 
@@ -370,6 +402,13 @@ function QuickAdd({ colKey, companies, defaultCompanyId, onAdd, onClose }: {
         <span className="text-[0.65rem] font-bold text-[#2D2926]/50">משימה חדשה · {col.label}</span>
         <button type="button" onClick={onClose} className="text-[#2D2926]/25 hover:text-[#2D2926]/70"><X size={13} /></button>
       </div>
+      {draftBanner && (
+        <div className="flex items-center justify-between px-2.5 py-1.5 bg-amber-50 border border-amber-200 rounded text-[0.65rem]">
+          <span className="text-amber-700 font-medium">✎ טיוטה שוחזרה</span>
+          <button onClick={() => { draftClear(DRAFT_KEY); setTitle(""); setNotes(""); setAssignedTo(""); setDueDate(""); setDraftBanner(false); }}
+            className="text-amber-500 hover:text-amber-700 font-bold">מחק ×</button>
+        </div>
+      )}
       <AutoTextarea
         ref={inputRef} value={title}
         onChange={e => setTitle(e.target.value)}
@@ -446,20 +485,34 @@ function EditModal({ task, companies, onSave, onClose }: {
   onSave: (id: string, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string, newStatus: ColKey, dueDate: string) => Promise<string | null>;
   onClose: () => void;
 }) {
-  const [title,         setTitle]         = useState(task.title);
-  const [notes,         setNotes]         = useState(task.notes ?? "");
-  const [companyId,     setCompanyId]     = useState(task.company_id ?? "");
-  const [assignedTo,    setAssignedTo]    = useState(task.assigned_to ?? "");
+  type EDraft = { title: string; notes: string; companyId: string; assignedTo: string; dueDate: string; newStatus: ColKey };
+  const DRAFT_KEY = `cockpit-edit-${task.id}`;
+  const restoredDraft = useRef(draftLoad<EDraft>(DRAFT_KEY));
+  const d = restoredDraft.current;
+
+  const [title,         setTitle]         = useState(d?.title      ?? task.title);
+  const [notes,         setNotes]         = useState(d?.notes      ?? task.notes       ?? "");
+  const [companyId,     setCompanyId]     = useState(d?.companyId  ?? task.company_id  ?? "");
+  const [assignedTo,    setAssignedTo]    = useState(d?.assignedTo ?? task.assigned_to ?? "");
   const [attachmentUrl, setAttachmentUrl] = useState(task.attachment_url ?? "");
-  const [dueDate,       setDueDate]       = useState(task.due_date ?? "");
-  const [newStatus,     setNewStatus]     = useState<ColKey>(task.status);
+  const [dueDate,       setDueDate]       = useState(d?.dueDate    ?? task.due_date    ?? "");
+  const [newStatus,     setNewStatus]     = useState<ColKey>(d?.newStatus ?? task.status);
   const [uploading,     setUploading]     = useState(false);
   const [uploadErr,     setUploadErr]     = useState<string | null>(null);
   const [saving,        setSaving]        = useState(false);
   const [err,           setErr]           = useState<string | null>(null);
+  const [draftBanner,   setDraftBanner]   = useState(!!d);
   const inputRef   = useRef<HTMLTextAreaElement>(null);
   const fileInputId = useRef(`file-${Math.random().toString(36).slice(2)}`).current;
   useEffect(() => { inputRef.current?.focus(); }, []);
+
+  // Autosave draft
+  useEffect(() => {
+    const t = setTimeout(() =>
+      draftSave(DRAFT_KEY, { title, notes, companyId, assignedTo, dueDate, newStatus }), 400);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, notes, companyId, assignedTo, dueDate, newStatus]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -486,6 +539,7 @@ function EditModal({ task, companies, onSave, onClose }: {
     setSaving(true); setErr(null);
     const e = await onSave(task.id, title.trim(), notes, companyId, assignedTo.trim(), attachmentUrl, newStatus, dueDate);
     setSaving(false);
+    if (!e) draftClear(DRAFT_KEY);
     if (e) setErr(e); else onClose();
   };
 
@@ -502,6 +556,18 @@ function EditModal({ task, companies, onSave, onClose }: {
           <p className="text-sm font-bold text-[#2D2926]/80">עריכת משימה</p>
           <button onClick={onClose} className="text-[#2D2926]/30 hover:text-[#2D2926]/70"><X size={15} /></button>
         </div>
+        {draftBanner && (
+          <div className="flex items-center justify-between px-2.5 py-1.5 bg-amber-50 border border-amber-200 rounded text-[0.65rem]">
+            <span className="text-amber-700 font-medium">✎ טיוטה שוחזרה</span>
+            <button onClick={() => {
+              draftClear(DRAFT_KEY);
+              setTitle(task.title); setNotes(task.notes ?? "");
+              setCompanyId(task.company_id ?? ""); setAssignedTo(task.assigned_to ?? "");
+              setDueDate(task.due_date ?? ""); setNewStatus(task.status);
+              setDraftBanner(false);
+            }} className="text-amber-500 hover:text-amber-700 font-bold">מחק ×</button>
+          </div>
+        )}
         <AutoTextarea
           ref={inputRef} value={title} onChange={e => setTitle(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } if (e.key === "Escape") onClose(); }}
