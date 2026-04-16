@@ -789,6 +789,8 @@ export default function Cockpit() {
   const [viewingTask,   setViewingTask]   = useState<Task | null>(null);
   const [movingTask,    setMovingTask]    = useState<Task | null>(null);
   const [mobileCol,     setMobileCol]     = useState<ColKey>("backlog");
+  const [pullY,         setPullY]         = useState(0);   // display px, damped
+  const [pullRefresh,   setPullRefresh]   = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognizerRef  = useRef<any>(null);
   const mobileListRef  = useRef<HTMLDivElement>(null);
@@ -931,6 +933,52 @@ export default function Cockpit() {
       document.removeEventListener("touchend",  onTouchEnd);
     };
   }, []); // empty — uses refs throughout
+
+  // ── Pull-to-refresh (non-passive so preventDefault works) ─────────────────
+  useEffect(() => {
+    const el = mobileListRef.current;
+    if (!el) return;
+    const THRESHOLD = 62; // display px — damped value that triggers refresh
+    let startY = 0;
+    let active = false;
+
+    const onStart = (e: TouchEvent) => {
+      if (el.scrollTop > 2) return;
+      startY = e.touches[0].clientY;
+      active = true;
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (!active) return;
+      const dy = e.touches[0].clientY - startY;
+      if (dy <= 0) { setPullY(0); return; }
+      e.preventDefault(); // block native overscroll / Chrome PTR
+      // Elastic damping: feels physical
+      const damped = Math.min(Math.pow(dy, 0.55) * 8, 90);
+      setPullY(damped);
+    };
+
+    const onEnd = () => {
+      if (!active) return;
+      active = false;
+      setPullY(prev => {
+        if (prev >= THRESHOLD) {
+          setPullRefresh(true);
+          loadData().finally(() => setPullRefresh(false));
+        }
+        return 0;
+      });
+    };
+
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove",  onMove,  { passive: false });
+    el.addEventListener("touchend",   onEnd,   { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove",  onMove);
+      el.removeEventListener("touchend",   onEnd);
+    };
+  }, [mobileCol, loadData]); // re-attach when column changes (new DOM node via key)
 
   const startTouchDrag = useCallback((task: Task, e: React.TouchEvent) => {
     touchDraggingRef.current  = true;
@@ -1314,7 +1362,24 @@ export default function Cockpit() {
                 }}>
                 {/* Thin accent bar — shows active column */}
                 <div className="h-[3px] shrink-0" style={{ background: col.accent }} />
-                <div ref={mobileListRef} className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 space-y-2.5 pb-48">
+
+                {/* Pull-to-refresh indicator */}
+                <div className="shrink-0 flex items-center justify-center overflow-hidden transition-all duration-150"
+                  style={{ height: pullRefresh ? 44 : pullY > 0 ? pullY * 0.55 : 0 }}>
+                  <div className="flex flex-col items-center gap-1">
+                    {pullRefresh ? (
+                      <Loader2 size={18} className="animate-spin" style={{ color: col.accent }} />
+                    ) : (
+                      <div className="transition-transform duration-100"
+                        style={{ transform: `rotate(${Math.min(pullY / 62 * 180, 180)}deg)`, color: col.accent, opacity: Math.min(pullY / 40, 1) }}>
+                        <ChevronLeft size={20} className="-rotate-90" style={{ color: col.accent }} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div ref={mobileListRef} className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 space-y-2.5 pb-48"
+                  style={{ overscrollBehavior: "contain" }}>
                   {loading && colItems.length === 0 && (
                     <div className="flex justify-center pt-10"><Loader2 size={16} className="animate-spin text-[#2D2926]/15" /></div>
                   )}
