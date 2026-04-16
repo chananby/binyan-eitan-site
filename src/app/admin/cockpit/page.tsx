@@ -179,14 +179,30 @@ function ToastStack({ toasts, onDismiss }: { toasts: ToastMsg[]; onDismiss: (id:
 }
 
 // ── Task Card ─────────────────────────────────────────────────────────────────
-function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, onView, onTouchStart, companies }: {
+function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, onView, onLongPress, onTouchStart, companies }: {
   task: Task; isDragging: boolean;
   onDragStart: () => void; onDragEnd: () => void; onDelete: () => void; onEdit: () => void; onView: () => void;
+  onLongPress?: () => void;
   onTouchStart?: (e: React.TouchEvent) => void;
   companies: Company[];
 }) {
   const company = task.holding_companies ?? companies.find(c => c.id === task.company_id) ?? null;
   const date = new Date(task.created_at).toLocaleDateString("he-IL", { day: "numeric", month: "short" });
+
+  const lpTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lpFired  = useRef(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    onTouchStart?.(e);
+    if (!onLongPress) return;
+    lpFired.current = false;
+    lpTimer.current = setTimeout(() => {
+      lpFired.current = true;
+      navigator.vibrate?.(40);
+      onLongPress();
+    }, 480);
+  };
+  const cancelLP = () => { if (lpTimer.current) { clearTimeout(lpTimer.current); lpTimer.current = null; } };
 
   return (
     <div
@@ -194,8 +210,10 @@ function TaskCard({ task, isDragging, onDragStart, onDragEnd, onDelete, onEdit, 
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onDragOver={e => e.preventDefault()}
-      onTouchStart={onTouchStart}
-      onClick={e => { e.stopPropagation(); onView(); }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={cancelLP}
+      onTouchEnd={cancelLP}
+      onClick={e => { e.stopPropagation(); if (lpFired.current) { lpFired.current = false; return; } onView(); }}
       className={`group relative p-3.5 border bg-white cursor-grab active:cursor-grabbing transition-all duration-150 select-none
         ${isDragging
           ? "opacity-30 scale-[0.96] rotate-1 shadow-none border-[#D1CFCA]"
@@ -581,9 +599,9 @@ function EditModal({ task, companies, onSave, onClose }: {
 }
 
 // ── Task Detail Modal ─────────────────────────────────────────────────────────
-function TaskDetailModal({ task, companies, onEdit, onClose }: {
+function TaskDetailModal({ task, companies, onEdit, onMove, onClose }: {
   task: Task; companies: Company[];
-  onEdit: () => void; onClose: () => void;
+  onEdit: () => void; onMove: (s: ColKey) => void; onClose: () => void;
 }) {
   const company = task.holding_companies ?? companies.find(c => c.id === task.company_id) ?? null;
   const col     = COLUMNS.find(c => c.key === task.status)!;
@@ -621,6 +639,22 @@ function TaskDetailModal({ task, companies, onEdit, onClose }: {
 
         {/* Body */}
         <div className="px-5 pb-5 space-y-4">
+          {/* Quick column switcher */}
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5 -mx-1 px-1">
+            {COLUMNS.map(c => (
+              <button key={c.key}
+                onClick={() => { if (c.key !== task.status) { onMove(c.key); onClose(); } }}
+                className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[0.68rem] font-bold transition-all active:scale-95"
+                style={c.key === task.status
+                  ? { background: c.accent, color: "white", borderColor: c.accent }
+                  : { borderColor: "#E8E7E3", color: "#2D2926", opacity: 0.55 }}>
+                <div className="w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{ background: c.key === task.status ? "white" : c.accent }} />
+                {c.label}
+              </button>
+            ))}
+          </div>
+
           {/* Title */}
           <p className="text-[1.1rem] font-bold text-[#2D2926] leading-snug break-words">{task.title}</p>
 
@@ -687,6 +721,43 @@ function TaskDetailModal({ task, companies, onEdit, onClose }: {
   );
 }
 
+// ── Move-to Column Sheet ──────────────────────────────────────────────────────
+function MoveToSheet({ task, onMove, onClose }: {
+  task: Task; onMove: (s: ColKey) => void; onClose: () => void;
+}) {
+  return (
+    <div dir="rtl">
+      <div className="fixed inset-0 bg-black/40 z-[55]" onClick={onClose} />
+      <div className="fixed bottom-0 inset-x-0 z-[56] bg-white rounded-t-2xl shadow-2xl px-4 pt-3 pb-4"
+        style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+        <div className="w-10 h-1 bg-[#D1CFCA] rounded-full mx-auto mb-4" />
+        <p className="text-[0.72rem] font-bold text-[#2D2926]/40 tracking-wide uppercase mb-3">העבר משימה לעמודה</p>
+        <div className="space-y-2">
+          {COLUMNS.map(col => {
+            const isCurrent = task.status === col.key;
+            return (
+              <button key={col.key}
+                onClick={() => { if (!isCurrent) { onMove(col.key); } onClose(); }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all active:scale-[0.98]"
+                style={isCurrent
+                  ? { background: col.accent, borderColor: col.accent, color: "white" }
+                  : { borderColor: "#E8E7E3", color: "#2D2926" }}>
+                <div className="w-3 h-3 rounded-full shrink-0"
+                  style={{ background: isCurrent ? "rgba(255,255,255,0.7)" : col.accent }} />
+                <div className="text-start flex-1">
+                  <p className="text-sm font-bold leading-none">{col.label}</p>
+                  <p className="text-[0.65rem] mt-0.5 opacity-60">{col.sub}</p>
+                </div>
+                {isCurrent && <span className="text-[0.65rem] font-bold opacity-70">נוכחי</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function Cockpit() {
   const [authed,   setAuthed]   = useState(false);
@@ -716,10 +787,12 @@ export default function Cockpit() {
   const [dragError,     setDragError]     = useState<string | null>(null);
   const [editingTask,   setEditingTask]   = useState<Task | null>(null);
   const [viewingTask,   setViewingTask]   = useState<Task | null>(null);
+  const [movingTask,    setMovingTask]    = useState<Task | null>(null);
   const [mobileCol,     setMobileCol]     = useState<ColKey>("backlog");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognizerRef  = useRef<any>(null);
   const mobileListRef  = useRef<HTMLDivElement>(null);
+  const swipeRef       = useRef<{ x: number; y: number } | null>(null);
 
   // Touch drag refs (avoid stale closures via refs, not state)
   const touchGhostRef    = useRef<HTMLDivElement | null>(null);
@@ -901,6 +974,26 @@ export default function Cockpit() {
     setTasks(prev => prev.filter(t => t.id !== id));
     await fetch(`/api/holding/tasks/${id}`, { method: "DELETE" });
   }, []);
+
+  const moveTask = useCallback(async (taskId: string, newStatus: ColKey) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || task.status === newStatus) return;
+    const prev = task.status;
+    setTasks(ts => ts.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+    try {
+      const res = await fetch(`/api/holding/tasks/${taskId}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) {
+        setTasks(ts => ts.map(t => t.id === taskId ? { ...t, status: prev } : t));
+        showToast("שגיאה בהעברת משימה");
+      }
+    } catch {
+      setTasks(ts => ts.map(t => t.id === taskId ? { ...t, status: prev } : t));
+      showToast("שגיאת רשת");
+    }
+  }, [tasks, showToast]);
 
   const saveEdit = useCallback(async (
     id: string, title: string, notes: string, companyId: string, assignedTo: string, attachmentUrl: string, newStatus: ColKey, dueDate: string,
@@ -1207,7 +1300,18 @@ export default function Cockpit() {
             const col      = COLUMNS.find(c => c.key === mobileCol)!;
             const colItems = colTasks(mobileCol);
             return (
-              <div className="md:hidden flex-1 min-h-0 flex flex-col" key={mobileCol}>
+              <div className="md:hidden flex-1 min-h-0 flex flex-col" key={mobileCol}
+                onTouchStart={e => { swipeRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
+                onTouchEnd={e => {
+                  if (!swipeRef.current) return;
+                  const dx = e.changedTouches[0].clientX - swipeRef.current.x;
+                  const dy = e.changedTouches[0].clientY - swipeRef.current.y;
+                  swipeRef.current = null;
+                  if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+                  const idx = COLUMNS.findIndex(c => c.key === mobileCol);
+                  if (dx < 0 && idx < COLUMNS.length - 1) setMobileCol(COLUMNS[idx + 1].key);
+                  if (dx > 0 && idx > 0) setMobileCol(COLUMNS[idx - 1].key);
+                }}>
                 {/* Thin accent bar — shows active column */}
                 <div className="h-[3px] shrink-0" style={{ background: col.accent }} />
                 <div ref={mobileListRef} className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 space-y-2.5 pb-48">
@@ -1230,6 +1334,7 @@ export default function Cockpit() {
                       onDelete={() => deleteTask(task.id)}
                       onEdit={() => setEditingTask(task)}
                       onView={() => setViewingTask(task)}
+                      onLongPress={() => setMovingTask(task)}
                       companies={companies} />
                   ))}
                 </div>
@@ -1381,7 +1486,17 @@ export default function Cockpit() {
           task={viewingTask}
           companies={companies}
           onEdit={() => { setEditingTask(viewingTask); setViewingTask(null); }}
+          onMove={s => { moveTask(viewingTask.id, s); }}
           onClose={() => setViewingTask(null)}
+        />
+      )}
+
+      {/* Long-press move sheet */}
+      {movingTask && (
+        <MoveToSheet
+          task={movingTask}
+          onMove={s => moveTask(movingTask.id, s)}
+          onClose={() => setMovingTask(null)}
         />
       )}
 
