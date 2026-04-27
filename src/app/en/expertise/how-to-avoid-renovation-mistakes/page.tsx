@@ -34,7 +34,6 @@ export const metadata: Metadata = {
 
 const ArticleDetailPage = loadDynamic(
   () => import("../../../components/ArticleDetailPage"),
-  { ssr: false }
 );
 
 export default function EnAvoidRenovationMistakesPage() {

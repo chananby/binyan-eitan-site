@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 
 export default function RootPage({
   searchParams,
@@ -11,5 +12,13 @@ export default function RootPage({
     else if (value !== undefined) qs.set(key, value);
   }
   const query = qs.toString();
-  redirect(`/he${query ? `?${query}` : ''}`);
+
+  // Detect browser language from Accept-Language header.
+  // Primary language tag (before comma or semicolon) determines the redirect.
+  // Hebrew (he*) → /he; everything else → /en (handles en-US, en-GB, fr, ru, etc.)
+  const acceptLang = headers().get('accept-language') ?? '';
+  const primary = acceptLang.split(',')[0].split(';')[0].trim().toLowerCase();
+  const lang = primary.startsWith('he') ? 'he' : 'en';
+
+  redirect(`/${lang}${query ? `?${query}` : ''}`);
 }

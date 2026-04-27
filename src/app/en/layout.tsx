@@ -34,8 +34,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://binyaneitan.com/en",
     languages: {
-      "en-US": "https://binyaneitan.com/en",
-      "he-IL": "https://binyaneitan.com/he",
+      "en-US":    "https://binyaneitan.com/en",
+      "he-IL":    "https://binyaneitan.com/he",
+      "x-default": "https://binyaneitan.com/en",
     },
   },
 };

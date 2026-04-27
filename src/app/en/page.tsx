@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
+import EnHomeClient from "../components/ClientLayouts/EnHomeClient";
 
 export const metadata: Metadata = {
   title: { absolute: "Binyan Eitan | Engineering & Luxury Construction in Jerusalem" },
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     url: "https://binyaneitan.com/en",
     siteName: "Binyan Eitan",
     type: "website",
-    locale: "en_IL",
+    locale: "en_US",
     images: [
       {
         url: "https://binyaneitan.com/amshinov-1.jpg",
@@ -66,7 +66,6 @@ const enLocalBusiness = {
   "sameAs": ["https://share.google/mYYDjEprxPi7JdoSG", "https://www.facebook.com/binyaneitan"],
 };
 
-const EnHomeClient = dynamic(() => import("../components/ClientLayouts/EnHomeClient"), { ssr: false });
 
 export default function MaintenanceEnglish() {
   return (

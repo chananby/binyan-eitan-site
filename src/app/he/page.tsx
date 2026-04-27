@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
+
 
 export const metadata: Metadata = {
   title: { absolute: "בניין איתן | הנדסה וביצוע פרויקטים מורכבים בירושלים" },
@@ -78,7 +78,7 @@ const heLocalBusiness = {
   "sameAs": ["https://share.google/mYYDjEprxPi7JdoSG", "https://www.facebook.com/binyaneitan"],
 };
 
-const HeHomeClient = dynamic(() => import("../components/ClientLayouts/HeHomeClient"), { ssr: false });
+import HeHomeClient from "../components/ClientLayouts/HeHomeClient";
 
 export default function MaintenanceHebrew() {
   return (

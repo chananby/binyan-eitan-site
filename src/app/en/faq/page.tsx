@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     description: "Answers to the most frequent questions about construction, G1 licensing, and remote project management.",
     url: "https://binyaneitan.com/en/faq",
     siteName: "Binyan Eitan",
-    locale: "en_IL",
+    locale: "en_US",
     type: "website",
     images: [{ url: "/luxury-interior-finish-transformation.jpg", width: 1600, height: 900, alt: "Binyan Eitan — Common Questions" }],
   },

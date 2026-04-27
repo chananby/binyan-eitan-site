@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     url: "https://binyaneitan.com/en/projects",
     siteName: "Binyan Eitan",
     images: [{ url: "https://binyaneitan.com/amshinov-1.jpg", width: 1200, height: 800, alt: "Binyan Eitan — Engineering Projects Portfolio" }],
-    locale: "en_IL",
+    locale: "en_US",
     type: "website",
   },
   alternates: {

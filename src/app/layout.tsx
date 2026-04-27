@@ -49,14 +49,28 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ConstructionBusiness",
-  "name": "בניין איתן - הנדסה וביצוע",
-  "description": "קבלן שיפוצים ובנייה בירושלים ובנימין — עבודה עברית מקצועית. שיפוץ דירות, בנייה ושיפוצים, הנדסת קונסטרוקציה וגמר פרימיום. קבלן רשום ג1 מס׳ 41805.",
+  "@id": "https://binyaneitan.com/#business",
+  "name": "Binyan Eitan",
+  "alternateName": "בניין איתן",
+  "description": "G1-licensed construction contractor specializing in luxury renovation, structural engineering, and complex project management in Jerusalem. Serving international clients building in Israel from abroad.",
   "url": "https://binyaneitan.com",
-  "telephone": "02-500-0447",
+  "email": "office@binyaneitan.com",
+  "telephone": "+972-2-500-0447",
+  "founder": {
+    "@type": "Person",
+    "name": "Moti Eitan",
+    "alternateName": "מוטי איתן",
+    "jobTitle": "G1 Registered Contractor & Founder"
+  },
+  "hasCredential": {
+    "@type": "EducationalOccupationalCredential",
+    "credentialCategory": "G1 Contractor License #41805",
+    "recognizedBy": { "@type": "Organization", "name": "Contractors Registrar — Ministry of Construction & Housing, Israel" }
+  },
   "contactPoint": [
     {
       "@type": "ContactPoint",
-      "telephone": "058-500-8447",
+      "telephone": "+972-58-500-8447",
       "contactType": "sales and management",
       "availableLanguage": ["Hebrew", "English"]
     },
@@ -77,7 +91,10 @@ const jsonLd = {
     "latitude": "31.7683",
     "longitude": "35.2137"
   },
-  "areaServed": ["ירושלים", "בנימין", "מבשרת ציון", "גוש עציון", "בית שמש", "מרכז הארץ"],
+  "areaServed": [
+    "Jerusalem", "Benjamin", "Mevasseret Zion", "Gush Etzion", "Beit Shemesh", "Central Israel",
+    "ירושלים", "בנימין", "מבשרת ציון", "גוש עציון", "בית שמש"
+  ],
   "sameAs": [
     "https://share.google/mYYDjEprxPi7JdoSG",
     "https://www.linkedin.com/company/binyan-eitan",
@@ -86,43 +103,43 @@ const jsonLd = {
   ],
   "hasOfferCatalog": {
     "@type": "OfferCatalog",
-    "name": "שירותי בנייה ושיפוצים",
+    "name": "Construction & Renovation Services",
     "itemListElement": [
       {
         "@type": "Offer",
         "itemOffered": {
           "@type": "Service",
-          "name": "קבלן שיפוצים בירושלים",
-          "description": "שיפוץ דירות ובתים בירושלים ובנימין — עבודה עברית מקצועית"
+          "name": "Luxury Construction & Renovations Jerusalem",
+          "description": "Full-scope luxury renovation and construction in Jerusalem — from structural engineering to premium finishes"
         }
       },
       {
         "@type": "Offer",
         "itemOffered": {
           "@type": "Service",
-          "name": "בנייה ושיפוצים",
-          "description": "קבלן בנייה: שלד, תשתיות, גמר ופיקוח"
+          "name": "Remote Project Management for Overseas Clients",
+          "description": "Transparent, tech-enabled project management for diaspora clients building in Israel from the US, UK, and Europe"
         }
       },
       {
         "@type": "Offer",
         "itemOffered": {
           "@type": "Service",
-          "name": "הנדסת קונסטרוקציה ושלד"
+          "name": "Structural Engineering & Civil Works"
         }
       },
       {
         "@type": "Offer",
         "itemOffered": {
           "@type": "Service",
-          "name": "בניית וילות פרימיום בירושלים"
+          "name": "Luxury Villas & Private Homes, Jerusalem"
         }
       },
       {
         "@type": "Offer",
         "itemOffered": {
           "@type": "Service",
-          "name": "שיפוץ יוקרה ירושלים"
+          "name": "Premium Finish — Tiling, Waterproofing, Painting"
         }
       }
     ]

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     url: "https://binyaneitan.com/en/about",
     siteName: "Binyan Eitan",
     images: [{ url: "/luxury-interior-finish-transformation.jpg", width: 1600, height: 900, alt: "Binyan Eitan — The Firm" }],
-    locale: "en_IL",
+    locale: "en_US",
     type: "website",
   },
   twitter: {
