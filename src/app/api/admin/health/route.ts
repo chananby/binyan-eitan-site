@@ -119,6 +119,8 @@ export async function GET(req: NextRequest) {
     checkColumn(supabase, "tasks",         "delay_reason"),
 
     // daily_reports columns
+    checkColumn(supabase, "daily_reports", "date"),
+    checkColumn(supabase, "daily_reports", "created_at"),
     checkColumn(supabase, "daily_reports", "status"),
     checkColumn(supabase, "daily_reports", "subcontractor_count"),
 
