@@ -1420,6 +1420,61 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
 
   // ── History screen ────────────────────────────────────────────────────────
   if (step === "history") {
+    // Parse "DD.MM.YYYY, HH:MM" or "DD.MM.YYYY HH:MM" → Date
+    function parseLabel(label: string | null | undefined): Date | null {
+      if (!label) return null;
+      const parts = label.replace(",", "").trim().split(/\s+/);
+      if (parts.length < 2) return null;
+      const [datePart, timePart] = parts;
+      const [d, m, y] = datePart.split(".");
+      const [h, min]  = timePart.split(":");
+      if (!d || !m || !y || !h || !min) return null;
+      const dt = new Date(`${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}T${h.padStart(2,"0")}:${min.padStart(2,"0")}:00+03:00`);
+      return isNaN(dt.getTime()) ? null : dt;
+    }
+    function labelTime(label: string | null | undefined): string {
+      const dt = parseLabel(label);
+      if (!dt) return "";
+      return dt.toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit", hour12: false });
+    }
+    function labelDateKey(label: string | null | undefined, fallback: string): string {
+      const dt = parseLabel(label) ?? new Date(fallback);
+      return dt.toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", year: "numeric" });
+    }
+
+    // Group records by day, compute hours per day
+    type DayRow = { date: string; project: string; entry: string; exit: string; hours: number | null };
+    const dayRows: DayRow[] = (() => {
+      const sorted = [...historyRecords].sort((a, b) => {
+        const ta = parseLabel(a.timestamp_label)?.getTime() ?? new Date(a.created_at).getTime();
+        const tb = parseLabel(b.timestamp_label)?.getTime() ?? new Date(b.created_at).getTime();
+        return ta - tb;
+      });
+      const byDate = new Map<string, { entries: typeof sorted; exits: typeof sorted; project: string }>();
+      for (const r of sorted) {
+        const key = labelDateKey(r.timestamp_label, r.created_at);
+        if (!byDate.has(key)) byDate.set(key, { entries: [], exits: [], project: r.project?.name ?? "—" });
+        const day = byDate.get(key)!;
+        if (r.action === "כניסה" || r.action === "in") day.entries.push(r);
+        else day.exits.push(r);
+        if (r.project?.name) day.project = r.project.name;
+      }
+      return [...byDate.entries()].map(([date, day]) => {
+        const first = day.entries[0] ?? null;
+        const last  = day.exits[day.exits.length - 1] ?? null;
+        let hours: number | null = null;
+        if (first && last) {
+          const et = parseLabel(first.timestamp_label) ?? new Date(first.created_at);
+          const xt = parseLabel(last.timestamp_label)  ?? new Date(last.created_at);
+          const diff = xt.getTime() - et.getTime();
+          if (diff > 0) hours = Math.round(diff / 36_000) / 100;
+        }
+        return { date, project: day.project, entry: labelTime(first?.timestamp_label), exit: labelTime(last?.timestamp_label), hours };
+      }).reverse();
+    })();
+
+    const totalHours = dayRows.reduce((s, r) => s + (r.hours ?? 0), 0);
+
     return (
       <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
         <div className="w-full text-center space-y-1">
@@ -1434,24 +1489,37 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
             </div>
           ) : historyError ? (
             <p className="text-center font-body text-sm text-red-400 py-4">{historyError}</p>
-          ) : historyRecords.length === 0 ? (
+          ) : dayRows.length === 0 ? (
             <p className="text-center font-body text-sm text-charcoal/40 py-4">{t.noHistory}</p>
           ) : (
-            <div className="divide-y divide-charcoal/8 max-h-[50vh] overflow-y-auto">
-              {historyRecords.map(r => {
-                const isIn = r.action === "כניסה" || r.action === "in";
-                const display = r.timestamp_label ?? new Date(r.created_at).toLocaleString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-                return (
-                  <div key={r.id} className="flex items-center gap-3 py-3 px-1">
-                    <span className={`shrink-0 w-2 h-2 rounded-full ${isIn ? "bg-green-500" : "bg-red-400"}`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-body text-sm font-semibold text-charcoal">{isIn ? t.clockIn : t.clockOut}</p>
-                      {r.project && <p className="font-body text-[0.65rem] text-charcoal/40 truncate">{r.project.name}</p>}
+            <div className="w-full space-y-1">
+              {/* Header */}
+              <div className="grid grid-cols-4 gap-1 px-2 py-1.5 text-[0.58rem] font-semibold text-charcoal/40 uppercase tracking-wide border-b border-charcoal/8">
+                <span>תאריך</span>
+                <span className="text-center">כניסה</span>
+                <span className="text-center">יציאה</span>
+                <span className="text-end">שעות</span>
+              </div>
+              <div className="divide-y divide-charcoal/8 max-h-[48vh] overflow-y-auto">
+                {dayRows.map((row, i) => (
+                  <div key={i} className="grid grid-cols-4 gap-1 px-2 py-3 items-center">
+                    <div>
+                      <p className="font-body text-xs text-charcoal/70 tabular-nums" dir="ltr">{row.date}</p>
+                      {row.project !== "—" && <p className="font-body text-[0.58rem] text-charcoal/35 truncate">{row.project}</p>}
                     </div>
-                    <p className="font-body text-xs text-charcoal/40 tabular-nums shrink-0" dir="ltr">{display}</p>
+                    <span className="font-body text-xs font-semibold text-green-700 text-center tabular-nums">{row.entry || "—"}</span>
+                    <span className="font-body text-xs font-semibold text-red-500 text-center tabular-nums">{row.exit || "—"}</span>
+                    <span className="font-body text-sm font-bold text-charcoal text-end tabular-nums">
+                      {row.hours !== null ? row.hours.toFixed(1) : "—"}
+                    </span>
                   </div>
-                );
-              })}
+                ))}
+              </div>
+              {/* Total */}
+              <div className="flex items-center justify-between bg-charcoal px-3 py-2.5 mt-1">
+                <span className="font-body text-xs font-semibold text-white/60">סה&quot;כ</span>
+                <span className="font-heading text-base font-bold text-accent tabular-nums">{totalHours.toFixed(1)} שעות</span>
+              </div>
             </div>
           )}
         </div>
