@@ -16,7 +16,12 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
+import {
+  isAuthedFromRequest,
+  getAdminRoleFromRequest,
+  getForemanStaffIdFromRequest,
+} from "../../../../../lib/admin-auth";
+import { createServerClient } from "../../../../../lib/supabase";
 
 export const runtime = "nodejs";
 
@@ -89,7 +94,7 @@ function shiftYMD(ymd: string, days: number): string {
 
 export async function GET(req: NextRequest) {
   try {
-    if (!isAdminAuthedFromRequest(req)) {
+    if (!isAuthedFromRequest(req)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -108,14 +113,34 @@ export async function GET(req: NextRequest) {
     }
     const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
+    // Foreman: restrict to their assigned projects
+    const isAdmin = getAdminRoleFromRequest(req) === "admin";
+    let allowedProjectIds: string[] | null = null;
+    if (!isAdmin) {
+      const staffId = getForemanStaffIdFromRequest(req);
+      if (!staffId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const supabaseServer = createServerClient();
+      const { data: fp } = await supabaseServer
+        .from("projects")
+        .select("id")
+        .eq("foreman_id", staffId);
+      allowedProjectIds = (fp ?? []).map((p: { id: string }) => p.id);
+      if (allowedProjectIds.length === 0)
+        return NextResponse.json({ rows: [], summary: [], from, to });
+    }
+
     // Widen DB query by ±3 days to catch retroactively-entered records
-    // (where created_at is outside the range but the actual work date is inside).
-    const { data, error } = await supabase
+    let query = supabase
       .from("attendance")
       .select("id, action, timestamp_label, created_at, staff:staff_id(id, name, phone), project:project_id(name)")
       .gte("created_at", dayStartISO(shiftYMD(from, -3)))
-      .lte("created_at", dayEndISO(shiftYMD(to, +3)))
-      .order("created_at", { ascending: true });
+      .lte("created_at", dayEndISO(shiftYMD(to, +3)));
+
+    if (allowedProjectIds !== null) {
+      query = query.in("project_id", allowedProjectIds);
+    }
+
+    const { data, error } = await query.order("created_at", { ascending: true });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

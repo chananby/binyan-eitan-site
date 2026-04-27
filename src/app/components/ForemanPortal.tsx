@@ -6,13 +6,13 @@ import {
   ChevronRight, RefreshCw, Loader2, AlertCircle,
   LogOut, CheckCircle2, Clock, Flame, ChevronDown,
   Check, Package, Wrench, AlertTriangle, Flag,
-  CloudRain, X, ArrowLeftRight, Target,
+  CloudRain, X, ArrowLeftRight, Target, Timer,
 } from "lucide-react";
 import { useFeedback } from "../hooks/useFeedback";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type View      = "loading" | "no_projects" | "select" | "dashboard";
-type Tab       = "overview" | "site" | "log" | "expense" | "plan";
+type Tab       = "overview" | "site" | "log" | "expense" | "plan" | "hours";
 type LogStatus = "normal" | "delay" | "problem";
 type DelayReason = "workers" | "material" | "weather" | "subcontractor";
 
@@ -143,6 +143,13 @@ export default function ForemanPortal({
   const [expSaving, setExpSaving] = useState(false);
   const [expMsg,    setExpMsg]    = useState("");
 
+  // Hours report
+  const [hoursRows,    setHoursRows]    = useState<{ staff_name: string; date: string; entry: string; exit: string; hours: number | null; project: string }[]>([]);
+  const [hoursSummary, setHoursSummary] = useState<{ name: string; days: number; hours: number }[]>([]);
+  const [hoursLoading, setHoursLoading] = useState(false);
+  const [hoursLoaded,  setHoursLoaded]  = useState(false);
+  const [expandedWorker, setExpandedWorker] = useState<string | null>(null);
+
   // Plan — add task form
   const [newTaskDate,  setNewTaskDate]  = useState(today);
   const [newTaskMs,    setNewTaskMs]    = useState("");
@@ -242,6 +249,21 @@ export default function ForemanPortal({
 
   function selectProject(p: Project) {
     setProject(p); setView("dashboard"); loadDashboard(p.id);
+  }
+
+  async function loadHours() {
+    if (hoursLoading) return;
+    setHoursLoading(true);
+    try {
+      const from = new Date(Date.now() - 27 * 86_400_000).toISOString().slice(0, 10);
+      const to   = today;
+      const res  = await fetch(`/api/admin/attendance/report?from=${from}&to=${to}`);
+      if (!res.ok) return;
+      const d = await res.json();
+      setHoursRows(d.rows ?? []);
+      setHoursSummary(d.summary ?? []);
+      setHoursLoaded(true);
+    } finally { setHoursLoading(false); }
   }
 
   // ── Task helpers ───────────────────────────────────────────────────────────
@@ -937,6 +959,108 @@ export default function ForemanPortal({
           </div>
         )}
 
+        {/* ── HOURS ─────────────────────────────────────────────────── */}
+        {tab === "hours" && (
+          <div className="p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="font-heading text-base font-bold text-charcoal">שעות עבודה — 28 ימים אחרונים</p>
+              <button onClick={loadHours} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent">
+                <RefreshCw size={12} strokeWidth={1.5} className={hoursLoading ? "animate-spin" : ""} /> רענן
+              </button>
+            </div>
+
+            {!hoursLoaded && !hoursLoading && (
+              <button onClick={loadHours}
+                className="w-full bg-charcoal text-white py-4 text-sm font-semibold flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                <Timer size={16} strokeWidth={1.5} /> טען שעות עבודה
+              </button>
+            )}
+
+            {hoursLoading && (
+              <div className="flex justify-center py-10">
+                <Loader2 size={28} strokeWidth={1.5} className="text-accent animate-spin" />
+              </div>
+            )}
+
+            {hoursLoaded && hoursSummary.length === 0 && (
+              <div className="bg-white border border-warm-gray-light p-8 text-center">
+                <Clock size={32} strokeWidth={1} className="text-charcoal/15 mx-auto mb-2" />
+                <p className="text-sm text-charcoal/30">אין נתוני נוכחות ל-28 ימים אחרונים</p>
+              </div>
+            )}
+
+            {hoursLoaded && hoursSummary.length > 0 && (
+              <div className="space-y-2">
+                {hoursSummary.map(worker => {
+                  const isOpen = expandedWorker === worker.name;
+                  const workerRows = hoursRows.filter(r => r.staff_name === worker.name);
+                  return (
+                    <div key={worker.name} className="bg-white border border-warm-gray-light overflow-hidden">
+                      {/* Worker summary row */}
+                      <button
+                        onClick={() => setExpandedWorker(isOpen ? null : worker.name)}
+                        className="w-full flex items-center justify-between px-4 py-4 text-start"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                            <span className="text-xs font-bold text-accent">{worker.name.charAt(0)}</span>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-charcoal text-sm">{worker.name}</p>
+                            <p className="text-[0.62rem] text-charcoal/40">{worker.days} ימי עבודה</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-end">
+                            <p className="font-heading text-lg font-bold text-accent tabular-nums">{worker.hours.toFixed(1)}</p>
+                            <p className="text-[0.58rem] text-charcoal/35">שעות</p>
+                          </div>
+                          {isOpen
+                            ? <ChevronDown size={14} strokeWidth={2} className="text-charcoal/30" />
+                            : <ChevronRight size={14} strokeWidth={2} className="text-charcoal/20" />}
+                        </div>
+                      </button>
+
+                      {/* Daily rows */}
+                      {isOpen && (
+                        <div className="border-t border-charcoal/5">
+                          {/* Header */}
+                          <div className="grid grid-cols-4 gap-2 px-4 py-2 bg-bone/60 text-[0.58rem] font-semibold text-charcoal/40 uppercase tracking-wide">
+                            <span>תאריך</span>
+                            <span className="text-center">כניסה</span>
+                            <span className="text-center">יציאה</span>
+                            <span className="text-end">שעות</span>
+                          </div>
+                          <div className="divide-y divide-charcoal/5">
+                            {workerRows.map((row, i) => (
+                              <div key={i} className="grid grid-cols-4 gap-2 px-4 py-2.5 items-center">
+                                <span className="text-xs text-charcoal/60 tabular-nums">{row.date}</span>
+                                <span className="text-xs font-semibold text-green-700 text-center tabular-nums">{row.entry || "—"}</span>
+                                <span className="text-xs font-semibold text-red-600 text-center tabular-nums">{row.exit || "—"}</span>
+                                <span className="text-xs font-bold text-charcoal text-end tabular-nums">
+                                  {row.hours !== null ? row.hours.toFixed(1) : "—"}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Grand total */}
+                <div className="bg-charcoal text-white px-4 py-3 flex items-center justify-between">
+                  <span className="text-sm font-semibold">סה&quot;כ תקופה</span>
+                  <span className="font-heading text-xl font-bold text-accent tabular-nums">
+                    {hoursSummary.reduce((s, w) => s + w.hours, 0).toFixed(1)} שעות
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
       </main>
 
       {/* ── Move-task bottom sheet ─────────────────────────────────────── */}
@@ -978,8 +1102,9 @@ export default function ForemanPortal({
           { key: "log"      as Tab, icon: <ClipboardList size={20} strokeWidth={1.8} />, label: "יומן",  dot: hasLogToday },
           { key: "expense"  as Tab, icon: <PlusCircle size={20} strokeWidth={1.8} />,    label: "הוצאה", dot: false },
           { key: "plan"     as Tab, icon: <Calendar size={20} strokeWidth={1.8} />,      label: "תכנון", dot: redAlerts.length > 0 },
+          { key: "hours"    as Tab, icon: <Timer    size={20} strokeWidth={1.8} />,      label: "שעות",  dot: false },
         ] as { key: Tab; icon: React.ReactNode; label: string; dot: boolean }[]).map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
+          <button key={t.key} onClick={() => { setTab(t.key); if (t.key === "hours" && !hoursLoaded) loadHours(); }}
             className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 relative transition-colors active:scale-95 ${
               tab === t.key ? "text-accent" : "text-charcoal/30"
             }`}>
