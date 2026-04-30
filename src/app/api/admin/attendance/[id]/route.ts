@@ -11,18 +11,24 @@ export async function PATCH(
 ) {
   if (!isAdminAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: { action?: string; project_id?: string | null; timestamp_label?: string };
+  let body: { action?: string; project_id?: string | null; timestamp_label?: string; status?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
   const update: Record<string, unknown> = {};
   if (body.action !== undefined) {
-    if (!["כניסה", "יציאה"].includes(body.action)) {
+    if (!["כניסה", "יציאה", "in", "out"].includes(body.action)) {
       return NextResponse.json({ error: "פעולה לא תקינה" }, { status: 400 });
     }
     update.action = body.action;
   }
   if (body.project_id !== undefined) update.project_id = body.project_id || null;
   if (body.timestamp_label !== undefined) update.timestamp_label = body.timestamp_label?.trim() || null;
+  if (body.status !== undefined) {
+    if (!["approved", "rejected", "pending"].includes(body.status)) {
+      return NextResponse.json({ error: "סטטוס לא תקין" }, { status: 400 });
+    }
+    update.status = body.status;
+  }
 
   if (!Object.keys(update).length) return NextResponse.json({ error: "אין שדות לעדכון" }, { status: 400 });
 

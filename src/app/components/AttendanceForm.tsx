@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type Step      = "phone" | "locating" | "project" | "ready" | "submitting" | "success" | "error" | "history";
+type Step      = "phone" | "locating" | "project" | "ready" | "submitting" | "success" | "error" | "history" | "manual" | "manualSuccess";
 type AdminView = "none" | "password" | "dashboard";
 type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "reports";
 
@@ -23,6 +23,7 @@ interface StaffMember {
 }
 interface AttendanceRecord {
   id: string; action: string; timestamp_label: string; recorded_at: string;
+  is_manual?: boolean; status?: string;
   staff: { id: string; name: string; phone: string; role?: string } | null;
   project: { id: string; name: string } | null;
 }
@@ -74,6 +75,7 @@ const T: Record<Lang, {
   tryAgain: string; notFound: string; unknownError: string;
   home: string; footer: string;
   myHistory: string; historyTitle: string; noHistory: string; loadingHistory: string; backToForm: string;
+  manualBtn: string; manualTitle: string; manualSentTitle: string; manualSentBody: string; pendingBadge: string;
 }> = {
   he: {
     clockTitle: "שעון נוכחות",
@@ -110,6 +112,11 @@ const T: Record<Lang, {
     noHistory: "לא נמצאו רשומות נוכחות",
     loadingHistory: "טוען היסטוריה...",
     backToForm: "חזור לדיווח",
+    manualBtn: "דיווח חסר",
+    manualTitle: "הוספת דיווח ידני",
+    manualSentTitle: "הדיווח נשלח ✓",
+    manualSentBody: "המנהל יאשר את הדיווח בקרוב",
+    pendingBadge: "ממתין לאישור",
   },
   ru: {
     clockTitle: "Отметка о явке",
@@ -146,6 +153,11 @@ const T: Record<Lang, {
     noHistory: "Записи не найдены",
     loadingHistory: "Загрузка...",
     backToForm: "Вернуться к отметке",
+    manualBtn: "Пропущенная отметка",
+    manualTitle: "Добавить отметку вручную",
+    manualSentTitle: "Отметка отправлена ✓",
+    manualSentBody: "Менеджер скоро подтвердит её",
+    pendingBadge: "Ожидает подтверждения",
   },
 };
 
@@ -170,10 +182,18 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   const feedback = useFeedback();
 
   // ── Worker history state ──────────────────────────────────────────────────
-  const [historyRecords, setHistoryRecords] = useState<Array<{ id: string; action: string; timestamp_label: string | null; created_at: string; project: { id: string; name: string } | null }>>([]);
+  const [historyRecords, setHistoryRecords] = useState<Array<{ id: string; action: string; timestamp_label: string | null; created_at: string; is_manual?: boolean; status?: string; project: { id: string; name: string } | null }>>([]);
   const [historyName, setHistoryName]       = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError]     = useState<string | null>(null);
+
+  // ── Manual entry state (worker) ───────────────────────────────────────────
+  const [manualAction, setManualAction]   = useState<"in" | "out">("in");
+  const [manualDate, setManualDate]       = useState("");
+  const [manualTime, setManualTime]       = useState("");
+  const [manualProject, setManualProject] = useState("");
+  const [manualLoading, setManualLoading] = useState(false);
+  const [manualError, setManualError]     = useState<string | null>(null);
 
   // ── Project selection (worker flow) ─────────────────────────────────────
   const [projects, setProjects]                   = useState<Project[]>([]);
@@ -262,6 +282,10 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   const [editAttLoading, setEditAttLoading]   = useState(false);
   const [editAttMsg, setEditAttMsg]           = useState("");
 
+  // Admin — pending manual approvals
+  const [pendingLogs, setPendingLogs]         = useState<AttendanceRecord[]>([]);
+  const [approveLoading, setApproveLoading]   = useState<string | null>(null);
+
   // ── UI language (worker-facing only) ─────────────────────────────────────
   const [lang, setLang] = useState<Lang>(() => {
     if (typeof window === "undefined") return "he";
@@ -330,7 +354,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
 
   // ── Load worker-flow projects ─────────────────────────────────────────────
   useEffect(() => {
-    if (step !== "project") return;
+    if (step !== "project" && step !== "manual") return;
     setProjectsLoading(true);
     fetch("/api/projects").then(r => r.json()).then(d => setProjects(d.projects ?? [])).catch(() => {}).finally(() => setProjectsLoading(false));
   }, [step]);
@@ -356,12 +380,14 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         fetch("/api/admin/attendance/today"),
         fetch("/api/admin/projects"),
         fetch("/api/admin/tasks"),
+        fetch("/api/admin/attendance/pending"),
       ]);
-      const [staffR, logsR, projR, tasksR] = results;
-      if (staffR.status  === "fulfilled" && staffR.value.ok)  { const d = await staffR.value.json();  setStaff(d.staff ?? []); }
-      if (logsR.status   === "fulfilled" && logsR.value.ok)   { const d = await logsR.value.json();   setTodayLogs(d.records ?? []); }
-      if (projR.status   === "fulfilled" && projR.value.ok)   { const d = await projR.value.json();   setAdminProjects(d.projects ?? []); }
-      if (tasksR.status  === "fulfilled" && tasksR.value.ok)  { const d = await tasksR.value.json();  setTasks(d.tasks ?? []); }
+      const [staffR, logsR, projR, tasksR, pendingR] = results;
+      if (staffR.status   === "fulfilled" && staffR.value.ok)   { const d = await staffR.value.json();   setStaff(d.staff ?? []); }
+      if (logsR.status    === "fulfilled" && logsR.value.ok)    { const d = await logsR.value.json();    setTodayLogs(d.records ?? []); }
+      if (projR.status    === "fulfilled" && projR.value.ok)    { const d = await projR.value.json();    setAdminProjects(d.projects ?? []); }
+      if (tasksR.status   === "fulfilled" && tasksR.value.ok)   { const d = await tasksR.value.json();   setTasks(d.tasks ?? []); }
+      if (pendingR.status === "fulfilled" && pendingR.value.ok) { const d = await pendingR.value.json(); setPendingLogs(d.records ?? []); }
     } finally { setDataLoading(false); }
   }
 
@@ -390,7 +416,19 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
 
   function handleAdminLogout() {
     sessionStorage.removeItem("be_admin"); setAdminView("none");
-    setStaff([]); setTodayLogs([]); setAdminProjects([]); setTasks([]); setReports([]); setMaterials([]);
+    setStaff([]); setTodayLogs([]); setPendingLogs([]); setAdminProjects([]); setTasks([]); setReports([]); setMaterials([]);
+  }
+
+  async function handleApproveAtt(id: string, approve: boolean) {
+    setApproveLoading(id);
+    try {
+      await fetch(`/api/admin/attendance/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: approve ? "approved" : "rejected" }),
+      });
+      loadAdminData();
+    } finally { setApproveLoading(null); }
   }
 
   // ── Worker CRUD ───────────────────────────────────────────────────────────
@@ -603,6 +641,27 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     finally { setHistoryLoading(false); }
   }, [phone, lang]);
 
+  const submitManual = useCallback(async () => {
+    if (!manualDate || !manualTime) { setManualError("יש למלא תאריך ושעה"); return; }
+    setManualLoading(true); setManualError(null);
+    try {
+      const res = await fetch("/api/worker/manual-entry", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone:      phone.trim(),
+          action:     manualAction,
+          date:       manualDate,
+          time:       manualTime,
+          ...(manualProject && { project_id: manualProject }),
+        }),
+      });
+      const data = await res.json();
+      if (data.success) { setStep("manualSuccess"); }
+      else { setManualError(data.error ?? "שגיאה לא ידועה"); }
+    } catch { setManualError("שגיאת רשת — נסה שוב"); }
+    finally { setManualLoading(false); }
+  }, [phone, manualAction, manualDate, manualTime, manualProject]);
+
   // ── Admin: password screen ────────────────────────────────────────────────
   if (adminView === "password") {
     return (
@@ -798,6 +857,43 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
           {/* ── Tab: Attendance ─────────────────────────────────────────── */}
           {adminTab === "attendance" && (
             <div className="space-y-5">
+
+              {/* Pending manual approvals */}
+              {pendingLogs.length > 0 && (
+                <Card>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-400 text-white text-[0.6rem] font-bold shrink-0">{pendingLogs.length}</span>
+                    <h2 className="font-heading text-base font-bold text-amber-700">דיווחים ממתינים לאישור</h2>
+                  </div>
+                  <div className="divide-y divide-amber-100">
+                    {pendingLogs.map(r => (
+                      <div key={r.id} className="py-2.5 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-sm truncate">{r.staff?.name ?? "—"}</span>
+                          <span className={`text-xs font-semibold shrink-0 ${r.action === "in" ? "text-green-600" : "text-red-400"}`}>
+                            {r.action === "in" ? "כניסה" : "יציאה"}
+                          </span>
+                          <span className="text-[0.7rem] text-charcoal/40 tabular-nums shrink-0" dir="ltr">{r.timestamp_label ?? "—"}</span>
+                          {r.project && <span className="text-[0.65rem] text-charcoal/35">{r.project.name}</span>}
+                        </div>
+                        <div className="flex gap-2">
+                          <button disabled={approveLoading === r.id}
+                            onClick={() => handleApproveAtt(r.id, true)}
+                            className="flex-1 bg-green-600 text-white text-xs font-semibold py-1.5 hover:bg-green-700 disabled:opacity-40 transition-colors">
+                            {approveLoading === r.id ? "…" : "✓ אשר"}
+                          </button>
+                          <button disabled={approveLoading === r.id}
+                            onClick={() => handleApproveAtt(r.id, false)}
+                            className="flex-1 border border-red-300 text-red-500 text-xs font-semibold py-1.5 hover:bg-red-50 disabled:opacity-40 transition-colors">
+                            ✕ דחה
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
+
               <Card>
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="font-heading text-base font-bold">יומן היום</h2>
@@ -1442,10 +1538,12 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       return dt.toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", year: "numeric" });
     }
 
-    // Group records by day, compute hours per day
+    const pendingEntries = historyRecords.filter(r => r.status === "pending");
+
+    // Group records by day, compute hours per day (exclude pending)
     type DayRow = { date: string; project: string; entry: string; exit: string; hours: number | null };
     const dayRows: DayRow[] = (() => {
-      const sorted = [...historyRecords].sort((a, b) => {
+      const sorted = [...historyRecords].filter(r => r.status !== "pending").sort((a, b) => {
         const ta = parseLabel(a.timestamp_label)?.getTime() ?? new Date(a.created_at).getTime();
         const tb = parseLabel(b.timestamp_label)?.getTime() ?? new Date(b.created_at).getTime();
         return ta - tb;
@@ -1523,8 +1621,112 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
             </div>
           )}
         </div>
+        {/* Pending manual entries */}
+        {pendingEntries.length > 0 && (
+          <div className="w-full space-y-1">
+            <p className="font-body text-[0.6rem] font-bold tracking-[0.2em] uppercase text-amber-500 px-1">{t.pendingBadge}</p>
+            <div className="border border-amber-200 bg-amber-50 divide-y divide-amber-100">
+              {pendingEntries.map(r => (
+                <div key={r.id} className="flex items-center justify-between px-3 py-2 gap-3">
+                  <span className={`text-xs font-semibold ${r.action === "in" ? "text-green-700" : "text-red-500"}`}>
+                    {r.action === "in" ? "כניסה" : "יציאה"}
+                  </span>
+                  <span className="font-body text-xs text-charcoal/60 tabular-nums flex-1" dir="ltr">{r.timestamp_label ?? "—"}</span>
+                  <span className="font-body text-[0.6rem] text-amber-600 bg-amber-100 px-1.5 py-0.5">{t.pendingBadge}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={() => { setManualDate(new Date().toISOString().slice(0, 10)); setManualTime(""); setManualProject(""); setManualError(null); setStep("manual"); }}
+          className="w-full border border-accent/40 py-3 font-body text-sm font-semibold tracking-wider text-accent hover:bg-accent/5 transition-colors duration-200">
+          + {t.manualBtn}
+        </button>
         <button onClick={reset}
           className="w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
+          {t.backToForm}
+        </button>
+      </Screen>
+    );
+  }
+
+  if (step === "manual") {
+    const todayIso = new Date().toISOString().slice(0, 10);
+    return (
+      <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
+        <div className="text-center space-y-1">
+          <p className="font-heading text-xl font-bold text-charcoal">{t.manualTitle}</p>
+          <p className="font-body text-xs text-charcoal/40">הדיווח ישלח לאישור המנהל</p>
+        </div>
+
+        {/* כניסה / יציאה toggle */}
+        <div className="w-full grid grid-cols-2 gap-3">
+          <button onClick={() => setManualAction("in")}
+            className={`py-4 font-body text-sm font-semibold tracking-wider border transition-all duration-150 ${manualAction === "in" ? "bg-charcoal text-bone border-charcoal" : "border-charcoal/20 text-charcoal/50 hover:border-accent"}`}>
+            {t.clockIn}
+          </button>
+          <button onClick={() => setManualAction("out")}
+            className={`py-4 font-body text-sm font-semibold tracking-wider border transition-all duration-150 ${manualAction === "out" ? "bg-charcoal text-bone border-charcoal" : "border-charcoal/20 text-charcoal/50 hover:border-accent"}`}>
+            {t.clockOut}
+          </button>
+        </div>
+
+        {/* Date + Time */}
+        <div className="w-full grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <p className="font-body text-[0.65rem] text-charcoal/50 font-semibold tracking-wide uppercase">תאריך</p>
+            <input type="date" value={manualDate} max={todayIso} onChange={e => setManualDate(e.target.value)}
+              className="w-full border border-charcoal/20 bg-white px-3 py-3 font-body text-sm text-charcoal focus:border-accent focus:outline-none transition-colors" dir="ltr" />
+          </div>
+          <div className="space-y-1">
+            <p className="font-body text-[0.65rem] text-charcoal/50 font-semibold tracking-wide uppercase">שעה</p>
+            <input type="time" value={manualTime} onChange={e => setManualTime(e.target.value)}
+              className="w-full border border-charcoal/20 bg-white px-3 py-3 font-body text-sm text-charcoal focus:border-accent focus:outline-none transition-colors" dir="ltr" />
+          </div>
+        </div>
+
+        {/* Project (optional) */}
+        {projects.length > 0 && (
+          <div className="w-full space-y-1">
+            <p className="font-body text-[0.65rem] text-charcoal/50 font-semibold tracking-wide uppercase">אתר (אופציונלי)</p>
+            <select value={manualProject} onChange={e => setManualProject(e.target.value)}
+              className="w-full border border-charcoal/20 bg-white px-3 py-3 font-body text-sm text-charcoal focus:border-accent focus:outline-none transition-colors">
+              <option value="">— ללא אתר —</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+        )}
+
+        {manualError && <p className="font-body text-sm text-red-500 text-center">{manualError}</p>}
+
+        <button onClick={submitManual} disabled={manualLoading}
+          className="w-full bg-accent py-4 font-body text-sm font-semibold tracking-wider uppercase text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors duration-200">
+          {manualLoading ? "שולח…" : "שלח לאישור"}
+        </button>
+        <button onClick={() => setStep("history")}
+          className="w-full border border-charcoal/20 py-3 font-body text-sm text-charcoal/40 hover:text-accent hover:border-accent transition-colors duration-200">
+          חזור להיסטוריה
+        </button>
+      </Screen>
+    );
+  }
+
+  if (step === "manualSuccess") {
+    return (
+      <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
+        <CheckCircle size={64} strokeWidth={1} className="text-amber-400" />
+        <div className="text-center space-y-2">
+          <p className="font-heading text-2xl font-bold text-charcoal">{t.manualSentTitle}</p>
+          <p className="font-body text-sm text-charcoal/50">{t.manualSentBody}</p>
+        </div>
+        <button onClick={fetchHistory}
+          className="w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
+          {t.myHistory}
+        </button>
+        <button onClick={reset}
+          className="font-body text-xs text-charcoal/30 hover:text-accent transition-colors">
           {t.backToForm}
         </button>
       </Screen>

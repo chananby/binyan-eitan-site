@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   const { data: records, error } = await supabase
     .from("attendance")
-    .select("id, action, timestamp_label, created_at, project:project_id(id, name)")
+    .select("id, action, timestamp_label, created_at, is_manual, status, project:project_id(id, name)")
     .eq("staff_id", worker.id)
     .order("created_at", { ascending: false })
     .limit(50);
