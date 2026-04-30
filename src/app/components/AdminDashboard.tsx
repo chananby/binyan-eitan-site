@@ -124,22 +124,31 @@ export default function AdminDashboard({
 
   // ── Fetch helpers ──
   const refreshStaff = useCallback(async () => {
-    const res = await fetch("/api/admin/staff");
-    if (res.status === 401) { router.replace("/admin/login"); return; }
-    const data = await res.json();
-    if (data.error) { setStaffError(data.error); return; }
-    setStaff(data.staff);
-    setStaffError(null);
+    try {
+      const res = await fetch("/api/admin/staff");
+      if (res.status === 401) { router.replace("/admin/login"); return; }
+      const data = await res.json();
+      if (data.error) { setStaffError(data.error); return; }
+      setStaff(data.staff ?? []);
+      setStaffError(null);
+    } catch {
+      setStaffError("שגיאת רשת — נסה לרענן");
+    }
   }, [router]);
 
   const refreshAttendance = useCallback(async () => {
     setAttendanceLoading(true);
-    const res = await fetch("/api/admin/attendance/today");
-    const data = await res.json();
-    setAttendanceLoading(false);
-    if (data.error) { setAttendanceError(data.error); return; }
-    setAttendance(data.records);
-    setAttendanceError(null);
+    try {
+      const res = await fetch("/api/admin/attendance/today");
+      const data = await res.json();
+      if (data.error) { setAttendanceError(data.error); return; }
+      setAttendance(data.records ?? []);
+      setAttendanceError(null);
+    } catch {
+      setAttendanceError("שגיאת רשת — נסה לרענן");
+    } finally {
+      setAttendanceLoading(false);
+    }
   }, []);
 
   // ── Add worker ──
