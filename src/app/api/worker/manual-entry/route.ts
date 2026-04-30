@@ -62,6 +62,8 @@ export async function POST(req: NextRequest) {
     timestamp_label,
     is_manual:       true,
     status:          "pending",
+    lat:             null,
+    lng:             null,
   };
   if (project_id) payload.project_id = project_id;
 

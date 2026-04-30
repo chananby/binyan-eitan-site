@@ -1587,7 +1587,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
             </div>
           ) : historyError ? (
             <p className="text-center font-body text-sm text-red-400 py-4">{historyError}</p>
-          ) : dayRows.length === 0 ? (
+          ) : dayRows.length === 0 && pendingEntries.length === 0 ? (
             <p className="text-center font-body text-sm text-charcoal/40 py-4">{t.noHistory}</p>
           ) : (
             <div className="w-full space-y-1">
