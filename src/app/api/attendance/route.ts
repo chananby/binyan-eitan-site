@@ -1,33 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../lib/supabase";
+import { normalizePhone, phoneVariants } from "../../../lib/phone";
 
 export const runtime = "nodejs";
-
-// Normalize phone to standard Israeli 10-digit format (leading 0).
-// "058-500-8447"   → "0585008447"
-// "+972585008447"  → "0585008447"  (strip 972 country prefix)
-// "972585008447"   → "0585008447"
-function normalizePhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "");
-  // Convert international format: 972XXXXXXXXX → 0XXXXXXXXX
-  if (digits.startsWith("972") && digits.length >= 12) {
-    return "0" + digits.slice(3);
-  }
-  return digits.slice(-10);
-}
-
-// Return all plausible formats a phone might be stored as in the DB.
-// Covers: with leading 0, without leading 0, with 972 prefix.
-function phoneVariants(normalized: string): string[] {
-  const v = new Set<string>();
-  v.add(normalized);                              // "0501234567"
-  if (normalized.startsWith("0")) {
-    v.add(normalized.slice(1));                   // "501234567"
-    v.add("972" + normalized.slice(1));           // "972501234567"
-    v.add("+972" + normalized.slice(1));          // "+972501234567"
-  }
-  return [...v];
-}
 
 // Log the full Supabase error — code + message + details + hint all matter.
 function logSupabaseError(context: string, err: { code?: string; message?: string; details?: string; hint?: string } | null) {

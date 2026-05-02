@@ -6,12 +6,9 @@ import {
   getAdminRoleFromRequest,
   getForemanStaffIdFromRequest,
 } from "../../../../lib/admin-auth";
+import { normalizePhone } from "../../../../lib/phone";
 
 export const runtime = "nodejs";
-
-function normalizePhone(raw: string): string {
-  return raw.replace(/\D/g, "").slice(-10);
-}
 
 // GET — list staff
 // Admin: all staff

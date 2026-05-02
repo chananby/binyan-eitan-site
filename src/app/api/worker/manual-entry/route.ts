@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
 import { verifyInternalToken } from "../../../../lib/admin-auth";
+import { normalizePhone, phoneVariants } from "../../../../lib/phone";
 
 export const runtime = "nodejs";
 
 const INTERNAL_COOKIE = "be_internal_token";
-
-function normalizePhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "");
-  if (digits.startsWith("972")) return "0" + digits.slice(3);
-  if (digits.startsWith("0"))   return digits;
-  return "0" + digits;
-}
 
 // POST { phone, action, date, time, project_id? }
 // Creates a manual attendance record with status="pending" for admin approval.
@@ -41,12 +35,7 @@ export async function POST(req: NextRequest) {
 
   const supabase = createServerClient();
   const normalized = normalizePhone(phone.trim());
-  const variants = [
-    normalized,
-    normalized.slice(1),
-    "972" + normalized.slice(1),
-    "+972" + normalized.slice(1),
-  ];
+  const variants   = phoneVariants(normalized);
 
   const { data: staffRows } = await supabase
     .from("staff")

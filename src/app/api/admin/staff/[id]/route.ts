@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
+import { normalizePhone } from "../../../../../lib/phone";
 
 export const runtime = "nodejs";
-
-function normalizePhone(raw: string): string {
-  return raw.replace(/\D/g, "").slice(-10);
-}
 
 // PATCH — toggle active OR full edit (name, phone, role, national_id)
 export async function PATCH(
