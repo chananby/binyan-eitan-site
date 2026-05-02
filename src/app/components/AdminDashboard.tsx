@@ -24,7 +24,7 @@ interface AttendanceRecord {
   id: string;
   action: "in" | "out";
   timestamp_label?: string | null;
-  recorded_at: string;
+  created_at: string;
   staff: { id: string; name: string; phone: string } | null;
 }
 
@@ -498,7 +498,7 @@ export default function AdminDashboard({
                         <ActionBadge action={rec.action} />
                       </td>
                       <td className="py-3.5 text-charcoal/50 tabular-nums text-xs" dir="ltr">
-                        {formatTime(rec.recorded_at, rec.timestamp_label)}
+                        {formatTime(rec.created_at, rec.timestamp_label)}
                       </td>
                     </tr>
                   ))}
