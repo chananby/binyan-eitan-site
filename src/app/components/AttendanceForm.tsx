@@ -23,7 +23,7 @@ interface StaffMember {
   national_id?: string | null; hourly_rate?: number | null; daily_rate?: number | null;
 }
 interface AttendanceRecord {
-  id: string; action: string; timestamp_label: string; recorded_at: string;
+  id: string; action: string; timestamp_label: string; created_at: string;
   is_manual?: boolean; status?: string;
   staff: { id: string; name: string; phone: string; role?: string } | null;
   project: { id: string; name: string } | null;
@@ -316,7 +316,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       if (worker.daily_rate) {
         labor += worker.daily_rate;
       } else if (worker.hourly_rate) {
-        const hrs = (now - new Date(record.recorded_at).getTime()) / 3_600_000;
+        const hrs = (now - new Date(record.created_at).getTime()) / 3_600_000;
         labor += Math.max(0, hrs) * worker.hourly_rate;
       }
     }
@@ -764,7 +764,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
                     {onSite.map(({ record, worker }) => {
                       const t = record.timestamp_label
                         ? record.timestamp_label.split(" ")[1]
-                        : new Date(record.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+                        : new Date(record.created_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
                       return (
                         <div key={record.id} className="flex items-center justify-between py-2.5 gap-3">
                           <div className="flex-1 min-w-0">
@@ -942,7 +942,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
                             {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
                           </span>
                           <span className="text-[0.7rem] text-charcoal/35 tabular-nums shrink-0" dir="ltr">
-                            {r.timestamp_label || new Date(r.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
+                            {r.timestamp_label || new Date(r.created_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
                           </span>
                           <button onClick={() => startEditAtt(r)} title="ערוך רשומה"
                             className="text-charcoal/30 hover:text-accent transition-colors shrink-0 p-0.5">
