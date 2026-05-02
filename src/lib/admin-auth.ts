@@ -1,21 +1,59 @@
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { createHmac } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 
 const ADMIN_COOKIE   = "be_admin_token";
 const FOREMAN_COOKIE = "be_foreman_token";
 
 export type AdminRole = "admin" | "foreman" | null;
 
+// ── Shared HMAC helpers ───────────────────────────────────────────────────────
+
+function hmacHex(secret: string, data: string): string {
+  return createHmac("sha256", secret).update(data).digest("hex");
+}
+
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  try {
+    return timingSafeEqual(Buffer.from(a, "hex"), Buffer.from(b, "hex"));
+  } catch {
+    return false;
+  }
+}
+
+// ── Signed token: "{iat}:{hmac}" ─────────────────────────────────────────────
+
+function signToken(secret: string): string {
+  const iat = Math.floor(Date.now() / 1000);
+  return `${iat}:${hmacHex(secret, String(iat))}`;
+}
+
+function verifyToken(token: string, secret: string, maxAgeSec: number): boolean {
+  const colonIdx = token.indexOf(":");
+  if (colonIdx < 0) return false;
+  const iat = parseInt(token.slice(0, colonIdx), 10);
+  const provided = token.slice(colonIdx + 1);
+  if (isNaN(iat)) return false;
+  const now = Math.floor(Date.now() / 1000);
+  if (now - iat > maxAgeSec || now < iat) return false;
+  const expected = hmacHex(secret, String(iat));
+  return safeEqual(provided, expected);
+}
+
 // ── Admin token helpers ───────────────────────────────────────────────────────
-function adminToken(): string | null {
-  const pw = process.env.ADMIN_PASSWORD;
-  return pw ? Buffer.from(pw).toString("base64") : null;
+
+const ADMIN_MAX_AGE = 60 * 60 * 8; // 8 h
+
+function getAdminSecret(): string | null {
+  return process.env.ADMIN_PASSWORD ?? null;
 }
 
 // ── Foreman token helpers (HMAC-signed staffId) ───────────────────────────────
+
 function foremanSig(staffId: string): string {
-  const secret = process.env.ADMIN_PASSWORD ?? "be_internal_secret";
+  const secret = process.env.ADMIN_PASSWORD;
+  if (!secret) throw new Error("ADMIN_PASSWORD env var is required");
   return createHmac("sha256", secret).update(staffId).digest("hex").slice(0, 32);
 }
 
@@ -37,10 +75,13 @@ export function verifyForemanToken(cookieValue: string): string | null {
 }
 
 // ── Role detection ────────────────────────────────────────────────────────────
+
 export function getAdminRoleFromRequest(req: NextRequest): "admin" | null {
-  const at = req.cookies.get(ADMIN_COOKIE)?.value;
-  const ae = adminToken();
-  return (ae && at === ae) ? "admin" : null;
+  const secret = getAdminSecret();
+  if (!secret) return null;
+  const token = req.cookies.get(ADMIN_COOKIE)?.value;
+  if (!token) return null;
+  return verifyToken(token, secret, ADMIN_MAX_AGE) ? "admin" : null;
 }
 
 export function getForemanStaffIdFromRequest(req: NextRequest): string | null {
@@ -67,9 +108,11 @@ export function isAdminAuthedFromRequest(req: NextRequest): boolean {
 
 // ── Server-component helper ────────────────────────────────────────────────────
 export function isAdminAuthed(): boolean {
-  const token    = cookies().get(ADMIN_COOKIE)?.value;
-  const expected = adminToken();
-  return !!expected && !!token && token === expected;
+  const secret = getAdminSecret();
+  if (!secret) return false;
+  const token = cookies().get(ADMIN_COOKIE)?.value;
+  if (!token) return false;
+  return verifyToken(token, secret, ADMIN_MAX_AGE);
 }
 
 // ── Cookie builders ────────────────────────────────────────────────────────────
@@ -77,12 +120,13 @@ const COOKIE_OPTS = {
   httpOnly: true,
   secure:   process.env.NODE_ENV === "production",
   sameSite: "strict" as const,
-  maxAge:   60 * 60 * 8,
+  maxAge:   ADMIN_MAX_AGE,
   path:     "/",
 };
 
 export function buildAuthCookie() {
-  return { name: ADMIN_COOKIE, value: adminToken() ?? "", options: COOKIE_OPTS };
+  const secret = getAdminSecret() ?? "";
+  return { name: ADMIN_COOKIE, value: secret ? signToken(secret) : "", options: COOKIE_OPTS };
 }
 
 export function buildClearCookie() {
@@ -95,4 +139,25 @@ export function buildForemanAuthCookie(staffId: string) {
 
 export function buildForemanClearCookie() {
   return { name: FOREMAN_COOKIE, value: "", options: { httpOnly: true, path: "/", maxAge: 0 } };
+}
+
+// ── Internal (worker) token helpers ──────────────────────────────────────────
+
+const INTERNAL_COOKIE   = "be_internal_token";
+const INTERNAL_MAX_AGE  = 60 * 60 * 12; // 12 h
+
+export function buildInternalCookie(): { name: string; value: string; options: typeof COOKIE_OPTS } {
+  const secret = process.env.INTERNAL_STAFF_PIN;
+  if (!secret) throw new Error("INTERNAL_STAFF_PIN env var is required");
+  return {
+    name:    INTERNAL_COOKIE,
+    value:   signToken(secret),
+    options: { ...COOKIE_OPTS, maxAge: INTERNAL_MAX_AGE },
+  };
+}
+
+export function verifyInternalToken(token: string): boolean {
+  const secret = process.env.INTERNAL_STAFF_PIN;
+  if (!secret) return false;
+  return verifyToken(token, secret, INTERNAL_MAX_AGE);
 }

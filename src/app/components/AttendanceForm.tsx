@@ -10,6 +10,7 @@ import {
   ChevronRight, RefreshCw, UserPlus, Lock, Building2,
   ClipboardList, Package, BarChart2, LayoutDashboard, Hammer, Pencil,
 } from "lucide-react";
+import { labelWithDayHe } from "../../lib/date-utils";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Step      = "phone" | "locating" | "project" | "ready" | "submitting" | "success" | "error" | "history" | "manual" | "manualSuccess";
@@ -873,7 +874,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
                           <span className={`text-xs font-semibold shrink-0 ${r.action === "in" ? "text-green-600" : "text-red-400"}`}>
                             {r.action === "in" ? "כניסה" : "יציאה"}
                           </span>
-                          <span className="text-[0.7rem] text-charcoal/40 tabular-nums shrink-0" dir="ltr">{r.timestamp_label ?? "—"}</span>
+                          <span className="text-[0.7rem] text-charcoal/40 tabular-nums shrink-0" dir="rtl">{labelWithDayHe(r.timestamp_label) ?? "—"}</span>
                           {r.project && <span className="text-[0.65rem] text-charcoal/35">{r.project.name}</span>}
                         </div>
                         <div className="flex gap-2">
@@ -1540,8 +1541,13 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
 
     const pendingEntries = historyRecords.filter(r => r.status === "pending");
 
+    const HE_DAYS_LOCAL = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"] as const;
+    function dayNameFromDt(dt: Date | null): string {
+      return dt ? `יום ${HE_DAYS_LOCAL[dt.getDay()]}` : "";
+    }
+
     // Group records by day, compute hours per day (exclude pending)
-    type DayRow = { date: string; project: string; entry: string; exit: string; hours: number | null };
+    type DayRow = { date: string; dayName: string; project: string; entry: string; exit: string; hours: number | null };
     const dayRows: DayRow[] = (() => {
       const sorted = [...historyRecords].filter(r => r.status !== "pending").sort((a, b) => {
         const ta = parseLabel(a.timestamp_label)?.getTime() ?? new Date(a.created_at).getTime();
@@ -1567,7 +1573,8 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
           const diff = xt.getTime() - et.getTime();
           if (diff > 0) hours = Math.round(diff / 36_000) / 100;
         }
-        return { date, project: day.project, entry: labelTime(first?.timestamp_label), exit: labelTime(last?.timestamp_label), hours };
+        const dayDt = parseLabel(first?.timestamp_label) ?? parseLabel(last?.timestamp_label);
+        return { date, dayName: dayNameFromDt(dayDt), project: day.project, entry: labelTime(first?.timestamp_label), exit: labelTime(last?.timestamp_label), hours };
       }).reverse();
     })();
 
@@ -1602,6 +1609,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
                 {dayRows.map((row, i) => (
                   <div key={i} className="grid grid-cols-4 gap-1 px-2 py-3 items-center">
                     <div>
+                      {row.dayName && <p className="font-body text-[0.58rem] font-semibold text-accent/70">{row.dayName}</p>}
                       <p className="font-body text-xs text-charcoal/70 tabular-nums" dir="ltr">{row.date}</p>
                       {row.project !== "—" && <p className="font-body text-[0.58rem] text-charcoal/35 truncate">{row.project}</p>}
                     </div>
@@ -1631,7 +1639,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
                   <span className={`text-xs font-semibold ${r.action === "in" ? "text-green-700" : "text-red-500"}`}>
                     {r.action === "in" ? "כניסה" : "יציאה"}
                   </span>
-                  <span className="font-body text-xs text-charcoal/60 tabular-nums flex-1" dir="ltr">{r.timestamp_label ?? "—"}</span>
+                  <span className="font-body text-xs text-charcoal/60 flex-1" dir="rtl">{labelWithDayHe(r.timestamp_label) ?? "—"}</span>
                   <span className="font-body text-[0.6rem] text-amber-600 bg-amber-100 px-1.5 py-0.5">{t.pendingBadge}</span>
                 </div>
               ))}

@@ -8,6 +8,7 @@ import {
   ToggleLeft, ToggleRight, Trash2, ChevronDown, ChevronUp,
   Loader2, CheckCircle, AlertCircle, UserPlus,
 } from "lucide-react";
+import { todayWithDayHe } from "../../lib/date-utils";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -43,7 +44,7 @@ function formatTime(iso: string, label?: string | null): string {
 }
 
 function todayLabel(): string {
-  return new Date().toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" });
+  return todayWithDayHe();
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────────

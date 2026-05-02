@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
+import { verifyInternalToken } from "../../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 
@@ -15,7 +16,8 @@ function normalizePhone(raw: string): string {
 // POST { phone, action, date, time, project_id? }
 // Creates a manual attendance record with status="pending" for admin approval.
 export async function POST(req: NextRequest) {
-  if (req.cookies.get(INTERNAL_COOKIE)?.value !== "1")
+  const token = req.cookies.get(INTERNAL_COOKIE)?.value ?? "";
+  if (!verifyInternalToken(token))
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
   let body: { phone?: string; action?: string; date?: string; time?: string; project_id?: string };

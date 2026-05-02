@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
+import { verifyInternalToken } from "../../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 
@@ -15,7 +16,8 @@ function normalizePhone(raw: string): string {
 // POST { phone } → returns that worker's own attendance history
 // Requires the internal staff PIN cookie (set by /api/internal-auth)
 export async function POST(req: NextRequest) {
-  if (req.cookies.get(INTERNAL_COOKIE)?.value !== "1")
+  const token = req.cookies.get(INTERNAL_COOKIE)?.value ?? "";
+  if (!verifyInternalToken(token))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let body: { phone?: string };
