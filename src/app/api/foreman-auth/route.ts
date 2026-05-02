@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../lib/supabase";
 import { buildForemanAuthCookie, buildForemanClearCookie } from "../../../lib/admin-auth";
+import { checkRateLimit, clientIp } from "../../../lib/rate-limit";
 
 export const runtime = "nodejs";
 
 // POST — verify PIN against staff table, set foreman cookie
 export async function POST(req: NextRequest) {
+  const rl = checkRateLimit(`${clientIp(req)}:foreman-auth`);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { ok: false, error: "too_many_attempts" },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+    );
+  }
+
   let code: string;
   try { ({ code } = await req.json()); }
   catch { return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 }); }

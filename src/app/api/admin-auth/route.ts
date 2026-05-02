@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildAuthCookie, buildClearCookie } from "../../../lib/admin-auth";
+import { checkRateLimit, clientIp } from "../../../lib/rate-limit";
 
 export const runtime = "nodejs";
 
 // POST — verify password and set auth cookie
 export async function POST(req: NextRequest) {
+  const rl = checkRateLimit(`${clientIp(req)}:admin-auth`);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { ok: false, error: "too_many_attempts" },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+    );
+  }
+
   const adminPassword = process.env.ADMIN_PASSWORD;
   if (!adminPassword) {
     return NextResponse.json(
@@ -21,7 +30,6 @@ export async function POST(req: NextRequest) {
   }
 
   if (password !== adminPassword) {
-    // Constant-time-ish: don't short-circuit to avoid timing oracle
     return NextResponse.json({ ok: false, error: "wrong_password" }, { status: 401 });
   }
 
