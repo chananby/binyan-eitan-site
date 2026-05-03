@@ -16,22 +16,32 @@ export const externalLinks: ExternalLinkGroup[] = [
       {
         label: "Vercel",
         url: "https://vercel.com/dashboard",
-        description: "Deployments · env vars · domains",
+        description: "פריסות · משתני סביבה · דומיין",
       },
       {
         label: "GitHub",
         url: "https://github.com/chananby/binyan-eitan-site",
-        description: "Source code · branches · PRs",
+        description: "קוד מקור · ענפים · בקשות משיכה",
       },
       {
         label: "Sentry",
-        url: "https://sentry.io",
-        description: "Error monitoring · alerts",
+        url: "https://sentry.io/organizations/40fe707b9df3/projects/binyaneitan/",
+        description: "ניטור שגיאות · התראות",
+      },
+      {
+        label: "Anthropic Console",
+        url: "https://console.anthropic.com/",
+        description: "מפתחות API · שימוש · חיוב",
+      },
+      {
+        label: "Cowork",
+        url: "https://cowork.anthropic.com/",
+        description: "סביבת עבודה — Claude Code",
       },
     ],
   },
   {
-    category: "Analytics",
+    category: "אנליטיקה",
     items: [
       {
         label: "Google Analytics",
@@ -41,12 +51,12 @@ export const externalLinks: ExternalLinkGroup[] = [
       {
         label: "Microsoft Clarity",
         url: "https://clarity.microsoft.com/projects/view/w40c828o9d",
-        description: "Session recordings · heatmaps",
+        description: "הקלטות סשן · מפות חום — w40c828o9d",
       },
       {
         label: "Plausible",
         url: "https://plausible.io/binyaneitan.com",
-        description: "Privacy-first page analytics",
+        description: "אנליטיקת דפים עם שמירה על פרטיות",
       },
     ],
   },
@@ -55,18 +65,18 @@ export const externalLinks: ExternalLinkGroup[] = [
     items: [
       {
         label: "Resend",
-        url: "https://resend.com/emails",
-        description: "Transactional email — contact form",
+        url: "https://resend.com/overview",
+        description: "מיילים טרנזקציוניים — טופס צור קשר",
       },
       {
         label: "WhatsApp Business",
         url: "https://business.facebook.com",
-        description: "WhatsApp Business account",
+        description: "# TODO — replace with direct WA Business account URL",
       },
       {
         label: "Formspree",
         url: "https://formspree.io",
-        description: "Backup contact form fallback",
+        description: "טופס גיבוי — Formspree",
       },
     ],
   },
@@ -76,17 +86,17 @@ export const externalLinks: ExternalLinkGroup[] = [
       {
         label: "Supabase",
         url: "https://supabase.com/dashboard",
-        description: "Database · auth · RLS policies",
+        description: "מסד נתונים · אימות · מדיניות RLS",
       },
       {
         label: "Cloudinary",
         url: "https://cloudinary.com/console",
-        description: "Portfolio & gallery images",
+        description: "# TODO — replace with https://cloudinary.com/console/[cloud-name]",
       },
       {
         label: "Vercel Blob",
         url: "https://vercel.com/storage",
-        description: "File uploads · attachments",
+        description: "העלאת קבצים · קבצים מצורפים",
       },
     ],
   },

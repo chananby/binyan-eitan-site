@@ -20,7 +20,7 @@ function groupBy<T>(arr: T[], key: (t: T) => string): Record<string, T[]> {
   }, {});
 }
 
-// ── PIN Gate (dark theme) ─────────────────────────────────────────────────────
+// ── PIN Gate ──────────────────────────────────────────────────────────────────
 function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
   const [pin, setPin]         = useState("");
   const [error, setError]     = useState(false);
@@ -43,34 +43,34 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
   const KEYS = ["1","2","3","4","5","6","7","8","9","","0","⌫"];
 
   return (
-    <div className="min-h-screen bg-[#141210] flex flex-col items-center justify-center p-8">
+    <div className="min-h-screen bg-[#F5F4F0] flex flex-col items-center justify-center p-8">
       <Wrench size={22} strokeWidth={1.5} className="text-[#8D775F] mb-5" />
-      <p className="text-[#8D775F]/50 text-[0.55rem] font-bold tracking-[0.28em] uppercase mb-1">מרכז שליטה</p>
-      <h1 className="text-white/65 text-lg font-bold mb-8">כניסה פרטית</h1>
+      <p className="text-[#8D775F] text-[0.55rem] font-bold tracking-[0.28em] uppercase mb-1.5">מרכז שליטה</p>
+      <h1 className="text-[#2D2926] text-xl font-semibold mb-8">כניסה פרטית</h1>
 
-      <div className="flex gap-3 mb-5">
+      <div className="flex gap-3 mb-6">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className={`w-2 h-2 rounded-full border transition-all duration-200
-            ${i < pin.length ? "bg-[#8D775F] border-[#8D775F]" : "bg-transparent border-white/20"}`} />
+          <div key={i} className={`w-2.5 h-2.5 rounded-full border-2 transition-all duration-200
+            ${i < pin.length ? "bg-[#8D775F] border-[#8D775F]" : "bg-transparent border-[#2D2926]/20"}`} />
         ))}
       </div>
 
       {error && (
-        <div className="mb-4 flex items-center gap-1.5 text-red-400 text-xs">
-          <AlertCircle size={13} /> קוד שגוי, נסה שוב
+        <div className="mb-4 flex items-center gap-1.5 text-red-500 text-xs font-medium">
+          <AlertCircle size={13} /> קוד שגוי — נסה שוב
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-2 w-52" dir="ltr">
+      <div className="grid grid-cols-3 gap-2 w-56" dir="ltr">
         {KEYS.map((d, i) => (
           <button key={i}
             onClick={() => {
               if (d === "⌫") { setPin(p => p.slice(0, -1)); setError(false); }
               else if (d && pin.length < 6) { setPin(p => p + d); setError(false); }
             }}
-            className={`h-12 rounded border text-base font-bold transition-all active:scale-95
-              ${!d ? "pointer-events-none border-transparent"
-                   : "border-white/[0.08] bg-white/[0.04] text-white/60 hover:bg-white/[0.08] hover:border-white/20"}`}>
+            className={`h-12 rounded-lg text-base font-semibold transition-all active:scale-95
+              ${!d ? "pointer-events-none"
+                   : "bg-white border border-[#2D2926]/10 text-[#2D2926]/70 hover:border-[#8D775F]/50 hover:text-[#8D775F] shadow-sm"}`}>
             {d}
           </button>
         ))}
@@ -79,7 +79,8 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
       <button
         onClick={submit}
         disabled={pin.length < 3 || loading}
-        className="mt-5 w-52 h-11 bg-[#8D775F] text-white font-bold tracking-[0.1em] text-sm rounded disabled:opacity-25 hover:bg-[#7A6451] transition-colors">
+        className="mt-5 w-56 h-12 bg-[#8D775F] text-white font-semibold tracking-widest text-sm rounded-lg
+          disabled:opacity-30 hover:bg-[#7A6451] transition-colors shadow-sm">
         {loading ? <Loader2 size={15} className="animate-spin mx-auto" /> : "כניסה"}
       </button>
     </div>
@@ -88,16 +89,16 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
 
 // ── Method badge ──────────────────────────────────────────────────────────────
 const METHOD_COLORS: Record<string, string> = {
-  GET:    "bg-green-900/60 text-green-400",
-  POST:   "bg-blue-900/60 text-blue-400",
-  PUT:    "bg-orange-900/60 text-orange-400",
-  DELETE: "bg-red-900/60 text-red-400",
-  PATCH:  "bg-purple-900/60 text-purple-400",
+  GET:    "bg-green-50 text-green-700 border border-green-200",
+  POST:   "bg-blue-50 text-blue-700 border border-blue-200",
+  PUT:    "bg-orange-50 text-orange-700 border border-orange-200",
+  DELETE: "bg-red-50 text-red-700 border border-red-200",
+  PATCH:  "bg-purple-50 text-purple-700 border border-purple-200",
 };
 
 function MethodBadge({ method }: { method: string }) {
   return (
-    <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded ${METHOD_COLORS[method] ?? "bg-white/10 text-white/40"}`}>
+    <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded ${METHOD_COLORS[method] ?? "bg-[#2D2926]/5 text-[#2D2926]/40"}`}>
       {method}
     </span>
   );
@@ -107,11 +108,13 @@ function MethodBadge({ method }: { method: string }) {
 function UICard({ route }: { route: UIRoute }) {
   return (
     <Link href={route.url}
-      className="flex items-center gap-3 px-3.5 py-3 border border-white/[0.07] bg-white/[0.02]
-        hover:bg-white/[0.05] hover:border-white/15 transition-all group rounded-sm">
+      className="flex items-center gap-3 px-4 py-3.5 border border-[#E0DFD9] bg-white
+        hover:border-[#8D775F]/50 hover:shadow-sm transition-all group rounded-lg">
       <div className="flex-1 min-w-0">
-        <p className="text-[0.8rem] font-semibold text-white/75 group-hover:text-white/90 leading-snug truncate">{route.label}</p>
-        <p className="text-[0.6rem] text-white/25 mt-0.5 truncate font-mono">{route.url}</p>
+        <p className="text-[0.82rem] font-semibold text-[#2D2926] group-hover:text-[#8D775F] leading-snug truncate transition-colors">
+          {route.label}
+        </p>
+        <p className="text-[0.62rem] text-[#2D2926]/35 mt-0.5 truncate font-mono">{route.url}</p>
       </div>
     </Link>
   );
@@ -120,42 +123,41 @@ function UICard({ route }: { route: UIRoute }) {
 function ExtCard({ item }: { item: { label: string; url: string; description?: string } }) {
   return (
     <a href={item.url} target="_blank" rel="noopener noreferrer"
-      className="flex items-center gap-3 px-3.5 py-3 border border-white/[0.07] bg-white/[0.02]
-        hover:bg-white/[0.05] hover:border-white/15 transition-all group rounded-sm">
+      className="flex items-center gap-3 px-4 py-3.5 border border-[#E0DFD9] bg-white
+        hover:border-[#8D775F]/50 hover:shadow-sm transition-all group rounded-lg">
       <div className="flex-1 min-w-0">
-        <p className="text-[0.8rem] font-semibold text-white/75 group-hover:text-white/90 leading-snug">{item.label}</p>
-        {item.description && (
-          <p className="text-[0.6rem] text-white/25 mt-0.5 truncate">{item.description}</p>
+        <p className="text-[0.82rem] font-semibold text-[#2D2926] group-hover:text-[#8D775F] leading-snug transition-colors">
+          {item.label}
+        </p>
+        {item.description && !item.description.startsWith("# TODO") && (
+          <p className="text-[0.62rem] text-[#2D2926]/35 mt-0.5 truncate">{item.description}</p>
         )}
       </div>
-      <ExternalLink size={11} className="shrink-0 text-white/15 group-hover:text-white/40" />
+      <ExternalLink size={12} className="shrink-0 text-[#2D2926]/20 group-hover:text-[#8D775F]/60 transition-colors" />
     </a>
   );
 }
 
 function APICard({ route }: { route: APIRoute }) {
   return (
-    <a href={route.url} target="_blank" rel="noopener noreferrer"
-      className="flex items-center gap-3 px-3.5 py-2.5 border border-white/[0.05] bg-white/[0.015]
-        hover:bg-white/[0.04] hover:border-white/10 transition-all group rounded-sm">
+    <div className="flex items-center gap-3 px-4 py-3 border border-[#E0DFD9] bg-white rounded-lg">
       <div className="flex-1 min-w-0">
-        <p className="text-[0.72rem] font-mono text-white/45 group-hover:text-white/65 truncate">{route.url}</p>
-        <div className="flex items-center gap-1 mt-1 flex-wrap">
+        <p className="text-[0.72rem] font-mono text-[#2D2926]/60 truncate">{route.url}</p>
+        <div className="flex items-center gap-1 mt-1.5 flex-wrap">
           {route.methods.length > 0
             ? route.methods.map(m => <MethodBadge key={m} method={m} />)
-            : <span className="text-[0.55rem] text-white/15">method unknown</span>
+            : <span className="text-[0.55rem] text-[#2D2926]/25">שיטה לא ידועה</span>
           }
         </div>
       </div>
-      <ExternalLink size={10} className="shrink-0 text-white/10 group-hover:text-white/30" />
-    </a>
+    </div>
   );
 }
 
-// ── Section block ─────────────────────────────────────────────────────────────
+// ── Section / Category labels ─────────────────────────────────────────────────
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[0.55rem] font-bold tracking-[0.22em] uppercase text-white/20 mb-3">
+    <p className="text-[0.58rem] font-bold tracking-[0.22em] uppercase text-[#8D775F] mb-3">
       {children}
     </p>
   );
@@ -163,7 +165,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function CategoryLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[0.58rem] text-[#8D775F]/55 tracking-wider uppercase mb-1.5 px-0.5">
+    <p className="text-[0.6rem] font-semibold text-[#2D2926]/40 tracking-wider uppercase mb-2 px-0.5">
       {children}
     </p>
   );
@@ -173,9 +175,9 @@ function CategoryLabel({ children }: { children: React.ReactNode }) {
 function Toggle({ on, onToggle, label }: { on: boolean; onToggle: (v: boolean) => void; label: string }) {
   return (
     <button onClick={() => onToggle(!on)} className="flex items-center gap-2 group">
-      <span className="text-[0.6rem] text-white/30 select-none group-hover:text-white/50 transition-colors">{label}</span>
+      <span className="text-[0.62rem] text-[#2D2926]/40 select-none group-hover:text-[#2D2926]/60 transition-colors">{label}</span>
       <div dir="ltr"
-        className={`relative w-9 h-[18px] rounded-full transition-colors ${on ? "bg-[#8D775F]" : "bg-white/10"}`}>
+        className={`relative w-9 h-[18px] rounded-full transition-colors ${on ? "bg-[#8D775F]" : "bg-[#2D2926]/15"}`}>
         <div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-all duration-200 ${on ? "left-[18px]" : "left-0.5"}`} />
       </div>
     </button>
@@ -190,10 +192,10 @@ export interface HubClientProps {
 }
 
 export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubClientProps) {
-  const [author, setAuthor]   = useState<Author | null>(null);
+  const [author, setAuthor]     = useState<Author | null>(null);
   const [checking, setChecking] = useState(true);
-  const [query, setQuery]     = useState("");
-  const [showApi, setShowApi] = useState(false);
+  const [query, setQuery]       = useState("");
+  const [showApi, setShowApi]   = useState(false);
 
   // Check existing auth cookie
   useEffect(() => {
@@ -246,7 +248,7 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
   }, [apiRoutes, q]);
 
   // ── Auth gate ──────────────────────────────────────────────────────────────
-  if (checking) return <div className="min-h-screen bg-[#141210]" />;
+  if (checking) return <div className="min-h-screen bg-[#F5F4F0]" />;
   if (!author)  return <PinGate onAuth={setAuthor} />;
 
   const hasUiResults  = Object.keys(uiGroups).length > 0;
@@ -254,43 +256,43 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
   const hasApiResults = Object.keys(apiGroups).length > 0;
 
   return (
-    <div className="min-h-screen bg-[#141210] text-white" dir="rtl">
+    <div className="min-h-screen bg-[#F5F4F0] text-[#2D2926]" dir="rtl">
 
       {/* ── Sticky header ─────────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-20 bg-[#141210]/95 backdrop-blur-sm border-b border-white/[0.06] px-4 md:px-6 py-3.5">
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-[#E0DFD9] px-4 md:px-6 py-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-3">
-            <Wrench size={15} strokeWidth={1.5} className="text-[#8D775F] shrink-0" />
+          <div className="flex items-center gap-3 mb-3.5">
+            <Wrench size={16} strokeWidth={1.5} className="text-[#8D775F] shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-[0.5rem] font-bold tracking-[0.25em] uppercase text-white/20 leading-none">בניין איתן</p>
-              <h1 className="text-[0.88rem] font-bold text-white/85 leading-none mt-0.5">מרכז שליטה</h1>
+              <p className="text-[0.5rem] font-bold tracking-[0.25em] uppercase text-[#2D2926]/30 leading-none">בניין איתן</p>
+              <h1 className="text-[0.95rem] font-bold text-[#2D2926] leading-none mt-0.5">מרכז שליטה</h1>
             </div>
             <div className="flex items-center gap-4">
-              <Toggle on={showApi} onToggle={handleApiToggle} label="API" />
+              <Toggle on={showApi} onToggle={handleApiToggle} label="נקודות API" />
               <div className="flex items-center gap-1.5">
-                <span className="text-[0.58rem] text-white/20">{author === "Hanan" ? "חנן" : "מוטי"}</span>
-                <ShieldCheck size={11} strokeWidth={1.5} className="text-white/10" />
+                <span className="text-[0.62rem] text-[#2D2926]/40">{author === "Hanan" ? "חנן" : "מוטי"}</span>
+                <ShieldCheck size={12} strokeWidth={1.5} className="text-[#8D775F]/50" />
               </div>
             </div>
           </div>
 
           {/* Search */}
-          <div className="relative" dir="ltr">
-            <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25 pointer-events-none" />
+          <div className="relative">
+            <Search size={13} className="absolute end-3 top-1/2 -translate-y-1/2 text-[#2D2926]/30 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="חיפוש..."
               value={query}
               onChange={e => setQuery(e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-full pl-8 pr-7 py-1.5
-                text-[0.78rem] text-white/70 placeholder-white/20
-                focus:outline-none focus:border-[#8D775F]/50 transition-colors"
+              className="w-full bg-[#F5F4F0] border border-[#E0DFD9] rounded-full pe-9 ps-4 py-2
+                text-[0.82rem] text-[#2D2926] placeholder-[#2D2926]/30
+                focus:outline-none focus:border-[#8D775F]/60 transition-colors"
             />
             {query && (
               <button
                 onClick={() => setQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/50">
-                <X size={12} />
+                className="absolute start-3 top-1/2 -translate-y-1/2 text-[#2D2926]/30 hover:text-[#2D2926]/60">
+                <X size={13} />
               </button>
             )}
           </div>
@@ -298,25 +300,25 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
       </div>
 
       {/* ── Content ───────────────────────────────────────────────────────── */}
-      <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 space-y-8">
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 space-y-10">
 
         {/* UI Routes */}
         <section>
           <SectionLabel>כלים פנימיים {uiRoutes.length > 0 && `(${uiRoutes.length})`}</SectionLabel>
           {hasUiResults ? (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {Object.entries(uiGroups).map(([cat, routes]) => (
                 <div key={cat}>
                   <CategoryLabel>{cat}</CategoryLabel>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                     {routes.map(r => <UICard key={r.url} route={r} />)}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-white/20 text-sm py-3">
-              {q ? "אין תוצאות" : "לא נמצאו כלים (auto-discovery לא הצליח — ראה OPEN_QUESTIONS)"}
+            <p className="text-[#2D2926]/30 text-sm py-3">
+              {q ? "אין תוצאות" : "לא נמצאו כלים"}
             </p>
           )}
         </section>
@@ -325,46 +327,46 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
         <section>
           <SectionLabel>קישורים חיצוניים</SectionLabel>
           {hasExtResults ? (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {extGroups.map(g => (
                 <div key={g.category}>
                   <CategoryLabel>{g.category}</CategoryLabel>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                     {g.items.map(item => <ExtCard key={item.label} item={item} />)}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-white/20 text-sm py-3">אין תוצאות</p>
+            <p className="text-[#2D2926]/30 text-sm py-3">אין תוצאות</p>
           )}
         </section>
 
         {/* API Endpoints (toggle) */}
         {showApi && (
           <section>
-            <SectionLabel>API Endpoints {apiRoutes.length > 0 && `(${apiRoutes.length})`}</SectionLabel>
+            <SectionLabel>נקודות קצה API {apiRoutes.length > 0 && `(${apiRoutes.length})`}</SectionLabel>
             {hasApiResults ? (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {Object.entries(apiGroups).map(([cat, routes]) => (
                   <div key={cat}>
                     <CategoryLabel>{cat}</CategoryLabel>
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       {routes.map(r => <APICard key={r.url} route={r} />)}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-white/20 text-sm py-3">
-                {q ? "אין תוצאות" : "לא נמצאו API routes (auto-discovery לא הצליח)"}
+              <p className="text-[#2D2926]/30 text-sm py-3">
+                {q ? "אין תוצאות" : "לא נמצאו נקודות קצה"}
               </p>
             )}
           </section>
         )}
 
-        <p className="text-center text-[0.52rem] text-white/[0.08] pt-2 pb-4">
-          /admin/hub · {uiRoutes.length} כלים · {apiRoutes.length} endpoints
+        <p className="text-center text-[0.55rem] text-[#2D2926]/20 pt-2 pb-6">
+          /admin/hub · {uiRoutes.length} כלים · {apiRoutes.length} נקודות קצה
         </p>
       </div>
     </div>

@@ -74,10 +74,10 @@ function dirToLabel(name: string): string {
 // ── UI route discovery ────────────────────────────────────────────────────────
 
 const UI_ROOTS: { dir: string; category: string }[] = [
-  { dir: join(APP, "admin"),              category: "Admin" },
-  { dir: join(APP, "he", "internal"),     category: "Internal Portal" },
-  { dir: join(APP, "en", "internal"),     category: "Internal Portal" },
-  { dir: join(APP, "internal"),           category: "Internal Tools" },
+  { dir: join(APP, "admin"),              category: "ניהול" },
+  { dir: join(APP, "he", "internal"),     category: "פורטל פנימי" },
+  { dir: join(APP, "en", "internal"),     category: "פורטל פנימי" },
+  { dir: join(APP, "internal"),           category: "כלים פנימיים" },
 ];
 
 export function discoverUIRoutes(): UIRoute[] {
@@ -99,17 +99,17 @@ export function discoverUIRoutes(): UIRoute[] {
 // ── API route discovery ───────────────────────────────────────────────────────
 
 const API_ROOTS: { dir: string; category: string }[] = [
-  { dir: join(APP, "api", "admin"),        category: "Admin API" },
-  { dir: join(APP, "api", "executive"),    category: "Executive API" },
-  { dir: join(APP, "api", "holding"),      category: "Holding API" },
-  { dir: join(APP, "api", "worker"),       category: "Worker API" },
-  { dir: join(APP, "api", "foreman-auth"), category: "Worker API" },
-  { dir: join(APP, "api", "attendance"),   category: "Worker API" },
-  { dir: join(APP, "api", "internal-auth"),category: "Internal API" },
-  { dir: join(APP, "api", "admin-auth"),   category: "Internal API" },
-  { dir: join(APP, "api", "revalidate"),   category: "Utilities API" },
-  { dir: join(APP, "api", "seed"),         category: "Utilities API" },
-  { dir: join(APP, "api", "upload"),       category: "Utilities API" },
+  { dir: join(APP, "api", "admin"),        category: "ניהול API" },
+  { dir: join(APP, "api", "executive"),    category: "הנהלה API" },
+  { dir: join(APP, "api", "holding"),      category: "חברת האם API" },
+  { dir: join(APP, "api", "worker"),       category: "עובדים API" },
+  { dir: join(APP, "api", "foreman-auth"), category: "עובדים API" },
+  { dir: join(APP, "api", "attendance"),   category: "עובדים API" },
+  { dir: join(APP, "api", "internal-auth"),category: "פנימי API" },
+  { dir: join(APP, "api", "admin-auth"),   category: "פנימי API" },
+  { dir: join(APP, "api", "revalidate"),   category: "כלים API" },
+  { dir: join(APP, "api", "seed"),         category: "כלים API" },
+  { dir: join(APP, "api", "upload"),       category: "כלים API" },
 ];
 
 export function discoverAPIRoutes(): APIRoute[] {
