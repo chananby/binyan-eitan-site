@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "מאחורי הקירות: איכות הבנייה הנסתרת",
   description:
-    "למה התשתיות בבית הן החלק הכי חשוב בשיפוץ? המדריך של בניין איתן לאינסטלציה, חשמל ואיטום ברמה הגבוהה ביותר.",
+    "רוב הליקויים שצצים שנים אחרי שיפוץ נולדים מתשתית פגומה שמחבאים מאחורי הקירות. סקירה הנדסית של התשתיות הסמויות שקובעות את עתיד הבית.",
   alternates: {
     canonical: "https://binyaneitan.com/he/expertise/behind-the-walls",
     languages: {

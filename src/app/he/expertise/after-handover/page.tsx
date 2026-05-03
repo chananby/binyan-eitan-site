@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "יום המסירה והאחריות על הבית",
   description:
-    "מה קורה ביום שאחרי השיפוץ? המדריך של בניין איתן למסירה נכונה, תיעוד תשתיות (As-Made) ואחריות אישית לאורך זמן.",
+    "קבלן רציני יודע שהאחריות שלו לא נגמרת בקבלת המפתח. סקירה הנדסית של תקופת הבדק, ליקויים נסתרים, ואיך לקרוא את החוזה כשמשהו מתגלה אחרי המסירה.",
   alternates: {
     canonical: "https://binyaneitan.com/he/expertise/after-handover",
     languages: {

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "איך לקרוא הצעת מחיר לבנייה ושיפוץ",
   description:
-    "המדריך המלא לקריאת הצעת מחיר מקצועית. איך מזהים \"חורים\" בהצעות זולות, למה פירוט הוא ההגנה הכי טובה שלכם ומה חובה להופיע בחוזה.",
+    "הצעת מחיר זולה לרוב יוצאת היקרה ביותר. מדריך מעשי לפענוח הצעות שיפוץ — סעיפי עלות, חומרים, לוחות תשלום, ו-9 דגלים אדומים שצריך לזהות לפני שחותמים.",
   alternates: {
     canonical: "https://binyaneitan.com/he/expertise/reading-a-professional-quote",
     languages: {

@@ -4,7 +4,7 @@ import loadDynamic from "next/dynamic";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "The Handover: Your Roadmap to Long-Term Peace of Mind",
+  title: "After Handover: A Roadmap to Peace of Mind",
   description:
     "What happens the day after your renovation? Binyan Eitan's guide to a proper handover, As-Made infrastructure documentation, and lasting personal accountability.",
   alternates: {

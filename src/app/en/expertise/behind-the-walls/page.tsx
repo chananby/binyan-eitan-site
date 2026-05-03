@@ -4,7 +4,7 @@ import loadDynamic from "next/dynamic";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Behind the Walls: The Invisible Standard of Excellence",
+  title: "Behind the Walls: Hidden Engineering",
   description:
     "Why is infrastructure the most important part of a renovation? Binyan Eitan's guide to plumbing, electrical, and waterproofing at the highest standard.",
   alternates: {
