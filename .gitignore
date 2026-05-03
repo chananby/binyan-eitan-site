@@ -34,3 +34,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Internal docs and audits
+*.pre-force
+*_AUDIT.md
+PROJECT_STATUS.md
+DEAD_CODE_MAP.md
