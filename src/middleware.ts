@@ -72,6 +72,9 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // ⚠️ PRE-LAUNCH GUARD: Redirects /projects/* until content is ready.
+  // To launch: remove this block. Coordinate with /admin/hub or PROJECT_STATUS.md.
+  // See: internal-docs/PROJECT_STATUS.md "Project pages live launch"
   // redirect sections that are not yet live back to their respective home
   const redirectPattern = /^\/(en|he)\/(projects)(\/|$)/;
   if (redirectPattern.test(pathname)) {
