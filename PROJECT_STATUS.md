@@ -320,3 +320,11 @@
 - **Before/After Slider** — קומפוננטה קיימת (`BeforeAfterSlider.tsx`), לא ברור היכן משולבת
 - **Google Tag Manager / Pixel** — לא מוגדר
 - **Error Monitoring** (Sentry וכו') — לא מוגדר
+
+---
+
+## 8. Tech Debt — Tracked
+
+| נושא | סטטוס | קונטקסט | עדיפות |
+|------|-------|---------|--------|
+| Next.js 14.2.35 → 16.x | פתוח | 5 CVEs נשארות (DoS + HTTP smuggling). שדרוג major שדורש פרויקט נפרד — Next 14→15→16 כולל אדפטציה לAPIים חדשים | 🟡 בינונית — תוך 2-3 חודשים |

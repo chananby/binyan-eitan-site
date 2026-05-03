@@ -53,7 +53,7 @@
  */
 
 import { NextResponse } from "next/server";
-import type { GalleryProject, ProjectCategory } from "@/lib/projects";
+import type { GalleryProject, ProjectCategory } from "../../../lib/projects";
 
 // Cache for 60 seconds — change to a lower value for faster propagation,
 // or use the /api/revalidate endpoint to flush immediately.
