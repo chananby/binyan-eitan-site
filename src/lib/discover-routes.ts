@@ -71,6 +71,20 @@ function dirToLabel(name: string): string {
   return name.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 }
 
+const URL_LABEL_OVERRIDES: Record<string, string> = {
+  "/admin":                          "כניסת ניהול",
+  "/admin/cockpit":                  "לוח בקרה",
+  "/admin/executive":                "חדר מלחמה",
+  "/admin/health":                   "בריאות מערכת",
+  "/admin/hub":                      "מרכז שליטה",
+  "/en/internal":                    "פורטל צוות",
+  "/en/internal/attendance":         "שעון נוכחות",
+  "/internal/banner":                "ניהול באנר",
+  "/internal/binyan-eitan":          "בניין איתן — דשבורד",
+  "/internal/content-editor":        "עורך תוכן",
+  "/internal/prime-steel":           "Prime Steel — דשבורד",
+};
+
 // ── UI route discovery ────────────────────────────────────────────────────────
 
 const UI_ROOTS: { dir: string; category: string }[] = [
@@ -89,7 +103,7 @@ export function discoverUIRoutes(): UIRoute[] {
       const pageDir = pagePath.replace(/\/page\.tsx$/, "");
       const segments = pageDir.split("/");
       const dirName = segments[segments.length - 1] || "page";
-      const label = extractTitleForDir(pageDir) ?? dirToLabel(dirName);
+      const label = URL_LABEL_OVERRIDES[url] ?? extractTitleForDir(pageDir) ?? dirToLabel(dirName);
       routes.push({ type: "ui", url, label, category });
     }
   }

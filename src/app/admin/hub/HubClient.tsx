@@ -87,6 +87,34 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
   );
 }
 
+// ── Quick-access config ───────────────────────────────────────────────────────
+const QUICK_LINKS = [
+  { label: "לוח בקרה",       url: "/admin/cockpit",                   ext: false, desc: "משימות · פרויקטים · צוות" },
+  { label: "עורך תוכן",      url: "/internal/content-editor",         ext: false, desc: "תרגומים · מאמרים · פרויקטים" },
+  { label: "דשבורד ניהולי",  url: "/he/internal/admin/dashboard",     ext: false, desc: "מעקב שוטף · דוחות" },
+  { label: "Vercel",         url: "https://vercel.com/dashboard",     ext: true,  desc: "פריסות · סטטוס" },
+  { label: "Supabase",       url: "https://supabase.com/dashboard",   ext: true,  desc: "מסד נתונים · טבלאות" },
+  { label: "GitHub",         url: "https://github.com/chananby/binyan-eitan-site", ext: true, desc: "קוד מקור · commits" },
+] as const;
+
+function QuickCard({ item }: { item: typeof QUICK_LINKS[number] }) {
+  const inner = (
+    <div className="flex flex-col gap-1 px-4 py-4 border-2 border-[#E0DFD9] bg-white
+      hover:border-[#8D775F] hover:shadow-md transition-all group rounded-xl h-full">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[0.88rem] font-bold text-[#2D2926] group-hover:text-[#8D775F] transition-colors leading-snug">
+          {item.label}
+        </p>
+        {item.ext && <ExternalLink size={13} className="shrink-0 mt-0.5 text-[#2D2926]/20 group-hover:text-[#8D775F]/60 transition-colors" />}
+      </div>
+      <p className="text-[0.65rem] text-[#2D2926]/40 leading-snug">{item.desc}</p>
+    </div>
+  );
+  return item.ext
+    ? <a href={item.url} target="_blank" rel="noopener noreferrer" className="block">{inner}</a>
+    : <Link href={item.url} className="block">{inner}</Link>;
+}
+
 // ── Method badge ──────────────────────────────────────────────────────────────
 const METHOD_COLORS: Record<string, string> = {
   GET:    "bg-green-50 text-green-700 border border-green-200",
@@ -301,6 +329,16 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
 
       {/* ── Content ───────────────────────────────────────────────────────── */}
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 space-y-10">
+
+        {/* Quick access */}
+        {!query && (
+          <section>
+            <SectionLabel>גישה מהירה</SectionLabel>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {QUICK_LINKS.map(item => <QuickCard key={item.url} item={item} />)}
+            </div>
+          </section>
+        )}
 
         {/* UI Routes */}
         <section>
