@@ -30,6 +30,7 @@ export const metadata: Metadata = {
       "https://upload.wikimedia.org/wikipedia/commons/3/36/Megillah_1.JPG",
     ],
   },
+  robots: { index: false, follow: false },
 };
 
 // No Navbar, no Footer, no global branding — just the children.

@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     type: "article",
     images: [
       {
-        url: "/interior-wall-framing-systems.jpg",
+        url: "/jerusalem-electrical-infrastructure.jpg",
         width: 1200,
         height: 800,
         alt: "Construction infrastructure phase — pipes and framing — Binyan Eitan",

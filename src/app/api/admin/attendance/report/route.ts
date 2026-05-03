@@ -24,6 +24,7 @@ import {
 import { createServerClient } from "../../../../../lib/supabase";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 // ── Timestamp helpers ─────────────────────────────────────────────────────────
 

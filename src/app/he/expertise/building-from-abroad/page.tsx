@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     type: "article",
     images: [
       {
-        url: "/luxury-interior.jpg",
+        url: "/ramat-eshkol-penthouse-1.jpg",
         width: 1200,
         height: 800,
         alt: "ניהול פרויקט בנייה בישראל מרחוק — בניין איתן",

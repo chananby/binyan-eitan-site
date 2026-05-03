@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     type: "article",
     images: [
       {
-        url: "/luxury-interior-finish-transformation.jpg",
+        url: "/jerusalem-site-inspection.jpg",
         width: 1200,
         height: 800,
         alt: "תוכניות אדריכליות וסקירת הצעת מחיר מקצועית — בניין איתן",

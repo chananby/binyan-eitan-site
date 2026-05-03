@@ -35,6 +35,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Generated at build time — do not commit
+src/data/routes-manifest.json
+
 # Internal docs and audits
 *.pre-force
 *_AUDIT.md

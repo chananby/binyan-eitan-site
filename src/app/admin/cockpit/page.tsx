@@ -1229,6 +1229,13 @@ export default function Cockpit() {
             )}
           </button>
 
+          {/* Hub link */}
+          <a href="/admin/hub"
+            className="p-1.5 rounded-full text-[#2D2926]/25 hover:text-[#8D775F] hover:bg-[#F3F2EE] transition-colors"
+            title="מרכז שליטה — Hub">
+            <Wrench size={14} />
+          </a>
+
           {/* Author */}
           <div className="flex items-center gap-2.5">
             <span className={`text-[0.68rem] font-bold px-2.5 py-1 rounded-full

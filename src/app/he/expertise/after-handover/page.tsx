@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     type: "article",
     images: [
       {
-        url: "/luxury-apartment-renovation-view.jpg",
+        url: "/jerusalem-luxury-living-room.jpg",
         width: 1200,
         height: 800,
         alt: "סלון מושלם ביום מסירת הפרויקט — בניין איתן",
