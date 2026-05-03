@@ -9,6 +9,11 @@ export const metadata: Metadata = {
     "המדריך המלא לבנייה ושיפוץ בישראל עבור תושבי חוץ. שקיפות מלאה, דיווחים שוטפים וניהול מקצועי בשלט רחוק — עם מוטי איתן.",
   alternates: {
     canonical: "https://binyaneitan.com/he/expertise/building-from-abroad",
+    languages: {
+      "en": "https://binyaneitan.com/en/expertise/building-from-abroad",
+      "he": "https://binyaneitan.com/he/expertise/building-from-abroad",
+      "x-default": "https://binyaneitan.com/en/expertise/building-from-abroad",
+    },
   },
   openGraph: {
     title: "לבנות בישראל בראש שקט – המדריך לניהול פרויקט מרחוק | בניין איתן",

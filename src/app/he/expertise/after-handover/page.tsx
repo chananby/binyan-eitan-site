@@ -9,6 +9,11 @@ export const metadata: Metadata = {
     "מה קורה ביום שאחרי השיפוץ? המדריך של בניין איתן למסירה נכונה, תיעוד תשתיות (As-Made) ואחריות אישית לאורך זמן.",
   alternates: {
     canonical: "https://binyaneitan.com/he/expertise/after-handover",
+    languages: {
+      "en": "https://binyaneitan.com/en/expertise/after-handover",
+      "he": "https://binyaneitan.com/he/expertise/after-handover",
+      "x-default": "https://binyaneitan.com/en/expertise/after-handover",
+    },
   },
   openGraph: {
     title: "יום המסירה והאחריות על הבית | בניין איתן",

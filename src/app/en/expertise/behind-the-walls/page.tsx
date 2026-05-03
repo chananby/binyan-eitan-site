@@ -9,6 +9,11 @@ export const metadata: Metadata = {
     "Why is infrastructure the most important part of a renovation? Binyan Eitan's guide to plumbing, electrical, and waterproofing at the highest standard.",
   alternates: {
     canonical: "https://binyaneitan.com/en/expertise/behind-the-walls",
+    languages: {
+      "en": "https://binyaneitan.com/en/expertise/behind-the-walls",
+      "he": "https://binyaneitan.com/he/expertise/behind-the-walls",
+      "x-default": "https://binyaneitan.com/en/expertise/behind-the-walls",
+    },
   },
   openGraph: {
     title: "Behind the Walls: The Invisible Standard of Excellence | Binyan Eitan",

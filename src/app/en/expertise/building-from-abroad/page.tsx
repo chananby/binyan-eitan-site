@@ -9,6 +9,11 @@ export const metadata: Metadata = {
     "The complete guide to building and renovating in Israel for overseas residents. Full transparency, regular updates, and expert remote project management with Moti Eitan.",
   alternates: {
     canonical: "https://binyaneitan.com/en/expertise/building-from-abroad",
+    languages: {
+      "en": "https://binyaneitan.com/en/expertise/building-from-abroad",
+      "he": "https://binyaneitan.com/he/expertise/building-from-abroad",
+      "x-default": "https://binyaneitan.com/en/expertise/building-from-abroad",
+    },
   },
   openGraph: {
     title: "Seamless Sovereignty: Building in Israel from Abroad | Binyan Eitan",

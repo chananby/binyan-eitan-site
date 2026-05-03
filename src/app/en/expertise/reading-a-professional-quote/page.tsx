@@ -9,6 +9,11 @@ export const metadata: Metadata = {
     "The complete guide to reading a professional construction quote. How to spot 'gaps' in cheap proposals, why detail is your best protection, and what must appear in any contract.",
   alternates: {
     canonical: "https://binyaneitan.com/en/expertise/reading-a-professional-quote",
+    languages: {
+      "en": "https://binyaneitan.com/en/expertise/reading-a-professional-quote",
+      "he": "https://binyaneitan.com/he/expertise/reading-a-professional-quote",
+      "x-default": "https://binyaneitan.com/en/expertise/reading-a-professional-quote",
+    },
   },
   openGraph: {
     title: "Beyond the Price: How to Read a Construction Quote | Binyan Eitan",

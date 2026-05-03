@@ -175,9 +175,35 @@ export default function ArticleDetailPage({ slug }: Props) {
   // WhatsApp share URL (article-specific)
   const shareUrl = `https://wa.me/?text=${encodeURIComponent(`${title} — https://binyaneitan.com/${lang}/expertise/${article.slug}`)}`;
 
+  const pageUrl = `https://binyaneitan.com/${lang}/expertise/${article.slug}`;
+  const ogImage = article.heroImage
+    ? `https://binyaneitan.com${article.heroImage}`
+    : "https://binyaneitan.com/luxury-interior-finish-transformation.jpg";
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: title,
+    description: intro || title,
+    image: ogImage,
+    datePublished: "2026-01-01",
+    dateModified: "2026-01-01",
+    author: { "@type": "Organization", name: "Binyan Eitan" },
+    publisher: {
+      "@type": "Organization",
+      name: "Binyan Eitan",
+      logo: { "@type": "ImageObject", url: "https://binyaneitan.com/logo.png" },
+    },
+    inLanguage: lang === "he" ? "he-IL" : "en-US",
+    mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl },
+  };
 
   return (
     <main className="relative bg-bone min-h-screen selection:bg-accent/20" dir={dir}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       <Navbar />
 
       {/* --- Header / Hero Section --- */}
