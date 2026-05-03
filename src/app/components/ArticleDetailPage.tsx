@@ -8,9 +8,9 @@ import { useLang } from "./LangContext";
 import { useTranslationsRaw } from "./TranslationsProvider";
 
 const WHATSAPP_HE =
-  "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%9E%D7%95%D7%98%D7%99%2C%20%D7%A7%D7%A8%D7%90%D7%AA%D7%99%20%D7%90%D7%AA%20%D7%94%D7%9E%D7%90%D7%9E%D7%A8%20%D7%91%D7%90%D7%AA%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%93%D7%91%D7%A8%20%D7%A2%D7%9C%20%D7%A4%D7%A8%D7%95%D7%99%D7%A7%D7%98...";
+  "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%97%D7%A0%D7%9F%2C%20%D7%A7%D7%A8%D7%90%D7%AA%D7%99%20%D7%90%D7%AA%20%D7%94%D7%9E%D7%90%D7%9E%D7%A8%20%D7%91%D7%90%D7%AA%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%93%D7%91%D7%A8%20%D7%A2%D7%9C%20%D7%A4%D7%A8%D7%95%D7%99%D7%A7%D7%98...";
 const WHATSAPP_EN =
-  "https://wa.me/972585008447?text=Hi%20Moti%2C%20I%20read%20your%20article%20and%20would%20like%20to%20discuss%20a%20project...";
+  "https://wa.me/972585008447?text=Hi%20Sam%2C%20I%20read%20your%20article%20and%20would%20like%20to%20discuss%20a%20project...";
 
 // --- 1. הגדרת הממשק (Data Structure) ---
 interface Article {

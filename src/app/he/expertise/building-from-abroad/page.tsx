@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "ניהול פרויקט בנייה בישראל מרחוק",
   description:
-    "המדריך המלא לבנייה ושיפוץ בישראל עבור תושבי חוץ. שקיפות מלאה, דיווחים שוטפים וניהול מקצועי בשלט רחוק — עם מוטי איתן.",
+    "המדריך המלא לבנייה ושיפוץ בישראל עבור תושבי חוץ. שקיפות מלאה, דיווחים שוטפים וניהול מקצועי בשלט רחוק — עם בניין איתן.",
   alternates: {
     canonical: "https://binyaneitan.com/he/expertise/building-from-abroad",
     languages: {
