@@ -314,7 +314,7 @@
 ### ❌ לא התחלנו / לא מחובר
 
 - **SEO / Sitemap** — קובץ `sitemap.ts` קיים, צריך לבדוק תוכן
-- **Analytics** — אין Google Analytics / Plausible מחובר
+- **Analytics** — ✅ מחובר: Plausible (`binyaneitan.com`), GA4 (`G-1CWQG6YY4H`), Microsoft Clarity (`w40c828o9d`) — כולם ב-`layout.tsx`
 - **WhatsApp Floating Button** — קומפוננטה `FloatingWhatsApp.tsx` קיימת, לא ברור אם מחוברת בכל הדפים
 - **Testimonials** — קומפוננטה `Testimonials.tsx` קיימת, תוכן לא מאומת
 - **Before/After Slider** — קומפוננטה קיימת (`BeforeAfterSlider.tsx`), לא ברור היכן משולבת
