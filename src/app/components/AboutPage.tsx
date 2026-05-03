@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowDownRight, ArrowDownLeft } from "lucide-react";
 import { useLang } from "./LangContext";
@@ -122,62 +121,38 @@ export default function AboutPage() {
       {/* ── 2. FOUNDER STORY ────────────────────────────────────────────────── */}
       <section className="bg-bone py-14 md:py-24 lg:py-32 overflow-hidden">
         <div className="mx-auto max-w-[1440px] px-8">
-          <div className="grid grid-cols-1 gap-16 lg:grid-cols-12 lg:gap-10 items-center">
+          <div className="max-w-2xl text-start">
+            <FadeUp>
+              <p className="overline-label mb-6">
+                <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
+                {c.founderOverline}
+              </p>
+            </FadeUp>
 
-            {/* Text column */}
-            <div className="lg:col-span-6 xl:col-span-5 text-start">
-              <FadeUp>
-                <p className="overline-label mb-6">
-                  <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
-                  {c.founderOverline}
-                </p>
-              </FadeUp>
+            <FadeUp delay={0.08}>
+              <h2 className="font-heading text-3xl font-bold leading-snug text-charcoal md:text-4xl lg:text-5xl whitespace-pre-line">
+                {c.founderHeading}
+              </h2>
+            </FadeUp>
 
-              <FadeUp delay={0.08}>
-                <h2 className="font-heading text-3xl font-bold leading-snug text-charcoal md:text-4xl lg:text-5xl whitespace-pre-line">
-                  {c.founderHeading}
-                </h2>
-              </FadeUp>
+            <FadeUp delay={0.15}>
+              <p className="mt-8 font-body text-base font-light leading-relaxed text-charcoal/55 md:text-lg whitespace-pre-line">
+                {c.founderBody}
+              </p>
+            </FadeUp>
 
-              <FadeUp delay={0.15}>
-                <p className="mt-8 font-body text-base font-light leading-relaxed text-charcoal/55 md:text-lg max-w-lg whitespace-pre-line">
-                  {c.founderBody}
-                </p>
-              </FadeUp>
-
-              {/* Founder signature block */}
-              <FadeUp delay={0.22}>
-                <div className="mt-10 inline-flex items-center gap-5 border-t border-charcoal/10 pt-8">
-                  <div className="h-10 w-px bg-accent" />
-                  <div>
-                    <p className="font-heading text-lg font-bold text-charcoal">{c.founderName}</p>
-                    <p className="mt-0.5 font-body text-xs font-semibold tracking-[0.15em] uppercase text-charcoal/40">
-                      {c.founderRole}
-                    </p>
-                  </div>
+            {/* Founder signature block */}
+            <FadeUp delay={0.22}>
+              <div className="mt-10 inline-flex items-center gap-5 border-t border-charcoal/10 pt-8">
+                <div className="h-10 w-px bg-accent" />
+                <div>
+                  <p className="font-heading text-lg font-bold text-charcoal">{c.founderName}</p>
+                  <p className="mt-0.5 font-body text-xs font-semibold tracking-[0.15em] uppercase text-charcoal/40">
+                    {c.founderRole}
+                  </p>
                 </div>
-              </FadeUp>
-            </div>
-
-            {/* Image column */}
-            <motion.div
-              className="lg:col-span-6 xl:col-span-7 relative aspect-[4/3] lg:aspect-[3/4] overflow-hidden"
-              initial={{ opacity: 0, x: lang === "he" ? -40 : 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.8, ease }}
-            >
-              <Image
-                src="/ramat-eshkol-penthouse-1.jpg"
-                alt={c.founderName}
-                fill
-                sizes="(max-width: 1024px) 100vw, 58vw"
-                className="object-cover"
-                priority
-              />
-              {/* Subtle overlay so text above is always readable */}
-              <div className="absolute inset-0 bg-charcoal/[0.04]" />
-            </motion.div>
+              </div>
+            </FadeUp>
           </div>
         </div>
       </section>

@@ -9,7 +9,7 @@ import { useTranslations } from "./TranslationsProvider";
 type Lang = "en" | "he";
 
 const WHATSAPP_HE =
-  "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%9E%D7%95%D7%98%D7%99%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%94%D7%99%D7%99%20%D7%93%D7%A8%D7%9A%20%D7%94%D7%90%D7%AA%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%94%D7%AA%D7%99%D7%99%D7%A2%D7%A5%20%D7%9C%D7%92%D7%91%D7%99%20%D7%A4%D7%A8%D7%95%D7%99%D7%A7%D7%98...";
+  "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%97%D7%A0%D7%9F%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%93%D7%A8%D7%9A%20%D7%94%D7%90%D7%AA%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%94%D7%AA%D7%99%D7%99%D7%A2%D7%A5%20%D7%9C%D7%92%D7%91%D7%99%20%D7%A4%D7%A8%D7%95%D7%99%D7%A7%D7%98...";
 const WHATSAPP_EN =
   "https://wa.me/972533214208?text=Hi%20Sam%2C%20I%20reached%20out%20via%20the%20website%20and%20would%20like%20to%20consult%20regarding%20a%20project...";
 
@@ -18,14 +18,14 @@ const NAV_LABELS = {
     { label: "Home", href: (lang: string) => `/${lang}` },
     { label: "The Firm", href: (lang: string) => `/${lang}/about` },
     { label: "Portfolio", href: (lang: string) => `/${lang}#portfolio` },
-    { label: "Articles", href: (lang: string) => `/${lang}/expertise` },
+    { label: "Expertise", href: (lang: string) => `/${lang}/expertise` },
     { label: "Common Questions", href: (lang: string) => `/${lang}/faq` },
   ],
   he: [
     { label: "דף הבית", href: (lang: string) => `/${lang}` },
     { label: "החברה", href: (lang: string) => `/${lang}/about` },
     { label: "תיק פרויקטים", href: (lang: string) => `/${lang}#portfolio` },
-    { label: "מאמרים", href: (lang: string) => `/${lang}/expertise` },
+    { label: "מומחיות", href: (lang: string) => `/${lang}/expertise` },
     { label: "שאלות נפוצות", href: (lang: string) => `/${lang}/faq` },
   ],
 } as const;
