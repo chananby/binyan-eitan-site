@@ -64,6 +64,7 @@ export const revalidate = 60;
 // Add one entry here per project; everything else (images, categories) comes from tags.
 
 interface ProjectMeta {
+  urlSlug: string;
   num: string;
   order: number;
   aspect: GalleryProject["aspect"];
@@ -75,6 +76,7 @@ interface ProjectMeta {
 
 const PROJECT_META: Record<string, ProjectMeta> = {
   amshinov: {
+    urlSlug: "amshinov-beis-medrash-jerusalem",
     num: "01",
     order: 1,
     aspect: "4/3",
@@ -91,6 +93,7 @@ const PROJECT_META: Record<string, ProjectMeta> = {
     },
   },
   "bayit-vegan": {
+    urlSlug: "bayit-vegan-luxury-apartment",
     num: "02",
     order: 2,
     aspect: "3/4",
@@ -107,6 +110,7 @@ const PROJECT_META: Record<string, ProjectMeta> = {
     },
   },
   "ohel-avshalom": {
+    urlSlug: "ohel-avshalom-synagogue-jerusalem",
     num: "03",
     order: 3,
     aspect: "4/3",
@@ -123,6 +127,7 @@ const PROJECT_META: Record<string, ProjectMeta> = {
     },
   },
   "ramat-eshkol": {
+    urlSlug: "ramat-eshkol-penthouse",
     num: "04",
     order: 4,
     aspect: "3/4",
@@ -139,6 +144,7 @@ const PROJECT_META: Record<string, ProjectMeta> = {
     },
   },
   "jerusalem-luxury": {
+    urlSlug: "jerusalem-luxury-residence",
     num: "05",
     order: 5,
     aspect: "16/9",
@@ -293,6 +299,7 @@ export async function GET() {
 
     projects.push({
       id: projectId,
+      urlSlug: meta.urlSlug,
       num: meta.num,
       cover: deliveryUrl(sorted[0].public_id),
       aspect: meta.aspect,

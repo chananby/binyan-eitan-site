@@ -1,18 +1,10 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
+import ProjectsGallery from "../../components/ProjectsGallery";
 
 export const metadata: Metadata = {
   title: "תיק עבודות | פרויקטים נבחרים בבנייה ושיפוץ",
   description:
-    "ממתחמים ציבוריים ועד וילות פרטיות יוקרתיות — כל פרויקט בנוי לרמת דיוק הנדסי. שקיפות מבנית, חומר שחור פרימיום, דיוק שאפשר לעבור דרכו.",
-  keywords: [
-    "פרויקטים בנייה ישראל",
-    "אדריכלות יוקרתית",
-    "הנדסת קונסטרוקציה",
-    "פרויקט אמשינוב",
-    "וילות יוקרה",
-    "בנייה פרטית וציבורית",
-  ],
+    "ממתחמים ציבוריים ועד שיפוצי יוקרה — כל פרויקט בנוי לרמת דיוק הנדסי. שקיפות מבנית, חומרים פרימיום, דיוק שאפשר לעבור דרכו.",
   openGraph: {
     title: "תיק עבודות | פרויקטים נבחרים בבנייה ושיפוץ",
     description: "מתחמים מוסדיים, וילות פרטיות, שיפוצים מבניים. ראו איך נראה דיוק אמיתי.",
@@ -24,13 +16,38 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "https://binyaneitan.com/he/projects",
-    languages: { en: "https://binyaneitan.com/en/projects" },
+    languages: {
+      he: "https://binyaneitan.com/he/projects",
+      en: "https://binyaneitan.com/en/projects",
+      "x-default": "https://binyaneitan.com/en/projects",
+    },
   },
   robots: { index: true, follow: true },
 };
 
-const HeProjectsClient = dynamic(() => import("../../components/ClientLayouts/HeProjectsClient"), { ssr: false });
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": "https://binyaneitan.com/he/projects",
+  name: "תיק עבודות | בניין איתן",
+  description: "פרויקטים נבחרים של בניין איתן — קבלן ג1 ירושלים בנייה ושיפוץ.",
+  url: "https://binyaneitan.com/he/projects",
+  inLanguage: "he",
+  publisher: {
+    "@type": "LocalBusiness",
+    name: "בניין איתן בע\"מ",
+    url: "https://binyaneitan.com",
+  },
+};
 
 export default function ProjectsPageHE() {
-  return <HeProjectsClient />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProjectsGallery lang="he" />
+    </>
+  );
 }

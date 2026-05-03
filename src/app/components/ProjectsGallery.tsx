@@ -290,9 +290,18 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
                           <h2 className="text-white text-xl font-light mb-3">
                             {lang === "he" ? proj.he.title : proj.en.title}
                           </h2>
-                          <span className="inline-block text-[10px] uppercase tracking-widest text-bone/70 border border-bone/30 px-3 py-1.5">
-                            {lang === "he" ? "פתח גלריה" : "View Gallery"}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="inline-block text-[10px] uppercase tracking-widest text-bone/70 border border-bone/30 px-3 py-1.5">
+                              {lang === "he" ? "פתח גלריה" : "View Gallery"}
+                            </span>
+                            <Link
+                              href={`/${lang}/projects/${proj.urlSlug}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-block text-[10px] uppercase tracking-widest text-bone bg-accent/80 hover:bg-accent px-3 py-1.5 transition-colors"
+                            >
+                              {lang === "he" ? "דף פרויקט" : "Project Page"}
+                            </Link>
+                          </div>
                         </div>
                       </div>
 

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { PROJECT_SLUGS } from "../data/projects";
 
 const BASE_URL = "https://binyaneitan.com";
 
@@ -13,6 +14,35 @@ const ARTICLE_SLUGS = [
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
+
+  const projectEntries: MetadataRoute.Sitemap = PROJECT_SLUGS.flatMap((slug) => [
+    {
+      url: `${BASE_URL}/en/projects/${slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+      alternates: {
+        languages: {
+          "en-US":     `${BASE_URL}/en/projects/${slug}`,
+          "he-IL":     `${BASE_URL}/he/projects/${slug}`,
+          "x-default": `${BASE_URL}/en/projects/${slug}`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/he/projects/${slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+      alternates: {
+        languages: {
+          "en-US":     `${BASE_URL}/en/projects/${slug}`,
+          "he-IL":     `${BASE_URL}/he/projects/${slug}`,
+          "x-default": `${BASE_URL}/en/projects/${slug}`,
+        },
+      },
+    },
+  ]);
 
   const articleEntries: MetadataRoute.Sitemap = ARTICLE_SLUGS.flatMap((slug) => [
     {
@@ -68,6 +98,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
           "en-US":     `${BASE_URL}/en`,
           "he-IL":     `${BASE_URL}/he`,
           "x-default": `${BASE_URL}/en`,
+        },
+      },
+    },
+
+    // ── Projects index pages ──────────────────────────────────
+    {
+      url: `${BASE_URL}/en/projects`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+      alternates: {
+        languages: {
+          "en-US":     `${BASE_URL}/en/projects`,
+          "he-IL":     `${BASE_URL}/he/projects`,
+          "x-default": `${BASE_URL}/en/projects`,
+        },
+      },
+    },
+    {
+      url: `${BASE_URL}/he/projects`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+      alternates: {
+        languages: {
+          "en-US":     `${BASE_URL}/en/projects`,
+          "he-IL":     `${BASE_URL}/he/projects`,
+          "x-default": `${BASE_URL}/en/projects`,
         },
       },
     },
@@ -163,6 +221,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.9,
     },
+
+    // ── Individual project pages ──────────────────────────────
+    ...projectEntries,
 
     // ── Individual articles ───────────────────────────────────
     ...articleEntries,

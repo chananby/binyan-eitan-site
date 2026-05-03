@@ -1,18 +1,10 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
+import ProjectsGallery from "../../components/ProjectsGallery";
 
 export const metadata: Metadata = {
   title: "Our Projects | Selected Portfolio of Premium Construction",
   description:
-    "From institutional complexes to private luxury villas — every project built to engineering exactitude. Structural transparency, premium dark materials, precision you can walk through.",
-  keywords: [
-    "Construction Projects Israel",
-    "Luxury Architecture",
-    "Structural Engineering",
-    "Amshinov Project",
-    "Luxury Villas",
-    "בנייה פרטית וציבורית",
-  ],
+    "From institutional complexes to private luxury renovations — every project built to engineering exactitude. Structural transparency, premium finishes, precision you can walk through.",
   openGraph: {
     title: "Our Projects | Selected Portfolio of Premium Construction",
     description: "Institutional complexes, private villas, structural renovations. See what precision looks like.",
@@ -24,13 +16,39 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "https://binyaneitan.com/en/projects",
-    languages: { he: "https://binyaneitan.com/he/projects" },
+    languages: {
+      en: "https://binyaneitan.com/en/projects",
+      he: "https://binyaneitan.com/he/projects",
+      "x-default": "https://binyaneitan.com/en/projects",
+    },
   },
   robots: { index: true, follow: true },
 };
 
-const EnProjectsClient = dynamic(() => import("../../components/ClientLayouts/EnProjectsClient"), { ssr: false });
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": "https://binyaneitan.com/en/projects",
+  name: "Our Projects | Binyan Eitan",
+  description:
+    "Selected portfolio of construction and renovation projects by Binyan Eitan — Jerusalem-based G1 contractor.",
+  url: "https://binyaneitan.com/en/projects",
+  inLanguage: "en",
+  publisher: {
+    "@type": "LocalBusiness",
+    name: "Binyan Eitan Ltd.",
+    url: "https://binyaneitan.com",
+  },
+};
 
 export default function ProjectsPageEN() {
-  return <EnProjectsClient />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProjectsGallery lang="en" />
+    </>
+  );
 }

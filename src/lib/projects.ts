@@ -32,6 +32,8 @@ export type ProjectCategory =
 
 export interface GalleryProject {
   id: string;
+  /** URL slug for the individual project detail page — longer and more descriptive than id */
+  urlSlug: string;
   num: string;
   cover: string;
   aspect: "4/3" | "3/4" | "16/9" | "1/1";
@@ -47,6 +49,7 @@ export const GALLERY_PROJECTS: GalleryProject[] = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "amshinov",
+    urlSlug: "amshinov-beis-medrash-jerusalem",
     num: "01",
     cover: img("amshinov-1.jpg"),
     aspect: "4/3",
@@ -93,6 +96,7 @@ export const GALLERY_PROJECTS: GalleryProject[] = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "bayit-vegan",
+    urlSlug: "bayit-vegan-luxury-apartment",
     num: "02",
     cover: img("bayit-vegan.jpg"),
     aspect: "3/4",
@@ -135,6 +139,7 @@ export const GALLERY_PROJECTS: GalleryProject[] = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "ohel-avshalom",
+    urlSlug: "ohel-avshalom-synagogue-jerusalem",
     num: "03",
     cover: img("ohel-avshalom.jpg"),
     aspect: "4/3",
@@ -173,6 +178,7 @@ export const GALLERY_PROJECTS: GalleryProject[] = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "ramat-eshkol",
+    urlSlug: "ramat-eshkol-penthouse",
     num: "04",
     cover: img("ramat-eshkol.jpg"),
     aspect: "3/4",
@@ -206,6 +212,7 @@ export const GALLERY_PROJECTS: GalleryProject[] = [
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "jerusalem-luxury",
+    urlSlug: "jerusalem-luxury-residence",
     num: "05",
     cover: img("jerusalem-luxury-living-room.jpg"),
     aspect: "16/9",
