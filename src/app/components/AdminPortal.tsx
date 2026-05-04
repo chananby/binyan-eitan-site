@@ -359,6 +359,10 @@ ${detailHtml}
   const [recentLogsErr,     setRecentLogsErr]     = useState<string | null>(null);
   const [recentLogsVisible, setRecentLogsVisible] = useState(false);
 
+  // Refresh bar
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [refreshing,    setRefreshing]    = useState(false);
+
   // Income UI
   const [incProjectId, setIncProjectId] = useState("");
   const [incAmount,    setIncAmount]    = useState("");
@@ -508,7 +512,7 @@ ${detailHtml}
         const staffRes = await fetch("/api/admin/staff");
         if (staffRes.ok) { const d = await staffRes.json(); setStaff(d.staff ?? []); }
       }
-    } finally { setDataLoading(false); }
+    } finally { setDataLoading(false); setLastRefreshed(new Date()); }
   }
 
   async function loadMaterials() {
@@ -548,6 +552,21 @@ ${detailHtml}
   }
 
   function reload() { if (authState === "admin" || authState === "foreman") loadData(authState); }
+
+  async function handleTabRefresh() {
+    if (refreshing || dataLoading) return;
+    setRefreshing(true);
+    try {
+      if (tab === "expenses")                               { await loadMaterials(); setLastRefreshed(new Date()); }
+      else if (tab === "income")                            { await loadIncome();    setLastRefreshed(new Date()); }
+      else if (tab === "reports")                           { await loadReports();   setLastRefreshed(new Date()); }
+      else if (tab === "attendance" && authState === "admin")
+        await Promise.all([loadData("admin"), loadPending()]);
+      else
+        await loadData(authState as "admin" | "foreman");
+      // loadData's finally sets lastRefreshed for the branches above that call it
+    } finally { setRefreshing(false); }
+  }
 
   async function approveAttRecord(id: string) {
     if (pendingActionId) return;
@@ -1048,6 +1067,7 @@ ${detailHtml}
         {/* ── DASHBOARD ─────────────────────────────────────────────────────── */}
         {tab === "dashboard" && (
           <div className="space-y-4">
+            <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
 
             {/* On-site */}
             <Card title="⚡ מי באתר כרגע">
@@ -1211,6 +1231,7 @@ ${detailHtml}
         {/* ── ATTENDANCE (admin only) ────────────────────────────────────────── */}
         {tab === "attendance" && isAdmin && (
           <div className="space-y-5">
+            <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
 
             {/* Attendance report — date pickers + view + print */}
             <Card>
@@ -1797,6 +1818,7 @@ ${detailHtml}
         {/* ── WORKERS (admin only) ───────────────────────────────────────────── */}
         {tab === "workers" && isAdmin && (
           <div className="space-y-5">
+            <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
             <Card>
               <div className="flex items-center gap-2 mb-3">
                 <UserPlus size={16} strokeWidth={1.5} className="text-accent" />
@@ -1897,6 +1919,7 @@ ${detailHtml}
         {/* ── PROJECTS (admin only) ──────────────────────────────────────────── */}
         {tab === "projects" && isAdmin && (
           <div className="space-y-5">
+            <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
             <Card>
               <div className="flex items-center gap-2 mb-3">
                 <Building2 size={16} strokeWidth={1.5} className="text-accent" />
@@ -1960,6 +1983,7 @@ ${detailHtml}
         {/* ── EXPENSES ──────────────────────────────────────────────────────── */}
         {tab === "expenses" && (
           <div className="space-y-5">
+            <TabRefreshBar loading={refreshing} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
             <Card>
               <div className="flex items-center gap-2 mb-3">
                 <Package size={16} strokeWidth={1.5} className="text-accent" />
@@ -2051,6 +2075,7 @@ ${detailHtml}
         {/* ── PLANNING ──────────────────────────────────────────────────────── */}
         {tab === "planning" && (
           <div className="space-y-5">
+            <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
 
             {/* ── Add milestone ──────────────────────────────────────────── */}
             <Card>
@@ -2397,6 +2422,7 @@ ${detailHtml}
         {/* ── INCOME (admin only) ────────────────────────────────────────────── */}
         {tab === "income" && isAdmin && (
           <div className="space-y-5">
+            <TabRefreshBar loading={refreshing} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
             <Card>
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp size={16} strokeWidth={1.5} className="text-accent" />
@@ -2465,6 +2491,7 @@ ${detailHtml}
         {/* ── REPORTS (admin only) ───────────────────────────────────────────── */}
         {tab === "reports" && isAdmin && (
           <div className="space-y-5">
+            <TabRefreshBar loading={refreshing} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
             <Card>
               <div className="flex items-center gap-2 mb-3">
                 <ClipboardList size={16} strokeWidth={1.5} className="text-accent" />
@@ -2519,8 +2546,11 @@ ${detailHtml}
 
         {/* ── WEEKLY MATRIX (admin only) ─────────────────────────────────────── */}
         {tab === "matrix" && isAdmin && (
-          <div className="p-1">
-            <WeeklyPlanner projects={activeProjects} />
+          <div className="space-y-3">
+            <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
+            <div className="p-1">
+              <WeeklyPlanner projects={activeProjects} />
+            </div>
           </div>
         )}
 
@@ -2559,6 +2589,40 @@ function Card({ title, children }: { title?: string; children: React.ReactNode }
     <div className="bg-white border border-warm-gray-light p-5 space-y-3">
       {title && <h2 className="font-heading text-sm font-bold">{title}</h2>}
       {children}
+    </div>
+  );
+}
+
+function TabRefreshBar({ loading, onRefresh, lastRefreshed }: {
+  loading: boolean; onRefresh: () => void; lastRefreshed: Date | null;
+}) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const iv = setInterval(() => setTick(t => t + 1), 15_000);
+    return () => clearInterval(iv);
+  }, []);
+
+  const secs = lastRefreshed ? Math.round((Date.now() - lastRefreshed.getTime()) / 1000) : null;
+  const timeStr = secs === null ? null
+    : secs < 10  ? "עכשיו"
+    : secs < 60  ? `לפני ${secs} שניות`
+    : secs < 120 ? "לפני דקה"
+    : `לפני ${Math.round(secs / 60)} דקות`;
+
+  return (
+    <div className="flex items-center justify-end gap-2.5">
+      {timeStr && !loading && (
+        <span className="text-[0.62rem] text-charcoal/30 tabular-nums">עודכן {timeStr}</span>
+      )}
+      <button
+        onClick={onRefresh}
+        disabled={loading}
+        className="flex items-center gap-1.5 border border-charcoal/12 hover:border-accent px-2.5 py-1 text-[0.72rem] text-charcoal/40 hover:text-accent disabled:opacity-40 transition-colors duration-150"
+      >
+        {loading
+          ? <><Loader2 size={10} className="animate-spin" /> מרענן...</>
+          : <><RefreshCw size={10} strokeWidth={1.5} /> רענן</>}
+      </button>
     </div>
   );
 }
