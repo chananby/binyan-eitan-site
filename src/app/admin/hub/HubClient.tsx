@@ -91,7 +91,7 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
 const QUICK_LINKS: { label: string; url: string; ext: boolean; desc: string }[] = [
   { label: "כניסת עובד",               url: "/attendance",                    ext: false, desc: "טופס צ׳ק-אין ויציאה" },
   { label: "ניהול משימות פנים ארגוני", url: "https://admin.binyaneitan.com",  ext: true,  desc: "מערכת המשימות הפנים ארגונית" },
-  { label: "דשבורד ניהולי",            url: "/he/internal/admin/dashboard",   ext: false, desc: "נוכחות 7 ימים · מעקב תקציב" },
+  { label: "פורטל ניהול",              url: "/admin",                         ext: false, desc: "נוכחות, עובדים, פרויקטים, תקציב" },
   { label: "Google Analytics",         url: "https://analytics.google.com",   ext: true,  desc: "GA4 — G-1CWQG6YY4H" },
   { label: "עורך תוכן",               url: "/internal/content-editor",       ext: false, desc: "תרגומים · מאמרים · פרויקטים" },
 ];

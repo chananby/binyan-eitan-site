@@ -26,7 +26,7 @@ const tools = [
     available: true,
   },
   {
-    href: "/he/internal/admin/dashboard",
+    href: "/admin",
     icon: BarChart2,
     title: "דשבורד",
     desc: "דוח נוכחות שבועי וסיכום תקציב לעומת ביצוע",

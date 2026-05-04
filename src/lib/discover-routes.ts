@@ -79,7 +79,6 @@ const URL_LABEL_OVERRIDES: Record<string, string> = {
   "/he/internal":                    "פורטל עובדים",
   "/he/internal/attendance":         "שעון נוכחות",
   "/he/internal/admin":              "ניהול פרויקטים",
-  "/he/internal/admin/dashboard":    "דשבורד ניהולי",
   "/internal/banner":                "באנר להדפסה",
   "/internal/content-editor":        "עורך תוכן",
 };

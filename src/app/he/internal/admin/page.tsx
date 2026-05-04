@@ -80,7 +80,7 @@ export default async function AdminProjectsPage() {
           </div>
           <div className="flex items-center gap-4 mt-1">
             <Link
-              href="/he/internal/admin/dashboard"
+              href="/admin"
               className="flex items-center gap-1 font-body text-xs text-accent hover:text-accent-dark transition-colors duration-200"
             >
               <LayoutDashboard size={13} strokeWidth={1.5} />
