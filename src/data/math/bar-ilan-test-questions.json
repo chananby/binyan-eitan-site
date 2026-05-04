@@ -1,0 +1,504 @@
+{
+  "test": {
+    "id": "bar-ilan-5th-grade-2026",
+    "slug": "bar-ilan-5",
+    "name_he": "מבחן סימולציה - בר אילן כיתה ה' עולים לו'",
+    "name_en": "Bar-Ilan Gifted Math - Grade 5 Simulation",
+    "description_he": "מבחן סימולציה במתכונת המבחן הרשמי של התוכנית לנוער מוכשר במתמטיקה של אוניברסיטת בר-אילן. מאגר השאלות מכסה את כל נושאי הלימוד הרשמיים. ניתן להציג את כל ה-30 שאלות, או לבחור 24 רנדומליות לסימולציה במתכונת המבחן הרשמי.",
+    "duration_seconds": 3600,
+    "official_question_count": 24,
+    "bank_question_count": 30,
+    "passing_threshold_percentage": 70,
+    "instructions_he": [
+      "המבחן כולל שאלות אמריקאיות (רב-ברירה).",
+      "משך המבחן הרשמי: 60 דקות ל-24 שאלות.",
+      "אסור להשתמש במחשבון.",
+      "אין הורדת נקודות על תשובה שגויה - מומלץ לסמן תשובה גם אם אינכם בטוחים.",
+      "המבחן בנוי משני חלקים: ידע מתמטי וחשיבה מתמטית-לוגית."
+    ],
+    "topics_covered_he": [
+      "סדר פעולות חשבון",
+      "שברים פשוטים ועשרוניים",
+      "מספרים מכוונים וערך מוחלט",
+      "אחוזים",
+      "ביטויים אלגבריים (תבניות מספר) - הצבה, פישוט, קבוצת הצבה",
+      "אומדנים",
+      "הנדסה - שטחים והיקפים (מלבן, ריבוע, משולש)",
+      "הנדסת המרחב - נפח ושטח פנים (קובייה, תיבה)",
+      "סטטיסטיקה - ממוצע וקריאת גרף",
+      "יחס ופרופורציה",
+      "בעיות מילוליות - דרך/זמן/מהירות, השוואה",
+      "סדרות מספרים",
+      "חידות היגיון ומשפחה",
+      "סילוגיזם ולוגיקה מילולית",
+      "חשיבה גיאומטרית",
+      "ספירה וצירופים (קומבינטוריקה)",
+      "פעולות מומצאות",
+      "חשיבה צורנית"
+    ],
+    "sections": [
+      {
+        "id": "math-knowledge",
+        "name_he": "ידע מתמטי",
+        "questions": [
+          {
+            "id": "q1",
+            "number": 1,
+            "topic": "order_of_operations",
+            "topic_he": "סדר פעולות חשבון",
+            "question_he": "חשבו: 6 + 3 × (8 − 5) − 4 = ?",
+            "options": [
+              { "label": "א", "text": "11" },
+              { "label": "ב", "text": "13" },
+              { "label": "ג", "text": "17" },
+              { "label": "ד", "text": "5" }
+            ],
+            "correct_answer": "א",
+            "explanation_he": "לפי סדר פעולות חשבון - קודם סוגריים: (8−5)=3. אחר כך כפל: 3×3=9. ולבסוף משמאל לימין: 6+9−4=11."
+          },
+          {
+            "id": "q2",
+            "number": 2,
+            "topic": "fractions_simple",
+            "topic_he": "שברים פשוטים",
+            "question_he": "מה התוצאה של 3/4 + 2/3?",
+            "options": [
+              { "label": "א", "text": "5/7" },
+              { "label": "ב", "text": "5/12" },
+              { "label": "ג", "text": "1 5/12" },
+              { "label": "ד", "text": "11/12" }
+            ],
+            "correct_answer": "ג",
+            "explanation_he": "מכנה משותף 12: 9/12 + 8/12 = 17/12 = 1 5/12."
+          },
+          {
+            "id": "q3",
+            "number": 3,
+            "topic": "fractions_decimal",
+            "topic_he": "שברים עשרוניים",
+            "question_he": "חשבו: 0.6 + 0.45 − 0.25 = ?",
+            "options": [
+              { "label": "א", "text": "0.7" },
+              { "label": "ב", "text": "0.8" },
+              { "label": "ג", "text": "1.1" },
+              { "label": "ד", "text": "0.5" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "0.6 + 0.45 = 1.05. 1.05 − 0.25 = 0.8."
+          },
+          {
+            "id": "q4",
+            "number": 4,
+            "topic": "signed_numbers",
+            "topic_he": "מספרים מכוונים וערך מוחלט",
+            "question_he": "חשבו: −5 + 3 − (−2) = ?",
+            "options": [
+              { "label": "א", "text": "−4" },
+              { "label": "ב", "text": "−10" },
+              { "label": "ג", "text": "0" },
+              { "label": "ד", "text": "−6" }
+            ],
+            "correct_answer": "ג",
+            "explanation_he": "−5 + 3 = −2. וגם −(−2) = +2. אז −2 + 2 = 0."
+          },
+          {
+            "id": "q5",
+            "number": 5,
+            "topic": "percentages",
+            "topic_he": "אחוזים",
+            "question_he": "בכיתה 30 תלמידים. 40% מהם בנות. כמה בנים בכיתה?",
+            "options": [
+              { "label": "א", "text": "12" },
+              { "label": "ב", "text": "18" },
+              { "label": "ג", "text": "20" },
+              { "label": "ד", "text": "15" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "40% בנות = 12 בנות. 30 − 12 = 18 בנים."
+          },
+          {
+            "id": "q6",
+            "number": 6,
+            "topic": "percentages",
+            "topic_he": "אחוזים - בעיה מילולית",
+            "question_he": "חולצה עלתה 200 ש\"ח. במבצע הורידו 25%. כמה עולה החולצה במבצע?",
+            "options": [
+              { "label": "א", "text": "150 ש\"ח" },
+              { "label": "ב", "text": "175 ש\"ח" },
+              { "label": "ג", "text": "160 ש\"ח" },
+              { "label": "ד", "text": "125 ש\"ח" }
+            ],
+            "correct_answer": "א",
+            "explanation_he": "25% מ-200 = 50 ש\"ח הנחה. 200 − 50 = 150."
+          },
+          {
+            "id": "q7",
+            "number": 7,
+            "topic": "algebraic_expressions",
+            "topic_he": "ביטויים אלגבריים - הצבה",
+            "question_he": "נתון a = 12 ו-b = 4. מה ערך הביטוי a/b + 2b?",
+            "options": [
+              { "label": "א", "text": "11" },
+              { "label": "ב", "text": "10" },
+              { "label": "ג", "text": "16" },
+              { "label": "ד", "text": "20" }
+            ],
+            "correct_answer": "א",
+            "explanation_he": "a/b = 12/4 = 3. ועוד 2b = 2×4 = 8. סה\"כ: 3+8 = 11."
+          },
+          {
+            "id": "q8",
+            "number": 8,
+            "topic": "algebraic_expressions",
+            "topic_he": "ביטויים אלגבריים - פישוט",
+            "question_he": "פשטו את הביטוי: (3a + 6b) / 3",
+            "options": [
+              { "label": "א", "text": "a + 2b" },
+              { "label": "ב", "text": "a + 6b" },
+              { "label": "ג", "text": "3a + 2b" },
+              { "label": "ד", "text": "a + b" }
+            ],
+            "correct_answer": "א",
+            "explanation_he": "מחלקים כל איבר ב-3: 3a/3 = a, ו-6b/3 = 2b. התוצאה: a + 2b."
+          },
+          {
+            "id": "q9",
+            "number": 9,
+            "topic": "algebraic_expressions",
+            "topic_he": "ביטויים אלגבריים - הצבה עם חזקה",
+            "question_he": "אם x = 5, מהו הערך של הביטוי 2x² − 3x + 1?",
+            "options": [
+              { "label": "א", "text": "26" },
+              { "label": "ב", "text": "36" },
+              { "label": "ג", "text": "46" },
+              { "label": "ד", "text": "16" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "2×5² = 2×25 = 50. 3×5 = 15. 50 − 15 + 1 = 36."
+          },
+          {
+            "id": "q10",
+            "number": 10,
+            "topic": "algebraic_expressions",
+            "topic_he": "ביטויים אלגבריים - חישוב הפוך",
+            "question_he": "אם a/b = 3 וגם b = 4, מהו a + b?",
+            "options": [
+              { "label": "א", "text": "7" },
+              { "label": "ב", "text": "12" },
+              { "label": "ג", "text": "16" },
+              { "label": "ד", "text": "8" }
+            ],
+            "correct_answer": "ג",
+            "explanation_he": "a/b = 3 ו-b = 4 → a = 3 × 4 = 12. a + b = 12 + 4 = 16."
+          },
+          {
+            "id": "q11",
+            "number": 11,
+            "topic": "algebraic_expressions",
+            "topic_he": "ביטויים אלגבריים - קבוצת הצבה",
+            "question_he": "בביטוי (a+5)/b, איזה ערך אסור להציב במקום b?",
+            "options": [
+              { "label": "א", "text": "1" },
+              { "label": "ב", "text": "−5" },
+              { "label": "ג", "text": "0" },
+              { "label": "ד", "text": "5" }
+            ],
+            "correct_answer": "ג",
+            "explanation_he": "אסור לחלק באפס. לכן b לא יכול להיות 0. כל ערך אחר מותר. זוהי 'קבוצת ההצבה' - הערכים המותרים."
+          },
+          {
+            "id": "q12",
+            "number": 12,
+            "topic": "estimations",
+            "topic_he": "אומדנים",
+            "question_he": "איזה מספר הכי קרוב לתוצאה של 198 × 51?",
+            "options": [
+              { "label": "א", "text": "1,000" },
+              { "label": "ב", "text": "10,000" },
+              { "label": "ג", "text": "100,000" },
+              { "label": "ד", "text": "5,000" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "אומדן: 198 ≈ 200, ו-51 ≈ 50. 200 × 50 = 10,000. (התוצאה המדויקת: 10,098)."
+          },
+          {
+            "id": "q13",
+            "number": 13,
+            "topic": "geometry_area",
+            "topic_he": "הנדסה - שטח מלבן",
+            "question_he": "במלבן האורך גדול פי 3 מהרוחב. אם הרוחב הוא 4 ס\"מ, מהו שטח המלבן?",
+            "options": [
+              { "label": "א", "text": "12 סמ\"ר" },
+              { "label": "ב", "text": "16 סמ\"ר" },
+              { "label": "ג", "text": "32 סמ\"ר" },
+              { "label": "ד", "text": "48 סמ\"ר" }
+            ],
+            "correct_answer": "ד",
+            "explanation_he": "רוחב 4, אורך 3×4=12. שטח = 4×12 = 48."
+          },
+          {
+            "id": "q14",
+            "number": 14,
+            "topic": "geometry_triangle",
+            "topic_he": "הנדסה - שטח משולש",
+            "question_he": "במשולש: בסיס באורך 10 ס\"מ, וגובה לבסיס באורך 6 ס\"מ. מהו שטח המשולש?",
+            "options": [
+              { "label": "א", "text": "16 סמ\"ר" },
+              { "label": "ב", "text": "60 סמ\"ר" },
+              { "label": "ג", "text": "30 סמ\"ר" },
+              { "label": "ד", "text": "120 סמ\"ר" }
+            ],
+            "correct_answer": "ג",
+            "explanation_he": "שטח משולש = (בסיס × גובה) / 2 = (10 × 6) / 2 = 60/2 = 30."
+          },
+          {
+            "id": "q15",
+            "number": 15,
+            "topic": "solid_geometry",
+            "topic_he": "הנדסת המרחב - נפח קובייה",
+            "question_he": "מהו נפח קובייה שאורך מקצועה הוא 5 ס\"מ?",
+            "options": [
+              { "label": "א", "text": "15 סמ\"ק" },
+              { "label": "ב", "text": "25 סמ\"ק" },
+              { "label": "ג", "text": "75 סמ\"ק" },
+              { "label": "ד", "text": "125 סמ\"ק" }
+            ],
+            "correct_answer": "ד",
+            "explanation_he": "נפח קובייה = מקצוע³ = 5³ = 5×5×5 = 125."
+          }
+        ]
+      },
+      {
+        "id": "logical-thinking",
+        "name_he": "חשיבה מתמטית-לוגית",
+        "questions": [
+          {
+            "id": "q16",
+            "number": 16,
+            "topic": "statistics_average",
+            "topic_he": "סטטיסטיקה - ממוצע",
+            "question_he": "ציוני דנה ב-4 מבחנים: 80, 90, 70, 100. מהו ממוצע הציונים?",
+            "options": [
+              { "label": "א", "text": "82.5" },
+              { "label": "ב", "text": "85" },
+              { "label": "ג", "text": "87.5" },
+              { "label": "ד", "text": "90" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "(80+90+70+100) / 4 = 340/4 = 85."
+          },
+          {
+            "id": "q17",
+            "number": 17,
+            "topic": "statistics_graph",
+            "topic_he": "סטטיסטיקה - קריאת גרף",
+            "question_he": "בגרף עמודות מוצגות מכירות לפי חודשים: ינואר 50, פברואר 70, מרץ 40, אפריל 60. מה ההפרש בין החודש עם המכירות הגבוהות ביותר לחודש עם הנמוכות ביותר?",
+            "options": [
+              { "label": "א", "text": "20" },
+              { "label": "ב", "text": "30" },
+              { "label": "ג", "text": "10" },
+              { "label": "ד", "text": "70" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "הגבוה ביותר: פברואר 70. הנמוך ביותר: מרץ 40. ההפרש: 70 − 40 = 30."
+          },
+          {
+            "id": "q18",
+            "number": 18,
+            "topic": "ratio",
+            "topic_he": "יחס ופרופורציה",
+            "question_he": "בסל פירות יש 12 תפוחים ו-18 אגסים. מה היחס תפוחים:אגסים בצורה מצומצמת?",
+            "options": [
+              { "label": "א", "text": "12:18" },
+              { "label": "ב", "text": "1:2" },
+              { "label": "ג", "text": "2:3" },
+              { "label": "ד", "text": "3:2" }
+            ],
+            "correct_answer": "ג",
+            "explanation_he": "12:18. מחלקים את שני הצדדים ב-6: 2:3."
+          },
+          {
+            "id": "q19",
+            "number": 19,
+            "topic": "word_problem_speed",
+            "topic_he": "בעיה מילולית - דרך/זמן/מהירות",
+            "question_he": "מכונית נסעה במהירות קבועה של 80 קמ\"ש במשך 2.5 שעות. כמה ק\"מ עברה?",
+            "options": [
+              { "label": "א", "text": "160 ק\"מ" },
+              { "label": "ב", "text": "200 ק\"מ" },
+              { "label": "ג", "text": "180 ק\"מ" },
+              { "label": "ד", "text": "240 ק\"מ" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "דרך = מהירות × זמן = 80 × 2.5 = 200."
+          },
+          {
+            "id": "q20",
+            "number": 20,
+            "topic": "word_problem_complex",
+            "topic_he": "בעיה מילולית מורכבת",
+            "question_he": "ביום מסוים בחנות עבדו 3 מוכרות. שירה מכרה פי 2 ממיכל. ליאת מכרה 10 פריטים יותר ממיכל. בסך הכל מכרו 90 פריטים. כמה מכרה מיכל?",
+            "options": [
+              { "label": "א", "text": "15" },
+              { "label": "ב", "text": "20" },
+              { "label": "ג", "text": "25" },
+              { "label": "ד", "text": "30" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "מיכל = x. שירה = 2x. ליאת = x+10. סה\"כ: x+2x+(x+10) = 4x+10 = 90 → 4x = 80 → x = 20."
+          },
+          {
+            "id": "q21",
+            "number": 21,
+            "topic": "sequences",
+            "topic_he": "סדרות מספרים",
+            "question_he": "איזה מספר משלים את הסדרה: 2, 6, 12, 20, 30, ?",
+            "options": [
+              { "label": "א", "text": "40" },
+              { "label": "ב", "text": "42" },
+              { "label": "ג", "text": "36" },
+              { "label": "ד", "text": "44" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "ההפרשים בסדרה הם 4, 6, 8, 10, 12... כל פעם גדל ב-2. 30+12=42."
+          },
+          {
+            "id": "q22",
+            "number": 22,
+            "topic": "sequences",
+            "topic_he": "סדרת ריבועים",
+            "question_he": "מה המספר הבא בסדרה: 1, 4, 9, 16, 25, ?",
+            "options": [
+              { "label": "א", "text": "30" },
+              { "label": "ב", "text": "32" },
+              { "label": "ג", "text": "36" },
+              { "label": "ד", "text": "49" }
+            ],
+            "correct_answer": "ג",
+            "explanation_he": "אלו ריבועים: 1², 2², 3², 4², 5², 6² = 36."
+          },
+          {
+            "id": "q23",
+            "number": 23,
+            "topic": "logic_family",
+            "topic_he": "חידת היגיון - משפחה",
+            "question_he": "במשפחת יוסף לכל בן מספר אחים שווה למספר אחיות. לכל בת יש פי 2 אחים מאחיות. כמה בנים וכמה בנות במשפחת יוסף?",
+            "options": [
+              { "label": "א", "text": "3 בנים ו-2 בנות" },
+              { "label": "ב", "text": "4 בנים ו-3 בנות" },
+              { "label": "ג", "text": "2 בנים ו-3 בנות" },
+              { "label": "ד", "text": "5 בנים ו-4 בנות" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "ב=מספר בנים, ת=מספר בנות. לכל בן: ב−1 אחים = ת אחיות → ב=ת+1. לכל בת: ב אחים = 2(ת−1). מציבים: ת+1=2ת−2 → ת=3, ב=4."
+          },
+          {
+            "id": "q24",
+            "number": 24,
+            "topic": "symbols_equations",
+            "topic_he": "דמויות = מספרים",
+            "question_he": "אם △ + △ = 10, ו-△ + ○ = 8, מהו הערך של ○?",
+            "options": [
+              { "label": "א", "text": "2" },
+              { "label": "ב", "text": "3" },
+              { "label": "ג", "text": "4" },
+              { "label": "ד", "text": "5" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "△ = 5 (כי 5+5=10). אז △ + ○ = 8 → ○ = 3."
+          },
+          {
+            "id": "q25",
+            "number": 25,
+            "topic": "counting",
+            "topic_he": "ספירה",
+            "question_he": "כמה פעמים מופיעה הספרה 7 במספרים מ-1 עד 100?",
+            "options": [
+              { "label": "א", "text": "10" },
+              { "label": "ב", "text": "11" },
+              { "label": "ג", "text": "19" },
+              { "label": "ד", "text": "20" }
+            ],
+            "correct_answer": "ד",
+            "explanation_he": "כספרת אחדות (7,17,27,...,97): 10 פעמים. כספרת עשרות (70-79): 10 פעמים. סה\"כ 20 (המספר 77 כולל שתיהן)."
+          },
+          {
+            "id": "q26",
+            "number": 26,
+            "topic": "syllogism",
+            "topic_he": "סילוגיזם ולוגיקה",
+            "question_he": "אם כל הברווזים הם ציפורים, וכל הציפורים יודעות לעוף - איזה מהמשפטים בהכרח נכון?",
+            "options": [
+              { "label": "א", "text": "כל מי שיודע לעוף הוא ברווז" },
+              { "label": "ב", "text": "כל הברווזים יודעים לעוף" },
+              { "label": "ג", "text": "רק ברווזים יודעים לעוף" },
+              { "label": "ד", "text": "כל הציפורים הן ברווזים" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "ברווזים → ציפורים → יודעים לעוף. לכן ברווזים → יודעים לעוף."
+          },
+          {
+            "id": "q27",
+            "number": 27,
+            "topic": "geometric_reasoning",
+            "topic_he": "חשיבה גיאומטרית",
+            "question_he": "ריבוע גדול מורכב מ-9 ריבועים קטנים זהים (3×3). אם שטח הריבוע הגדול הוא 81 סמ\"ר, מה היקף ריבוע קטן אחד?",
+            "options": [
+              { "label": "א", "text": "9 ס\"מ" },
+              { "label": "ב", "text": "12 ס\"מ" },
+              { "label": "ג", "text": "16 ס\"מ" },
+              { "label": "ד", "text": "36 ס\"מ" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "שטח ריבוע גדול 81 → צלע 9. כל ריבוע קטן בעל צלע 9/3=3. היקף ריבוע קטן: 4×3=12."
+          },
+          {
+            "id": "q28",
+            "number": 28,
+            "topic": "combinatorics",
+            "topic_he": "צירופים (קומבינטוריקה)",
+            "question_he": "ליואב יש 3 חולצות (אדומה, כחולה, צהובה) ו-2 מכנסיים (שחורים, אפורים). כמה צירופים שונים של לבוש הוא יכול ליצור?",
+            "options": [
+              { "label": "א", "text": "5" },
+              { "label": "ב", "text": "6" },
+              { "label": "ג", "text": "8" },
+              { "label": "ד", "text": "9" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "לכל חולצה אפשר לבחור בין 2 מכנסיים. 3 חולצות × 2 מכנסיים = 6 צירופים."
+          },
+          {
+            "id": "q29",
+            "number": 29,
+            "topic": "invented_operation",
+            "topic_he": "פעולה מומצאת",
+            "question_he": "נגדיר פעולה חדשה: a@b = 2a + b. מהו הערך של 3@4?",
+            "options": [
+              { "label": "א", "text": "7" },
+              { "label": "ב", "text": "10" },
+              { "label": "ג", "text": "11" },
+              { "label": "ד", "text": "14" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "מציבים בנוסחה: 3@4 = 2×3 + 4 = 6 + 4 = 10."
+          },
+          {
+            "id": "q30",
+            "number": 30,
+            "topic": "sum_difference",
+            "topic_he": "סכום והפרש",
+            "question_he": "סכום של שני מספרים הוא 24, וההפרש שלהם הוא 6. מהו המספר הגדול?",
+            "options": [
+              { "label": "א", "text": "12" },
+              { "label": "ב", "text": "15" },
+              { "label": "ג", "text": "18" },
+              { "label": "ד", "text": "9" }
+            ],
+            "correct_answer": "ב",
+            "explanation_he": "המספר הגדול = (סכום + הפרש)/2 = (24+6)/2 = 15. המספר הקטן = (24−6)/2 = 9. בדיקה: 15+9=24 ✓, 15−9=6 ✓."
+          }
+        ]
+      }
+    ]
+  }
+}

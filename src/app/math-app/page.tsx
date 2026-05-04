@@ -22,6 +22,24 @@ export default function MathAppGate() {
         {/* Selection cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
+          {/* Bar-Ilan simulation card — full width */}
+          <Link
+            href="/math-app/bar-ilan"
+            className="group col-span-1 sm:col-span-2 rounded-3xl border border-brand-200 bg-gradient-to-l from-brand-50 to-white p-7 text-right flex items-center gap-5 shadow-sm hover:border-brand-400 hover:shadow-md transition-all duration-200"
+          >
+            <span className="text-5xl select-none shrink-0">🎓</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-lg font-extrabold text-slate-800 mb-0.5">סימולציית מבחן בר-אילן</p>
+              <p className="text-sm font-bold text-brand-600 mb-1.5">כיתה ה׳ → ו׳ · נוער מוכשר במתמטיקה</p>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                24 שאלות · 60 דקות · מאגר 30 שאלות עם הסברים מפורטים
+              </p>
+            </div>
+            <span className="text-xs text-brand-400 group-hover:text-brand-600 transition-colors font-semibold shrink-0 tracking-wide">
+              כניסה ←
+            </span>
+          </Link>
+
           {/* Junior card */}
           <Link
             href="/math-app/junior"
