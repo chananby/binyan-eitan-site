@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Delete } from "lucide-react";
 
@@ -32,6 +32,7 @@ export default function PinGate({ children, lang = "he" }: { children: React.Rea
   const [shaking, setShaking]     = useState(false);
   const [errored, setErrored]     = useState(false);
   const [checking, setChecking]   = useState(false);
+  const verifyingRef = useRef(false);
 
   // Check sessionStorage on mount
   useEffect(() => {
@@ -66,9 +67,13 @@ export default function PinGate({ children, lang = "he" }: { children: React.Rea
   }, []);
 
   // Trigger verify when the last digit is entered — kept outside the setDigits updater
-  // to avoid calling setState/router from inside a state updater function.
+  // to avoid calling setState from inside a state updater function.
+  // verifyingRef guards the narrow render-commit window where checking state
+  // hasn't propagated to disable inputs yet.
   useEffect(() => {
-    if (digits.length === PIN_LENGTH) verify(digits.join(""));
+    if (digits.length !== PIN_LENGTH || verifyingRef.current) return;
+    verifyingRef.current = true;
+    verify(digits.join("")).finally(() => { verifyingRef.current = false; });
   }, [digits, verify]);
 
   const press = useCallback((d: string) => {
