@@ -3,8 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
-  AlertCircle, ExternalLink, Loader2, Search,
-  ShieldCheck, Wrench, X,
+  AlertCircle, ChevronDown, ChevronUp, ExternalLink, Loader2,
+  Pencil, Search, ShieldCheck, Wrench, X,
 } from "lucide-react";
 import type { UIRoute, APIRoute } from "../../../lib/discover-routes";
 import type { ExternalLinkGroup } from "../../../data/external-links";
@@ -88,46 +88,83 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
 }
 
 // ── Quick-access config ───────────────────────────────────────────────────────
-const QUICK_LINKS = [
-  { label: "לוח בקרה",       url: "/admin/cockpit",                   ext: false, desc: "משימות · פרויקטים · צוות" },
-  { label: "עורך תוכן",      url: "/internal/content-editor",         ext: false, desc: "תרגומים · מאמרים · פרויקטים" },
-  { label: "דשבורד ניהולי",  url: "/he/internal/admin/dashboard",     ext: false, desc: "מעקב שוטף · דוחות" },
-  { label: "Vercel",         url: "https://vercel.com/dashboard",     ext: true,  desc: "פריסות · סטטוס" },
-  { label: "Supabase",       url: "https://supabase.com/dashboard",   ext: true,  desc: "מסד נתונים · טבלאות" },
-  { label: "GitHub",         url: "https://github.com/chananby/binyan-eitan-site", ext: true, desc: "קוד מקור · commits" },
-] as const;
+const QUICK_LINKS: { label: string; url: string; ext: boolean; desc: string }[] = [
+  { label: "נוכחות עובדים",            url: "/he/internal/attendance",        ext: false, desc: "מעקב נוכחות יומי" },
+  { label: "צ׳ק-אין עובד",             url: "/attendance",                    ext: false, desc: "כניסה ויציאה עובדים" },
+  { label: "ניהול משימות פנים ארגוני", url: "https://admin.binyaneitan.com",  ext: true,  desc: "מערכת המשימות הפנים ארגונית" },
+  { label: "לוח בקרה",                 url: "/admin/cockpit",                 ext: false, desc: "משימות · פרויקטים · צוות" },
+  { label: "דשבורד ניהולי",            url: "/he/internal/admin/dashboard",   ext: false, desc: "מעקב שוטף · דוחות" },
+  { label: "Google Analytics",         url: "https://analytics.google.com",   ext: true,  desc: "GA4 — G-1CWQG6YY4H" },
+  { label: "עורך תוכן",               url: "/internal/content-editor",       ext: false, desc: "תרגומים · מאמרים · פרויקטים" },
+];
 
-function QuickCard({ item }: { item: typeof QUICK_LINKS[number] }) {
+const QUICK_STORAGE_KEY = "hub_quick_order";
+
+function QuickCard({
+  item, editMode, isFirst, isLast, onUp, onDown,
+}: {
+  item: typeof QUICK_LINKS[number];
+  editMode: boolean;
+  isFirst: boolean;
+  isLast: boolean;
+  onUp: () => void;
+  onDown: () => void;
+}) {
   const inner = (
-    <div className="flex flex-col gap-1 px-4 py-4 border-2 border-[#E0DFD9] bg-white
-      hover:border-[#8D775F] hover:shadow-md transition-all group rounded-xl h-full">
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-[0.88rem] font-bold text-[#2D2926] group-hover:text-[#8D775F] transition-colors leading-snug">
+    <div className={`relative flex flex-col gap-1 px-4 py-4 border-2 bg-white rounded-xl h-full transition-all group
+      ${editMode
+        ? "border-[#8D775F]/30 cursor-default select-none"
+        : "border-[#E0DFD9] hover:border-[#8D775F] hover:shadow-md"}`}>
+      {editMode && (
+        <div className="absolute top-1.5 left-1.5 flex gap-0.5" dir="ltr">
+          <button onClick={e => { e.preventDefault(); onUp(); }}
+            disabled={isFirst}
+            className="w-6 h-6 flex items-center justify-center rounded text-[#2D2926]/40
+              hover:text-[#8D775F] hover:bg-[#8D775F]/10 disabled:opacity-20 disabled:cursor-not-allowed transition-colors">
+            <ChevronUp size={14} />
+          </button>
+          <button onClick={e => { e.preventDefault(); onDown(); }}
+            disabled={isLast}
+            className="w-6 h-6 flex items-center justify-center rounded text-[#2D2926]/40
+              hover:text-[#8D775F] hover:bg-[#8D775F]/10 disabled:opacity-20 disabled:cursor-not-allowed transition-colors">
+            <ChevronDown size={14} />
+          </button>
+        </div>
+      )}
+      <div className={`flex items-start justify-between gap-2 ${editMode ? "pt-5" : ""}`}>
+        <p className={`text-[0.88rem] font-bold leading-snug transition-colors
+          ${editMode ? "text-[#2D2926]/70" : "text-[#2D2926] group-hover:text-[#8D775F]"}`}>
           {item.label}
         </p>
-        {item.ext && <ExternalLink size={13} className="shrink-0 mt-0.5 text-[#2D2926]/20 group-hover:text-[#8D775F]/60 transition-colors" />}
+        {item.ext && !editMode && (
+          <ExternalLink size={13} className="shrink-0 mt-0.5 text-[#2D2926]/20 group-hover:text-[#8D775F]/60 transition-colors" />
+        )}
       </div>
       <p className="text-[0.65rem] text-[#2D2926]/40 leading-snug">{item.desc}</p>
     </div>
   );
+  if (editMode) return <div>{inner}</div>;
   return item.ext
     ? <a href={item.url} target="_blank" rel="noopener noreferrer" className="block">{inner}</a>
     : <Link href={item.url} className="block">{inner}</Link>;
 }
 
 // ── Method badge ──────────────────────────────────────────────────────────────
-const METHOD_COLORS: Record<string, string> = {
-  GET:    "bg-green-50 text-green-700 border border-green-200",
-  POST:   "bg-blue-50 text-blue-700 border border-blue-200",
-  PUT:    "bg-orange-50 text-orange-700 border border-orange-200",
-  DELETE: "bg-red-50 text-red-700 border border-red-200",
-  PATCH:  "bg-purple-50 text-purple-700 border border-purple-200",
+const METHOD_META: Record<string, { color: string; he: string }> = {
+  GET:    { color: "bg-green-50 text-green-700 border border-green-200",   he: "קריאה" },
+  POST:   { color: "bg-blue-50 text-blue-700 border border-blue-200",     he: "יצירה" },
+  PUT:    { color: "bg-orange-50 text-orange-700 border border-orange-200", he: "עדכון" },
+  DELETE: { color: "bg-red-50 text-red-700 border border-red-200",        he: "מחיקה" },
+  PATCH:  { color: "bg-purple-50 text-purple-700 border border-purple-200", he: "תיקון" },
 };
 
 function MethodBadge({ method }: { method: string }) {
+  const meta = METHOD_META[method];
   return (
-    <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded ${METHOD_COLORS[method] ?? "bg-[#2D2926]/5 text-[#2D2926]/40"}`}>
+    <span className={`inline-flex items-center gap-1 text-[0.55rem] font-bold px-1.5 py-0.5 rounded
+      ${meta?.color ?? "bg-[#2D2926]/5 text-[#2D2926]/40"}`}>
       {method}
+      {meta && <span className="opacity-70 font-normal">· {meta.he}</span>}
     </span>
   );
 }
@@ -183,17 +220,19 @@ function APICard({ route }: { route: APIRoute }) {
 }
 
 // ── Section / Category labels ─────────────────────────────────────────────────
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <p className="text-[0.58rem] font-bold tracking-[0.22em] uppercase text-[#8D775F] mb-3">
-      {children}
-    </p>
+    <div className="flex items-center gap-3 mb-4">
+      <h2 className="text-[0.95rem] font-bold text-[#2D2926] shrink-0">{children}</h2>
+      <div className="flex-1 h-px bg-[#E0DFD9]" />
+      {action && <div className="shrink-0">{action}</div>}
+    </div>
   );
 }
 
 function CategoryLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[0.6rem] font-semibold text-[#2D2926]/40 tracking-wider uppercase mb-2 px-0.5">
+    <p className="text-[0.7rem] font-bold text-[#8D775F] uppercase tracking-wider mb-2 px-0.5">
       {children}
     </p>
   );
@@ -224,6 +263,10 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
   const [checking, setChecking] = useState(true);
   const [query, setQuery]       = useState("");
   const [showApi, setShowApi]   = useState(false);
+  const [editQuick, setEditQuick] = useState(false);
+  const [quickOrder, setQuickOrder] = useState<number[]>(() =>
+    Array.from({ length: QUICK_LINKS.length }, (_, i) => i)
+  );
 
   // Check existing auth cookie
   useEffect(() => {
@@ -234,12 +277,27 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
       .finally(() => setChecking(false));
   }, []);
 
-  // Load API toggle from localStorage
+  // Load API toggle + quick order from localStorage
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setShowApi(localStorage.getItem("hub_show_api") === "true");
+    setShowApi(localStorage.getItem("hub_show_api") === "true");
+    const saved = localStorage.getItem(QUICK_STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed: number[] = JSON.parse(saved);
+        if (
+          parsed.length === QUICK_LINKS.length &&
+          parsed.every((n, _, a) => a.indexOf(n) === a.lastIndexOf(n) && n >= 0 && n < QUICK_LINKS.length)
+        ) setQuickOrder(parsed);
+      } catch { /* ignore */ }
     }
   }, []);
+
+  const moveQuick = (idx: number, dir: 1 | -1) => {
+    const next = [...quickOrder];
+    [next[idx], next[idx + dir]] = [next[idx + dir], next[idx]];
+    setQuickOrder(next);
+    localStorage.setItem(QUICK_STORAGE_KEY, JSON.stringify(next));
+  };
 
   const handleApiToggle = (val: boolean) => {
     setShowApi(val);
@@ -296,7 +354,7 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
               <h1 className="text-[0.95rem] font-bold text-[#2D2926] leading-none mt-0.5">מרכז שליטה</h1>
             </div>
             <div className="flex items-center gap-4">
-              <Toggle on={showApi} onToggle={handleApiToggle} label="נקודות API" />
+              <Toggle on={showApi} onToggle={handleApiToggle} label="ממשקים" />
               <div className="flex items-center gap-1.5">
                 <span className="text-[0.62rem] text-[#2D2926]/40">{author === "Hanan" ? "חנן" : "מוטי"}</span>
                 <ShieldCheck size={12} strokeWidth={1.5} className="text-[#8D775F]/50" />
@@ -333,9 +391,29 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
         {/* Quick access */}
         {!query && (
           <section>
-            <SectionLabel>גישה מהירה</SectionLabel>
+            <SectionLabel action={
+              <button
+                onClick={() => setEditQuick(v => !v)}
+                className={`flex items-center gap-1 text-[0.6rem] font-medium px-2.5 py-1 rounded-full transition-colors
+                  ${editQuick
+                    ? "bg-[#8D775F] text-white"
+                    : "text-[#2D2926]/40 hover:text-[#8D775F] hover:bg-[#8D775F]/10"}`}>
+                <Pencil size={10} />
+                {editQuick ? "סיום" : "סדר"}
+              </button>
+            }>גישה מהירה</SectionLabel>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {QUICK_LINKS.map(item => <QuickCard key={item.url} item={item} />)}
+              {quickOrder.map((linkIdx, orderIdx) => (
+                <QuickCard
+                  key={QUICK_LINKS[linkIdx].url}
+                  item={QUICK_LINKS[linkIdx]}
+                  editMode={editQuick}
+                  isFirst={orderIdx === 0}
+                  isLast={orderIdx === quickOrder.length - 1}
+                  onUp={() => moveQuick(orderIdx, -1)}
+                  onDown={() => moveQuick(orderIdx, 1)}
+                />
+              ))}
             </div>
           </section>
         )}
@@ -383,7 +461,7 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
         {/* API Endpoints (toggle) */}
         {showApi && (
           <section>
-            <SectionLabel>נקודות קצה API {apiRoutes.length > 0 && `(${apiRoutes.length})`}</SectionLabel>
+            <SectionLabel>ממשקים {apiRoutes.length > 0 && `(${apiRoutes.length})`}</SectionLabel>
             {hasApiResults ? (
               <div className="space-y-5">
                 {Object.entries(apiGroups).map(([cat, routes]) => (
@@ -397,14 +475,14 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
               </div>
             ) : (
               <p className="text-[#2D2926]/30 text-sm py-3">
-                {q ? "אין תוצאות" : "לא נמצאו נקודות קצה"}
+                {q ? "אין תוצאות" : "לא נמצאו ממשקים"}
               </p>
             )}
           </section>
         )}
 
         <p className="text-center text-[0.55rem] text-[#2D2926]/20 pt-2 pb-6">
-          /admin/hub · {uiRoutes.length} כלים · {apiRoutes.length} נקודות קצה
+          /admin/hub · {uiRoutes.length} כלים · {apiRoutes.length} ממשקים
         </p>
       </div>
     </div>
