@@ -11,7 +11,7 @@ import {
   LogIn, Building2, Package, BarChart2, LayoutDashboard, Hammer,
   ClipboardList, UserPlus, RefreshCw, Pencil, Loader2, Activity,
   AlertCircle, AlertTriangle, TrendingUp, DollarSign, Target, CheckSquare2,
-  Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag, Grid3x3, Download,
+  Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag, Grid3x3, Download, Plus,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -96,6 +96,15 @@ const STATUS_CLS: Record<string, string> = {
   completed:   "bg-green-50 text-green-700",
 };
 const DAYS_HE = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+
+type ManualType = "regular" | "overtime" | "vacation" | "sick" | "other";
+const MANUAL_TYPES: { key: ManualType; label: string; needsTimes: boolean }[] = [
+  { key: "regular",  label: "יום עבודה רגיל", needsTimes: true  },
+  { key: "overtime", label: "שעות נוספות",    needsTimes: true  },
+  { key: "vacation", label: "חופש",           needsTimes: false },
+  { key: "sick",     label: "מחלה",           needsTimes: false },
+  { key: "other",    label: "אחר",            needsTimes: false },
+];
 
 function getWeekDays(): { date: string; label: string; short: string }[] {
   const today     = new Date();
@@ -324,6 +333,19 @@ ${detailHtml}
   const [editAttLoading,   setEditAttLoading]   = useState(false);
   const [editAttMsg,       setEditAttMsg]        = useState("");
   const [editAttIsPending, setEditAttIsPending] = useState(false);
+
+  // Manual attendance entry (admin creates on behalf of worker)
+  const [manualOpen,      setManualOpen]      = useState(false);
+  const [manualStaffId,   setManualStaffId]   = useState("");
+  const [manualDate,      setManualDate]      = useState("");
+  const [manualType,      setManualType]      = useState<ManualType>("regular");
+  const [manualEntryTime, setManualEntryTime] = useState("");
+  const [manualExitTime,  setManualExitTime]  = useState("");
+  const [manualProject,   setManualProject]   = useState("");
+  const [manualNotes,     setManualNotes]     = useState("");
+  const [manualLoading,   setManualLoading]   = useState(false);
+  const [manualMsg,       setManualMsg]       = useState<string | null>(null);
+  const [manualErr,       setManualErr]       = useState<string | null>(null);
 
   // Pending approvals
   const [pendingRecords,   setPendingRecords]   = useState<AttendanceRecord[]>([]);
@@ -766,6 +788,36 @@ ${detailHtml}
       else        { setEditAttMsg("שגיאה: " + (data.error ?? res.status)); }
     } catch (err) { setEditAttMsg("שגיאת רשת: " + String(err)); }
     finally { setEditAttLoading(false); }
+  }
+
+  // ── Admin manual attendance entry ──────────────────────────────────────────
+  async function handleManualEntry(e: React.FormEvent) {
+    e.preventDefault(); setManualLoading(true); setManualErr(null); setManualMsg(null);
+    try {
+      const res = await fetch("/api/admin/attendance/manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          staff_id:   manualStaffId,
+          date:       manualDate,
+          type:       manualType,
+          entry_time: manualEntryTime || undefined,
+          exit_time:  manualExitTime  || undefined,
+          project_id: manualProject   || undefined,
+          notes:      manualNotes     || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const count = data.created === 2 ? "2 רשומות (כניסה + יציאה)" : "רשומה אחת";
+        setManualMsg(`נוסף בהצלחה ✓ — ${count}`);
+        setManualOpen(false);
+        setManualStaffId(""); setManualDate(""); setManualType("regular");
+        setManualEntryTime(""); setManualExitTime(""); setManualProject(""); setManualNotes("");
+        reload();
+      } else { setManualErr("שגיאה: " + (data.error ?? res.status)); }
+    } catch (err) { setManualErr("שגיאת רשת: " + String(err)); }
+    finally { setManualLoading(false); }
   }
 
   // ── Income CRUD ────────────────────────────────────────────────────────────
@@ -1369,6 +1421,114 @@ ${detailHtml}
                 </div>
               );
             })()}
+
+            {/* ── Manual entry button + success message ──────────────────── */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {manualMsg && !manualOpen && (
+                  <span className="text-xs text-green-600 flex items-center gap-1">
+                    {manualMsg}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => { setManualOpen(v => !v); setManualErr(null); setManualMsg(null); }}
+                className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 border transition-colors duration-150
+                  ${manualOpen
+                    ? "border-accent bg-accent text-bone hover:bg-accent-dark"
+                    : "border-accent/40 text-accent hover:bg-accent hover:text-bone"}`}>
+                <Plus size={13} strokeWidth={2} />
+                {manualOpen ? "ביטול" : "הוסף רשומה"}
+              </button>
+            </div>
+
+            {/* ── Manual entry form ───────────────────────────────────────────── */}
+            {manualOpen && (
+              <Card>
+                <div className="flex items-center gap-2 mb-4">
+                  <Plus size={15} strokeWidth={1.5} className="text-accent" />
+                  <h2 className="font-heading text-base font-bold">הוספת רשומת נוכחות</h2>
+                </div>
+                <form onSubmit={handleManualEntry} className="space-y-4">
+                  {/* Worker + Date */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Field label="עובד">
+                      <select value={manualStaffId} onChange={e => setManualStaffId(e.target.value)} required className={INPUT}>
+                        <option value="">בחר עובד...</option>
+                        {staff.filter(s => s.active).map(s => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="תאריך">
+                      <input type="date" value={manualDate} max={new Date().toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" })}
+                        onChange={e => setManualDate(e.target.value)} required className={INPUT} />
+                    </Field>
+                  </div>
+
+                  {/* Type */}
+                  <Field label="סוג רשומה">
+                    <div className="flex flex-wrap gap-2 pt-0.5">
+                      {MANUAL_TYPES.map(t => (
+                        <label key={t.key} className={`flex items-center gap-1.5 px-3 py-1.5 border cursor-pointer text-xs font-semibold transition-colors
+                          ${manualType === t.key ? "border-accent bg-accent/10 text-accent" : "border-charcoal/15 text-charcoal/50 hover:border-accent/40"}`}>
+                          <input type="radio" name="manualType" value={t.key} checked={manualType === t.key}
+                            onChange={() => setManualType(t.key)} className="sr-only" />
+                          {t.label}
+                        </label>
+                      ))}
+                    </div>
+                  </Field>
+
+                  {/* Times — only for work types */}
+                  {MANUAL_TYPES.find(t => t.key === manualType)?.needsTimes && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="שעת כניסה">
+                        <input type="time" value={manualEntryTime} onChange={e => setManualEntryTime(e.target.value)}
+                          required className={INPUT} dir="ltr" />
+                      </Field>
+                      <Field label="שעת יציאה">
+                        <input type="time" value={manualExitTime} onChange={e => setManualExitTime(e.target.value)}
+                          required className={INPUT} dir="ltr" />
+                      </Field>
+                    </div>
+                  )}
+
+                  {/* Project */}
+                  <Field label="אתר עבודה (אופציונלי)">
+                    <select value={manualProject} onChange={e => setManualProject(e.target.value)} className={INPUT}>
+                      <option value="">ללא אתר</option>
+                      {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </Field>
+
+                  {/* Notes */}
+                  <Field label={manualType === "other" ? "תיאור (חובה)" : "הערות (אופציונלי)"}>
+                    <input value={manualNotes} onChange={e => setManualNotes(e.target.value)}
+                      required={manualType === "other"}
+                      placeholder={manualType === "other" ? "פרט את סוג הרשומה..." : "הערה חופשית..."}
+                      className={INPUT} />
+                  </Field>
+
+                  {manualErr && (
+                    <p className="text-xs text-red-500 flex items-center gap-1.5">
+                      <AlertCircle size={12} /> {manualErr}
+                    </p>
+                  )}
+
+                  <div className="flex gap-2">
+                    <button type="submit" disabled={manualLoading}
+                      className="flex-1 bg-accent py-2.5 text-sm font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">
+                      {manualLoading ? <><Loader2 size={13} className="inline animate-spin me-1.5" />שומר...</> : "צור רשומה"}
+                    </button>
+                    <button type="button" onClick={() => setManualOpen(false)}
+                      className="px-5 border border-charcoal/20 py-2.5 text-xs text-charcoal/50 hover:border-accent transition-colors">
+                      ביטול
+                    </button>
+                  </div>
+                </form>
+              </Card>
+            )}
 
             {/* ── Pending Approvals ──────────────────────────────────────────── */}
             <Card>
