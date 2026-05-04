@@ -36,7 +36,7 @@ const T: Record<Lang, {
   recordedIn: string; recordedOut: string; hello: string;
   autoReg: string; autoRegBody: string; dayMsg: string;
   goodWorkIn: string; goodWorkOut: string; anotherReport: string;
-  tryAgain: string; notFound: string; unknownError: string;
+  tryAgain: string; notFound: string; unknownError: string; accountInactive: string; alreadyClockedIn: string; noInternalAccess: string;
   home: string; footer: string;
   myHistory: string; historyTitle: string; noHistory: string; loadingHistory: string; backToForm: string;
   manualBtn: string; manualTitle: string; manualSentTitle: string; manualSentBody: string; pendingBadge: string;
@@ -45,7 +45,7 @@ const T: Record<Lang, {
     clockTitle: "שעון נוכחות",
     phonePrompt: "הזן מספר טלפון לזיהוי",
     confirmLocation: "אשר מיקום והמשך",
-    geoRequired: "חובה לאשר מיקום כדי לדווח נוכחות",
+    geoRequired: "חובה לאשר מיקום כדי לדווח נוכחות. אפשר גישה ל-GPS בהגדרות הדפדפן ונסה שוב, או השתמש ב\"דיווח חסר\" לאחר מכן.",
     locating: "מאתר מיקום…",
     pickSite: "בחר אתר בנייה",
     pickSiteSub: "בחר את האתר שבו אתה עובד היום",
@@ -69,6 +69,9 @@ const T: Record<Lang, {
     tryAgain: "נסה שוב",
     notFound: "מספר הטלפון לא נמצא ברשימת הצוות. פנה למנהל.",
     unknownError: "שגיאה לא ידועה — נסה שוב.",
+    accountInactive: "החשבון שלך אינו פעיל. פנה למנהל.",
+    alreadyClockedIn: "כניסה כבר נרשמה היום. אם יש שגיאה — פנה למנהל.",
+    noInternalAccess: "להצגת היסטוריה יש להיכנס דרך פורטל העובדים תחילה.",
     home: "דף הבית",
     footer: "בניין איתן — מערכת נוכחות פנימית",
     myHistory: "היסטוריית נוכחות שלי",
@@ -86,7 +89,7 @@ const T: Record<Lang, {
     clockTitle: "Отметка о явке",
     phonePrompt: "Введите номер телефона",
     confirmLocation: "Подтвердить местоположение",
-    geoRequired: "Необходимо разрешить доступ к местоположению",
+    geoRequired: "Необходимо разрешить доступ к местоположению. Разрешите GPS в настройках браузера и попробуйте снова, или используйте «Пропущенная отметка» позже.",
     locating: "Определение местоположения…",
     pickSite: "Выберите объект",
     pickSiteSub: "Выберите объект, где вы работаете сегодня",
@@ -110,6 +113,9 @@ const T: Record<Lang, {
     tryAgain: "Повторить",
     notFound: "Номер телефона не найден в списке сотрудников. Обратитесь к менеджеру.",
     unknownError: "Неизвестная ошибка — попробуйте снова.",
+    accountInactive: "Ваш аккаунт неактивен. Обратитесь к менеджеру.",
+    alreadyClockedIn: "Приход уже отмечен сегодня. Если это ошибка — обратитесь к менеджеру.",
+    noInternalAccess: "Для просмотра истории войдите сначала через портал сотрудников.",
     home: "Главная",
     footer: "Binyan Eitan — система учёта рабочего времени",
     myHistory: "Моя история посещаемости",
@@ -178,9 +184,12 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   useEffect(() => { localStorage.setItem("att_lang", lang); }, [lang]);
   const t = T[lang];
 
-  // ── Session restore ───────────────────────────────────────────────────────
+  // ── Session restore — check HMAC cookie via API (httpOnly, can't read directly) ──
   useEffect(() => {
-    if (sessionStorage.getItem("be_admin") === "1") setAdminView("dashboard");
+    fetch("/api/admin/whoami")
+      .then(r => r.json())
+      .then(d => { if (d.role === "admin") setAdminView("dashboard"); })
+      .catch(() => {});
   }, []);
 
   // ── Load worker-flow projects ─────────────────────────────────────────────
@@ -196,14 +205,15 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     try {
       const res  = await fetch("/api/admin-auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: adminPw }) });
       const data = await res.json();
-      if (data.ok) { sessionStorage.setItem("be_admin", "1"); setAdminView("dashboard"); setAdminPw(""); }
+      if (data.ok) { setAdminView("dashboard"); setAdminPw(""); }
       else         { setAdminErr("סיסמה שגויה"); setAdminPw(""); }
     } catch { setAdminErr("שגיאת רשת"); }
     finally  { setAdminLoading(false); }
   }
 
   function handleAdminLogout() {
-    sessionStorage.removeItem("be_admin"); setAdminView("none");
+    fetch("/api/admin-auth", { method: "DELETE" }).catch(() => {});
+    setAdminView("none");
   }
 
   // ── Worker attendance callbacks ───────────────────────────────────────────
@@ -222,7 +232,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         setGeoError(T[lang].geoRequired);
         setStep("phone");
       },
-      { timeout: 12000, enableHighAccuracy: true }
+      { timeout: 12000, enableHighAccuracy: true, maximumAge: 60000 }
     );
   }, [phone, feedback]);
 
@@ -251,6 +261,12 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       } else if (data.error === "phone_not_found") {
         feedback.error();
         setErrorMsg(T[lang].notFound); setStep("error");
+      } else if (data.error === "account_inactive") {
+        feedback.error();
+        setErrorMsg(T[lang].accountInactive); setStep("error");
+      } else if (data.error === "already_clocked_in") {
+        feedback.error();
+        setErrorMsg(T[lang].alreadyClockedIn); setStep("error");
       } else {
         feedback.error();
         setErrorMsg(data.error ?? T[lang].unknownError); setStep("error");
@@ -275,6 +291,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       });
       const data = await res.json();
       if (res.ok) { setHistoryName(data.name ?? null); setHistoryRecords(data.records ?? []); }
+      else if (res.status === 401) { setHistoryError(T[lang].noInternalAccess); }
       else if (data.error === "phone_not_found") { setHistoryError(T[lang].notFound); }
       else { setHistoryError(T[lang].unknownError); }
     } catch { setHistoryError(T[lang].unknownError); }
@@ -297,7 +314,8 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       });
       const data = await res.json();
       if (data.success) { setStep("manualSuccess"); }
-      else { setManualError(data.error ?? "שגיאה לא ידועה"); }
+      else if (res.status === 401) { setManualError(T[lang].noInternalAccess); }
+      else { setManualError(data.error ?? T[lang].unknownError); }
     } catch { setManualError("שגיאת רשת — נסה שוב"); }
     finally { setManualLoading(false); }
   }, [phone, manualAction, manualDate, manualTime, manualProject]);
@@ -736,6 +754,13 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
           {t.myHistory}
         </button>
       </div>
+      <button
+        onClick={() => setAdminView("password")}
+        aria-label="כניסת מנהל"
+        className="mt-4 opacity-20 hover:opacity-60 transition-opacity duration-200"
+      >
+        <Lock size={14} strokeWidth={1.5} className="text-charcoal" />
+      </button>
     </Screen>
   );
 }

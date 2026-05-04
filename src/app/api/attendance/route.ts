@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
 
       resolvedStaff = newStaff;
       autoRegistered = true;
-      console.info("[attendance] auto-registered first staff member:", normalizedPhone);
+      console.warn("[attendance] AUTO-REGISTERED first staff member as admin:", normalizedPhone, "— verify this was intentional");
     } else {
       return NextResponse.json({ success: false, error: "phone_not_found" }, { status: 404 });
     }
@@ -141,16 +141,28 @@ export async function POST(req: NextRequest) {
   // Treat missing `active` column gracefully — if null/undefined, assume active
   const isActive = resolvedStaff!.active ?? true;
   if (!isActive) {
-    return NextResponse.json({ success: false, error: "phone_not_found" }, { status: 403 });
+    return NextResponse.json({ success: false, error: "account_inactive" }, { status: 403 });
   }
 
-  // ── 2. Insert attendance record ────────────────────────────────────────────
-  // IMPORTANT: column names must match your actual Supabase `attendance` table.
-  // Common mismatch: `timestamp_label` — your table might not have this column.
-  // If you see an error here, remove the timestamp_label field or rename it.
+  // ── 2. Normalize action + duplicate clock-in guard ────────────────────────
   const normalizedAction = action === "כניסה" ? "in" : action === "יציאה" ? "out" : action;
   if (!["in", "out"].includes(normalizedAction)) {
     return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
+  }
+
+  if (normalizedAction === "in") {
+    const todayStr   = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
+    const todayStart = new Date(`${todayStr}T00:00:00+03:00`).toISOString();
+    const { data: existing } = await supabase
+      .from("attendance")
+      .select("id")
+      .eq("staff_id", resolvedStaff!.id)
+      .eq("action", "in")
+      .gte("created_at", todayStart)
+      .limit(1);
+    if (existing && existing.length > 0) {
+      return NextResponse.json({ success: false, error: "already_clocked_in" }, { status: 409 });
+    }
   }
 
   const attendancePayload: Record<string, unknown> = {

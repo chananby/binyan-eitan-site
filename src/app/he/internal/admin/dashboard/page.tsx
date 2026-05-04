@@ -35,9 +35,9 @@ async function getWeeklyAttendance() {
 
     const { data, error } = await supabase
       .from("attendance")
-      .select("id, action, timestamp_label, recorded_at, staff:staff_id(name, phone)")
-      .gte("recorded_at", since.toISOString())
-      .order("recorded_at", { ascending: false });
+      .select("id, action, timestamp_label, created_at, staff:staff_id(name, phone)")
+      .gte("created_at", since.toISOString())
+      .order("created_at", { ascending: false });
 
     if (error) return { records: [], error: error.message };
     return { records: data ?? [], error: null };
@@ -104,7 +104,7 @@ export default async function DashboardPage() {
     await Promise.all([getWeeklyAttendance(), getBudgetSummary()]);
 
   // Unique workers this week
-  type AttRecord = { id: string; action: string; timestamp_label: string | null; recorded_at: string; staff: { name: string; phone: string } | null };
+  type AttRecord = { id: string; action: string; timestamp_label: string | null; created_at: string; staff: { name: string; phone: string } | null };
   const typedAttendance = attendance as AttRecord[];
   const uniqueWorkers = new Set(typedAttendance.map((r) => r.staff?.phone)).size;
 
@@ -177,7 +177,7 @@ export default async function DashboardPage() {
                         </span>
                       </td>
                       <td className="py-3 text-charcoal/50 text-xs tabular-nums" dir="ltr">
-                        {rec.timestamp_label ?? formatDateTime(rec.recorded_at)}
+                        {rec.timestamp_label ?? formatDateTime(rec.created_at)}
                       </td>
                     </tr>
                   ))}
