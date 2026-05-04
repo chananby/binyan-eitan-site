@@ -37,7 +37,7 @@ export async function PATCH(
     .from("attendance")
     .update(update)
     .eq("id", params.id)
-    .select("id, action, timestamp_label, recorded_at, project_id")
+    .select("id, action, timestamp_label, recorded_at, project_id, status")
     .single();
 
   if (error) {

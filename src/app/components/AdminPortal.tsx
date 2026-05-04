@@ -329,6 +329,7 @@ ${detailHtml}
   const [pendingRecords,   setPendingRecords]   = useState<AttendanceRecord[]>([]);
   const [pendingLoading,   setPendingLoading]   = useState(false);
   const [pendingErr,       setPendingErr]       = useState<string | null>(null);
+  const [pendingActionId,  setPendingActionId]  = useState<string | null>(null);
 
   // Recent records (last 7 days) for retroactive editing
   const [recentLogs,        setRecentLogs]        = useState<AttendanceRecord[]>([]);
@@ -527,13 +528,25 @@ ${detailHtml}
   function reload() { if (authState === "admin" || authState === "foreman") loadData(authState); }
 
   async function approveAttRecord(id: string) {
-    const res = await fetch(`/api/admin/attendance/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "approved" }) });
-    if (res.ok) setPendingRecords(p => p.filter(r => r.id !== id));
+    if (pendingActionId) return;
+    setPendingActionId(id); setPendingErr(null);
+    try {
+      const res = await fetch(`/api/admin/attendance/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "approved" }) });
+      if (res.ok) setPendingRecords(p => p.filter(r => r.id !== id));
+      else { const d = await res.json().catch(() => ({})); setPendingErr("שגיאה באישור: " + (d.error ?? res.status)); }
+    } catch { setPendingErr("שגיאת רשת — לא ניתן לאשר. נסה שוב."); }
+    finally { setPendingActionId(null); }
   }
 
   async function rejectAttRecord(id: string) {
-    const res = await fetch(`/api/admin/attendance/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "rejected" }) });
-    if (res.ok) setPendingRecords(p => p.filter(r => r.id !== id));
+    if (pendingActionId) return;
+    setPendingActionId(id); setPendingErr(null);
+    try {
+      const res = await fetch(`/api/admin/attendance/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "rejected" }) });
+      if (res.ok) setPendingRecords(p => p.filter(r => r.id !== id));
+      else { const d = await res.json().catch(() => ({})); setPendingErr("שגיאה בדחייה: " + (d.error ?? res.status)); }
+    } catch { setPendingErr("שגיאת רשת — לא ניתן לדחות. נסה שוב."); }
+    finally { setPendingActionId(null); }
   }
 
   // ── Login handlers ─────────────────────────────────────────────────────────
@@ -1441,12 +1454,14 @@ ${detailHtml}
                             <Pencil size={12} strokeWidth={1.5} />
                           </button>
                           <button onClick={() => approveAttRecord(r.id)}
-                            className="text-[0.65rem] font-semibold border border-green-200 text-green-700 hover:bg-green-600 hover:text-white px-2.5 py-1 transition-colors">
-                            אשר
+                            disabled={pendingActionId !== null}
+                            className="text-[0.65rem] font-semibold border border-green-200 text-green-700 hover:bg-green-600 hover:text-white px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                            {pendingActionId === r.id ? <Loader2 size={11} className="animate-spin" /> : "אשר"}
                           </button>
                           <button onClick={() => rejectAttRecord(r.id)}
-                            className="text-[0.65rem] font-semibold border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-2.5 py-1 transition-colors">
-                            דחה
+                            disabled={pendingActionId !== null}
+                            className="text-[0.65rem] font-semibold border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                            {pendingActionId === r.id ? <Loader2 size={11} className="animate-spin" /> : "דחה"}
                           </button>
                         </div>
                       </div>
