@@ -26,6 +26,7 @@ interface StaffMember {
 }
 interface AttendanceRecord {
   id: string; action: string; timestamp_label: string; recorded_at: string;
+  created_at?: string; is_manual?: boolean; status?: string;
   staff: { id: string; name: string; phone: string; role?: string } | null;
   project: { id: string; name: string } | null;
 }
@@ -309,6 +310,18 @@ ${detailHtml}
   const [editAttTimestamp, setEditAttTimestamp] = useState("");
   const [editAttLoading,   setEditAttLoading]   = useState(false);
   const [editAttMsg,       setEditAttMsg]        = useState("");
+  const [editAttIsPending, setEditAttIsPending] = useState(false);
+
+  // Pending approvals
+  const [pendingRecords,   setPendingRecords]   = useState<AttendanceRecord[]>([]);
+  const [pendingLoading,   setPendingLoading]   = useState(false);
+  const [pendingErr,       setPendingErr]       = useState<string | null>(null);
+
+  // Recent records (last 7 days) for retroactive editing
+  const [recentLogs,        setRecentLogs]        = useState<AttendanceRecord[]>([]);
+  const [recentLogsLoading, setRecentLogsLoading] = useState(false);
+  const [recentLogsErr,     setRecentLogsErr]     = useState<string | null>(null);
+  const [recentLogsVisible, setRecentLogsVisible] = useState(false);
 
   // Income UI
   const [incProjectId, setIncProjectId] = useState("");
@@ -412,6 +425,10 @@ ${detailHtml}
     if (authState === "admin" && tab === "income") loadIncome();
   }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (authState === "admin" && tab === "attendance") loadPending();
+  }, [tab, authState]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Auto-refresh attendance every 60 s ────────────────────────────────────
   useEffect(() => {
     if (authState !== "admin" && authState !== "foreman") return;
@@ -472,7 +489,37 @@ ${detailHtml}
     if (res.ok) { const d = await res.json(); setIncome(d.income ?? []); setIncomeTotals(d.totals ?? {}); }
   }
 
+  async function loadPending() {
+    setPendingLoading(true); setPendingErr(null);
+    try {
+      const res = await fetch("/api/admin/attendance/pending");
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error ?? `שגיאה ${res.status}`); }
+      const d = await res.json(); setPendingRecords(d.records ?? []);
+    } catch (e) { setPendingErr(String(e)); }
+    finally { setPendingLoading(false); }
+  }
+
+  async function loadRecentLogs() {
+    setRecentLogsLoading(true); setRecentLogsErr(null);
+    try {
+      const res = await fetch("/api/admin/attendance/recent?days=7");
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error ?? `שגיאה ${res.status}`); }
+      const d = await res.json(); setRecentLogs(d.records ?? []);
+    } catch (e) { setRecentLogsErr(String(e)); }
+    finally { setRecentLogsLoading(false); }
+  }
+
   function reload() { if (authState === "admin" || authState === "foreman") loadData(authState); }
+
+  async function approveAttRecord(id: string) {
+    const res = await fetch(`/api/admin/attendance/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "approved" }) });
+    if (res.ok) setPendingRecords(p => p.filter(r => r.id !== id));
+  }
+
+  async function rejectAttRecord(id: string) {
+    const res = await fetch(`/api/admin/attendance/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "rejected" }) });
+    if (res.ok) setPendingRecords(p => p.filter(r => r.id !== id));
+  }
 
   // ── Login handlers ─────────────────────────────────────────────────────────
   async function handlePinLogin(submittedPin: string) {
@@ -653,8 +700,9 @@ ${detailHtml}
   }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Attendance retroactive edit ────────────────────────────────────────────
-  function startEditAtt(r: AttendanceRecord) {
+  function startEditAtt(r: AttendanceRecord, isPending = false) {
     setEditAttId(r.id);
+    setEditAttIsPending(isPending);
     setEditAttAction(r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action);
     setEditAttProject(r.project?.id ?? "");
     setEditAttTimestamp(r.timestamp_label ?? "");
@@ -668,7 +716,25 @@ ${detailHtml}
       const res  = await fetch(`/api/admin/attendance/${editAttId}`, { method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: editAttAction, project_id: editAttProject || null, timestamp_label: editAttTimestamp }) });
       const data = await res.json();
-      if (res.ok) { setEditAttId(null); reload(); }
+      if (res.ok) {
+        const wasPending = editAttIsPending;
+        setEditAttId(null); setEditAttIsPending(false);
+        if (wasPending) loadPending();
+        else if (recentLogsVisible) loadRecentLogs();
+        reload();
+      } else { setEditAttMsg("שגיאה: " + (data.error ?? res.status)); }
+    } catch (err) { setEditAttMsg("שגיאת רשת: " + String(err)); }
+    finally { setEditAttLoading(false); }
+  }
+
+  async function handleEditAndApproveAtt() {
+    if (!editAttId) return;
+    setEditAttLoading(true); setEditAttMsg("");
+    try {
+      const res  = await fetch(`/api/admin/attendance/${editAttId}`, { method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: editAttAction, project_id: editAttProject || null, timestamp_label: editAttTimestamp, status: "approved" }) });
+      const data = await res.json();
+      if (res.ok) { setEditAttId(null); setEditAttIsPending(false); loadPending(); reload(); }
       else        { setEditAttMsg("שגיאה: " + (data.error ?? res.status)); }
     } catch (err) { setEditAttMsg("שגיאת רשת: " + String(err)); }
     finally { setEditAttLoading(false); }
@@ -1276,6 +1342,106 @@ ${detailHtml}
               );
             })()}
 
+            {/* ── Pending Approvals ──────────────────────────────────────────── */}
+            <Card>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle size={15} strokeWidth={1.5} className="text-amber-500" />
+                  <h2 className="font-heading text-base font-bold">בקשות תיקון ממתינות</h2>
+                  {pendingRecords.length > 0 && (
+                    <span className="bg-amber-100 text-amber-700 text-[0.6rem] font-bold px-2 py-0.5">
+                      {pendingRecords.length}
+                    </span>
+                  )}
+                </div>
+                <button onClick={loadPending} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors">
+                  <RefreshCw size={12} strokeWidth={1.5} /> רענן
+                </button>
+              </div>
+              {pendingLoading && <p className="text-sm text-charcoal/40 text-center py-4">טוען...</p>}
+              {pendingErr && <p className="text-xs text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {pendingErr}</p>}
+              {!pendingLoading && !pendingErr && pendingRecords.length === 0 && (
+                <p className="text-sm text-charcoal/30 text-center py-4">אין בקשות ממתינות לאישור</p>
+              )}
+              {!pendingLoading && pendingRecords.length > 0 && (
+                <div className="divide-y divide-charcoal/5">
+                  {pendingRecords.map(r => editAttId === r.id ? (
+                    <form key={r.id} onSubmit={handleEditAtt} className="py-3 space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <Field label="פעולה">
+                          <select value={editAttAction} onChange={e => setEditAttAction(e.target.value)} className={INPUT}>
+                            <option value="כניסה">כניסה</option>
+                            <option value="יציאה">יציאה</option>
+                          </select>
+                        </Field>
+                        <Field label="שעה (תצוגה)">
+                          <input value={editAttTimestamp} onChange={e => setEditAttTimestamp(e.target.value)} placeholder="08:30" className={INPUT} dir="ltr" />
+                        </Field>
+                      </div>
+                      <Field label="אתר">
+                        <select value={editAttProject} onChange={e => setEditAttProject(e.target.value)} className={INPUT}>
+                          <option value="">ללא אתר</option>
+                          {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </Field>
+                      {editAttMsg && <p className="text-xs text-red-500">{editAttMsg}</p>}
+                      <div className="flex gap-2 flex-wrap">
+                        <button type="button" onClick={handleEditAndApproveAtt} disabled={editAttLoading}
+                          className="flex-1 bg-green-600 py-2 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-40 transition-colors min-w-[100px]">
+                          {editAttLoading ? "שומר..." : "שמור ואשר"}
+                        </button>
+                        <button type="submit" disabled={editAttLoading}
+                          className="flex-1 bg-accent py-2 text-xs font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors min-w-[80px]">
+                          {editAttLoading ? "..." : "שמור בלבד"}
+                        </button>
+                        <button type="button" onClick={() => setEditAttId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/50 hover:border-accent transition-colors min-w-[60px]">ביטול</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div key={r.id} className="py-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold">{r.staff?.name ?? "—"}</p>
+                            <span className={`text-[0.6rem] font-semibold px-1.5 py-0.5 ${r.action === "כניסה" || r.action === "in" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+                              {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
+                            </span>
+                            {r.timestamp_label && (
+                              <span className="text-[0.65rem] text-charcoal/40 tabular-nums" dir="ltr">{r.timestamp_label}</span>
+                            )}
+                          </div>
+                          {r.project && (
+                            <div className="flex items-center gap-1 mt-0.5 text-[0.65rem] text-charcoal/40">
+                              <Building2 size={10} strokeWidth={1.5} /><span>{r.project.name}</span>
+                            </div>
+                          )}
+                          {r.created_at && (
+                            <p className="text-[0.6rem] text-charcoal/30 mt-0.5">
+                              הוגש: {new Date(r.created_at).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+                          <button onClick={() => startEditAtt(r, true)} className="text-charcoal/30 hover:text-accent transition-colors p-1">
+                            <Pencil size={12} strokeWidth={1.5} />
+                          </button>
+                          <button onClick={() => approveAttRecord(r.id)}
+                            className="text-[0.65rem] font-semibold border border-green-200 text-green-700 hover:bg-green-600 hover:text-white px-2.5 py-1 transition-colors">
+                            אשר
+                          </button>
+                          <button onClick={() => rejectAttRecord(r.id)}
+                            className="text-[0.65rem] font-semibold border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-2.5 py-1 transition-colors">
+                            דחה
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            {/* ── Today's log ────────────────────────────────────────────────── */}
             <Card>
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -1350,6 +1516,89 @@ ${detailHtml}
                     </div>
                   ))}
                 </div>
+              )}
+            </Card>
+
+            {/* ── Recent Records (7 days) — retroactive edit ─────────────────── */}
+            <Card>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Calendar size={15} strokeWidth={1.5} className="text-accent" />
+                  <h2 className="font-heading text-base font-bold">עריכת רשומות אחרונות</h2>
+                  <span className="text-[0.6rem] text-charcoal/30 font-body">7 ימים אחרונים</span>
+                </div>
+                {recentLogsVisible && (
+                  <button onClick={loadRecentLogs} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors">
+                    <RefreshCw size={12} strokeWidth={1.5} /> רענן
+                  </button>
+                )}
+              </div>
+              {!recentLogsVisible ? (
+                <button onClick={() => { setRecentLogsVisible(true); loadRecentLogs(); }}
+                  className="w-full py-2 text-xs border border-charcoal/15 text-charcoal/50 hover:border-accent hover:text-accent transition-colors">
+                  הצג רשומות 7 ימים אחרונים
+                </button>
+              ) : (
+                <>
+                  {recentLogsLoading && <p className="text-sm text-charcoal/40 text-center py-4">טוען...</p>}
+                  {recentLogsErr && <p className="text-xs text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {recentLogsErr}</p>}
+                  {!recentLogsLoading && !recentLogsErr && recentLogs.length === 0 && (
+                    <p className="text-sm text-charcoal/30 text-center py-4">אין רשומות ב-7 הימים האחרונים</p>
+                  )}
+                  {!recentLogsLoading && recentLogs.length > 0 && (
+                    <div className="divide-y divide-charcoal/5">
+                      {recentLogs.map(r => editAttId === r.id ? (
+                        <form key={r.id} onSubmit={handleEditAtt} className="py-3 space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <Field label="פעולה">
+                              <select value={editAttAction} onChange={e => setEditAttAction(e.target.value)} className={INPUT}>
+                                <option value="כניסה">כניסה</option>
+                                <option value="יציאה">יציאה</option>
+                              </select>
+                            </Field>
+                            <Field label="שעה (תצוגה)">
+                              <input value={editAttTimestamp} onChange={e => setEditAttTimestamp(e.target.value)} placeholder="08:30" className={INPUT} dir="ltr" />
+                            </Field>
+                          </div>
+                          <Field label="אתר">
+                            <select value={editAttProject} onChange={e => setEditAttProject(e.target.value)} className={INPUT}>
+                              <option value="">ללא אתר</option>
+                              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                            </select>
+                          </Field>
+                          {editAttMsg && <p className="text-xs text-red-500">{editAttMsg}</p>}
+                          <div className="flex gap-2">
+                            <button type="submit" disabled={editAttLoading} className="flex-1 bg-accent py-2 text-xs font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">{editAttLoading ? "שומר..." : "שמור"}</button>
+                            <button type="button" onClick={() => setEditAttId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/50 hover:border-accent transition-colors">ביטול</button>
+                          </div>
+                        </form>
+                      ) : (
+                        <div key={r.id} className="py-2.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-sm font-semibold truncate">{r.staff?.name ?? "—"}</p>
+                                <span className={`text-[0.6rem] font-semibold px-1.5 py-0.5 ${r.action === "כניסה" || r.action === "in" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+                                  {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
+                                </span>
+                              </div>
+                              <p className="text-[0.65rem] text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              {r.project && <span className="text-[0.62rem] text-charcoal/40 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
+                              <span className="text-[0.7rem] text-charcoal/35 tabular-nums" dir="ltr">
+                                {r.timestamp_label || (r.created_at ? new Date(r.created_at).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—")}
+                              </span>
+                              <button onClick={() => startEditAtt(r)} className="text-charcoal/30 hover:text-accent transition-colors p-0.5">
+                                <Pencil size={11} strokeWidth={1.5} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </Card>
           </div>
