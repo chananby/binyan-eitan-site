@@ -93,12 +93,17 @@ const UI_ROOTS: { dir: string; category: string }[] = [
   { dir: join(APP, "internal"),           category: "כלים פנימיים" },
 ];
 
+const EXCLUDED_UI_URLS = new Set([
+  "/admin/cockpit", // archived — redirects to hub
+]);
+
 export function discoverUIRoutes(): UIRoute[] {
   const routes: UIRoute[] = [];
   for (const { dir, category } of UI_ROOTS) {
     for (const pagePath of collectFiles(dir, "page.tsx")) {
       const url = toUrl(pagePath);
       if (url.includes("[")) continue; // skip dynamic [slug] routes
+      if (EXCLUDED_UI_URLS.has(url)) continue;
       const pageDir = pagePath.replace(/\/page\.tsx$/, "");
       const segments = pageDir.split("/");
       const dirName = segments[segments.length - 1] || "page";
