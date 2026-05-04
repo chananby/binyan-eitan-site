@@ -78,7 +78,7 @@ const URL_LABEL_OVERRIDES: Record<string, string> = {
   "/admin/hub":                      "מרכז שליטה",
   "/en/internal":                    "פורטל צוות",
   "/en/internal/attendance":         "שעון נוכחות",
-  "/internal/banner":                "ניהול באנר",
+  "/internal/banner":                "מעצב באנר להדפסה",
   "/internal/binyan-eitan":          "בניין איתן — דשבורד",
   "/internal/content-editor":        "עורך תוכן",
   "/internal/prime-steel":           "Prime Steel — דשבורד",
