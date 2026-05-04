@@ -73,7 +73,6 @@ function dirToLabel(name: string): string {
 
 const URL_LABEL_OVERRIDES: Record<string, string> = {
   "/admin":                          "כניסת ניהול",
-  "/admin/cockpit":                  "לוח בקרה",
   "/admin/executive":                "חדר מלחמה",
   "/admin/health":                   "בריאות מערכת",
   "/admin/hub":                      "מרכז שליטה",

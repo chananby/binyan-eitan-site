@@ -92,7 +92,6 @@ const QUICK_LINKS: { label: string; url: string; ext: boolean; desc: string }[] 
   { label: "נוכחות עובדים",            url: "/he/internal/attendance",        ext: false, desc: "מעקב נוכחות יומי" },
   { label: "צ׳ק-אין עובד",             url: "/attendance",                    ext: false, desc: "כניסה ויציאה עובדים" },
   { label: "ניהול משימות פנים ארגוני", url: "https://admin.binyaneitan.com",  ext: true,  desc: "מערכת המשימות הפנים ארגונית" },
-  { label: "לוח בקרה",                 url: "/admin/cockpit",                 ext: false, desc: "משימות · פרויקטים · צוות" },
   { label: "דשבורד ניהולי",            url: "/he/internal/admin/dashboard",   ext: false, desc: "מעקב שוטף · דוחות" },
   { label: "Google Analytics",         url: "https://analytics.google.com",   ext: true,  desc: "GA4 — G-1CWQG6YY4H" },
   { label: "עורך תוכן",               url: "/internal/content-editor",       ext: false, desc: "תרגומים · מאמרים · פרויקטים" },
