@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { Delete } from "lucide-react";
 
@@ -26,9 +25,7 @@ const T = {
 type Lang = keyof typeof T;
 
 export default function PinGate({ children, lang = "he" }: { children: React.ReactNode; lang?: Lang }) {
-  const t        = T[lang];
-  const router   = useRouter();
-  const pathname = usePathname();
+  const t = T[lang];
   const [authed, setAuthed]       = useState(false);
   const [ready, setReady]         = useState(false); // avoid SSR flash
   const [digits, setDigits]       = useState<string[]>([]);
@@ -52,8 +49,6 @@ export default function PinGate({ children, lang = "he" }: { children: React.Rea
       });
       if (res.ok) {
         sessionStorage.setItem(SESSION_KEY, "1");
-        // Replace current history entry so back button skips the PIN screen
-        router.replace(pathname);
         setAuthed(true);
       } else {
         setShaking(true);
@@ -70,14 +65,18 @@ export default function PinGate({ children, lang = "he" }: { children: React.Rea
     }
   }, []);
 
+  // Trigger verify when the last digit is entered — kept outside the setDigits updater
+  // to avoid calling setState/router from inside a state updater function.
+  useEffect(() => {
+    if (digits.length === PIN_LENGTH) verify(digits.join(""));
+  }, [digits, verify]);
+
   const press = useCallback((d: string) => {
     setDigits((prev) => {
       if (prev.length >= PIN_LENGTH) return prev;
-      const next = [...prev, d];
-      if (next.length === PIN_LENGTH) verify(next.join(""));
-      return next;
+      return [...prev, d];
     });
-  }, [verify]);
+  }, []);
 
   const del = useCallback(() => {
     setDigits((prev) => prev.slice(0, -1));
@@ -145,7 +144,7 @@ export default function PinGate({ children, lang = "he" }: { children: React.Rea
       {/* Keypad — always LTR so digits render 1-2-3 left-to-right regardless of page dir */}
       <div className="grid grid-cols-3 gap-3 w-full max-w-[240px]" dir="ltr">
         {keys.map((k, i) => {
-          if (k === "") return <div key={i} />;
+          if (k === "") return <div key="spacer" />;
 
           if (k === "del") {
             return (
