@@ -46,7 +46,6 @@ export interface ProjectRow {
   name: string;
   status: string;
   address: string | null;
-  client_name: string | null;
   start_date: string | null;
   end_date: string | null;
 }

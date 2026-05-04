@@ -36,7 +36,7 @@ async function getProjects(): Promise<{ projects: ProjectRow[]; error: string | 
     const supabase = createServerClient();
     const { data, error } = await supabase
       .from("projects")
-      .select("id, name, status, address, client_name, start_date, end_date")
+      .select("id, name, status, address, start_date, end_date")
       .order("status", { ascending: true })
       .order("name", { ascending: true });
     if (error) return { projects: [], error: error.message };
@@ -131,12 +131,6 @@ export default async function AdminProjectsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    {project.client_name && (
-                      <div className="flex items-center gap-2 font-body text-xs text-charcoal/50">
-                        <User size={11} strokeWidth={1.5} className="shrink-0" />
-                        <span>{project.client_name}</span>
-                      </div>
-                    )}
                     {project.address && (
                       <div className="flex items-center gap-2 font-body text-xs text-charcoal/50">
                         <MapPin size={11} strokeWidth={1.5} className="shrink-0" />
