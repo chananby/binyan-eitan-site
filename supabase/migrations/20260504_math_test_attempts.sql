@@ -61,21 +61,61 @@ create trigger math_test_attempts_set_updated_at
   before update on public.math_test_attempts
   for each row execute function public.set_updated_at();
 
--- 4. Row-Level Security — anon read/write, matching math_profiles pattern
+-- 4. Row-Level Security
+-- ─────────────────────────────────────────────────────────────────────
+-- Design constraints:
+--   • No Supabase Auth — no auth.uid() available.
+--   • sync_key is a client-generated UUID (128-bit, unguessable in practice).
+--   • Row-level write isolation (only update YOUR rows) is not enforceable
+--     via SQL alone without auth context. UUID entropy is the practical guard.
+--
+-- What IS enforced by RLS:
+--   SELECT  — open (leaderboards, progress views may need cross-user reads)
+--   INSERT  — validates sync_key format and required fields
+--   UPDATE  — prevents sync_key from ever being changed after insert
+--   DELETE  — blocked entirely for anon; service_role only
+-- ─────────────────────────────────────────────────────────────────────
 alter table public.math_test_attempts enable row level security;
 
 drop policy if exists "anon read attempts"   on public.math_test_attempts;
 drop policy if exists "anon insert attempts" on public.math_test_attempts;
 drop policy if exists "anon update attempts" on public.math_test_attempts;
+drop policy if exists "anon delete attempts" on public.math_test_attempts;
 
+-- SELECT: open reads (needed for history, progress views)
 create policy "anon read attempts"
-  on public.math_test_attempts for select using (true);
+  on public.math_test_attempts
+  for select
+  using (true);
 
+-- INSERT: require a plausible sync_key (UUID is 36 chars; we allow >=8 for flexibility)
+--         and require total_questions > 0 to prevent empty-shell inserts
 create policy "anon insert attempts"
-  on public.math_test_attempts for insert with check (true);
+  on public.math_test_attempts
+  for insert
+  with check (
+    sync_key is not null
+    and length(sync_key) >= 8
+    and total_questions > 0
+  );
 
+-- UPDATE: any row can be targeted by ID (app responsibility),
+--         but sync_key must remain identical to the stored value —
+--         prevents identity hijacking via a PATCH that changes sync_key.
 create policy "anon update attempts"
-  on public.math_test_attempts for update using (true);
+  on public.math_test_attempts
+  for update
+  using (true)
+  with check (
+    sync_key = (
+      select sync_key
+      from   public.math_test_attempts
+      where  id = math_test_attempts.id
+    )
+  );
+
+-- DELETE: no policy → blocked for anon.
+-- To delete rows as admin: use service_role key (bypasses RLS).
 
 -- 5. Progress summary view (best/avg score per sync_key + test)
 create or replace view public.math_test_progress as
