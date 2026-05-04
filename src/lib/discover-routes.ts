@@ -73,7 +73,6 @@ function dirToLabel(name: string): string {
 
 const URL_LABEL_OVERRIDES: Record<string, string> = {
   "/admin":                          "כניסת ניהול",
-  "/admin/executive":                "חדר מלחמה",
   "/admin/health":                   "בריאות מערכת",
   "/admin/hub":                      "מרכז שליטה",
   "/en/internal":                    "פורטל צוות",
@@ -94,7 +93,8 @@ const UI_ROOTS: { dir: string; category: string }[] = [
 ];
 
 const EXCLUDED_UI_URLS = new Set([
-  "/admin/cockpit", // archived — redirects to hub
+  "/admin/cockpit",    // archived — redirects to hub
+  "/admin/executive",  // archived — redirects to hub
 ]);
 
 export function discoverUIRoutes(): UIRoute[] {
