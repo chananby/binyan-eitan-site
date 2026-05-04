@@ -93,8 +93,10 @@ const UI_ROOTS: { dir: string; category: string }[] = [
 ];
 
 const EXCLUDED_UI_URLS = new Set([
-  "/admin/cockpit",    // archived — redirects to hub
-  "/admin/executive",  // archived — redirects to hub
+  "/admin/cockpit",           // archived — redirects to hub
+  "/admin/executive",         // archived — redirects to hub
+  "/internal/binyan-eitan",   // placeholder Kanban, no DB data
+  "/internal/prime-steel",    // placeholder Kanban, no DB data
 ]);
 
 export function discoverUIRoutes(): UIRoute[] {
