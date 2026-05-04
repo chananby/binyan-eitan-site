@@ -72,15 +72,16 @@ function dirToLabel(name: string): string {
 }
 
 const URL_LABEL_OVERRIDES: Record<string, string> = {
-  "/admin":                          "כניסת ניהול",
+  "/admin":                          "פורטל ניהול",
   "/admin/health":                   "בריאות מערכת",
   "/admin/hub":                      "מרכז שליטה",
-  "/en/internal":                    "פורטל צוות",
-  "/en/internal/attendance":         "שעון נוכחות",
-  "/internal/banner":                "מעצב באנר להדפסה",
-  "/internal/binyan-eitan":          "בניין איתן — דשבורד",
+  "/en/internal":                    "פורטל עובדים (EN)",
+  "/he/internal":                    "פורטל עובדים",
+  "/he/internal/attendance":         "שעון נוכחות",
+  "/he/internal/admin":              "ניהול פרויקטים",
+  "/he/internal/admin/dashboard":    "דשבורד ניהולי",
+  "/internal/banner":                "באנר להדפסה",
   "/internal/content-editor":        "עורך תוכן",
-  "/internal/prime-steel":           "Prime Steel — דשבורד",
 };
 
 // ── UI route discovery ────────────────────────────────────────────────────────
@@ -93,10 +94,11 @@ const UI_ROOTS: { dir: string; category: string }[] = [
 ];
 
 const EXCLUDED_UI_URLS = new Set([
-  "/admin/cockpit",           // archived — redirects to hub
-  "/admin/executive",         // archived — redirects to hub
-  "/internal/binyan-eitan",   // placeholder Kanban, no DB data
-  "/internal/prime-steel",    // placeholder Kanban, no DB data
+  "/admin/cockpit",              // archived — redirects to hub
+  "/admin/executive",            // archived — redirects to hub
+  "/internal/binyan-eitan",      // placeholder Kanban, no DB data
+  "/internal/prime-steel",       // placeholder Kanban, no DB data
+  "/en/internal/attendance",     // identical to /he/internal/attendance
 ]);
 
 export function discoverUIRoutes(): UIRoute[] {
