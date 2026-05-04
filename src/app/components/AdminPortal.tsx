@@ -19,6 +19,19 @@ type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
 type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "matrix" | "income" | "reports";
 type LoginMode = "pin" | "password";
 
+const HASH_TO_TAB: Record<string, AdminTab> = {
+  attendance: "attendance",
+  workers:    "workers",
+  staff:      "workers",
+  projects:   "projects",
+  expenses:   "expenses",
+  planning:   "planning",
+  matrix:     "matrix",
+  weekly:     "matrix",
+  income:     "income",
+  reports:    "reports",
+};
+
 interface StaffMember {
   id: string; name: string; phone: string; role: string; active: boolean;
   national_id?: string | null; hourly_rate?: number | null; daily_rate?: number | null;
@@ -408,7 +421,9 @@ ${detailHtml}
 
   useEffect(() => {
     if (authState === "admin" || authState === "foreman") {
-      setTab("dashboard");
+      const hash = typeof window !== "undefined" ? window.location.hash.slice(1).toLowerCase() : "";
+      const hashTab = HASH_TO_TAB[hash];
+      setTab(hashTab && authState === "admin" ? hashTab : "dashboard");
       loadData(authState);
     }
   }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps

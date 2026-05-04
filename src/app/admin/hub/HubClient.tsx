@@ -167,6 +167,18 @@ function MethodBadge({ method }: { method: string }) {
   );
 }
 
+// ── Admin portal tab sub-items ────────────────────────────────────────────────
+const ADMIN_TAB_ITEMS: { label: string; hash: string; desc: string }[] = [
+  { label: "דשבורד",         hash: "",           desc: "סיכום יומי — נוכחות, עובדים, פרויקטים" },
+  { label: "נוכחות",          hash: "attendance", desc: "אישור בקשות, עריכה ידנית, דוח שעות" },
+  { label: "עובדים",          hash: "staff",      desc: "ניהול עובדים, PINs, סטטוס פעילות" },
+  { label: "פרויקטים",        hash: "projects",   desc: "פרויקטים פעילים, שיוך, היסטוריה" },
+  { label: "הוצאות",          hash: "expenses",   desc: "חומרים, קבלנים, הזמנות" },
+  { label: "תכנון",           hash: "planning",   desc: "משימות, אבני דרך, לוח זמנים" },
+  { label: "מטריצה שבועית",  hash: "weekly",     desc: "תצוגת משימות לפי ימי השבוע" },
+  { label: "הכנסות",          hash: "income",     desc: "תשלומים לפי פרויקט" },
+];
+
 // ── Card components ───────────────────────────────────────────────────────────
 function UICard({ route }: { route: UIRoute }) {
   return (
@@ -180,6 +192,37 @@ function UICard({ route }: { route: UIRoute }) {
         <p className="text-xs text-[#2D2926]/35 mt-0.5 truncate font-mono">{route.url}</p>
       </div>
     </Link>
+  );
+}
+
+function UICardExpanded({ route }: { route: UIRoute }) {
+  return (
+    <div className="col-span-full border border-[#E0DFD9] bg-white rounded-lg overflow-hidden">
+      {/* Header — links to the portal root */}
+      <div className="flex items-center justify-between px-4 py-3 bg-[#F9F9F7] border-b border-[#E0DFD9]">
+        <div>
+          <p className="text-sm font-bold text-[#2D2926]">{route.label}</p>
+          <p className="text-xs text-[#2D2926]/30 font-mono">{route.url}</p>
+        </div>
+        <span className="text-[0.6rem] text-[#2D2926]/25 uppercase tracking-widest font-semibold">
+          {ADMIN_TAB_ITEMS.length} לשוניות
+        </span>
+      </div>
+      {/* Sub-grid: gap-px on [#E0DFD9] bg creates 1 px dividers between cells */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-[#E0DFD9]">
+        {ADMIN_TAB_ITEMS.map(item => (
+          <Link
+            key={item.hash || "dashboard"}
+            href={item.hash ? `/admin#${item.hash}` : "/admin"}
+            className="bg-white px-4 py-3 hover:bg-[#F5F4F0] transition-colors group">
+            <p className="text-xs font-semibold text-[#2D2926] group-hover:text-[#8D775F] transition-colors leading-snug">
+              {item.label}
+            </p>
+            <p className="text-[0.65rem] text-[#2D2926]/35 mt-0.5 leading-snug">{item.desc}</p>
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -446,7 +489,11 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
                 <div key={cat}>
                   <CategoryLabel>{cat}</CategoryLabel>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                    {routes.map(r => <UICard key={r.url} route={r} />)}
+                    {routes.map(r =>
+                      r.url === "/admin"
+                        ? <UICardExpanded key={r.url} route={r} />
+                        : <UICard key={r.url} route={r} />
+                    )}
                   </div>
                 </div>
               ))}
