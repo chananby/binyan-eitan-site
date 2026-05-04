@@ -89,8 +89,8 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
 
 // ── Quick-access config ───────────────────────────────────────────────────────
 const QUICK_LINKS: { label: string; url: string; ext: boolean; desc: string }[] = [
-  { label: "נוכחות עובדים",            url: "/he/internal/attendance",        ext: false, desc: "מעקב נוכחות יומי" },
-  { label: "צ׳ק-אין עובד",             url: "/attendance",                    ext: false, desc: "כניסה ויציאה עובדים" },
+  { label: "ניהול נוכחות",              url: "/he/internal/attendance",        ext: false, desc: "דוחות · הורדה · כל העובדים" },
+  { label: "כניסת עובד",               url: "/attendance",                    ext: false, desc: "טופס צ׳ק-אין ויציאה" },
   { label: "ניהול משימות פנים ארגוני", url: "https://admin.binyaneitan.com",  ext: true,  desc: "מערכת המשימות הפנים ארגונית" },
   { label: "דשבורד ניהולי",            url: "/he/internal/admin/dashboard",   ext: false, desc: "מעקב שוטף · דוחות" },
   { label: "Google Analytics",         url: "https://analytics.google.com",   ext: true,  desc: "GA4 — G-1CWQG6YY4H" },
