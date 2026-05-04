@@ -38,6 +38,45 @@ export const metadata: Metadata = {
   },
 };
 
+const aboutSchema = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  name: "מי אנחנו | בניין איתן",
+  description: "שני עשורים של בנייה מורכבת ויוקרתית בישראל. קבלן רשום ג1 בניהולו של מוטי איתן.",
+  url: "https://binyaneitan.com/he/about",
+  inLanguage: "he-IL",
+  about: {
+    "@type": "Organization",
+    name: "בניין איתן",
+    alternateName: "Binyan Eitan",
+    url: "https://binyaneitan.com",
+    logo: "https://binyaneitan.com/logo.png",
+    description: "חברת בנייה ושיפוצים ירושלמית בניהולו של מוטי איתן — קבלן רשום ג1 עם מעל 20 שנות ניסיון בבנייה פרטית ויוקרתית.",
+    foundingDate: "2004",
+    founder: {
+      "@type": "Person",
+      name: "מוטי איתן",
+      jobTitle: "מייסד ובעלים",
+    },
+    areaServed: { "@type": "Country", name: "Israel" },
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: "+972-58-500-8447",
+      contactType: "customer service",
+      availableLanguage: ["Hebrew", "English", "Russian"],
+    },
+    sameAs: ["https://binyaneitan.com"],
+  },
+};
+
 export default function HeAboutPage() {
-  return <AboutPage />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutSchema) }}
+      />
+      <AboutPage />
+    </>
+  );
 }

@@ -456,7 +456,9 @@
       "tip_he": "לעולם אל תסתמכו רק על דברי הקבלן. תעודת הרישום היא מסמך ציבורי — בקשו לראות אותה, אמתו אותה אונליין, ורק אז שימו עט על נייר. חמש דקות של בדיקה הצילו בעלי בתים משנים של קרבות משפטיים.",
       "summary_en": "A registered contractor is a professional with real legal skin in the game. At Binyan Eitan, our registration is not a marketing badge — it is the foundation of every commitment we make.",
       "summary_he": "קבלן רשום הוא איש מקצוע עם אחריות חוקית אמיתית. ב'בניין איתן', הרישום שלנו אינו תג שיווקי — הוא הבסיס לכל התחייבות שאנחנו נותנים.",
-      "related": "choosing-a-contractor|building-from-abroad"
+      "related": "choosing-a-contractor|building-from-abroad",
+      "datePublished": "2024-05-20",
+      "dateModified": "2024-05-20"
     },
     {
       "id": "2",
@@ -486,7 +488,9 @@
       "summary_he": "המרחק כבר אינו מכשול לבנייה ברמה גבוהה. עם בניין איתן, הנכס שלכם בישראל נמצא בידיים מיומנות, אחראיות ושקופות — מהיתר הראשון ועד המפתח האחרון.",
       "cta_label_en": "Schedule a Free Consultation",
       "cta_label_he": "קבעו שיחת ייעוץ חינם",
-      "related": "g1-contractor-certification|renovation-budget-planning"
+      "related": "g1-contractor-certification|renovation-budget-planning",
+      "datePublished": "2024-06-15",
+      "dateModified": "2024-06-15"
     },
     {
       "id": "3",
@@ -518,7 +522,9 @@
       "summary_he": "איכות בנייה אמיתית נמדדת במקומות שבהם העין אינה מגיעה. בבניין איתן, אנחנו בונים את מה שנסתר באותה הקפדה שבה אנחנו בונים את מה שגלוי.",
       "cta_label_en": "Schedule a Free Consultation",
       "cta_label_he": "קבעו שיחת ייעוץ חינם",
-      "related": "floor-infrastructure|how-to-avoid-renovation-mistakes"
+      "related": "floor-infrastructure|how-to-avoid-renovation-mistakes",
+      "datePublished": "2024-09-10",
+      "dateModified": "2024-09-10"
     },
     {
       "id": "4",
@@ -550,7 +556,9 @@
       "summary_he": "אל תשוו רק את השורה התחתונה. תשוו את רמת האחריות והפירוט. הצעה מקצועית היא תחילתו של אמון, ובלי אמון – אי אפשר לבנות בית.",
       "cta_label_en": "Schedule a Free Consultation",
       "cta_label_he": "קבעו שיחת ייעוץ חינם",
-      "related": "choosing-a-contractor|how-to-avoid-renovation-mistakes"
+      "related": "choosing-a-contractor|how-to-avoid-renovation-mistakes",
+      "datePublished": "2024-11-18",
+      "dateModified": "2024-11-18"
     },
     {
       "id": "5",
@@ -582,7 +590,9 @@
       "summary_he": "יום המסירה מסמן את תחילת הסיפור של הבית שלכם. אנחנו כאן כדי לוודא שהסיפור הזה יהיה בטוח, יציב ומהנה לאורך שנים רבות.",
       "cta_label_en": "Schedule a Free Consultation",
       "cta_label_he": "קבעו שיחת ייעוץ חינם",
-      "related": "how-to-avoid-renovation-mistakes|reading-a-professional-quote"
+      "related": "how-to-avoid-renovation-mistakes|reading-a-professional-quote",
+      "datePublished": "2025-01-20",
+      "dateModified": "2025-01-20"
     },
     {
       "id": "6",
@@ -614,7 +624,9 @@
       "summary_he": "הריצוף שאתם בוחרים אומר משהו על הטעם שלכם. הריצוף שאתם בונים אומר משהו על ההחלטות שלכם. ב'בניין איתן', אנו בונים את השכבות הנסתרות באותה הקפדה שאנו מביאים לכל מה שניתן לראות.",
       "cta_label_en": "Schedule a Free Consultation",
       "cta_label_he": "קבעו שיחת ייעוץ חינם",
-      "related": "behind-the-walls|how-to-avoid-renovation-mistakes"
+      "related": "behind-the-walls|how-to-avoid-renovation-mistakes",
+      "datePublished": "2025-03-07",
+      "dateModified": "2025-03-07"
     },
     {
       "id": "7",
@@ -652,7 +664,9 @@
       "summary_en": "A successful renovation starts with the right contractor. Binyan Eitan — renovation and construction contractor in Jerusalem and the Benjamin region, with 20 years of experience and professional Israeli craftsmanship.",
       "cta_label_he": "פנו אלינו לייעוץ חינם",
       "cta_label_en": "Get a Free Consultation",
-      "related": "renovation-budget-planning|reading-a-professional-quote|renovating-while-living"
+      "related": "renovation-budget-planning|reading-a-professional-quote|renovating-while-living",
+      "datePublished": "2025-05-14",
+      "dateModified": "2025-05-14"
     },
     {
       "id": "8",
@@ -684,7 +698,9 @@
       "summary_en": "Building a private home from scratch is a life project. With an experienced contractor, precise planning, and transparent management — it can be an enjoyable one too. At Binyan Eitan, we guide you through every stage — from the building permit to the front door key.",
       "cta_label_he": "קבעו שיחת ייעוץ",
       "cta_label_en": "Schedule a Consultation",
-      "related": "foundation-reinforcement|renovation-budget-planning"
+      "related": "foundation-reinforcement|renovation-budget-planning",
+      "datePublished": "2025-07-22",
+      "dateModified": "2025-07-22"
     },
     {
       "id": "9",
@@ -716,7 +732,9 @@
       "summary_en": "Structural reinforcement is not open-heart surgery — but it demands the same precision. With decades of experience reinforcing buildings in Jerusalem and Binyamin, Binyan Eitan provides the engineering knowledge, the right equipment, and the close supervision your project demands.",
       "cta_label_he": "לייעוץ ראשוני ללא עלות",
       "cta_label_en": "Free Initial Consultation",
-      "related": "building-private-home|how-to-avoid-renovation-mistakes"
+      "related": "building-private-home|how-to-avoid-renovation-mistakes",
+      "datePublished": "2025-09-15",
+      "dateModified": "2025-09-15"
     },
     {
       "id": "11",
@@ -746,7 +764,9 @@
       "cta_label_he": "קבלו ייעוץ תקציבי ראשוני",
       "cta_label_en": "קבלו ייעוץ תקציבי ראשוני",
       "related": "reading-a-professional-quote|how-to-avoid-renovation-mistakes",
-      "archived": true
+      "archived": true,
+      "datePublished": "2025-10-08",
+      "dateModified": "2025-10-08"
     },
     {
       "id": "12",
@@ -778,7 +798,9 @@
       "summary_en": "בחירת קבלן נכונה אינה עניין של מזל — היא עניין של תהליך.",
       "cta_label_he": "צרו קשר לייעוץ ראשוני",
       "cta_label_en": "צרו קשר לייעוץ ראשוני",
-      "related": "g1-contractor-certification|reading-a-professional-quote|renovating-while-living"
+      "related": "g1-contractor-certification|reading-a-professional-quote|renovating-while-living",
+      "datePublished": "2025-11-03",
+      "dateModified": "2025-11-03"
     },
     {
       "id": 13,
@@ -810,7 +832,9 @@
       "summary_en": "",
       "cta_label_he": "התייעצו איתנו על תכנון השיפוץ",
       "cta_label_en": "Consult with us on renovation planning",
-      "related": "choosing-a-contractor|how-to-avoid-renovation-mistakes"
+      "related": "choosing-a-contractor|how-to-avoid-renovation-mistakes",
+      "datePublished": "2025-12-10",
+      "dateModified": "2025-12-10"
     },
     {
       "id": "10",
@@ -842,7 +866,9 @@
       "summary_he": "עבודה עברית ב\"בניין איתן\" אינה הבטחה ריקה — היא המבנה הארגוני שמאפשר לנו לעמוד מאחורי כל מה שאנחנו עושים. ביצוע מדויק, תקשורת ישירה, ואחריות מלאה — מהיום הראשון ועד אחרי המסירה.",
       "summary_en": "עבודה עברית ב\"בניין איתן\" אינה הבטחה ריקה — היא המבנה הארגוני שמאפשר לנו לעמוד מאחורי כל מה שאנחנו עושים.",
       "cta_label_he": "דברו איתנו ישירות",
-      "cta_label_en": "דברו איתנו ישירות"
+      "cta_label_en": "דברו איתנו ישירות",
+      "datePublished": "2026-01-25",
+      "dateModified": "2026-01-25"
     }
   ],
   "faqs": [

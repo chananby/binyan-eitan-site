@@ -57,6 +57,9 @@ interface Article {
   cta_label_en?: string;
   cta_label_he?: string;
   related?: string; // pipe-separated slugs, e.g. "slug-a|slug-b"
+  datePublished?: string;
+  dateModified?: string;
+  archived?: boolean;
 }
 
 /** Renders **bold** markdown markers as <strong> inline elements. */
@@ -186,8 +189,8 @@ export default function ArticleDetailPage({ slug }: Props) {
     headline: title,
     description: intro || title,
     image: ogImage,
-    datePublished: "2026-01-01",
-    dateModified: "2026-01-01",
+    datePublished: article.datePublished ?? "2024-01-01",
+    dateModified: article.dateModified ?? article.datePublished ?? "2024-01-01",
     author: { "@type": "Organization", name: "Binyan Eitan" },
     publisher: {
       "@type": "Organization",
@@ -198,11 +201,41 @@ export default function ArticleDetailPage({ slug }: Props) {
     mainEntityOfPage: { "@type": "WebPage", "@id": pageUrl },
   };
 
+  const expertiseLabel = lang === "he" ? "ידע מקצועי" : "Expertise";
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: lang === "he" ? "בניין איתן" : "Binyan Eitan",
+        item: `https://binyaneitan.com/${lang}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: expertiseLabel,
+        item: `https://binyaneitan.com/${lang}/expertise`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: title,
+        item: pageUrl,
+      },
+    ],
+  };
+
   return (
     <main className="relative bg-bone min-h-screen selection:bg-accent/20" dir={dir}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <Navbar />
 
@@ -359,7 +392,7 @@ export default function ArticleDetailPage({ slug }: Props) {
           {article.related && (() => {
             const relatedSlugs = article.related!.split("|").filter(Boolean);
             const relatedArticles = (rawData?.articles as Article[] | undefined)
-              ?.filter(a => relatedSlugs.includes(a.slug) && !("archived" in a && (a as Record<string, unknown>).archived)) ?? [];
+              ?.filter(a => relatedSlugs.includes(a.slug) && !a.archived) ?? [];
             if (!relatedArticles.length) return null;
             return (
               <div className="mt-16 pt-12 border-t border-warm-gray-light">

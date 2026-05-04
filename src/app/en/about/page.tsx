@@ -33,6 +33,45 @@ export const metadata: Metadata = {
   },
 };
 
+const aboutSchema = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  name: "About Us | Binyan Eitan",
+  description: "Two decades of complex, luxury construction across Israel. G1 Registered Contractor led by founder Moti Eitan.",
+  url: "https://binyaneitan.com/en/about",
+  inLanguage: "en-US",
+  about: {
+    "@type": "Organization",
+    name: "Binyan Eitan",
+    alternateName: "בניין איתן",
+    url: "https://binyaneitan.com",
+    logo: "https://binyaneitan.com/logo.png",
+    description: "Jerusalem-based construction and renovation firm led by Moti Eitan — a G1 registered contractor with 20+ years of experience in high-end residential and private construction.",
+    foundingDate: "2004",
+    founder: {
+      "@type": "Person",
+      name: "Moti Eitan",
+      jobTitle: "Founder & Owner",
+    },
+    areaServed: { "@type": "Country", name: "Israel" },
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: "+972-58-500-8447",
+      contactType: "customer service",
+      availableLanguage: ["Hebrew", "English", "Russian"],
+    },
+    sameAs: ["https://binyaneitan.com"],
+  },
+};
+
 export default function EnAboutPage() {
-  return <AboutPage />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutSchema) }}
+      />
+      <AboutPage />
+    </>
+  );
 }
