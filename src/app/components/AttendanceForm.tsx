@@ -7,14 +7,12 @@ import { useFeedback } from "../hooks/useFeedback";
 import SuccessFlash from "./SuccessFlash";
 import {
   LogIn, LogOut, MapPin, CheckCircle, AlertCircle, Loader2,
-  ChevronRight, Lock, Building2,
+  ChevronRight, Building2,
 } from "lucide-react";
 import { labelWithDayHe } from "../../lib/date-utils";
-import AttendanceAdminPanel from "./AttendanceAdminPanel";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type Step      = "phone" | "locating" | "project" | "ready" | "submitting" | "success" | "error" | "history" | "manual" | "manualSuccess";
-type AdminView = "none" | "password" | "dashboard";
+type Step = "phone" | "locating" | "project" | "ready" | "submitting" | "success" | "error" | "history" | "manual" | "manualSuccess";
 
 interface GeoCoords { lat: number; lng: number; }
 interface Project { id: string; name: string; status?: string; }
@@ -170,12 +168,6 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   const [projectsLoading, setProjectsLoading]     = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState("");
 
-  // ── Admin state ──────────────────────────────────────────────────────────
-  const [adminView, setAdminView]   = useState<AdminView>("none");
-  const [adminPw, setAdminPw]       = useState("");
-  const [adminErr, setAdminErr]     = useState("");
-  const [adminLoading, setAdminLoading] = useState(false);
-
   // ── UI language (worker-facing only) ─────────────────────────────────────
   const [lang, setLang] = useState<Lang>(() => {
     if (typeof window === "undefined") return "he";
@@ -184,37 +176,12 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   useEffect(() => { localStorage.setItem("att_lang", lang); }, [lang]);
   const t = T[lang];
 
-  // ── Session restore — check HMAC cookie via API (httpOnly, can't read directly) ──
-  useEffect(() => {
-    fetch("/api/admin/whoami")
-      .then(r => r.json())
-      .then(d => { if (d.role === "admin") setAdminView("dashboard"); })
-      .catch(() => {});
-  }, []);
-
   // ── Load worker-flow projects ─────────────────────────────────────────────
   useEffect(() => {
     if (step !== "project" && step !== "manual") return;
     setProjectsLoading(true);
     fetch("/api/projects").then(r => r.json()).then(d => setProjects(d.projects ?? [])).catch(() => {}).finally(() => setProjectsLoading(false));
   }, [step]);
-
-  // ── Admin auth ────────────────────────────────────────────────────────────
-  async function handleAdminLogin(e: React.FormEvent) {
-    e.preventDefault(); setAdminLoading(true); setAdminErr("");
-    try {
-      const res  = await fetch("/api/admin-auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: adminPw }) });
-      const data = await res.json();
-      if (data.ok) { setAdminView("dashboard"); setAdminPw(""); }
-      else         { setAdminErr("סיסמה שגויה"); setAdminPw(""); }
-    } catch { setAdminErr("שגיאת רשת"); }
-    finally  { setAdminLoading(false); }
-  }
-
-  function handleAdminLogout() {
-    fetch("/api/admin-auth", { method: "DELETE" }).catch(() => {});
-    setAdminView("none");
-  }
 
   // ── Worker attendance callbacks ───────────────────────────────────────────
   const requestLocation = useCallback(() => {
@@ -319,39 +286,6 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     } catch { setManualError("שגיאת רשת — נסה שוב"); }
     finally { setManualLoading(false); }
   }, [phone, manualAction, manualDate, manualTime, manualProject]);
-
-  // ── Admin: password screen ────────────────────────────────────────────────
-  if (adminView === "password") {
-    return (
-      <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
-        <Lock size={40} strokeWidth={1.5} className="text-accent" />
-        <div className="text-center space-y-1">
-          <p className="font-heading text-xl font-bold text-charcoal">ניהול אתר</p>
-          <p className="font-body text-xs text-charcoal/40">הזן סיסמת מנהל</p>
-        </div>
-        <form onSubmit={handleAdminLogin} className="w-full space-y-4">
-          <input type="password" autoFocus value={adminPw} onChange={e => setAdminPw(e.target.value)} placeholder="סיסמה"
-            className="w-full border border-charcoal/20 bg-white px-5 py-4 text-center font-body text-lg tracking-[0.3em] text-charcoal placeholder-charcoal/20 focus:border-accent focus:outline-none transition-colors duration-200" />
-          {adminErr && (
-            <div className="flex items-center gap-2 text-red-500">
-              <AlertCircle size={14} strokeWidth={1.5} className="shrink-0" />
-              <p className="font-body text-xs">{adminErr}</p>
-            </div>
-          )}
-          <button type="submit" disabled={adminLoading || !adminPw.trim()}
-            className="w-full bg-accent py-4 font-body text-sm font-semibold tracking-[0.2em] uppercase text-bone transition-colors duration-200 hover:bg-accent-dark disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-            {adminLoading ? <><Loader2 size={16} className="animate-spin" /> מאמת...</> : "כניסה"}
-          </button>
-        </form>
-        <button onClick={() => setAdminView("none")} className="font-body text-xs text-charcoal/30 hover:text-charcoal/60 transition-colors underline underline-offset-2">
-          חזור לשעון נוכחות
-        </button>
-      </Screen>
-    );
-  }
-
-  // ── Admin: Dashboard ──────────────────────────────────────────────────────
-  if (adminView === "dashboard") return <AttendanceAdminPanel onLogout={handleAdminLogout} />;
 
   // ── Worker attendance screens ─────────────────────────────────────────────
 
@@ -754,13 +688,6 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
           {t.myHistory}
         </button>
       </div>
-      <button
-        onClick={() => setAdminView("password")}
-        aria-label="כניסת מנהל"
-        className="mt-4 opacity-20 hover:opacity-60 transition-opacity duration-200"
-      >
-        <Lock size={14} strokeWidth={1.5} className="text-charcoal" />
-      </button>
     </Screen>
   );
 }
