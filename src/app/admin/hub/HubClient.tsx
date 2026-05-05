@@ -88,7 +88,7 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
 }
 
 // ── Quick-access config ───────────────────────────────────────────────────────
-const QUICK_LINKS: { label: string; url: string; ext: boolean; desc: string }[] = [
+const QUICK_LINKS: { label: string; url: string; ext: boolean; desc: string; underConstruction?: boolean }[] = [
   { label: "כניסת עובד",               url: "/attendance",                    ext: false, desc: "טופס צ׳ק-אין ויציאה" },
   { label: "ניהול משימות פנים ארגוני", url: "https://admin.binyaneitan.com",  ext: true,  desc: "מערכת המשימות הפנים ארגונית" },
   { label: "פורטל ניהול",              url: "/admin",                         ext: false, desc: "נוכחות, עובדים, פרויקטים, תקציב" },
@@ -130,10 +130,15 @@ function QuickCard({
         </div>
       )}
       <div className={`flex items-start justify-between gap-2 ${editMode ? "pt-7" : ""}`}>
-        <p className={`text-sm font-bold leading-snug transition-colors
-          ${editMode ? "text-[#2D2926]/70" : "text-[#2D2926] group-hover:text-[#8D775F]"}`}>
-          {item.label}
-        </p>
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <p className={`text-sm font-bold leading-snug transition-colors
+            ${editMode ? "text-[#2D2926]/70" : "text-[#2D2926] group-hover:text-[#8D775F]"}`}>
+            {item.label}
+          </p>
+          {item.underConstruction && (
+            <span className="text-[0.6rem] text-amber-600/70 font-medium leading-none">🚧 בעבודה</span>
+          )}
+        </div>
         {item.ext && !editMode && (
           <ExternalLink size={13} className="shrink-0 mt-0.5 text-[#2D2926]/20 group-hover:text-[#8D775F]/60 transition-colors" />
         )}
