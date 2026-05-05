@@ -53,11 +53,7 @@ export const externalLinks: ExternalLinkGroup[] = [
         url: "https://clarity.microsoft.com/projects/view/w40c828o9d",
         description: "הקלטות סשן · מפות חום — w40c828o9d",
       },
-      {
-        label: "Plausible",
-        url: "https://plausible.io/binyaneitan.com",
-        description: "אנליטיקת דפים עם שמירה על פרטיות",
-      },
+
     ],
   },
   {
