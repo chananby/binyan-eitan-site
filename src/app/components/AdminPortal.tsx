@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useFeedback } from "../hooks/useFeedback";
 import SuccessFlash from "./SuccessFlash";
 import ForemanPortal from "./ForemanPortal";
@@ -363,6 +363,12 @@ ${detailHtml}
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [refreshing,    setRefreshing]    = useState(false);
 
+  // Refs used by auto-refresh interval (avoids stale closures)
+  const autoTabRef          = useRef<AdminTab>("dashboard");
+  const lastRefreshedRef    = useRef<Date | null>(null);
+  useEffect(() => { autoTabRef.current = tab; });
+  useEffect(() => { lastRefreshedRef.current = lastRefreshed; });
+
   // Income UI
   const [incProjectId, setIncProjectId] = useState("");
   const [incAmount,    setIncAmount]    = useState("");
@@ -479,6 +485,39 @@ ${detailHtml}
       if (res?.ok) { const d = await res.json(); setTodayLogs(d.records ?? []); }
     }, 60_000);
     return () => clearInterval(iv);
+  }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Auto-refresh dashboard + attendance every 120 s (visibility-aware) ────
+  useEffect(() => {
+    if (authState !== "admin" && authState !== "foreman") return;
+    const AUTO_TABS: AdminTab[] = ["dashboard", "attendance"];
+    const INTERVAL_MS = 120_000;
+
+    async function doRefresh() {
+      if (document.visibilityState !== "visible") return;
+      if (!AUTO_TABS.includes(autoTabRef.current)) return;
+      if (autoTabRef.current === "attendance" && authState === "admin") {
+        await Promise.all([loadData("admin"), loadPending()]);
+      } else {
+        await loadData(authState as "admin" | "foreman");
+      }
+    }
+
+    function onVisibilityChange() {
+      if (document.visibilityState !== "visible") return;
+      if (!AUTO_TABS.includes(autoTabRef.current)) return;
+      const elapsed = lastRefreshedRef.current
+        ? Date.now() - lastRefreshedRef.current.getTime()
+        : Infinity;
+      if (elapsed >= INTERVAL_MS) doRefresh();
+    }
+
+    const iv = setInterval(doRefresh, INTERVAL_MS);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      clearInterval(iv);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Data loaders ───────────────────────────────────────────────────────────
@@ -1068,6 +1107,7 @@ ${detailHtml}
         {tab === "dashboard" && (
           <div className="space-y-4">
             <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
+            <p className="text-[0.65rem] text-charcoal/30 text-center -mt-2">מתעדכן אוטומטית כל 2 דקות</p>
 
             {/* On-site */}
             <Card title="⚡ מי באתר כרגע">
@@ -1232,6 +1272,7 @@ ${detailHtml}
         {tab === "attendance" && isAdmin && (
           <div className="space-y-5">
             <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
+            <p className="text-[0.65rem] text-charcoal/30 text-center -mt-3">מתעדכן אוטומטית כל 2 דקות</p>
 
             {/* Attendance report — date pickers + view + print */}
             <Card>
