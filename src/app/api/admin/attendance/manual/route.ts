@@ -39,10 +39,11 @@ export async function POST(req: NextRequest) {
   const [y, m, d] = date.split("-");
   const dp = `${parseInt(d)}.${parseInt(m)}.${y}`;
 
-  const base = (action: string, label: string): Record<string, unknown> => ({
+  const base = (action: string, label: string, clockAt: string | null): Record<string, unknown> => ({
     staff_id,
     action,
     timestamp_label: label,
+    clock_at: clockAt,
     is_manual: true,
     status: "approved",
     lat: null,
@@ -52,13 +53,14 @@ export async function POST(req: NextRequest) {
 
   const records: Record<string, unknown>[] = isWork
     ? [
-        base("כניסה", `${dp}, ${entry_time}`),
-        base("יציאה", `${dp}, ${exit_time}`),
+        base("כניסה", `${dp}, ${entry_time}`, new Date(`${date}T${entry_time}:00+03:00`).toISOString()),
+        base("יציאה", `${dp}, ${exit_time}`,  new Date(`${date}T${exit_time}:00+03:00`).toISOString()),
       ]
     : [
         base(
           ABSENCE_ACTION[type] ?? "אחר",
           notes?.trim() ? `${dp} — ${notes.trim()}` : dp,
+          null,
         ),
       ];
 

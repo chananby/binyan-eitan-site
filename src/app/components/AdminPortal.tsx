@@ -39,7 +39,7 @@ interface StaffMember {
 }
 interface AttendanceRecord {
   id: string; action: string; timestamp_label: string; recorded_at: string;
-  created_at?: string; is_manual?: boolean; status?: string;
+  clock_at?: string | null; created_at?: string; is_manual?: boolean; status?: string;
   staff: { id: string; name: string; phone: string; role?: string } | null;
   project: { id: string; name: string } | null;
 }
@@ -1116,8 +1116,8 @@ ${detailHtml}
               ) : (
                 <div className="divide-y divide-charcoal/5">
                   {onSite.map(({ record, worker }) => {
-                    const t = record.timestamp_label
-                      ? record.timestamp_label.split(" ")[1]
+                    const t = record.clock_at
+                      ? new Date(record.clock_at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" })
                       : new Date(record.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
                     return (
                       <div key={record.id} className="flex items-center justify-between py-2.5 gap-3">

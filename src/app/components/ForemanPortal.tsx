@@ -203,9 +203,9 @@ export default function ForemanPortal({
           if (!sid || seen.has(sid)) continue;
           seen.add(sid);
           if (rec.action === "in" || rec.action === "כניסה") {
-            const t = rec.timestamp_label
-              ? (rec.timestamp_label.split(" ")[1] ?? rec.timestamp_label)
-              : new Date(rec.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+            const t = rec.clock_at
+              ? new Date(rec.clock_at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" })
+              : new Date(rec.recorded_at ?? rec.created_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
             workers.push({ att_id: rec.id, staff_id: sid, name: rec.staff?.name ?? "—", entry_time: t });
           }
         }

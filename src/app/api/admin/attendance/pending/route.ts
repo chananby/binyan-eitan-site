@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("attendance")
-    .select("id, action, timestamp_label, created_at, is_manual, status, staff:staff_id(id, name, phone), project:project_id(id, name)")
+    .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, staff:staff_id(id, name, phone), project:project_id(id, name)")
     .eq("status", "pending")
     .eq("is_manual", true)
     .order("created_at", { ascending: false });

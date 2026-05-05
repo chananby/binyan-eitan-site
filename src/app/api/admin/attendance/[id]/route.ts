@@ -22,7 +22,23 @@ export async function PATCH(
     update.action = body.action;
   }
   if (body.project_id !== undefined) update.project_id = body.project_id || null;
-  if (body.timestamp_label !== undefined) update.timestamp_label = body.timestamp_label?.trim() || null;
+  if (body.timestamp_label !== undefined) {
+    const trimmed = body.timestamp_label?.trim() || null;
+    update.timestamp_label = trimmed;
+    if (trimmed) {
+      const parts = trimmed.replace(",", "").trim().split(/\s+/);
+      if (parts.length >= 2) {
+        const [d2, m2, y2] = parts[0].split(".");
+        const [hh, mm]     = parts[1].split(":");
+        if (d2 && m2 && y2 && hh && mm) {
+          const dt = new Date(`${y2}-${m2.padStart(2,"0")}-${d2.padStart(2,"0")}T${hh.padStart(2,"0")}:${mm.padStart(2,"0")}:00+03:00`);
+          if (!isNaN(dt.getTime())) update.clock_at = dt.toISOString();
+        }
+      }
+    } else {
+      update.clock_at = null;
+    }
+  }
   if (body.status !== undefined) {
     if (!["approved", "rejected", "pending"].includes(body.status)) {
       return NextResponse.json({ error: "סטטוס לא תקין" }, { status: 400 });
@@ -37,7 +53,7 @@ export async function PATCH(
     .from("attendance")
     .update(update)
     .eq("id", params.id)
-    .select("id, action, timestamp_label, recorded_at, project_id, status")
+    .select("id, action, timestamp_label, clock_at, recorded_at, project_id, status")
     .single();
 
   if (error) {

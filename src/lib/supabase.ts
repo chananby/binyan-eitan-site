@@ -38,6 +38,7 @@ export interface AttendanceRow {
   lat: string;
   lng: string;
   timestamp_label: string;
+  clock_at: string | null;
   created_at: string;
 }
 

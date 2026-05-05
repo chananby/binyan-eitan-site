@@ -5,14 +5,11 @@
  *   rows[]    — one row per worker per day (entry, exit, hours, project)
  *   summary[] — one row per worker (total days, total hours)
  *
- * timestamp_label format (set by AttendanceForm/clock-out):
- *   "DD.MM.YYYY, HH:MM"  (Hebrew toLocaleString output)
- *
- * We parse this to get the ACTUAL work date and time, since created_at
- * reflects when the record was inserted (which may differ — e.g. retroactive entry).
+ * clock_at (TIMESTAMPTZ) is the authoritative work timestamp.
+ * timestamp_label is kept as a human-readable fallback in the DB.
  *
  * DB query is widened by ±3 days so retroactively-inserted records aren't missed;
- * in-range filtering happens in code using the parsed work date.
+ * in-range filtering happens in code using clock_at.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -28,40 +25,9 @@ export const dynamic = "force-dynamic";
 
 // ── Timestamp helpers ─────────────────────────────────────────────────────────
 
-/**
- * Parse "DD.MM.YYYY, HH:MM" (or "DD.MM.YYYY HH:MM") → Date (Israel +03:00).
- * Returns null if the format is unrecognised.
- */
-function parseLabelDateTime(label: string | null | undefined): Date | null {
-  if (!label) return null;
-  // Remove optional comma, then split on any whitespace
-  const parts = label.replace(",", "").trim().split(/\s+/);
-  if (parts.length < 2) return null;
-  const [datePart, timePart] = parts;
-  const [day, month, year] = datePart.split(".");
-  const [hour, minute]     = timePart.split(":");
-  if (!day || !month || !year || !hour || !minute) return null;
-  // Fixed +03:00 offset — close enough for report purposes (DST shifts ≤1 h)
-  const d = new Date(`${year}-${month.padStart(2,"0")}-${day.padStart(2,"0")}T${hour.padStart(2,"0")}:${minute.padStart(2,"0")}:00+03:00`);
-  return isNaN(d.getTime()) ? null : d;
-}
-
-/** Extract just "HH:MM" from the label; fall back to empty string. */
-function labelTime(label: string | null | undefined): string {
-  const d = parseLabelDateTime(label);
-  if (!d) return "";
-  return d.toLocaleTimeString("he-IL", {
-    timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit", hour12: false,
-  });
-}
-
-/** Extract "DD.MM.YYYY" date string from the label; fall back to null. */
-function labelDate(label: string | null | undefined): string | null {
-  const d = parseLabelDateTime(label);
-  if (!d) return null;
-  return d.toLocaleDateString("he-IL", {
-    timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", year: "numeric",
-  });
+/** Resolve the authoritative work Date from a record: prefer clock_at, fall back to created_at. */
+function workDate(rec: { clock_at?: string | null; created_at: string }): Date {
+  return rec.clock_at ? new Date(rec.clock_at) : new Date(rec.created_at);
 }
 
 /** "YYYY-MM-DD" for a Date in Israel timezone. */
@@ -69,11 +35,6 @@ function toYMD(d: Date): string {
   return d.toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" }); // sv locale → YYYY-MM-DD
 }
 
-function israelDate(isoStr: string): string {
-  return new Date(isoStr).toLocaleDateString("he-IL", {
-    timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", year: "numeric",
-  });
-}
 function israelTime(isoStr: string): string {
   return new Date(isoStr).toLocaleTimeString("he-IL", {
     timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit", hour12: false,
@@ -133,7 +94,7 @@ export async function GET(req: NextRequest) {
     // Widen DB query by ±3 days to catch retroactively-entered records
     let query = supabase
       .from("attendance")
-      .select("id, action, timestamp_label, created_at, staff:staff_id(id, name, phone), project:project_id(name)")
+      .select("id, action, clock_at, created_at, staff:staff_id(id, name, phone), project:project_id(name)")
       .gte("created_at", dayStartISO(shiftYMD(from, -3)))
       .lte("created_at", dayEndISO(shiftYMD(to, +3)));
 
@@ -160,12 +121,11 @@ export async function GET(req: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const projectName = (rec.project as any)?.name ?? "";
 
-      // Use the ACTUAL work date from timestamp_label, not created_at
-      const workDateStr = labelDate(rec.timestamp_label) ?? israelDate(rec.created_at);
-
-      // Determine the YYYY-MM-DD of this work date for range filtering
-      const workD = parseLabelDateTime(rec.timestamp_label) ?? new Date(rec.created_at);
-      const workYMD = toYMD(workD);
+      const workD    = workDate(rec);
+      const workYMD  = toYMD(workD);
+      const workDateStr = workD.toLocaleDateString("he-IL", {
+        timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", year: "numeric",
+      });
       // Skip records whose actual work date is outside the requested range
       if (workYMD < from || workYMD > to) continue;
 
@@ -201,17 +161,13 @@ export async function GET(req: NextRequest) {
         const firstEntry = day.entries[0] ?? null;
         const lastExit   = day.exits[day.exits.length - 1] ?? null;
 
-        // Time display: extract from timestamp_label; fall back to created_at
-        const entryDisplay = labelTime(firstEntry?.timestamp_label) || (firstEntry ? israelTime(firstEntry.created_at) : "—");
-        const exitDisplay  = labelTime(lastExit?.timestamp_label)   || (lastExit  ? israelTime(lastExit.created_at)   : "—");
+        const entryDisplay = firstEntry ? israelTime(workDate(firstEntry).toISOString()) : "—";
+        const exitDisplay  = lastExit   ? israelTime(workDate(lastExit).toISOString())   : "—";
 
-        // Hours: use parsed datetime from labels for accurate diff
         let hours: number | null = null;
         if (firstEntry && lastExit) {
-          const entryDt = parseLabelDateTime(firstEntry.timestamp_label) ?? new Date(firstEntry.created_at);
-          const exitDt  = parseLabelDateTime(lastExit.timestamp_label)   ?? new Date(lastExit.created_at);
-          const diffMs  = exitDt.getTime() - entryDt.getTime();
-          if (diffMs > 0) hours = Math.round(diffMs / 36_000) / 100; // 2-decimal hours
+          const diffMs = workDate(lastExit).getTime() - workDate(firstEntry).getTime();
+          if (diffMs > 0) hours = Math.round(diffMs / 36_000) / 100;
         }
 
         // Most-mentioned project for the day

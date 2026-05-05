@@ -150,7 +150,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   const feedback = useFeedback();
 
   // ── Worker history state ──────────────────────────────────────────────────
-  const [historyRecords, setHistoryRecords] = useState<Array<{ id: string; action: string; timestamp_label: string | null; created_at: string; is_manual?: boolean; status?: string; project: { id: string; name: string } | null }>>([]);
+  const [historyRecords, setHistoryRecords] = useState<Array<{ id: string; action: string; timestamp_label: string | null; clock_at?: string | null; created_at: string; is_manual?: boolean; status?: string; project: { id: string; name: string } | null }>>([]);
   const [historyName, setHistoryName]       = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError]     = useState<string | null>(null);
@@ -453,6 +453,15 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       const dt = parseLabel(label) ?? new Date(fallback);
       return dt.toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", year: "numeric" });
     }
+    type HR = typeof historyRecords[0];
+    function clockDt(r: HR): Date {
+      return r.clock_at ? new Date(r.clock_at) : (parseLabel(r.timestamp_label) ?? new Date(r.created_at));
+    }
+    function clockTime(r: HR | null | undefined): string {
+      if (!r) return "";
+      if (r.clock_at) return new Date(r.clock_at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit", hour12: false });
+      return labelTime(r.timestamp_label);
+    }
 
     const pendingEntries = historyRecords.filter(r => r.status === "pending");
 
@@ -464,14 +473,12 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     // Group records by day, compute hours per day (exclude pending)
     type DayRow = { date: string; dayName: string; project: string; entry: string; exit: string; hours: number | null };
     const dayRows: DayRow[] = (() => {
-      const sorted = [...historyRecords].filter(r => r.status !== "pending").sort((a, b) => {
-        const ta = parseLabel(a.timestamp_label)?.getTime() ?? new Date(a.created_at).getTime();
-        const tb = parseLabel(b.timestamp_label)?.getTime() ?? new Date(b.created_at).getTime();
-        return ta - tb;
-      });
+      const sorted = [...historyRecords].filter(r => r.status !== "pending").sort((a, b) =>
+        clockDt(a).getTime() - clockDt(b).getTime()
+      );
       const byDate = new Map<string, { entries: typeof sorted; exits: typeof sorted; project: string }>();
       for (const r of sorted) {
-        const key = labelDateKey(r.timestamp_label, r.created_at);
+        const key = clockDt(r).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", year: "numeric" });
         if (!byDate.has(key)) byDate.set(key, { entries: [], exits: [], project: r.project?.name ?? "—" });
         const day = byDate.get(key)!;
         if (r.action === "כניסה" || r.action === "in") day.entries.push(r);
@@ -483,13 +490,11 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         const last  = day.exits[day.exits.length - 1] ?? null;
         let hours: number | null = null;
         if (first && last) {
-          const et = parseLabel(first.timestamp_label) ?? new Date(first.created_at);
-          const xt = parseLabel(last.timestamp_label)  ?? new Date(last.created_at);
-          const diff = xt.getTime() - et.getTime();
+          const diff = clockDt(last).getTime() - clockDt(first).getTime();
           if (diff > 0) hours = Math.round(diff / 36_000) / 100;
         }
-        const dayDt = parseLabel(first?.timestamp_label) ?? parseLabel(last?.timestamp_label);
-        return { date, dayName: dayNameFromDt(dayDt), project: day.project, entry: labelTime(first?.timestamp_label), exit: labelTime(last?.timestamp_label), hours };
+        const dayDt = first ? clockDt(first) : (last ? clockDt(last) : null);
+        return { date, dayName: dayNameFromDt(dayDt), project: day.project, entry: clockTime(first), exit: clockTime(last), hours };
       }).reverse();
     })();
 

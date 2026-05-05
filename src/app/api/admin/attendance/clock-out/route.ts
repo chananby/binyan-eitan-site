@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
       staff_id,
       action:          "out",
       timestamp_label,
+      clock_at:        now.toISOString(),
       project_id:      project_id || null,
       // lat/lng intentionally omitted — manual clock-out has no GPS
     });

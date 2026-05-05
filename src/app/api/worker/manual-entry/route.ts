@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
 
   // Format matching nowLabel() output: "28.4.2026, 08:30"
   const timestamp_label = `${d}.${m}.${y}, ${time}`;
+  const clock_at = new Date(`${date}T${time}:00+03:00`).toISOString();
 
   const supabase = createServerClient();
   const normalized = normalizePhone(phone.trim());
@@ -51,6 +52,7 @@ export async function POST(req: NextRequest) {
     staff_id:        worker.id,
     action,
     timestamp_label,
+    clock_at,
     is_manual:       true,
     status:          "pending",
     lat:             null,

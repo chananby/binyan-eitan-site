@@ -174,6 +174,7 @@ export async function POST(req: NextRequest) {
 
   if (timestamp)  attendancePayload.timestamp_label = timestamp;
   if (project_id) attendancePayload.project_id = project_id;
+  attendancePayload.clock_at = new Date().toISOString();
 
   const { error: insertError } = await supabase
     .from("attendance")
