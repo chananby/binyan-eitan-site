@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import PinGate from "../../components/PinGate";
 
 export const metadata: Metadata = {
   robots: {
@@ -10,6 +9,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function InternalLayoutHe({ children }: { children: React.ReactNode }) {
-  return <PinGate lang="he">{children}</PinGate>;
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

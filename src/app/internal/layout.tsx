@@ -3,7 +3,12 @@ import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
   title: "Internal — Management Dashboards",
-  robots: "noindex, nofollow",
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: { index: false, follow: false, noimageindex: true },
+  },
 };
 
 const InternalClient = dynamic(() => import("./InternalClientLayout"), { ssr: false });
