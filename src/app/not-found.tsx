@@ -1,16 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import RootNotFoundWrapper from "./components/ClientLayouts/RootNotFoundWrapper";
 
-import { usePathname } from "next/navigation";
-import { LangProvider } from "./components/LangContext";
-import NotFoundClient from "./components/ClientLayouts/NotFoundClient";
+export const metadata: Metadata = {
+  title: "404 | Binyan Eitan",
+  robots: { index: false, follow: false },
+};
 
 export default function RootNotFound() {
-  const pathname = usePathname();
-  const lang = pathname?.startsWith("/en") ? "en" : "he";
-  const dir  = lang === "he" ? "rtl" : "ltr";
-  return (
-    <LangProvider lang={lang} dir={dir}>
-      <NotFoundClient />
-    </LangProvider>
-  );
+  return <RootNotFoundWrapper />;
 }
