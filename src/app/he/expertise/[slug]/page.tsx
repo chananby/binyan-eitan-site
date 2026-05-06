@@ -5,8 +5,7 @@ import translations from "@/src/lib/translations.json";
 export const dynamic = "force-dynamic";
 
 const ArticleDetailPage = loadDynamic(
-  () => import("../../../components/ArticleDetailPage"),
-  { ssr: false }
+  () => import("../../../components/ArticleDetailPage")
 );
 
 export async function generateMetadata({
