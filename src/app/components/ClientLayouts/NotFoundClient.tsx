@@ -434,14 +434,17 @@ export default function NotFoundClient() {
 
   // ── Strings ──────────────────────────────────────────────────────────────────
   const T = {
-    h1:       isRTL ? "404" : "404",
-    title:    isRTL ? "לבנה חסרה — לא דף" : "Found a missing brick, not a page",
-    sub:      isRTL ? "שחקו בזמן שאנחנו מתקנים את האתר" : "Play while we fix the site",
+    h1:       isRTL ? "הדף לא נמצא" : "Page Not Found",
+    sub:      isRTL ? "ייתכן שהקישור שגוי, או שהדף הוסר." : "The link may be broken, or the page has been removed.",
+    game:     isRTL ? "בינתיים — שחקו ב-Crane Run" : "Meanwhile — play Crane Run",
     gameOver: isRTL ? "!אוי" : "Oops!",
     scoreL:   isRTL ? "ניקוד" : "Score",
     bestL:    isRTL ? "שיא" : "Best",
     again:    isRTL ? "שחק שוב" : "Play Again",
     home:     isRTL ? "חזרה לדף הבית" : "Back to Home",
+    projects: isRTL ? "פרויקטים" : "Projects",
+    articles: isRTL ? "מאמרים" : "Articles",
+    contact:  isRTL ? "צור קשר" : "Contact",
   };
 
   return (
@@ -454,7 +457,9 @@ export default function NotFoundClient() {
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-14 md:py-20">
         {/* ── 404 heading ── */}
         <div className="text-center mb-6 select-none">
+          <h1 className="sr-only">{T.h1}</h1>
           <p
+            aria-hidden
             className="font-heading font-bold leading-none mb-2"
             style={{
               fontSize: "clamp(4rem, 18vw, 8rem)",
@@ -462,10 +467,11 @@ export default function NotFoundClient() {
               WebkitTextStroke: "1.5px rgba(141,119,95,0.3)",
             }}
           >
-            {T.h1}
+            404
           </p>
-          <p className="font-body text-sm text-bone/45 tracking-widest">{T.title}</p>
-          <p className="font-body text-[0.68rem] text-bone/22 mt-1 tracking-wider">{T.sub}</p>
+          <p className="font-body text-sm text-bone/50 tracking-widest">{T.h1}</p>
+          <p className="font-body text-[0.68rem] text-bone/30 mt-1 tracking-wider">{T.sub}</p>
+          <p className="font-body text-[0.6rem] text-bone/18 mt-1 tracking-wider">{T.game}</p>
         </div>
 
         {/* ── Game canvas + overlay wrapper ── */}
@@ -519,14 +525,19 @@ export default function NotFoundClient() {
           )}
         </div>
 
-        {/* ── Back to home ── */}
-        <div className="mt-8">
+        {/* ── Back to home + quick links ── */}
+        <div className="mt-8 flex flex-col items-center gap-4">
           <Link
             href={`/${lang}`}
             className="font-body text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-accent/45 hover:text-accent transition-colors border-b border-accent/15 pb-px"
           >
             {T.home}
           </Link>
+          <div className="flex gap-5 flex-wrap justify-center">
+            <Link href={`/${lang}/projects`} className="font-body text-[0.6rem] uppercase tracking-widest text-bone/25 hover:text-bone/60 transition-colors">{T.projects}</Link>
+            <Link href={`/${lang}/expertise`} className="font-body text-[0.6rem] uppercase tracking-widest text-bone/25 hover:text-bone/60 transition-colors">{T.articles}</Link>
+            <Link href={`/${lang}#contact`} className="font-body text-[0.6rem] uppercase tracking-widest text-bone/25 hover:text-bone/60 transition-colors">{T.contact}</Link>
+          </div>
         </div>
       </div>
     </main>
