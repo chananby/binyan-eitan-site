@@ -86,3 +86,74 @@ export interface TestProgress {
   last_attempt_at: string | null;
   first_attempt_at: string | null;
 }
+
+// ── Practice module (from JSON) ───────────────────────────────────────────────
+
+export interface PracticeQuestion {
+  id: string;
+  topic: string;
+  question_he: string;
+  options: TestOption[]; // reuse TestOption — same shape
+  correct_answer: string;
+  explanation_he: string;
+}
+
+export interface PracticeLevel {
+  id: string;
+  level_number: number;
+  name_he: string;
+  description_he: string;
+  questions: PracticeQuestion[];
+}
+
+export interface ConceptIntroSection {
+  heading: string;
+  body: string;
+}
+
+export interface ConceptIntro {
+  title: string;
+  sections: ConceptIntroSection[];
+}
+
+export interface PracticeModule {
+  id: string;
+  slug: string;
+  name_he: string;
+  description_he: string;
+  type: string;
+  ux_mode: string;
+  total_questions: number;
+  levels_count: number;
+  concept_intro_he: ConceptIntro;
+  levels: PracticeLevel[];
+}
+
+export interface PracticeFile {
+  practice_module: PracticeModule;
+}
+
+// ── Practice progress (matches math_practice_progress DB table) ───────────────
+
+export type PracticeStatus = "in_progress" | "completed";
+
+export interface QuestionDetail {
+  correct: boolean;
+  selected: string;
+}
+
+export interface PracticeProgress {
+  id: string;
+  sync_key: string;
+  module_slug: string;
+  level_id: string;
+  questions_total: number;
+  questions_correct: number;
+  questions_answered: number;
+  question_details: Record<string, QuestionDetail>;
+  status: PracticeStatus;
+  started_at: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
