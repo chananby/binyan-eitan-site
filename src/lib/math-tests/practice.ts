@@ -1,5 +1,3 @@
-"use client";
-
 import type {
   PracticeModule,
   PracticeLevel,
@@ -37,6 +35,13 @@ export function getPracticeModule(): PracticeModule {
 
 export function getPracticeLevel(levelId: string): PracticeLevel | null {
   return mod.levels.find((l) => l.id === levelId) ?? null;
+}
+
+/** Returns the ID of the next level after currentLevelId, or null if it's the last. */
+export function getNextLevelId(currentLevelId: string): string | null {
+  const idx = mod.levels.findIndex((l) => l.id === currentLevelId);
+  if (idx === -1 || idx >= mod.levels.length - 1) return null;
+  return mod.levels[idx + 1].id;
 }
 
 // ── DB: read ──────────────────────────────────────────────────────────────────

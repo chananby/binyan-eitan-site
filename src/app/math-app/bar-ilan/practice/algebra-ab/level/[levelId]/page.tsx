@@ -7,18 +7,16 @@ import { getSyncKey } from "@/src/lib/math-tests/attempts";
 import {
   getPracticeModule,
   getPracticeLevel,
+  getNextLevelId,
   getLevelProgress,
   upsertLevelProgress,
   resetLevelProgress,
 } from "@/src/lib/math-tests/practice";
+import { toTestQuestion } from "@/src/lib/math-tests/adapters";
 import { QuestionCard } from "@/src/app/math-app/bar-ilan/components/QuestionCard";
-import type { PracticeQuestion, QuestionDetail, TestQuestion } from "@/src/types/math-test";
+import type { QuestionDetail } from "@/src/types/math-test";
 
 type Mode = "loading" | "practice" | "done" | "review";
-
-function toTestQuestion(q: PracticeQuestion, idx: number): TestQuestion {
-  return { ...q, number: idx + 1 };
-}
 
 function ErrorBanner({ message, onDismiss }: { message: string; onDismiss: () => void }) {
   return (
@@ -188,29 +186,34 @@ export default function LevelPage() {
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <Link
-              href="/math-app/bar-ilan/practice/algebra-ab"
-              className="flex-1 text-center text-sm font-semibold text-slate-600 hover:text-slate-800 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
-            >
-              ← תפריט
-            </Link>
-            {level.level_number < mod.levels_count ? (
-              <Link
-                href={`/math-app/bar-ilan/practice/algebra-ab/level/level-${level.level_number + 1}`}
-                className="flex-1 text-center text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 py-3 rounded-xl transition-colors"
-              >
-                רמה {level.level_number + 1} ←
-              </Link>
-            ) : (
-              <Link
-                href="/math-app/bar-ilan/practice/algebra-ab/summary"
-                className="flex-1 text-center text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 py-3 rounded-xl transition-colors"
-              >
-                סיכום כולל ←
-              </Link>
-            )}
-          </div>
+          {(() => {
+            const nextId = getNextLevelId(levelId);
+            return (
+              <div className="flex gap-3">
+                <Link
+                  href="/math-app/bar-ilan/practice/algebra-ab"
+                  className="flex-1 text-center text-sm font-semibold text-slate-600 hover:text-slate-800 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+                >
+                  ← תפריט
+                </Link>
+                {nextId ? (
+                  <Link
+                    href={`/math-app/bar-ilan/practice/algebra-ab/level/${nextId}`}
+                    className="flex-1 text-center text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 py-3 rounded-xl transition-colors"
+                  >
+                    רמה {level.level_number + 1} ←
+                  </Link>
+                ) : (
+                  <Link
+                    href="/math-app/bar-ilan/practice/algebra-ab/summary"
+                    className="flex-1 text-center text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 py-3 rounded-xl transition-colors"
+                  >
+                    סיכום כולל ←
+                  </Link>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </div>
     );
