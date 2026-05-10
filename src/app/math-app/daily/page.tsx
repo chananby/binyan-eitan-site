@@ -110,7 +110,7 @@ export default function DailyChallengePage() {
           <h2 className="text-2xl font-extrabold text-slate-800 mb-1">כבר שיחקת היום!</h2>
           <p className="text-5xl font-black text-brand-600 my-5">{record.score}<span className="text-2xl text-slate-400">/{TOTAL}</span></p>
           <p className="text-slate-400 text-sm mb-8">חזור מחר לאתגר חדש 🌅</p>
-          <Link href="/math-app" className="text-sm text-brand-600 hover:underline font-semibold">← חזרה לדף הבית</Link>
+          <Link href="/math-app" className="inline-block text-sm text-brand-600 hover:underline font-semibold py-2.5 px-1">← חזרה לדף הבית</Link>
         </div>
       </div>
     );
@@ -127,7 +127,7 @@ export default function DailyChallengePage() {
           <h2 className="text-2xl font-extrabold text-slate-800 mb-2">סיימת!</h2>
           <p className="text-5xl font-black text-brand-600 my-5">{score}<span className="text-2xl text-slate-400">/{TOTAL}</span></p>
           <p className="text-sm text-slate-500 mb-8">{pct}% נכון · {score >= 8 ? "מדהים! 🎉" : score >= 5 ? "כל הכבוד! 💪" : "אפשר יותר 📚"}</p>
-          <Link href="/math-app" className="text-sm text-brand-600 hover:underline font-semibold">← חזרה לדף הבית</Link>
+          <Link href="/math-app" className="inline-block text-sm text-brand-600 hover:underline font-semibold py-2.5 px-1">← חזרה לדף הבית</Link>
         </div>
       </div>
     );

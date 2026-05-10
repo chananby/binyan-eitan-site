@@ -13,7 +13,7 @@ export default function AlgebraAbIntro() {
 
         <Link
           href="/math-app/bar-ilan/practice/algebra-ab"
-          className="inline-flex items-center gap-2 text-sm text-brand-600 hover:text-brand-800 font-medium"
+          className="inline-flex items-center gap-2 text-sm text-brand-600 hover:text-brand-800 font-medium py-2.5"
         >
           ← חזרה
         </Link>

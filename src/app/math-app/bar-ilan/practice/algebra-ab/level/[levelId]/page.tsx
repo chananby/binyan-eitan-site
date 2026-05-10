@@ -164,13 +164,13 @@ export default function LevelPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 text-center">
             <div className="text-5xl mb-4">{pct >= 75 ? "🌟" : "💪"}</div>
             <h2 className="text-xl font-extrabold text-slate-800 mb-1">{level.name_he}</h2>
-            <p className="text-4xl font-extrabold text-brand-600 my-4">{pct}%</p>
+            <p className={`text-4xl font-extrabold my-4 ${pct >= 75 ? "text-green-700" : "text-brand-600"}`}>{pct}%</p>
             <p className="text-sm text-slate-500">{totalCorrect} נכון מתוך {questions.length} שאלות</p>
 
             <div className="grid grid-cols-2 gap-3 mt-8">
               <button
                 onClick={() => { setReviewIdx(0); setMode("review"); }}
-                className="flex flex-col items-center gap-1 border border-brand-200 text-brand-700 rounded-xl py-3 px-4 font-bold hover:bg-brand-50 transition-colors text-sm"
+                className="flex flex-col items-center gap-1 border border-brand-200 text-brand-700 rounded-xl py-3.5 px-4 font-bold hover:bg-brand-50 transition-colors text-sm"
               >
                 <span>📋</span>
                 <span>צפה בתשובות</span>
@@ -178,7 +178,7 @@ export default function LevelPage() {
               <button
                 onClick={handleReset}
                 disabled={resetting}
-                className="flex flex-col items-center gap-1 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white rounded-xl py-3 px-4 font-bold transition-colors text-sm"
+                className="flex flex-col items-center gap-1 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white rounded-xl py-3.5 px-4 font-bold transition-colors text-sm"
               >
                 <span>🔄</span>
                 <span>{resetting ? "מאפס..." : "תרגל מחדש"}</span>
@@ -192,21 +192,21 @@ export default function LevelPage() {
               <div className="flex gap-3">
                 <Link
                   href="/math-app/bar-ilan/practice/algebra-ab"
-                  className="flex-1 text-center text-sm font-semibold text-slate-600 hover:text-slate-800 py-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+                  className="flex-1 text-center text-sm font-semibold text-slate-600 hover:text-slate-800 py-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
                 >
                   ← תפריט
                 </Link>
                 {nextId ? (
                   <Link
                     href={`/math-app/bar-ilan/practice/algebra-ab/level/${nextId}`}
-                    className="flex-1 text-center text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 py-3 rounded-xl transition-colors"
+                    className="flex-1 text-center text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 py-3.5 rounded-xl transition-colors"
                   >
                     רמה {level.level_number + 1} ←
                   </Link>
                 ) : (
                   <Link
                     href="/math-app/bar-ilan/practice/algebra-ab/summary"
-                    className="flex-1 text-center text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 py-3 rounded-xl transition-colors"
+                    className="flex-1 text-center text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 py-3.5 rounded-xl transition-colors"
                   >
                     סיכום כולל ←
                   </Link>
@@ -232,7 +232,7 @@ export default function LevelPage() {
           <div className="flex items-center justify-between">
             <button
               onClick={() => setMode("done")}
-              className="text-sm text-brand-600 hover:text-brand-800 font-medium"
+              className="text-sm text-brand-600 hover:text-brand-800 font-medium py-2.5"
             >
               ← חזרה לתוצאות
             </button>
@@ -253,14 +253,14 @@ export default function LevelPage() {
             <button
               onClick={() => setReviewIdx((i) => Math.max(0, i - 1))}
               disabled={reviewIdx === 0}
-              className="flex-1 py-3 rounded-xl border border-slate-200 bg-white font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors text-sm"
+              className="flex-1 py-3.5 rounded-xl border border-slate-200 bg-white font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors text-sm"
             >
-              ← הקודם
+              → הקודם
             </button>
             <button
               onClick={() => setReviewIdx((i) => Math.min(questions.length - 1, i + 1))}
               disabled={reviewIdx === questions.length - 1}
-              className="flex-1 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold disabled:opacity-40 transition-colors text-sm"
+              className="flex-1 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold disabled:opacity-40 transition-colors text-sm"
             >
               הבא ←
             </button>
@@ -285,7 +285,7 @@ export default function LevelPage() {
         <div className="flex items-center justify-between">
           <Link
             href="/math-app/bar-ilan/practice/algebra-ab"
-            className="text-sm text-brand-600 hover:text-brand-800 font-medium"
+            className="text-sm text-brand-600 hover:text-brand-800 font-medium py-2.5"
           >
             ← חזרה
           </Link>

@@ -91,7 +91,7 @@ export default function BarIlanLanding() {
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* Back */}
-        <Link href="/math-app" className="inline-flex items-center gap-2 text-sm text-brand-600 hover:text-brand-800 font-medium">
+        <Link href="/math-app" className="inline-flex items-center gap-2 text-sm text-brand-600 hover:text-brand-800 font-medium py-2.5">
           ← חזרה
         </Link>
 

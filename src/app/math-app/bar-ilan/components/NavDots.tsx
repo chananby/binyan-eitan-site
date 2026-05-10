@@ -23,7 +23,7 @@ export function NavDots({
         const isCurrent = i === current;
 
         let cls =
-          "w-7 h-7 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center ";
+          "w-11 h-11 rounded-full text-sm font-bold transition-all cursor-pointer flex items-center justify-center ";
 
         if (isCurrent) {
           cls += "bg-brand-600 text-white shadow-md scale-110";
@@ -34,7 +34,12 @@ export function NavDots({
         }
 
         return (
-          <button key={i} className={cls} onClick={() => onNavigate(i)}>
+          <button
+            key={i}
+            className={cls}
+            onClick={() => onNavigate(i)}
+            aria-current={isCurrent ? "step" : undefined}
+          >
             {i + 1}
           </button>
         );

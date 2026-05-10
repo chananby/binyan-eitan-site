@@ -169,7 +169,7 @@ export default function TestPage() {
 
         {/* Top bar */}
         <div className="flex items-center justify-between">
-          <Link href="/math-app/bar-ilan" className="text-sm text-slate-400 hover:text-slate-600 font-medium">
+          <Link href="/math-app/bar-ilan" className="text-sm text-slate-400 hover:text-slate-600 font-medium py-2.5 px-1">
             ← יציאה
           </Link>
           <div className="flex items-center gap-3">
@@ -210,14 +210,14 @@ export default function TestPage() {
           <button
             onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))}
             disabled={currentIdx === 0}
-            className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-sm font-medium disabled:opacity-30 hover:border-brand-300 transition-colors"
+            className="px-4 py-3.5 rounded-xl bg-white border border-slate-200 text-slate-600 text-sm font-medium disabled:opacity-30 hover:border-brand-300 transition-colors"
           >
             → קודם
           </button>
           <button
             onClick={() => setCurrentIdx((i) => Math.min(questions.length - 1, i + 1))}
             disabled={currentIdx === questions.length - 1}
-            className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-sm font-medium disabled:opacity-30 hover:border-brand-300 transition-colors"
+            className="px-4 py-3.5 rounded-xl bg-white border border-slate-200 text-slate-600 text-sm font-medium disabled:opacity-30 hover:border-brand-300 transition-colors"
           >
             ← הבא
           </button>
