@@ -92,6 +92,7 @@ export interface TestProgress {
 export interface PracticeQuestion {
   id: string;
   topic: string;
+  topic_he: string;
   question_he: string;
   options: TestOption[]; // reuse TestOption — same shape
   correct_answer: string;

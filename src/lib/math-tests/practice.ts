@@ -88,6 +88,27 @@ export async function getLevelProgress(
 
 // ── DB: write ─────────────────────────────────────────────────────────────────
 
+/** Deletes the progress row for a single level (hard reset). Returns true on success. */
+export async function resetLevelProgress(
+  syncKey: string,
+  moduleSlug: string,
+  levelId: string,
+): Promise<boolean> {
+  if (!isConfigured()) return false;
+  try {
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/${TABLE}` +
+        `?sync_key=eq.${encodeURIComponent(syncKey)}` +
+        `&module_slug=eq.${encodeURIComponent(moduleSlug)}` +
+        `&level_id=eq.${encodeURIComponent(levelId)}`,
+      { method: "DELETE", headers: headers() },
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Upserts progress for a single level.
  * Uses Supabase merge-duplicates on the unique(sync_key, module_slug, level_id) constraint.

@@ -43,6 +43,7 @@
           {
             "id": "ab-l1-q1",
             "topic": "substitution_basic",
+            "topic_he": "הצבה בסיסית",
             "question_he": "נתון a = 12 ו-b = 3. מה ערך של a/b?",
             "options": [
               { "label": "א", "text": "4" },
@@ -56,6 +57,7 @@
           {
             "id": "ab-l1-q2",
             "topic": "substitution_basic",
+            "topic_he": "הצבה בסיסית",
             "question_he": "נתון a = 20 ו-b = 5. מה ערך של a/b?",
             "options": [
               { "label": "א", "text": "5" },
@@ -69,6 +71,7 @@
           {
             "id": "ab-l1-q3",
             "topic": "substitution_basic",
+            "topic_he": "הצבה בסיסית",
             "question_he": "נתון a = 18 ו-b = 6. מה ערך של a/b?",
             "options": [
               { "label": "א", "text": "12" },
@@ -82,6 +85,7 @@
           {
             "id": "ab-l1-q4",
             "topic": "substitution_with_extra",
+            "topic_he": "הצבה עם ביטוי נוסף",
             "question_he": "נתון a = 30 ו-b = 6. מה ערך של a/b + 2?",
             "options": [
               { "label": "א", "text": "5" },
@@ -95,6 +99,7 @@
           {
             "id": "ab-l1-q5",
             "topic": "substitution_with_extra",
+            "topic_he": "הצבה עם ביטוי נוסף",
             "question_he": "נתון a = 40 ו-b = 8. מה ערך של a/b − 1?",
             "options": [
               { "label": "א", "text": "5" },
@@ -108,6 +113,7 @@
           {
             "id": "ab-l1-q6",
             "topic": "substitution_with_extra",
+            "topic_he": "הצבה עם ביטוי נוסף",
             "question_he": "נתון a = 36 ו-b = 4. מה ערך של a/b + b?",
             "options": [
               { "label": "א", "text": "9" },
@@ -121,6 +127,7 @@
           {
             "id": "ab-l1-q7",
             "topic": "substitution_with_extra",
+            "topic_he": "הצבה עם ביטוי נוסף",
             "question_he": "נתון a = 24 ו-b = 6. מה ערך של 2 × (a/b)?",
             "options": [
               { "label": "א", "text": "4" },
@@ -134,6 +141,7 @@
           {
             "id": "ab-l1-q8",
             "topic": "substitution_with_extra",
+            "topic_he": "הצבה עם ביטוי נוסף",
             "question_he": "נתון a = 50 ו-b = 10. מה ערך של a/b + 2b?",
             "options": [
               { "label": "א", "text": "25" },
@@ -155,6 +163,7 @@
           {
             "id": "ab-l2-q1",
             "topic": "inverse_calculation",
+            "topic_he": "חישוב הפוך",
             "question_he": "נתון a/b = 4 וכן b = 5. מה ערך a?",
             "options": [
               { "label": "א", "text": "9" },
@@ -168,6 +177,7 @@
           {
             "id": "ab-l2-q2",
             "topic": "inverse_calculation",
+            "topic_he": "חישוב הפוך",
             "question_he": "נתון a/b = 7 ו-a = 21. מה ערך b?",
             "options": [
               { "label": "א", "text": "28" },
@@ -181,6 +191,7 @@
           {
             "id": "ab-l2-q3",
             "topic": "inverse_calculation",
+            "topic_he": "חישוב הפוך",
             "question_he": "נתון a/b = 3 וכן b = 4. מה ערך a + b?",
             "options": [
               { "label": "א", "text": "7" },
@@ -194,6 +205,7 @@
           {
             "id": "ab-l2-q4",
             "topic": "inverse_calculation",
+            "topic_he": "חישוב הפוך",
             "question_he": "נתון a/b = 5 ו-a = 30. מה ערך b?",
             "options": [
               { "label": "א", "text": "6" },
@@ -207,6 +219,7 @@
           {
             "id": "ab-l2-q5",
             "topic": "simplification",
+            "topic_he": "פישוט",
             "question_he": "פשט את הביטוי: (4a + 8) / 4",
             "options": [
               { "label": "א", "text": "a + 2" },
@@ -220,6 +233,7 @@
           {
             "id": "ab-l2-q6",
             "topic": "simplification",
+            "topic_he": "פישוט",
             "question_he": "פשט את הביטוי: (10a − 5b) / 5",
             "options": [
               { "label": "א", "text": "10a − b" },
@@ -233,6 +247,7 @@
           {
             "id": "ab-l2-q7",
             "topic": "simplification",
+            "topic_he": "פישוט",
             "question_he": "פשט את הביטוי 6ab / 2a (כש-a שונה מ-0)",
             "options": [
               { "label": "א", "text": "3" },
@@ -246,6 +261,7 @@
           {
             "id": "ab-l2-q8",
             "topic": "simplification",
+            "topic_he": "פישוט",
             "question_he": "פשט את הביטוי (2a + 4) / 2 + (3b − 6) / 3",
             "options": [
               { "label": "א", "text": "a + b − 2" },
@@ -267,6 +283,7 @@
           {
             "id": "ab-l3-q1",
             "topic": "domain_restriction",
+            "topic_he": "קבוצת הצבה",
             "question_he": "בביטוי a/b, איזה ערך אסור לקבל b?",
             "options": [
               { "label": "א", "text": "1" },
@@ -280,6 +297,7 @@
           {
             "id": "ab-l3-q2",
             "topic": "domain_restriction",
+            "topic_he": "קבוצת הצבה",
             "question_he": "בביטוי 5/(a − 3), איזה ערך אסור לקבל a?",
             "options": [
               { "label": "א", "text": "0" },
@@ -293,6 +311,7 @@
           {
             "id": "ab-l3-q3",
             "topic": "domain_restriction",
+            "topic_he": "קבוצת הצבה",
             "question_he": "בביטוי (a + 1) / (a − 2), איזה ערך אסור לקבל a?",
             "options": [
               { "label": "א", "text": "−1" },
@@ -306,6 +325,7 @@
           {
             "id": "ab-l3-q4",
             "topic": "complex_expression",
+            "topic_he": "ביטוי מורכב",
             "question_he": "אם a = 2 ו-b = 4, מה ערך של a/b + b/a?",
             "options": [
               { "label": "א", "text": "1" },
@@ -319,6 +339,7 @@
           {
             "id": "ab-l3-q5",
             "topic": "ratio_application",
+            "topic_he": "יחס וביטוי",
             "question_he": "אם a/b = 3, מה ערך של 2a/b?",
             "options": [
               { "label": "א", "text": "3" },
@@ -332,6 +353,7 @@
           {
             "id": "ab-l3-q6",
             "topic": "variables_relationship",
+            "topic_he": "קשר בין משתנים",
             "question_he": "נתון: a = 2c ו-b = c (כאשר c שונה מ-0). מה ערך של a/b?",
             "options": [
               { "label": "א", "text": "0.5" },
@@ -345,6 +367,7 @@
           {
             "id": "ab-l3-q7",
             "topic": "word_problem",
+            "topic_he": "בעיה מילולית",
             "question_he": "לסל יש a תפוחים ו-b אגסים. אם a = 15 ו-b = 5, מה היחס תפוחים:אגסים בצורה מצומצמת?",
             "options": [
               { "label": "א", "text": "1:3" },
@@ -358,6 +381,7 @@
           {
             "id": "ab-l3-q8",
             "topic": "system_of_relations",
+            "topic_he": "מערכת יחסים",
             "question_he": "נתון: a/b = 4 וכן a + b = 25. מה ערך של b?",
             "options": [
               { "label": "א", "text": "4" },

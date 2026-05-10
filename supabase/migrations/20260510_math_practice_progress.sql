@@ -75,3 +75,15 @@ create policy "Practice progress update"
       where p2.id = math_practice_progress.id
     )
   );
+
+-- DELETE: sync_key must match the stored row value (allows reset)
+drop policy if exists "Practice progress delete" on public.math_practice_progress;
+create policy "Practice progress delete"
+  on public.math_practice_progress for delete
+  using (
+    sync_key = (
+      select sync_key
+      from public.math_practice_progress p2
+      where p2.id = math_practice_progress.id
+    )
+  );

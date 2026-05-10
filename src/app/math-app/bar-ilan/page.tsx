@@ -184,6 +184,20 @@ export default function BarIlanLanding() {
           </div>
         </div>
 
+        {/* Practice module card */}
+        <Link
+          href="/math-app/bar-ilan/practice/algebra-ab"
+          className="flex items-center gap-4 bg-amber-50 border border-amber-200 rounded-2xl p-5 hover:border-amber-300 hover:shadow-sm transition-all"
+        >
+          <span className="text-3xl shrink-0">✏️</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-amber-600 mb-0.5">תרגול ממוקד</p>
+            <p className="font-bold text-slate-800 text-sm">תרגול ממוקד: ביטויים אלגבריים (a/b)</p>
+            <p className="text-xs text-slate-500 mt-0.5">3 רמות · 24 שאלות · משוב מיידי</p>
+          </div>
+          <span className="text-amber-400 text-lg shrink-0">←</span>
+        </Link>
+
         {/* Progress */}
         {!loading && progress && progress.attempts_completed > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
