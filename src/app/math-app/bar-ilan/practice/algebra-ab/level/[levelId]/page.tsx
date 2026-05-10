@@ -20,6 +20,22 @@ function toTestQuestion(q: PracticeQuestion, idx: number): TestQuestion {
   return { ...q, number: idx + 1 };
 }
 
+function ErrorBanner({ message, onDismiss }: { message: string; onDismiss: () => void }) {
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 flex items-center gap-3">
+      <span className="text-red-400 shrink-0 text-lg">⚠️</span>
+      <p className="text-sm text-red-700 flex-1 leading-snug">{message}</p>
+      <button
+        onClick={onDismiss}
+        className="text-red-300 hover:text-red-500 shrink-0 text-lg leading-none"
+        aria-label="סגור"
+      >
+        ✕
+      </button>
+    </div>
+  );
+}
+
 export default function LevelPage() {
   const params = useParams();
   const router = useRouter();
@@ -36,6 +52,9 @@ export default function LevelPage() {
   const [reviewIdx, setReviewIdx] = useState(0);
   const [resetting, setResetting] = useState(false);
 
+  const [loadError, setLoadError] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+
   useEffect(() => {
     if (!level) {
       router.replace("/math-app/bar-ilan/practice/algebra-ab");
@@ -44,7 +63,13 @@ export default function LevelPage() {
     const key = getSyncKey();
     setSyncKey(key);
 
-    getLevelProgress(key, mod.slug, levelId).then((prog) => {
+    getLevelProgress(key, mod.slug, levelId).then(({ progress: prog, error }) => {
+      if (error) {
+        setLoadError(true);
+        setCurrentIdx(0);
+        setMode("practice");
+        return;
+      }
       const details = prog?.question_details ?? {};
       setSaved(details);
       const firstUnanswered = level.questions.findIndex((q) => !details[q.id]);
@@ -58,10 +83,10 @@ export default function LevelPage() {
   }, [levelId, level, mod.slug, router]);
 
   const doUpsert = useCallback(
-    (newDetails: Record<string, QuestionDetail>, status: "in_progress" | "completed") => {
+    async (newDetails: Record<string, QuestionDetail>, status: "in_progress" | "completed") => {
       if (!level || !syncKey) return;
       const correct = Object.values(newDetails).filter((d) => d.correct).length;
-      upsertLevelProgress({
+      const { error } = await upsertLevelProgress({
         syncKey,
         moduleSlug: mod.slug,
         levelId,
@@ -72,6 +97,7 @@ export default function LevelPage() {
         status,
         completedAt: status === "completed" ? new Date().toISOString() : undefined,
       });
+      if (error) setSaveError(true);
     },
     [level, syncKey, mod.slug, levelId],
   );
@@ -86,6 +112,7 @@ export default function LevelPage() {
     };
     setSaved(newDetails);
     setSelected(label);
+    setSaveError(false);
     const allDone = Object.keys(newDetails).length === level.questions.length;
     doUpsert(newDetails, allDone ? "completed" : "in_progress");
   }
@@ -107,6 +134,8 @@ export default function LevelPage() {
     setSaved({});
     setSelected(null);
     setCurrentIdx(0);
+    setLoadError(false);
+    setSaveError(false);
     setResetting(false);
     setMode("practice");
   }
@@ -271,6 +300,20 @@ export default function LevelPage() {
           />
         </div>
 
+        {/* Error banners */}
+        {loadError && (
+          <ErrorBanner
+            message="לא ניתן לטעון התקדמות קודמת. אתה מתחיל מאפס."
+            onDismiss={() => setLoadError(false)}
+          />
+        )}
+        {saveError && (
+          <ErrorBanner
+            message="ההתקדמות לא נשמרה. בדוק חיבור אינטרנט."
+            onDismiss={() => setSaveError(false)}
+          />
+        )}
+
         {/* Question */}
         <QuestionCard
           question={toTestQuestion(currentQ, currentIdx)}
@@ -282,7 +325,7 @@ export default function LevelPage() {
           correctAnswer={currentQ.correct_answer}
         />
 
-        {/* Next button — appears immediately after selection */}
+        {/* Next button */}
         {showFeedback && (
           <button
             onClick={handleNext}

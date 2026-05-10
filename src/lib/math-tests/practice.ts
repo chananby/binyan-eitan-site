@@ -45,8 +45,8 @@ export function getPracticeLevel(levelId: string): PracticeLevel | null {
 export async function getModuleProgress(
   syncKey: string,
   moduleSlug: string,
-): Promise<PracticeProgress[]> {
-  if (!isConfigured()) return [];
+): Promise<{ rows: PracticeProgress[]; error: boolean }> {
+  if (!isConfigured()) return { rows: [], error: false };
   try {
     const res = await fetch(
       `${SUPA_URL}/rest/v1/${TABLE}` +
@@ -55,10 +55,10 @@ export async function getModuleProgress(
         `&order=level_id.asc`,
       { headers: headers(), cache: "no-store" },
     );
-    if (!res.ok) return [];
-    return (await res.json()) as PracticeProgress[];
+    if (!res.ok) return { rows: [], error: true };
+    return { rows: (await res.json()) as PracticeProgress[], error: false };
   } catch {
-    return [];
+    return { rows: [], error: true };
   }
 }
 
@@ -67,8 +67,8 @@ export async function getLevelProgress(
   syncKey: string,
   moduleSlug: string,
   levelId: string,
-): Promise<PracticeProgress | null> {
-  if (!isConfigured()) return null;
+): Promise<{ progress: PracticeProgress | null; error: boolean }> {
+  if (!isConfigured()) return { progress: null, error: false };
   try {
     const res = await fetch(
       `${SUPA_URL}/rest/v1/${TABLE}` +
@@ -78,11 +78,11 @@ export async function getLevelProgress(
         `&limit=1`,
       { headers: headers(), cache: "no-store" },
     );
-    if (!res.ok) return null;
+    if (!res.ok) return { progress: null, error: true };
     const rows = (await res.json()) as PracticeProgress[];
-    return rows[0] ?? null;
+    return { progress: rows[0] ?? null, error: false };
   } catch {
-    return null;
+    return { progress: null, error: true };
   }
 }
 
@@ -124,8 +124,8 @@ export async function upsertLevelProgress(params: {
   questionDetails: Record<string, QuestionDetail>;
   status: PracticeStatus;
   completedAt?: string;
-}): Promise<PracticeProgress | null> {
-  if (!isConfigured()) return null;
+}): Promise<{ progress: PracticeProgress | null; error: boolean }> {
+  if (!isConfigured()) return { progress: null, error: false };
   try {
     const body: Record<string, unknown> = {
       sync_key:           params.syncKey,
@@ -148,10 +148,10 @@ export async function upsertLevelProgress(params: {
       },
       body: JSON.stringify(body),
     });
-    if (!res.ok) return null;
+    if (!res.ok) return { progress: null, error: true };
     const rows = (await res.json()) as PracticeProgress[];
-    return rows[0] ?? null;
+    return { progress: rows[0] ?? null, error: false };
   } catch {
-    return null;
+    return { progress: null, error: true };
   }
 }

@@ -13,7 +13,7 @@ export default function AlgebraAbLanding() {
 
   useEffect(() => {
     const key = getSyncKey();
-    getModuleProgress(key, mod.slug).then((rows) => {
+    getModuleProgress(key, mod.slug).then(({ rows }) => {
       setProgress(rows);
       setLoading(false);
     });
