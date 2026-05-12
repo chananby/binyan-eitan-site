@@ -35,6 +35,18 @@ interface OnSiteEntry {
   att_id: string; staff_id: string; name: string; entry_time: string;
 }
 
+interface PendingRecord {
+  id: string;
+  action: string;
+  timestamp_label: string | null;
+  staff: { id: string; name: string } | null;
+  project: { id: string; name: string } | null;
+}
+
+interface StaffEntry {
+  id: string; name: string; role: string; active: boolean;
+}
+
 interface PlanDay { date: string; label: string; short: string; isToday: boolean; isTomorrow: boolean; }
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -122,11 +134,15 @@ export default function ForemanPortal({
   const [tasks,      setTasks]      = useState<Task[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [onSite,     setOnSite]     = useState<OnSiteEntry[]>([]);
+  const [pending,    setPending]    = useState<PendingRecord[]>([]);
+  const [allStaff,   setAllStaff]   = useState<StaffEntry[]>([]);
+  const [arrivedTodayIds, setArrivedTodayIds] = useState<Set<string>>(new Set());
   const [weeklyBurn, setWeeklyBurn] = useState(0);
   const [dataLoading, setDataLoading] = useState(false);
 
   // Site
   const [clockOutLoading, setClockOutLoading] = useState<string | null>(null);
+  const [pendingLoading,  setPendingLoading]  = useState<string | null>(null);
 
   // Daily log
   const [logId,     setLogId]     = useState<string | null>(null);
@@ -184,23 +200,29 @@ export default function ForemanPortal({
   const loadDashboard = useCallback(async (projectId: string) => {
     setDataLoading(true);
     try {
-      const [attRes, matRes, tasksRes, msRes, logRes] = await Promise.allSettled([
+      const [attRes, matRes, tasksRes, msRes, logRes, pendingRes, staffRes] = await Promise.allSettled([
         fetch("/api/admin/attendance/today"),
         fetch(`/api/admin/materials?project_id=${projectId}`),
         fetch(`/api/admin/tasks?project_id=${projectId}`),
         fetch(`/api/admin/milestones?project_id=${projectId}`),
         fetch(`/api/admin/daily-reports?project_id=${projectId}&date=${today}`),
+        fetch("/api/admin/attendance/pending"),
+        fetch("/api/admin/staff"),
       ]);
 
       // On-site workers (this project only, last action = in)
+      // Also: collect all staff IDs who had any "in" today (for missing-workers calculation)
       if (attRes.status === "fulfilled" && attRes.value.ok) {
         const d = await attRes.value.json();
         const seen = new Set<string>();
+        const arrived = new Set<string>();
         const workers: OnSiteEntry[] = [];
         for (const rec of (d.records ?? [])) {
           if (rec.project?.id !== projectId) continue;
           const sid = rec.staff?.id;
-          if (!sid || seen.has(sid)) continue;
+          if (!sid) continue;
+          if (rec.action === "in" || rec.action === "כניסה") arrived.add(sid);
+          if (seen.has(sid)) continue;
           seen.add(sid);
           if (rec.action === "in" || rec.action === "כניסה") {
             const t = rec.clock_at
@@ -210,6 +232,19 @@ export default function ForemanPortal({
           }
         }
         setOnSite(workers);
+        setArrivedTodayIds(arrived);
+      }
+
+      // Pending manual entries (scope to this project)
+      if (pendingRes.status === "fulfilled" && pendingRes.value.ok) {
+        const d = await pendingRes.value.json();
+        setPending((d.records ?? []).filter((r: PendingRecord) => r.project?.id === projectId));
+      }
+
+      // Staff list (for missing-workers calculation)
+      if (staffRes.status === "fulfilled" && staffRes.value.ok) {
+        const d = await staffRes.value.json();
+        setAllStaff((d.staff ?? []).filter((s: StaffEntry) => s.active && s.role === "עובד"));
       }
 
       // Weekly burn
@@ -343,6 +378,25 @@ export default function ForemanPortal({
       else feedback.error();
     } catch { feedback.error(); }
     finally { setClockOutLoading(null); }
+  }
+
+  async function handlePendingDecision(rec: PendingRecord, status: "approved" | "rejected") {
+    setPendingLoading(rec.id);
+    try {
+      const res = await fetch(`/api/admin/attendance/${rec.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        feedback.success();
+        setPending(prev => prev.filter(p => p.id !== rec.id));
+        if (status === "approved" && project) loadDashboard(project.id);
+      } else {
+        feedback.error();
+      }
+    } catch { feedback.error(); }
+    finally { setPendingLoading(null); }
   }
 
   // ── Log ────────────────────────────────────────────────────────────────────
@@ -695,21 +749,58 @@ export default function ForemanPortal({
 
         {/* ── SITE ──────────────────────────────────────────────────────── */}
         {tab === "site" && (
-          <div className="p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="font-heading text-base font-bold text-charcoal">עובדים באתר{onSite.length > 0 ? ` (${onSite.length})` : ""}</p>
-              <button onClick={() => loadDashboard(project!.id)} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent">
-                <RefreshCw size={12} strokeWidth={1.5} /> רענן
-              </button>
-            </div>
-            {onSite.length === 0 ? (
-              <div className="bg-white border border-warm-gray-light p-8 text-center">
-                <Users size={32} strokeWidth={1} className="text-charcoal/15 mx-auto mb-2" />
-                <p className="text-sm text-charcoal/30">אין עובדים מדווחים באתר כרגע</p>
-              </div>
-            ) : (
+          <div className="p-4 space-y-5">
+
+            {/* ── Pending approvals ───────────────────────────────────── */}
+            {pending.length > 0 && (
               <div className="space-y-2">
-                {onSite.map(w => (
+                <p className="font-heading text-sm font-bold text-amber-700 flex items-center gap-1.5">
+                  <AlertCircle size={14} strokeWidth={2} />
+                  ממתינים לאישור ({pending.length})
+                </p>
+                {pending.map(rec => (
+                  <div key={rec.id} className="bg-amber-50 border border-amber-200 px-4 py-3.5">
+                    <div className="flex items-start justify-between gap-3 mb-2.5">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-charcoal text-sm">{rec.staff?.name ?? "—"}</p>
+                        <div className="flex items-center gap-1 text-[0.65rem] text-charcoal/50 mt-0.5">
+                          <Clock size={10} strokeWidth={1.5} />
+                          <span>{rec.action === "in" || rec.action === "כניסה" ? "כניסה" : "יציאה"} · {rec.timestamp_label ?? "—"}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handlePendingDecision(rec, "approved")} disabled={pendingLoading === rec.id}
+                        className="flex-1 border border-green-400 text-green-700 bg-white px-3 py-2.5 text-xs font-semibold hover:bg-green-50 active:scale-95 transition-all disabled:opacity-40 flex items-center justify-center gap-1">
+                        {pendingLoading === rec.id ? <Loader2 size={14} className="animate-spin" /> : <><Check size={14} strokeWidth={2} /> אשר</>}
+                      </button>
+                      <button onClick={() => handlePendingDecision(rec, "rejected")} disabled={pendingLoading === rec.id}
+                        className="flex-1 border border-red-300 text-red-600 bg-white px-3 py-2.5 text-xs font-semibold hover:bg-red-50 active:scale-95 transition-all disabled:opacity-40 flex items-center justify-center gap-1">
+                        {pendingLoading === rec.id ? <Loader2 size={14} className="animate-spin" /> : <><X size={14} strokeWidth={2} /> דחה</>}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ── On site now ─────────────────────────────────────────── */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="font-heading text-sm font-bold text-charcoal flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  באתר כעת ({onSite.length})
+                </p>
+                <button onClick={() => loadDashboard(project!.id)} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent">
+                  <RefreshCw size={12} strokeWidth={1.5} /> רענן
+                </button>
+              </div>
+              {onSite.length === 0 ? (
+                <div className="bg-white border border-warm-gray-light p-6 text-center">
+                  <p className="text-xs text-charcoal/30">אין עובדים מדווחים באתר כרגע</p>
+                </div>
+              ) : (
+                onSite.map(w => (
                   <div key={w.staff_id} className="bg-white border border-warm-gray-light px-4 py-4 flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-green-500 shrink-0 animate-pulse" />
                     <div className="flex-1 min-w-0">
@@ -723,9 +814,28 @@ export default function ForemanPortal({
                       {clockOutLoading === w.staff_id ? <Loader2 size={14} className="animate-spin" /> : "יציאה"}
                     </button>
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
+
+            {/* ── Didn't clock in today ───────────────────────────────── */}
+            {(() => {
+              const missing = allStaff.filter(s => !arrivedTodayIds.has(s.id));
+              if (missing.length === 0) return null;
+              return (
+                <div className="space-y-2">
+                  <p className="font-heading text-sm font-bold text-charcoal/60 flex items-center gap-1.5">
+                    <X size={14} strokeWidth={2} className="text-charcoal/40" />
+                    לא החתימו היום ({missing.length})
+                  </p>
+                  <div className="bg-white border border-warm-gray-light divide-y divide-warm-gray-light">
+                    {missing.map(s => (
+                      <div key={s.id} className="px-4 py-2.5 text-sm text-charcoal/60">{s.name}</div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -1098,7 +1208,7 @@ export default function ForemanPortal({
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         {([
           { key: "overview" as Tab, icon: <Home size={20} strokeWidth={1.8} />,          label: "ראשי",  dot: todayTasks.length > 0 || redAlerts.length > 0 },
-          { key: "site"     as Tab, icon: <Users size={20} strokeWidth={1.8} />,         label: "באתר",  dot: onSite.length > 0 },
+          { key: "site"     as Tab, icon: <Users size={20} strokeWidth={1.8} />,         label: "באתר",  dot: onSite.length > 0 || pending.length > 0 },
           { key: "log"      as Tab, icon: <ClipboardList size={20} strokeWidth={1.8} />, label: "יומן",  dot: hasLogToday },
           { key: "expense"  as Tab, icon: <PlusCircle size={20} strokeWidth={1.8} />,    label: "הוצאה", dot: false },
           { key: "plan"     as Tab, icon: <Calendar size={20} strokeWidth={1.8} />,      label: "תכנון", dot: redAlerts.length > 0 },
