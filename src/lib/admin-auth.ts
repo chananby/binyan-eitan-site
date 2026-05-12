@@ -45,15 +45,18 @@ function verifyToken(token: string, secret: string, maxAgeSec: number): boolean 
 
 const ADMIN_MAX_AGE = 60 * 60 * 8; // 8 h
 
-function getAdminSecret(): string | null {
-  return process.env.ADMIN_PASSWORD ?? null;
+// Single shared HMAC secret for signing both admin and foreman cookies.
+// ADMIN_PASSWORD is no longer used for cryptography — auth is now bcrypt
+// against admins.password_hash (see /api/admin-auth).
+function getTokenSecret(): string | null {
+  return process.env.AUTH_TOKEN_SECRET ?? null;
 }
 
 // ── Foreman token helpers (HMAC-signed staffId) ───────────────────────────────
 
 function foremanSig(staffId: string): string {
-  const secret = process.env.ADMIN_PASSWORD;
-  if (!secret) throw new Error("ADMIN_PASSWORD env var is required");
+  const secret = process.env.AUTH_TOKEN_SECRET;
+  if (!secret) throw new Error("AUTH_TOKEN_SECRET env var is required");
   return createHmac("sha256", secret).update(staffId).digest("hex").slice(0, 32);
 }
 
@@ -77,7 +80,7 @@ export function verifyForemanToken(cookieValue: string): string | null {
 // ── Role detection ────────────────────────────────────────────────────────────
 
 export function getAdminRoleFromRequest(req: NextRequest): "admin" | null {
-  const secret = getAdminSecret();
+  const secret = getTokenSecret();
   if (!secret) return null;
   const token = req.cookies.get(ADMIN_COOKIE)?.value;
   if (!token) return null;
@@ -108,7 +111,7 @@ export function isAdminAuthedFromRequest(req: NextRequest): boolean {
 
 // ── Server-component helper ────────────────────────────────────────────────────
 export function isAdminAuthed(): boolean {
-  const secret = getAdminSecret();
+  const secret = getTokenSecret();
   if (!secret) return false;
   const token = cookies().get(ADMIN_COOKIE)?.value;
   if (!token) return false;
@@ -125,7 +128,7 @@ const COOKIE_OPTS = {
 };
 
 export function buildAuthCookie() {
-  const secret = getAdminSecret() ?? "";
+  const secret = getTokenSecret() ?? "";
   return { name: ADMIN_COOKIE, value: secret ? signToken(secret) : "", options: COOKIE_OPTS };
 }
 

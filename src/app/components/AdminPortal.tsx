@@ -132,6 +132,7 @@ export default function AdminPortal() {
 
   // Login state
   const [pin,      setPin]      = useState("");
+  const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
   const [loginErr, setLoginErr] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
@@ -642,12 +643,19 @@ ${detailHtml}
   }
 
   async function handlePasswordLogin(e: React.FormEvent) {
-    e.preventDefault(); setLoginLoading(true); setLoginErr("");
+    e.preventDefault();
+    if (!email.trim() || !password) return;
+    setLoginLoading(true); setLoginErr("");
     try {
-      const res  = await fetch("/api/admin-auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
+      const res  = await fetch("/api/admin-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
       const data = await res.json();
       if (data.ok) { feedback.success(); setShowFlash(true); setAuthState("admin"); }
-      else { feedback.error(); setLoginErr("סיסמה שגויה"); setPassword(""); }
+      else if (res.status === 429) { feedback.error(); setLoginErr("יותר מדי נסיונות. נסה שוב בעוד כמה דקות."); }
+      else { feedback.error(); setLoginErr("אימייל או סיסמה שגויים"); setPassword(""); }
     } catch { setLoginErr("שגיאת רשת"); }
     finally { setLoginLoading(false); }
   }
@@ -930,7 +938,7 @@ ${detailHtml}
         {/* Mode tabs */}
         <div className="flex border-b border-charcoal/10 w-full max-w-xs">
           {([["pin", "מנהל עבודה", "PIN"], ["password", "מנהל ראשי", "סיסמה"]] as [LoginMode, string, string][]).map(([mode, label, sub]) => (
-            <button key={mode} onClick={() => { setLoginMode(mode); setPin(""); setPassword(""); setLoginErr(""); }}
+            <button key={mode} onClick={() => { setLoginMode(mode); setPin(""); setEmail(""); setPassword(""); setLoginErr(""); }}
               className={`flex-1 py-3 text-center transition-colors border-b-2 ${loginMode === mode ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/60"}`}>
               <p className="text-sm font-semibold">{label}</p>
               <p className="text-[0.6rem] tracking-widest uppercase text-charcoal/30">{sub}</p>
@@ -977,10 +985,26 @@ ${detailHtml}
               </button>
             </>
           ) : (
-            <form onSubmit={handlePasswordLogin} className="space-y-4">
-              <input type="password" autoFocus value={password} onChange={e => setPassword(e.target.value)} placeholder="סיסמת מנהל"
-                className="w-full border border-charcoal/20 bg-white px-5 py-4 text-center font-body text-lg tracking-[0.3em] text-charcoal placeholder-charcoal/20 focus:border-accent focus:outline-none transition-colors" />
-              <Btn loading={loginLoading} disabled={!password.trim()}><LogIn size={14} className="inline me-1.5" />כניסה</Btn>
+            <form onSubmit={handlePasswordLogin} className="space-y-3" dir="rtl">
+              <input
+                type="email"
+                autoFocus
+                autoComplete="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="אימייל"
+                dir="ltr"
+                className="w-full border border-charcoal/20 bg-white px-5 py-4 text-center font-body text-base text-charcoal placeholder-charcoal/25 focus:border-accent focus:outline-none transition-colors"
+              />
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="סיסמה"
+                className="w-full border border-charcoal/20 bg-white px-5 py-4 text-center font-body text-base text-charcoal placeholder-charcoal/25 focus:border-accent focus:outline-none transition-colors"
+              />
+              <Btn loading={loginLoading} disabled={!email.trim() || !password.trim()}><LogIn size={14} className="inline me-1.5" />כניסה</Btn>
             </form>
           )}
 
