@@ -7,6 +7,7 @@ import type {
   PracticeFile,
 } from "@/src/types/math-test";
 import algebraAbData from "@/src/data/math/bar-ilan-practice-ab.json";
+import fractionsData from "@/src/data/math/bar-ilan-practice-fractions.json";
 
 const SUPA_URL  = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPA_ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -29,6 +30,7 @@ function isConfigured(): boolean {
 
 const REGISTRY: Record<string, PracticeModule> = {
   "algebra-ab": (algebraAbData as PracticeFile).practice_module,
+  "fractions": (fractionsData as PracticeFile).practice_module,
 };
 
 export function listPracticeModules(): PracticeModule[] {
