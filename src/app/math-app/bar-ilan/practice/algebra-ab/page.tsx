@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getSyncKey } from "@/src/lib/math-tests/attempts";
 import { getPracticeModule, getModuleProgress } from "@/src/lib/math-tests/practice";
+import { BidiText } from "@/src/lib/math-tests/bidi";
 import type { PracticeProgress } from "@/src/types/math-test";
 
 export default function AlgebraAbLanding() {
@@ -41,8 +42,12 @@ export default function AlgebraAbLanding() {
         {/* Header card */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-7">
           <p className="text-xs font-semibold text-amber-600 mb-1">תרגול ממוקד</p>
-          <h1 className="text-xl font-extrabold text-slate-800 mb-2">{mod.name_he}</h1>
-          <p className="text-sm text-slate-500 leading-relaxed mb-5">{mod.description_he}</p>
+          <h1 className="text-xl font-extrabold text-slate-800 mb-2 text-start">
+            <BidiText text={mod.name_he} />
+          </h1>
+          <p className="text-sm text-slate-500 leading-relaxed mb-5 text-start">
+            <BidiText text={mod.description_he} />
+          </p>
 
           <Link
             href="/math-app/bar-ilan/practice/algebra-ab/intro"
@@ -79,8 +84,12 @@ export default function AlgebraAbLanding() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-slate-800 text-sm">{lvl.name_he}</p>
-                  <p className="text-xs text-slate-500 mt-0.5 truncate">{lvl.description_he}</p>
+                  <p className="font-bold text-slate-800 text-sm text-start">
+                    <BidiText text={lvl.name_he} />
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5 truncate text-start">
+                    <BidiText text={lvl.description_he} />
+                  </p>
                   {!loading && prog && (
                     <p className="text-xs text-slate-400 mt-1">
                       {done ? `${correct}/${total} נכון` : `ענית על ${answered} מתוך ${total}`}

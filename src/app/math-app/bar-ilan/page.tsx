@@ -15,6 +15,7 @@ import {
   pickSimulationQuestions,
   getAllQuestions,
 } from "@/src/lib/math-tests/loader";
+import { BidiText } from "@/src/lib/math-tests/bidi";
 import type { TestAttempt, TestProgress } from "@/src/types/math-test";
 
 export default function BarIlanLanding() {
@@ -192,7 +193,9 @@ export default function BarIlanLanding() {
           <span className="text-3xl shrink-0">✏️</span>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-amber-600 mb-0.5">תרגול ממוקד</p>
-            <p className="font-bold text-slate-800 text-sm">תרגול ממוקד: ביטויים אלגבריים (a/b)</p>
+            <p className="font-bold text-slate-800 text-sm">
+              <BidiText text="תרגול ממוקד: ביטויים אלגבריים (a/b)" />
+            </p>
             <p className="text-xs text-slate-500 mt-0.5">3 רמות · 24 שאלות · משוב מיידי</p>
           </div>
           <span className="text-amber-400 text-lg shrink-0">←</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import type { TestQuestion } from "@/src/types/math-test";
+import { BidiText } from "@/src/lib/math-tests/bidi";
 
 interface QuestionCardProps {
   question: TestQuestion;
@@ -22,7 +23,7 @@ export function QuestionCard({
   correctAnswer,
 }: QuestionCardProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
+    <div dir="rtl" className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
       {/* Meta */}
       <div className="flex items-center justify-between mb-5">
         <span className="text-xs font-semibold text-brand-500 bg-brand-50 px-2.5 py-1 rounded-full">
@@ -34,8 +35,8 @@ export function QuestionCard({
       </div>
 
       {/* Question text */}
-      <p className="text-slate-800 font-semibold text-lg leading-relaxed mb-6">
-        {question.question_he}
+      <p className="text-slate-800 font-semibold text-lg leading-relaxed mb-6 text-start">
+        <BidiText text={question.question_he} />
       </p>
 
       {/* Options */}
@@ -46,7 +47,7 @@ export function QuestionCard({
           const isWrong = showExplanation && isSelected && opt.label !== correctAnswer;
 
           let cls =
-            "flex items-center gap-4 rounded-xl border px-4 py-3.5 cursor-pointer transition-all text-right ";
+            "flex items-center gap-4 rounded-xl border px-4 py-3.5 cursor-pointer transition-all text-start ";
 
           if (showExplanation) {
             if (isCorrect)
@@ -71,7 +72,9 @@ export function QuestionCard({
               <span className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold shrink-0 border-current">
                 {opt.label}
               </span>
-              <span className="text-sm font-medium leading-snug">{opt.text}</span>
+              <span className="text-sm font-medium leading-snug">
+                <BidiText text={opt.text} />
+              </span>
               {showExplanation && isCorrect && (
                 <span className="ms-auto text-green-600 text-lg">✓</span>
               )}
@@ -87,8 +90,8 @@ export function QuestionCard({
       {showExplanation && (
         <div className="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
           <p className="text-xs font-bold text-slate-500 mb-1">הסבר:</p>
-          <p className="text-sm text-slate-700 leading-relaxed">
-            {question.explanation_he}
+          <p className="text-sm text-slate-700 leading-relaxed text-start">
+            <BidiText text={question.explanation_he} />
           </p>
         </div>
       )}

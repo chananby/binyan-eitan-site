@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { getPracticeModule } from "@/src/lib/math-tests/practice";
+import { BidiText } from "@/src/lib/math-tests/bidi";
 
 export default function AlgebraAbIntro() {
   const mod = getPracticeModule();
@@ -19,13 +20,19 @@ export default function AlgebraAbIntro() {
         </Link>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-7">
-          <h1 className="text-xl font-extrabold text-slate-800 mb-6">{intro.title}</h1>
+          <h1 className="text-xl font-extrabold text-slate-800 mb-6 text-start">
+            <BidiText text={intro.title} />
+          </h1>
 
           <div className="space-y-4">
             {intro.sections.map((sec, i) => (
               <div key={i} className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                <p className="font-bold text-brand-700 mb-1.5">{sec.heading}</p>
-                <p className="text-sm text-slate-700 leading-relaxed">{sec.body}</p>
+                <p className="font-bold text-brand-700 mb-1.5 text-start">
+                  <BidiText text={sec.heading} />
+                </p>
+                <p className="text-sm text-slate-700 leading-relaxed text-start">
+                  <BidiText text={sec.body} />
+                </p>
               </div>
             ))}
           </div>

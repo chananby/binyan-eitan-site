@@ -13,6 +13,7 @@ import {
   resetLevelProgress,
 } from "@/src/lib/math-tests/practice";
 import { toTestQuestion } from "@/src/lib/math-tests/adapters";
+import { BidiText } from "@/src/lib/math-tests/bidi";
 import { QuestionCard } from "@/src/app/math-app/bar-ilan/components/QuestionCard";
 import type { QuestionDetail } from "@/src/types/math-test";
 
@@ -163,7 +164,9 @@ export default function LevelPage() {
 
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 text-center">
             <div className="text-5xl mb-4">{pct >= 75 ? "🌟" : "💪"}</div>
-            <h2 className="text-xl font-extrabold text-slate-800 mb-1">{level.name_he}</h2>
+            <h2 className="text-xl font-extrabold text-slate-800 mb-1">
+              <BidiText text={level.name_he} />
+            </h2>
             <p className={`text-4xl font-extrabold my-4 ${pct >= 75 ? "text-green-700" : "text-brand-600"}`}>{pct}%</p>
             <p className="text-sm text-slate-500">{totalCorrect} נכון מתוך {questions.length} שאלות</p>
 
@@ -289,7 +292,9 @@ export default function LevelPage() {
           >
             ← חזרה
           </Link>
-          <p className="text-xs font-bold text-slate-500 text-center">{level.name_he}</p>
+          <p className="text-xs font-bold text-slate-500 text-center">
+            <BidiText text={level.name_he} />
+          </p>
           <span className="text-xs text-slate-400 font-medium">
             {currentIdx + 1} / {questions.length}
           </span>

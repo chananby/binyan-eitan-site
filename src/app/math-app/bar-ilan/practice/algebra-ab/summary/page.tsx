@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getSyncKey } from "@/src/lib/math-tests/attempts";
 import { getPracticeModule, getModuleProgress } from "@/src/lib/math-tests/practice";
+import { BidiText } from "@/src/lib/math-tests/bidi";
 import type { PracticeProgress } from "@/src/types/math-test";
 
 export default function AlgebraAbSummary() {
@@ -41,7 +42,9 @@ export default function AlgebraAbSummary() {
         {/* Overall */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-7 text-center">
           <p className="text-xs font-semibold text-brand-500 mb-1">סיכום כולל</p>
-          <h1 className="text-lg font-extrabold text-slate-800 mb-4">{mod.name_he}</h1>
+          <h1 className="text-lg font-extrabold text-slate-800 mb-4">
+            <BidiText text={mod.name_he} />
+          </h1>
           {loading ? (
             <p className="text-slate-400 text-sm">טוען...</p>
           ) : (
@@ -64,7 +67,9 @@ export default function AlgebraAbSummary() {
             return (
               <div key={lvl.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-bold text-slate-800 text-sm">{lvl.name_he}</p>
+                  <p className="font-bold text-slate-800 text-sm">
+                    <BidiText text={lvl.name_he} />
+                  </p>
                   {pct !== null && (
                     <span className={`text-lg font-extrabold ${pct >= 75 ? "text-green-600" : "text-amber-600"}`}>
                       {pct}%
