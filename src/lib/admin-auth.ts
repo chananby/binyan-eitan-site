@@ -22,7 +22,7 @@ function safeEqual(a: string, b: string): boolean {
   }
 }
 
-// ── Signed token: "{iat}:{hmac}" ─────────────────────────────────────────────
+// ── Signed token: "{iat}:{hmac}" (used for internal-staff cookie) ─────────────
 
 function signToken(secret: string): string {
   const iat = Math.floor(Date.now() / 1000);
@@ -39,6 +39,32 @@ function verifyToken(token: string, secret: string, maxAgeSec: number): boolean 
   if (now - iat > maxAgeSec || now < iat) return false;
   const expected = hmacHex(secret, String(iat));
   return safeEqual(provided, expected);
+}
+
+// ── Identity-bearing token: "{id}:{iat}:{hmac(id:iat)}" ───────────────────────
+// Used for admin cookie so server-side code can identify the logged-in admin.
+
+function signIdentityToken(secret: string, id: string): string {
+  const iat = Math.floor(Date.now() / 1000);
+  return `${id}:${iat}:${hmacHex(secret, `${id}:${iat}`)}`;
+}
+
+function verifyIdentityToken(
+  token: string,
+  secret: string,
+  maxAgeSec: number,
+): { id: string; iat: number } | null {
+  const parts = token.split(":");
+  if (parts.length !== 3) return null;
+  const [id, iatStr, provided] = parts;
+  if (!id) return null;
+  const iat = parseInt(iatStr, 10);
+  if (isNaN(iat)) return null;
+  const now = Math.floor(Date.now() / 1000);
+  if (now - iat > maxAgeSec || now < iat) return null;
+  const expected = hmacHex(secret, `${id}:${iat}`);
+  if (!safeEqual(provided, expected)) return null;
+  return { id, iat };
 }
 
 // ── Admin token helpers ───────────────────────────────────────────────────────
@@ -80,11 +106,15 @@ export function verifyForemanToken(cookieValue: string): string | null {
 // ── Role detection ────────────────────────────────────────────────────────────
 
 export function getAdminRoleFromRequest(req: NextRequest): "admin" | null {
+  return getAdminIdFromRequest(req) ? "admin" : null;
+}
+
+export function getAdminIdFromRequest(req: NextRequest): string | null {
   const secret = getTokenSecret();
   if (!secret) return null;
   const token = req.cookies.get(ADMIN_COOKIE)?.value;
   if (!token) return null;
-  return verifyToken(token, secret, ADMIN_MAX_AGE) ? "admin" : null;
+  return verifyIdentityToken(token, secret, ADMIN_MAX_AGE)?.id ?? null;
 }
 
 export function getForemanStaffIdFromRequest(req: NextRequest): string | null {
@@ -115,7 +145,7 @@ export function isAdminAuthed(): boolean {
   if (!secret) return false;
   const token = cookies().get(ADMIN_COOKIE)?.value;
   if (!token) return false;
-  return verifyToken(token, secret, ADMIN_MAX_AGE);
+  return verifyIdentityToken(token, secret, ADMIN_MAX_AGE) !== null;
 }
 
 // ── Cookie builders ────────────────────────────────────────────────────────────
@@ -127,9 +157,10 @@ const COOKIE_OPTS = {
   path:     "/",
 };
 
-export function buildAuthCookie() {
-  const secret = getTokenSecret() ?? "";
-  return { name: ADMIN_COOKIE, value: secret ? signToken(secret) : "", options: COOKIE_OPTS };
+export function buildAuthCookie(adminId: string) {
+  const secret = getTokenSecret();
+  if (!secret) throw new Error("AUTH_TOKEN_SECRET env var is required");
+  return { name: ADMIN_COOKIE, value: signIdentityToken(secret, adminId), options: COOKIE_OPTS };
 }
 
 export function buildClearCookie() {

@@ -12,11 +12,12 @@ import {
   ClipboardList, UserPlus, RefreshCw, Pencil, Loader2, Activity,
   AlertCircle, AlertTriangle, TrendingUp, DollarSign, Target, CheckSquare2,
   Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag, Grid3x3, Download, Plus,
+  UserCog, Check,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
-type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "matrix" | "income" | "reports";
+type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "matrix" | "income" | "reports" | "account";
 type LoginMode = "pin" | "password";
 
 const HASH_TO_TAB: Record<string, AdminTab> = {
@@ -30,6 +31,7 @@ const HASH_TO_TAB: Record<string, AdminTab> = {
   weekly:     "matrix",
   income:     "income",
   reports:    "reports",
+  account:    "account",
 };
 
 interface StaffMember {
@@ -136,6 +138,17 @@ export default function AdminPortal() {
   const [password, setPassword] = useState("");
   const [loginErr, setLoginErr] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+
+  // Admin identity (populated by /api/admin/whoami after auth)
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
+  const [adminName,  setAdminName]  = useState<string | null>(null);
+
+  // Change password form
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNew,     setPwNew]     = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwSaving,  setPwSaving]  = useState(false);
+  const [pwMsg,     setPwMsg]     = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
   // Tactile / audio feedback
   const feedback  = useFeedback();
@@ -447,8 +460,13 @@ ${detailHtml}
       .then(r => r.json())
       .then(d => {
         setAuthState(d.role ?? "unauthenticated");
-        if (d.name)    setForemanName(d.name);
-        if (d.staffId) setForemanStaffId(d.staffId);
+        if (d.role === "admin") {
+          if (d.email) setAdminEmail(d.email);
+          if (d.name)  setAdminName(d.name);
+        } else if (d.role === "foreman") {
+          if (d.name)    setForemanName(d.name);
+          if (d.staffId) setForemanStaffId(d.staffId);
+        }
       })
       .catch(() => setAuthState("unauthenticated"));
   }, []);
@@ -664,8 +682,59 @@ ${detailHtml}
     await fetch(authState === "foreman" ? "/api/foreman-auth" : "/api/admin-auth", { method: "DELETE" });
     setAuthState("unauthenticated");
     setForemanName(null);
+    setAdminEmail(null); setAdminName(null);
+    setPwCurrent(""); setPwNew(""); setPwConfirm(""); setPwMsg(null);
     setStaff([]); setTodayLogs([]); setProjects([]); setTasks([]);
     setMaterials([]); setBudget([]); setIncome([]); setReports([]);
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPwMsg(null);
+    if (!pwCurrent || !pwNew || !pwConfirm) return;
+    if (pwNew.length < 8) {
+      setPwMsg({ kind: "err", text: "סיסמה חדשה חייבת להיות באורך 8 תווים לפחות." });
+      return;
+    }
+    if (pwNew !== pwConfirm) {
+      setPwMsg({ kind: "err", text: "אישור הסיסמה לא תואם לסיסמה החדשה." });
+      return;
+    }
+    if (pwNew === pwCurrent) {
+      setPwMsg({ kind: "err", text: "הסיסמה החדשה זהה לנוכחית. בחר/י סיסמה אחרת." });
+      return;
+    }
+    setPwSaving(true);
+    try {
+      const res = await fetch("/api/admin/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: pwCurrent, newPassword: pwNew }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        feedback.success();
+        setPwCurrent(""); setPwNew(""); setPwConfirm("");
+        setPwMsg({ kind: "ok", text: "הסיסמה הוחלפה בהצלחה." });
+      } else if (res.status === 401 && data.error === "wrong_current_password") {
+        feedback.error();
+        setPwMsg({ kind: "err", text: "הסיסמה הנוכחית שגויה." });
+      } else if (res.status === 401) {
+        feedback.error();
+        setPwMsg({ kind: "err", text: "ההתחברות פגה. חזור/חזרי להתחבר." });
+      } else if (res.status === 400 && data.error === "password_too_short") {
+        feedback.error();
+        setPwMsg({ kind: "err", text: "סיסמה חדשה חייבת להיות באורך 8 תווים לפחות." });
+      } else {
+        feedback.error();
+        setPwMsg({ kind: "err", text: "שגיאה בשינוי סיסמה. נסה/י שוב." });
+      }
+    } catch {
+      feedback.error();
+      setPwMsg({ kind: "err", text: "שגיאת רשת. נסה/י שוב." });
+    } finally {
+      setPwSaving(false);
+    }
   }
 
   // ── PIN digit entry ────────────────────────────────────────────────────────
@@ -1049,6 +1118,7 @@ ${detailHtml}
     { key: "matrix",     label: "מטריצה שבועית", icon: <Grid3x3   size={13} />, adminOnly: true },
     { key: "income",     label: "הכנסות",        icon: <DollarSign size={13} />, adminOnly: true },
     { key: "reports",    label: "דוחות",      icon: <BarChart2 size={13} />,      adminOnly: true },
+    { key: "account",    label: "חשבון",      icon: <UserCog   size={13} />,      adminOnly: true },
   ].filter(t => !t.adminOnly || isAdmin) as TabDef[];
 
   const activeProjects = projects.filter(p => p.status === "active");
@@ -2616,6 +2686,69 @@ ${detailHtml}
             <div className="p-1">
               <WeeklyPlanner projects={activeProjects} />
             </div>
+          </div>
+        )}
+
+        {/* ── ACCOUNT (admin only) ───────────────────────────────────────────── */}
+        {tab === "account" && isAdmin && (
+          <div className="space-y-3">
+            <Card title="הגדרות חשבון">
+              <div className="space-y-1.5 pb-2 border-b border-warm-gray-light">
+                <p className="text-[0.7rem] text-charcoal/50">מחובר/ת כ:</p>
+                <p className="text-sm font-semibold text-charcoal" dir="ltr">{adminEmail ?? "—"}</p>
+                {adminName && <p className="text-xs text-charcoal/50">{adminName}</p>}
+              </div>
+            </Card>
+
+            <Card title="שנה סיסמה">
+              <form onSubmit={handleChangePassword} className="space-y-3">
+                <Field label="סיסמה נוכחית">
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    value={pwCurrent}
+                    onChange={e => setPwCurrent(e.target.value)}
+                    className={INPUT}
+                    disabled={pwSaving}
+                  />
+                </Field>
+                <Field label="סיסמה חדשה (8 תווים לפחות)">
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    value={pwNew}
+                    onChange={e => setPwNew(e.target.value)}
+                    className={INPUT}
+                    disabled={pwSaving}
+                  />
+                </Field>
+                <Field label="אישור סיסמה חדשה">
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    value={pwConfirm}
+                    onChange={e => setPwConfirm(e.target.value)}
+                    className={INPUT}
+                    disabled={pwSaving}
+                  />
+                </Field>
+
+                {pwMsg && (
+                  <div className={`flex items-center gap-2 text-sm ${pwMsg.kind === "ok" ? "text-green-600" : "text-red-500"}`}>
+                    {pwMsg.kind === "ok" ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
+                    <span>{pwMsg.text}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={pwSaving || !pwCurrent || !pwNew || !pwConfirm}
+                  className="w-full bg-accent py-3 font-body text-sm font-semibold tracking-[0.18em] uppercase text-bone hover:bg-accent-dark disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  {pwSaving ? <><Loader2 size={14} className="animate-spin" /> שומר...</> : "שמור סיסמה חדשה"}
+                </button>
+              </form>
+            </Card>
           </div>
         )}
 

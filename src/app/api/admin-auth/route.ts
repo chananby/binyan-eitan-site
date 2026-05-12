@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     console.error("[admin-auth] last_login_at update threw:", e);
   }
 
-  const { name: cookieName, value, options } = buildAuthCookie();
+  const { name: cookieName, value, options } = buildAuthCookie(admin.id);
   const res = NextResponse.json({ ok: true, name: admin.name });
   res.cookies.set(cookieName, value, options);
   return res;
