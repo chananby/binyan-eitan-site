@@ -1074,6 +1074,11 @@ ${detailHtml}
                 className="w-full border border-charcoal/20 bg-white px-5 py-4 text-center font-body text-base text-charcoal placeholder-charcoal/25 focus:border-accent focus:outline-none transition-colors"
               />
               <Btn loading={loginLoading} disabled={!email.trim() || !password.trim()}><LogIn size={14} className="inline me-1.5" />כניסה</Btn>
+              <div className="text-center pt-1">
+                <Link href="/admin/forgot-password" className="text-xs text-charcoal/40 hover:text-accent transition-colors">
+                  שכחתי סיסמה
+                </Link>
+              </div>
             </form>
           )}
 
