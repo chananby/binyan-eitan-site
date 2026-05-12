@@ -1,19 +1,33 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { getPracticeModule } from "@/src/lib/math-tests/practice";
 import { BidiText } from "@/src/lib/math-tests/bidi";
 
-export default function AlgebraAbIntro() {
-  const mod = getPracticeModule();
+export default function PracticeModuleIntro() {
+  const params = useParams();
+  const router = useRouter();
+  const moduleSlug = params.moduleSlug as string;
+  const mod = getPracticeModule(moduleSlug);
+
+  useEffect(() => {
+    if (!mod) router.replace("/math-app/bar-ilan");
+  }, [mod, router]);
+
+  if (!mod) return null;
+
   const intro = mod.concept_intro_he;
+  const base = `/math-app/bar-ilan/practice/${moduleSlug}`;
+  const firstLevelId = mod.levels[0]?.id;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-brand-50 py-10 px-4" dir="rtl">
       <div className="max-w-2xl mx-auto space-y-6">
 
         <Link
-          href="/math-app/bar-ilan/practice/algebra-ab"
+          href={base}
           className="inline-flex items-center gap-2 text-sm text-brand-600 hover:text-brand-800 font-medium py-2.5"
         >
           ← חזרה
@@ -38,12 +52,14 @@ export default function AlgebraAbIntro() {
           </div>
         </div>
 
-        <Link
-          href="/math-app/bar-ilan/practice/algebra-ab/level/level-1"
-          className="block text-center bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-6 rounded-xl transition-colors"
-        >
-          התחל/י לתרגל ←
-        </Link>
+        {firstLevelId && (
+          <Link
+            href={`${base}/level/${firstLevelId}`}
+            className="block text-center bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-6 rounded-xl transition-colors"
+          >
+            התחל/י לתרגל ←
+          </Link>
+        )}
       </div>
     </div>
   );

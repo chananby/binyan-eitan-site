@@ -2,23 +2,34 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { getSyncKey } from "@/src/lib/math-tests/attempts";
 import { getPracticeModule, getModuleProgress } from "@/src/lib/math-tests/practice";
 import { BidiText } from "@/src/lib/math-tests/bidi";
 import type { PracticeProgress } from "@/src/types/math-test";
 
-export default function AlgebraAbLanding() {
-  const mod = getPracticeModule();
+export default function PracticeModuleLanding() {
+  const params = useParams();
+  const router = useRouter();
+  const moduleSlug = params.moduleSlug as string;
+  const mod = getPracticeModule(moduleSlug);
+
   const [progress, setProgress] = useState<PracticeProgress[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!mod) {
+      router.replace("/math-app/bar-ilan");
+      return;
+    }
     const key = getSyncKey();
     getModuleProgress(key, mod.slug).then(({ rows }) => {
       setProgress(rows);
       setLoading(false);
     });
-  }, [mod.slug]);
+  }, [mod, router]);
+
+  if (!mod) return null;
 
   function getProgForLevel(levelId: string): PracticeProgress | null {
     return progress.find((p) => p.level_id === levelId) ?? null;
@@ -27,6 +38,8 @@ export default function AlgebraAbLanding() {
   const allCompleted =
     !loading &&
     mod.levels.every((lvl) => getProgForLevel(lvl.id)?.status === "completed");
+
+  const base = `/math-app/bar-ilan/practice/${moduleSlug}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-brand-50 py-10 px-4" dir="rtl">
@@ -50,10 +63,10 @@ export default function AlgebraAbLanding() {
           </p>
 
           <Link
-            href="/math-app/bar-ilan/practice/algebra-ab/intro"
+            href={`${base}/intro`}
             className="inline-flex items-center gap-2 text-sm text-brand-600 hover:text-brand-800 font-semibold"
           >
-            📖 קרא/י מבוא לביטויים אלגבריים
+            📖 קרא/י מבוא
           </Link>
         </div>
 
@@ -70,7 +83,7 @@ export default function AlgebraAbLanding() {
             return (
               <Link
                 key={lvl.id}
-                href={`/math-app/bar-ilan/practice/algebra-ab/level/${lvl.id}`}
+                href={`${base}/level/${lvl.id}`}
                 className="flex items-center gap-4 bg-white rounded-2xl shadow-sm border border-slate-100 p-5 hover:border-brand-200 hover:shadow-md transition-all"
               >
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0 font-bold ${
@@ -106,7 +119,7 @@ export default function AlgebraAbLanding() {
         {/* Summary CTA */}
         {allCompleted && (
           <Link
-            href="/math-app/bar-ilan/practice/algebra-ab/summary"
+            href={`${base}/summary`}
             className="block text-center bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 px-6 rounded-xl transition-colors"
           >
             צפה בסיכום כולל ←

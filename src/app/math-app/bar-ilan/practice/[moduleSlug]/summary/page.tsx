@@ -2,23 +2,34 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { getSyncKey } from "@/src/lib/math-tests/attempts";
 import { getPracticeModule, getModuleProgress } from "@/src/lib/math-tests/practice";
 import { BidiText } from "@/src/lib/math-tests/bidi";
 import type { PracticeProgress } from "@/src/types/math-test";
 
-export default function AlgebraAbSummary() {
-  const mod = getPracticeModule();
+export default function PracticeModuleSummary() {
+  const params = useParams();
+  const router = useRouter();
+  const moduleSlug = params.moduleSlug as string;
+  const mod = getPracticeModule(moduleSlug);
+
   const [progress, setProgress] = useState<PracticeProgress[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!mod) {
+      router.replace("/math-app/bar-ilan");
+      return;
+    }
     const key = getSyncKey();
     getModuleProgress(key, mod.slug).then(({ rows }) => {
       setProgress(rows);
       setLoading(false);
     });
-  }, [mod.slug]);
+  }, [mod, router]);
+
+  if (!mod) return null;
 
   function getProgForLevel(levelId: string): PracticeProgress | null {
     return progress.find((p) => p.level_id === levelId) ?? null;
@@ -28,12 +39,14 @@ export default function AlgebraAbSummary() {
   const totalAnswered = progress.reduce((sum, p) => sum + p.questions_answered, 0);
   const overallPct = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
 
+  const base = `/math-app/bar-ilan/practice/${moduleSlug}`;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-brand-50 py-10 px-4" dir="rtl">
       <div className="max-w-2xl mx-auto space-y-6">
 
         <Link
-          href="/math-app/bar-ilan/practice/algebra-ab"
+          href={base}
           className="inline-flex items-center gap-2 text-sm text-brand-600 hover:text-brand-800 font-medium py-2.5"
         >
           ← חזרה לתפריט
@@ -91,7 +104,7 @@ export default function AlgebraAbSummary() {
                     {prog ? `${correct}/${total} נכון` : "טרם הושלם"}
                   </p>
                   <Link
-                    href={`/math-app/bar-ilan/practice/algebra-ab/level/${lvl.id}`}
+                    href={`${base}/level/${lvl.id}`}
                     className="text-xs font-semibold text-brand-600 hover:text-brand-800"
                   >
                     {done ? "תרגל מחדש" : "המשך"} ←

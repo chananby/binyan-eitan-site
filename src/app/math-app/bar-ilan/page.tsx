@@ -15,6 +15,7 @@ import {
   pickSimulationQuestions,
   getAllQuestions,
 } from "@/src/lib/math-tests/loader";
+import { listPracticeModules } from "@/src/lib/math-tests/practice";
 import { BidiText } from "@/src/lib/math-tests/bidi";
 import type { TestAttempt, TestProgress } from "@/src/types/math-test";
 
@@ -185,21 +186,28 @@ export default function BarIlanLanding() {
           </div>
         </div>
 
-        {/* Practice module card */}
-        <Link
-          href="/math-app/bar-ilan/practice/algebra-ab"
-          className="flex items-center gap-4 bg-amber-50 border border-amber-200 rounded-2xl p-5 hover:border-amber-300 hover:shadow-sm transition-all"
-        >
-          <span className="text-3xl shrink-0">✏️</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-amber-600 mb-0.5">תרגול ממוקד</p>
-            <p className="font-bold text-slate-800 text-sm">
-              <BidiText text="תרגול ממוקד: ביטויים אלגבריים (a/b)" />
-            </p>
-            <p className="text-xs text-slate-500 mt-0.5">3 רמות · 24 שאלות · משוב מיידי</p>
-          </div>
-          <span className="text-amber-400 text-lg shrink-0">←</span>
-        </Link>
+        {/* Practice modules */}
+        <div className="space-y-2.5">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">תרגול ממוקד</p>
+          {listPracticeModules().map((m) => (
+            <Link
+              key={m.slug}
+              href={`/math-app/bar-ilan/practice/${m.slug}`}
+              className="flex items-center gap-4 bg-amber-50 border border-amber-200 rounded-2xl p-5 hover:border-amber-300 hover:shadow-sm transition-all"
+            >
+              <span className="text-3xl shrink-0">✏️</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-slate-800 text-sm">
+                  <BidiText text={m.name_he} />
+                </p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {m.levels_count} רמות · {m.total_questions} שאלות · משוב מיידי
+                </p>
+              </div>
+              <span className="text-amber-400 text-lg shrink-0">←</span>
+            </Link>
+          ))}
+        </div>
 
         {/* Progress */}
         {!loading && progress && progress.attempts_completed > 0 && (

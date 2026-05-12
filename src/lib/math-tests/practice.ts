@@ -6,7 +6,7 @@ import type {
   QuestionDetail,
   PracticeFile,
 } from "@/src/types/math-test";
-import practiceData from "@/src/data/math/bar-ilan-practice-ab.json";
+import algebraAbData from "@/src/data/math/bar-ilan-practice-ab.json";
 
 const SUPA_URL  = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPA_ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -27,18 +27,27 @@ function isConfigured(): boolean {
 
 // ── Data loaders (from JSON — no network) ─────────────────────────────────────
 
-const mod: PracticeModule = (practiceData as PracticeFile).practice_module;
+const REGISTRY: Record<string, PracticeModule> = {
+  "algebra-ab": (algebraAbData as PracticeFile).practice_module,
+};
 
-export function getPracticeModule(): PracticeModule {
-  return mod;
+export function listPracticeModules(): PracticeModule[] {
+  return Object.values(REGISTRY);
 }
 
-export function getPracticeLevel(levelId: string): PracticeLevel | null {
-  return mod.levels.find((l) => l.id === levelId) ?? null;
+export function getPracticeModule(slug: string): PracticeModule | null {
+  return REGISTRY[slug] ?? null;
+}
+
+export function getPracticeLevel(slug: string, levelId: string): PracticeLevel | null {
+  const mod = REGISTRY[slug];
+  return mod?.levels.find((l) => l.id === levelId) ?? null;
 }
 
 /** Returns the ID of the next level after currentLevelId, or null if it's the last. */
-export function getNextLevelId(currentLevelId: string): string | null {
+export function getNextLevelId(slug: string, currentLevelId: string): string | null {
+  const mod = REGISTRY[slug];
+  if (!mod) return null;
   const idx = mod.levels.findIndex((l) => l.id === currentLevelId);
   if (idx === -1 || idx >= mod.levels.length - 1) return null;
   return mod.levels[idx + 1].id;

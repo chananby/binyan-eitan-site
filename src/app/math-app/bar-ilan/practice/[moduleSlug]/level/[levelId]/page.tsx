@@ -38,10 +38,12 @@ function ErrorBanner({ message, onDismiss }: { message: string; onDismiss: () =>
 export default function LevelPage() {
   const params = useParams();
   const router = useRouter();
+  const moduleSlug = params.moduleSlug as string;
   const levelId = params.levelId as string;
 
-  const mod = getPracticeModule();
-  const level = getPracticeLevel(levelId);
+  const mod = getPracticeModule(moduleSlug);
+  const level = getPracticeLevel(moduleSlug, levelId);
+  const base = `/math-app/bar-ilan/practice/${moduleSlug}`;
 
   const [mode, setMode] = useState<Mode>("loading");
   const [syncKey, setSyncKey] = useState("");
@@ -55,8 +57,8 @@ export default function LevelPage() {
   const [saveError, setSaveError] = useState(false);
 
   useEffect(() => {
-    if (!level) {
-      router.replace("/math-app/bar-ilan/practice/algebra-ab");
+    if (!mod || !level) {
+      router.replace("/math-app/bar-ilan");
       return;
     }
     const key = getSyncKey();
@@ -80,11 +82,11 @@ export default function LevelPage() {
         setMode(hasIntro ? "intro" : "practice");
       }
     });
-  }, [levelId, level, mod.slug, router]);
+  }, [levelId, level, mod, router]);
 
   const doUpsert = useCallback(
     async (newDetails: Record<string, QuestionDetail>, status: "in_progress" | "completed") => {
-      if (!level || !syncKey) return;
+      if (!level || !mod || !syncKey) return;
       const correct = Object.values(newDetails).filter((d) => d.correct).length;
       const { error } = await upsertLevelProgress({
         syncKey,
@@ -99,7 +101,7 @@ export default function LevelPage() {
       });
       if (error) setSaveError(true);
     },
-    [level, syncKey, mod.slug, levelId],
+    [level, mod, syncKey, levelId],
   );
 
   function handleSelect(label: string) {
@@ -128,7 +130,7 @@ export default function LevelPage() {
   }
 
   async function handleReset() {
-    if (!level || resetting) return;
+    if (!level || !mod || resetting) return;
     setResetting(true);
     await resetLevelProgress(syncKey, mod.slug, levelId);
     setSaved({});
@@ -140,7 +142,7 @@ export default function LevelPage() {
     setMode("practice");
   }
 
-  if (!level) return null;
+  if (!mod || !level) return null;
 
   const questions = level.questions;
   const totalCorrect = Object.values(saved).filter((d) => d.correct).length;
@@ -165,7 +167,7 @@ export default function LevelPage() {
 
           <div className="flex items-center justify-between">
             <Link
-              href="/math-app/bar-ilan/practice/algebra-ab"
+              href={base}
               className="text-sm text-brand-600 hover:text-brand-800 font-medium py-2.5"
             >
               ← חזרה
@@ -254,25 +256,25 @@ export default function LevelPage() {
           </div>
 
           {(() => {
-            const nextId = getNextLevelId(levelId);
+            const nextId = getNextLevelId(moduleSlug, levelId);
             return (
               <div className="flex gap-3">
                 <Link
-                  href="/math-app/bar-ilan/practice/algebra-ab"
+                  href={base}
                   className="flex-1 text-center text-sm font-semibold text-slate-600 hover:text-slate-800 py-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
                 >
                   ← תפריט
                 </Link>
                 {nextId ? (
                   <Link
-                    href={`/math-app/bar-ilan/practice/algebra-ab/level/${nextId}`}
+                    href={`${base}/level/${nextId}`}
                     className="flex-1 text-center text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 py-3.5 rounded-xl transition-colors"
                   >
                     רמה {level.level_number + 1} ←
                   </Link>
                 ) : (
                   <Link
-                    href="/math-app/bar-ilan/practice/algebra-ab/summary"
+                    href={`${base}/summary`}
                     className="flex-1 text-center text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 py-3.5 rounded-xl transition-colors"
                   >
                     סיכום כולל ←
@@ -351,7 +353,7 @@ export default function LevelPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <Link
-            href="/math-app/bar-ilan/practice/algebra-ab"
+            href={base}
             className="text-sm text-brand-600 hover:text-brand-800 font-medium py-2.5"
           >
             ← חזרה
