@@ -1193,7 +1193,7 @@ ${detailHtml}
         </div>
 
         {/* Tab bar */}
-        <div className="flex border-b border-charcoal/10 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none" }}>
+        <div className="flex flex-wrap border-b border-charcoal/10">
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/70"}`}>
