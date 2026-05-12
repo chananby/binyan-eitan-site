@@ -17,7 +17,7 @@ import { BidiText } from "@/src/lib/math-tests/bidi";
 import { QuestionCard } from "@/src/app/math-app/bar-ilan/components/QuestionCard";
 import type { QuestionDetail } from "@/src/types/math-test";
 
-type Mode = "loading" | "practice" | "done" | "review";
+type Mode = "loading" | "intro" | "practice" | "done" | "review";
 
 function ErrorBanner({ message, onDismiss }: { message: string; onDismiss: () => void }) {
   return (
@@ -76,7 +76,8 @@ export default function LevelPage() {
         setMode("done");
       } else {
         setCurrentIdx(firstUnanswered);
-        setMode("practice");
+        const hasIntro = !!level.concept_he && Object.keys(details).length === 0;
+        setMode(hasIntro ? "intro" : "practice");
       }
     });
   }, [levelId, level, mod.slug, router]);
@@ -151,6 +152,69 @@ export default function LevelPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-brand-50">
         <p className="text-slate-400 text-sm">טוען...</p>
+      </div>
+    );
+  }
+
+  // ── Intro ──────────────────────────────────────────────────────────────────
+
+  if (mode === "intro") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-brand-50 py-10 px-4" dir="rtl">
+        <div className="max-w-xl mx-auto space-y-5">
+
+          <div className="flex items-center justify-between">
+            <Link
+              href="/math-app/bar-ilan/practice/algebra-ab"
+              className="text-sm text-brand-600 hover:text-brand-800 font-medium py-2.5"
+            >
+              ← חזרה
+            </Link>
+            <p className="text-xs font-bold text-slate-500">
+              <BidiText text={level.name_he} />
+            </p>
+            <span className="w-12" />
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <p className="text-xs font-semibold text-brand-500 mb-2">📚 רקע לרמה</p>
+            <p className="text-sm text-slate-700 leading-relaxed text-start">
+              <BidiText text={level.concept_he} />
+            </p>
+          </div>
+
+          {level.worked_examples_he.map((ex, i) => (
+            <div key={i} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+              <p className="text-xs font-semibold text-amber-600 mb-2">
+                ✏️ דוגמה פתורה{level.worked_examples_he.length > 1 ? ` ${i + 1}` : ""}
+              </p>
+              <p className="font-bold text-slate-800 leading-relaxed mb-4 text-start">
+                <BidiText text={ex.prompt_he} />
+              </p>
+              <ol className="space-y-2 mb-4">
+                {ex.steps_he.map((step, j) => (
+                  <li key={j} className="flex items-start gap-2.5 text-sm text-slate-700 leading-relaxed">
+                    <span className="shrink-0 w-5 h-5 rounded-full bg-brand-100 text-brand-700 text-xs font-bold flex items-center justify-center mt-0.5">{j + 1}</span>
+                    <span className="flex-1 text-start"><BidiText text={step} /></span>
+                  </li>
+                ))}
+              </ol>
+              <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2">
+                <span className="text-green-600 text-sm font-bold">תשובה:</span>
+                <span className="text-green-800 font-bold text-sm">
+                  <BidiText text={ex.answer_he} />
+                </span>
+              </div>
+            </div>
+          ))}
+
+          <button
+            onClick={() => setMode("practice")}
+            className="block w-full text-center bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl transition-colors"
+          >
+            התחל לתרגל ←
+          </button>
+        </div>
       </div>
     );
   }
@@ -292,9 +356,20 @@ export default function LevelPage() {
           >
             ← חזרה
           </Link>
-          <p className="text-xs font-bold text-slate-500 text-center">
-            <BidiText text={level.name_he} />
-          </p>
+          {level.concept_he ? (
+            <button
+              onClick={() => setMode("intro")}
+              className="text-xs font-bold text-slate-500 hover:text-brand-600 text-center inline-flex items-center gap-1 py-2.5"
+              aria-label="הצג מבוא לרמה"
+            >
+              <span>📖</span>
+              <span><BidiText text={level.name_he} /></span>
+            </button>
+          ) : (
+            <p className="text-xs font-bold text-slate-500 text-center">
+              <BidiText text={level.name_he} />
+            </p>
+          )}
           <span className="text-xs text-slate-400 font-medium">
             {currentIdx + 1} / {questions.length}
           </span>

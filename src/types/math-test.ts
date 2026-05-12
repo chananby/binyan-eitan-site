@@ -99,11 +99,19 @@ export interface PracticeQuestion {
   explanation_he: string;
 }
 
+export interface WorkedExample {
+  prompt_he: string;
+  steps_he: string[];
+  answer_he: string;
+}
+
 export interface PracticeLevel {
   id: string;
   level_number: number;
   name_he: string;
   description_he: string;
+  concept_he: string;
+  worked_examples_he: WorkedExample[];
   questions: PracticeQuestion[];
 }
 
