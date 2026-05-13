@@ -3,6 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import {
   EXEC_COOKIE, buildExecAuthCookie, getExecAuthorFromRequest,
 } from "../../../../lib/exec-auth";
+import { getAdminIdFromRequest } from "../../../../lib/admin-auth";
+import { createServerClient } from "../../../../lib/supabase";
 
 export const runtime = "nodejs";
 
@@ -12,11 +14,48 @@ const BYPASS_PINS: Record<string, "Hanan" | "Moti"> = {
   "274": "Moti",
 };
 
-/** GET — check cookie, return author */
+// Map admin email → executive author identity, so a logged-in admin gets
+// HUB access without entering a separate PIN. Unmapped admins default to Hanan.
+function adminEmailToAuthor(email: string | null | undefined): "Hanan" | "Moti" {
+  const e = (email ?? "").toLowerCase();
+  if (e.startsWith("motti@") || e.startsWith("moti@")) return "Moti";
+  return "Hanan";
+}
+
+/**
+ * GET — check exec cookie, return author.
+ *
+ * Master-key fallback: if no exec cookie but the requester is a logged-in
+ * admin (be_admin_token), grant exec access using their identity and mint
+ * an exec cookie on the fly. Removes the need for admins to remember a
+ * second PIN to enter /admin/hub and other executive surfaces.
+ */
 export async function GET(req: NextRequest) {
-  const author = getExecAuthorFromRequest(req);
-  if (!author) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  return NextResponse.json({ ok: true, author });
+  const cookieAuthor = getExecAuthorFromRequest(req);
+  if (cookieAuthor) return NextResponse.json({ ok: true, author: cookieAuthor });
+
+  const adminId = getAdminIdFromRequest(req);
+  if (adminId) {
+    try {
+      const supabase = createServerClient();
+      const { data } = await supabase
+        .from("admins")
+        .select("email, active")
+        .eq("id", adminId)
+        .maybeSingle();
+      if (data && data.active) {
+        const author = adminEmailToAuthor(data.email);
+        const { name, value, options } = buildExecAuthCookie(author);
+        const res = NextResponse.json({ ok: true, author });
+        res.cookies.set(name, value, options);
+        return res;
+      }
+    } catch (e) {
+      console.error("[executive/auth] admin fallback lookup failed:", e);
+    }
+  }
+
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
 /** POST — verify PIN, identify user, set cookie */
