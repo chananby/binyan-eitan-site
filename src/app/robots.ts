@@ -11,6 +11,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
         disallow: [
           "/admin",
+          "/admin-tools/",
           "/internal/",
           "/he/internal",
           "/en/internal",
