@@ -107,12 +107,31 @@
   /* ============ LAYOUT ============ */
   .layout {
     display: grid;
-    grid-template-columns: 480px 1fr;
-    gap: 20px;
+    grid-template-columns: var(--form-panel-width, 480px) 6px 1fr;
+    gap: 0;
     padding: 20px;
     max-width: 1600px;
     margin: 0 auto;
   }
+  .panel-resizer {
+    cursor: col-resize;
+    background: transparent;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .panel-resizer:hover,
+  .panel-resizer.dragging {
+    background: var(--brand);
+  }
+  .panel-resizer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 16px;
+    margin-inline-start: -5px;
+  }
+  .form-panel { margin-inline-end: 14px; }
+  .preview-panel { margin-inline-start: 14px; }
 
   /* ============ FORM PANEL ============ */
   .form-panel {
@@ -527,12 +546,15 @@
   .doc-bank p { line-height: 1.5; }
   .doc-signature {
     text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
   }
   .doc-signature-line {
-    margin-top: 30px;
     border-bottom: 1px solid var(--text);
     width: 180px;
     margin-inline-start: auto;
+    margin-top: 30px;
   }
   .doc-signature-label {
     margin-top: 4px;
@@ -831,36 +853,137 @@
     margin: 8px 0 3px;
   }
   
-  /* Item with name + description structure */
-  .item-row-rich {
+  /* Protected company section - locked by default */
+  .company-section h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .lock-indicator {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 3px;
+  }
+  .company-section.unlocked .lock-indicator { display: none; }
+  .company-section .btn-unlock {
+    margin-inline-start: auto;
+    font-size: 11px;
+  }
+  .company-section.unlocked .btn-unlock { background: #fee2e2; color: #b91c1c; }
+  .company-section.unlocked .btn-unlock::before { content: "🔓 "; }
+  .company-section.unlocked .btn-unlock::after { content: " (לחץ לנעילה)"; }
+  .company-section:not(.unlocked) [data-protected] {
+    pointer-events: none;
+    opacity: 0.55;
+    background: #f9fafb !important;
+  }
+  .company-section:not(.unlocked) [data-protected] input,
+  .company-section:not(.unlocked) [data-protected] select,
+  .company-section:not(.unlocked) [data-protected] textarea,
+  .company-section:not(.unlocked) [data-protected] button {
+    pointer-events: none;
+  }
+  .hint-tiny { font-size: 10px; color: var(--text-muted); font-weight: 400; }
+  
+  /* Default-milestones editor (inside protected section) */
+  .default-ms-row {
     display: grid;
-    grid-template-columns: 1fr 60px 90px 90px 28px;
+    grid-template-columns: 1fr 60px 28px;
     gap: 6px;
     margin-bottom: 4px;
-    align-items: flex-start;
+  }
+  .default-ms-row input {
+    font-family: inherit;
+    font-size: 12px;
+    padding: 4px 7px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+  .default-ms-pct-info {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .item-row-rich {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: white;
+  }
+  .item-row-rich .item-name-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+    align-items: center;
   }
   .item-row-rich .item-name {
+    flex: 1;
     font-weight: 600;
+    font-size: 13px;
+    padding: 7px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+  }
+  .item-row-rich .item-name.is-empty-required {
+    border-color: #ef4444;
+    background: #fef2f2;
+  }
+  .item-row-rich .item-fields-row {
+    display: grid;
+    grid-template-columns: 70px 90px 100px 100px 28px;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .item-row-rich .field-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .item-row-rich .field-label-tiny {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 500;
+    padding-inline-start: 2px;
+  }
+  .item-row-rich .field-cell input,
+  .item-row-rich .field-cell select {
+    font-family: inherit;
     font-size: 13px;
     padding: 5px 8px;
     border: 1px solid var(--border);
     border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .item-row-rich .field-cell input[readonly] {
+    background: #f9fafb;
+    text-align: center;
+    font-weight: 600;
+    color: var(--brand);
+  }
+  .item-row-rich .field-cell.delete-cell {
+    align-self: end;
   }
   .item-row-rich .item-desc {
-    grid-column: 1 / -1;
+    width: 100%;
+    box-sizing: border-box;
     font-family: inherit;
     font-size: 12px;
-    padding: 5px 8px;
+    padding: 6px 10px;
     border: 1px solid var(--border);
     border-radius: 4px;
     resize: vertical;
     min-height: 30px;
     line-height: 1.5;
-    margin-top: 2px;
   }
-  .item-row-rich input[type=number] {
-    font-family: inherit;
-    font-size: 13px;
+  .item-row-rich .item-unit-custom {
+    grid-column: span 4;
+    margin-top: 4px;
+    font-size: 12px;
     padding: 5px 8px;
     border: 1px solid var(--border);
     border-radius: 4px;
@@ -1165,7 +1288,7 @@
       }
     }
     body { background: white; }
-    .toolbar, .form-panel, .preview-label { display: none !important; }
+    .toolbar, .form-panel, .preview-label, .panel-resizer { display: none !important; }
     .doc-internal-block { display: none !important; }
     .layout { display: block; padding: 0; max-width: none; }
     .preview-panel {
@@ -1351,8 +1474,8 @@
       </div>
     </div>
 
-    <div class="form-section">
-      <h2>פרטי חברה (מוטמע במסמך)</h2>
+    <div class="form-section company-section" id="company-section">
+      <h2>פרטי חברה (מוטמע במסמך) <span class="lock-indicator" id="company-lock-indicator">🔒 נעול</span> <button class="btn-small btn-unlock" id="btn-unlock-company">✏️ ערוך</button></h2>
       <div class="form-row full">
         <div class="form-group">
           <label>לוגו</label>
@@ -1363,63 +1486,71 @@
       <div class="form-row full">
         <div class="form-group">
           <label>שם חברה</label>
-          <input type="text" data-field="companyName" value='בניין איתן בע"מ'>
+          <input type="text" data-field="companyName" data-protected value='בניין איתן בע"מ'>
         </div>
       </div>
       <div class="form-row full">
         <div class="form-group">
           <label>כותרת משנה</label>
-          <input type="text" data-field="companyTag" value="קבלן רשום">
+          <input type="text" data-field="companyTag" data-protected value="קבלן רשום">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>כתובת</label>
-          <input type="text" data-field="companyAddress" value="עפרה 23, גבעת זאב">
+          <input type="text" data-field="companyAddress" data-protected value="עפרה 23, גבעת זאב">
         </div>
         <div class="form-group">
           <label>טלפון</label>
-          <input type="text" data-field="companyPhone" value="02-5000-447">
+          <input type="text" data-field="companyPhone" data-protected value="02-5000-447">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>דוא"ל</label>
-          <input type="text" data-field="companyEmail" value="office@binyaneitan.com">
+          <input type="text" data-field="companyEmail" data-protected value="office@binyaneitan.com">
         </div>
         <div class="form-group">
           <label>אתר</label>
-          <input type="text" data-field="companyWebsite" value="www.binyaneitan.com">
+          <input type="text" data-field="companyWebsite" data-protected value="www.binyaneitan.com">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>ח.פ.</label>
-          <input type="text" data-field="companyId" value="515454734">
+          <input type="text" data-field="companyId" data-protected value="515454734">
         </div>
         <div class="form-group">
           <label>בנק (שורה אחת)</label>
-          <input type="text" data-field="bankLine1" value="בנק מזרחי טפחות, סניף 430">
+          <input type="text" data-field="bankLine1" data-protected value="בנק מזרחי טפחות, סניף 430">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>חשבון</label>
-          <input type="text" data-field="bankAccount" value="271373">
+          <input type="text" data-field="bankAccount" data-protected value="271373">
         </div>
         <div class="form-group">
-          <label>ע"ש</label>
-          <input type="text" data-field="bankOwner" value='בניין איתן בע"מ'>
+          <label>ע"ש <span class="hint-tiny">(על שם בעל החשבון)</span></label>
+          <input type="text" data-field="bankOwner" data-protected value='בניין איתן בע"מ'>
         </div>
       </div>
       <div class="form-row full">
         <div class="form-group">
           <label>שורת חתימה אישית (תופיע בסוף המסמך)</label>
-          <input type="text" data-field="signatureLine" placeholder='למשל: בניין איתן בע"מ — חנן (058-500-8447 / chanan@binyaneitan.com)'>
+          <input type="text" data-field="signatureLine" data-protected placeholder='למשל: בניין איתן בע"מ — חנן (058-500-8447 / chanan@binyaneitan.com)'>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label>ברירת מחדל ללוח תשלומים <span class="hint-tiny">(תכנס אוטומטית להצעות חדשות)</span></label>
+          <div id="default-milestones-editor" data-protected></div>
         </div>
       </div>
     </div>
   </aside>
+
+  <div class="panel-resizer" id="panel-resizer" title="גרור לשינוי רוחב"></div>
 
   <!-- ===== PREVIEW PANEL ===== -->
   <div class="preview-panel">
@@ -1455,7 +1586,7 @@
         id: 's1',
         name: '',
         items: [
-          { id: 'i1', name: '', description: '', quantity: 1, unitPrice: 0 }
+          { id: 'i1', name: '', description: '', quantity: 1, unit: 'יח\'', unitPrice: 0 }
         ]
       }
     ],
@@ -1481,7 +1612,18 @@
     bankLine1: 'בנק מזרחי טפחות, סניף 430',
     bankAccount: '271373',
     bankOwner: 'בניין איתן בע"מ',
-    signatureLine: ''
+    signatureLine: '',
+    // ── Protected defaults (lockable; auto-populate new quotes) ──
+    companyFieldsLocked: true,
+    panelWidthPx: 480,
+    defaultPaymentMilestones: [
+      { description: 'מקדמה — עם חתימת ההסכם, לפני התחלת הריסות', percentage: 20 },
+      { description: 'עם סיום הריסות ופינוי הפסולת', percentage: 20 },
+      { description: 'עם סיום בניית קירות', percentage: 20 },
+      { description: 'עם סיום פריסת תשתיות (חשמל, אינסטלציה, חימום תת־רצפתי)', percentage: 25 },
+      { description: 'עם סיום גמרים', percentage: 10 },
+      { description: 'יתרה — עם מסירה סופית', percentage: 5 }
+    ]
   };
 
   let state = loadState() || JSON.parse(JSON.stringify(defaultState));
@@ -1651,6 +1793,14 @@
   function totalWithVat() { return grandTotal() + vatAmount(); }
 
   // ============ RENDER FORM (sections + dynamic lists) ============
+  // Standard units list (matches dropdown options); empty value = "custom" → shows free-text input
+  const UNIT_OPTIONS = ["יח'", 'מ"א', 'מ"ר', 'מ"ק', 'קומפ\'', "ש'/שעות", 'יום', 'חודש'];
+
+  function isCustomUnit(unit) {
+    if (!unit) return false;
+    return !UNIT_OPTIONS.includes(unit);
+  }
+
   function renderSections() {
     const container = document.getElementById('sections-container');
     container.innerHTML = state.sections.map((section, sIdx) => `
@@ -1661,23 +1811,55 @@
                  data-section-name="${section.id}">
           <button class="btn-icon" data-delete-section="${section.id}" title="מחק פרק">🗑</button>
         </div>
-        ${section.items.map(item => `
+        ${section.items.map(item => {
+          const unit = item.unit || "יח'";
+          const customUnit = isCustomUnit(unit);
+          const lineTotal = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
+          const nameMissing = !item.name && (item.description || Number(item.quantity) || Number(item.unitPrice));
+          return `
           <div class="item-row-rich" data-item-id="${item.id}">
-            <input class="item-name" type="text" placeholder="שם הפריט (מודגש, אופציונלי)" 
-                   value="${esc(item.name || '')}" 
-                   data-item-field="name" data-section-id="${section.id}" data-item-id="${item.id}">
-            <input type="number" step="any" placeholder="כמות"
-                   value="${item.quantity}" 
-                   data-item-field="quantity" data-section-id="${section.id}" data-item-id="${item.id}">
-            <input type="number" step="any" placeholder="מחיר יח'"
-                   value="${item.unitPrice}" 
-                   data-item-field="unitPrice" data-section-id="${section.id}" data-item-id="${item.id}">
-            <input type="text" readonly value="${money((Number(item.quantity)||0)*(Number(item.unitPrice)||0))}" style="background:#f9fafb;text-align:center;font-size:11px">
-            <button class="btn-icon" data-delete-item="${item.id}" data-section-id="${section.id}" title="מחק פריט">✕</button>
+            <div class="item-name-row">
+              <input class="item-name${nameMissing ? ' is-empty-required' : ''}" type="text" placeholder="שם הפריט"
+                     value="${esc(item.name || '')}"
+                     data-item-field="name" data-section-id="${section.id}" data-item-id="${item.id}">
+              <button class="btn-icon" data-delete-item="${item.id}" data-section-id="${section.id}" title="מחק פריט">✕</button>
+            </div>
+            <div class="item-fields-row">
+              <div class="field-cell">
+                <span class="field-label-tiny">כמות</span>
+                <input type="number" step="any"
+                       value="${item.quantity}"
+                       data-item-field="quantity" data-section-id="${section.id}" data-item-id="${item.id}">
+              </div>
+              <div class="field-cell">
+                <span class="field-label-tiny">יחידה</span>
+                <select data-item-field="unit" data-section-id="${section.id}" data-item-id="${item.id}">
+                  ${UNIT_OPTIONS.map(u => `<option value="${esc(u)}"${unit === u ? ' selected' : ''}>${esc(u)}</option>`).join('')}
+                  <option value="__custom__"${customUnit ? ' selected' : ''}>אחר…</option>
+                </select>
+              </div>
+              <div class="field-cell">
+                <span class="field-label-tiny">מחיר יח'</span>
+                <input type="number" step="any"
+                       value="${item.unitPrice}"
+                       data-item-field="unitPrice" data-section-id="${section.id}" data-item-id="${item.id}">
+              </div>
+              <div class="field-cell">
+                <span class="field-label-tiny">סה"כ</span>
+                <input type="text" readonly value="${money(lineTotal)}">
+              </div>
+              <div class="field-cell delete-cell"></div>
+            </div>
+            ${customUnit ? `
+              <input type="text" class="item-unit-custom" placeholder="הקלד יחידה מותאמת"
+                     value="${esc(unit)}"
+                     data-item-field="unitCustom" data-section-id="${section.id}" data-item-id="${item.id}">
+            ` : ''}
             <textarea class="item-desc" placeholder="תיאור מפורט (אופציונלי - תומך מספר שורות)"
                       data-item-field="description" data-section-id="${section.id}" data-item-id="${item.id}">${esc(item.description || '')}</textarea>
           </div>
-        `).join('')}
+          `;
+        }).join('')}
         <div class="section-actions">
           <button class="btn-small" data-add-item="${section.id}">+ הוסף פריט</button>
         </div>
@@ -1874,7 +2056,7 @@
                     ${item.name ? `<div class="item-name-bold">${esc(item.name)}</div>` : ''}
                     ${item.description ? `<div class="item-desc-text">${esc(item.description)}</div>` : ''}
                   </td>
-                  ${showQty ? `<td class="num">${item.quantity}</td>` : ''}
+                  ${showQty ? `<td class="num">${item.quantity}${item.unit ? ' ' + esc(item.unit) : ''}</td>` : ''}
                   <td class="price">${money(item.unitPrice)}</td>
                   <td class="price">${money((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0))}</td>
                 </tr>
@@ -1963,7 +2145,7 @@
         </div>
         <div class="doc-signature">
           <div class="doc-signature-line"></div>
-          <div class="doc-signature-label">חתימה</div>
+          <div class="doc-signature-label">חתימת הלקוח</div>
         </div>
       </div>
 
@@ -2317,8 +2499,37 @@
     renderLogo();
     renderExtraFields();
     renderBlocks();
+    renderCompanyLock();
+    renderDefaultMilestones();
     renderPreview();
     saveState();
+  }
+
+  function renderCompanyLock() {
+    const section = document.getElementById('company-section');
+    if (!section) return;
+    if (state.companyFieldsLocked) {
+      section.classList.remove('unlocked');
+    } else {
+      section.classList.add('unlocked');
+    }
+  }
+
+  function renderDefaultMilestones() {
+    const container = document.getElementById('default-milestones-editor');
+    if (!container) return;
+    const milestones = state.defaultPaymentMilestones || [];
+    const totalPct = milestones.reduce((s, m) => s + (Number(m.percentage) || 0), 0);
+    container.innerHTML = milestones.map((m, i) => `
+      <div class="default-ms-row" data-ms-index="${i}">
+        <input type="text" placeholder="תיאור השלב" value="${esc(m.description || '')}" data-default-ms-field="description" data-ms-index="${i}">
+        <input type="number" step="any" placeholder="%" value="${m.percentage || 0}" data-default-ms-field="percentage" data-ms-index="${i}">
+        <button class="btn-icon" data-default-ms-delete="${i}" title="מחק">✕</button>
+      </div>
+    `).join('') + `
+      <button class="btn-small" id="btn-add-default-ms" style="margin-top:4px">+ הוסף שלב</button>
+      <div class="default-ms-pct-info">סך אחוזים: <strong style="color:${Math.abs(totalPct-100)<0.01?'var(--success)':'var(--danger)'}">${totalPct}%</strong></div>
+    `;
   }
 
   // ============ EVENT HANDLERS ============
@@ -2349,8 +2560,24 @@
       const section = state.sections.find(s => s.id === sid);
       const item = section?.items.find(i => i.id === iid);
       if (item) {
-        item[field] = (field === 'description' || field === 'name') ? t.value : Number(t.value) || 0;
-        // Update the total cell (readonly input) and section subtotal without full re-render (preserves focus)
+        if (field === 'description' || field === 'name') {
+          item[field] = t.value;
+        } else if (field === 'unit') {
+          if (t.value === '__custom__') {
+            // Switch to custom mode: set to a non-standard value so re-render shows the text input
+            item.unit = item.unit && isCustomUnit(item.unit) ? item.unit : '';
+            renderSections();  // re-render to show the custom text input
+            renderPreview();
+            saveState();
+            return;
+          }
+          item.unit = t.value;
+        } else if (field === 'unitCustom') {
+          item.unit = t.value;
+        } else {
+          item[field] = Number(t.value) || 0;
+        }
+        // Update the total cell and section subtotal without full re-render (preserves focus)
         if (field === 'quantity' || field === 'unitPrice') {
           const row = t.closest('.item-row-rich');
           const totalCell = row?.querySelector('input[readonly]');
@@ -2392,6 +2619,27 @@
     }
 
     // Extra customer fields
+    // Default-milestones field updates (within protected section)
+    if (t.hasAttribute('data-default-ms-field')) {
+      const idx = Number(t.getAttribute('data-ms-index'));
+      const field = t.getAttribute('data-default-ms-field');
+      state.defaultPaymentMilestones = state.defaultPaymentMilestones || [];
+      const ms = state.defaultPaymentMilestones[idx];
+      if (ms) {
+        ms[field] = field === 'description' ? t.value : (Number(t.value) || 0);
+        // Just update the percent total inline (preserve focus)
+        if (field === 'percentage') {
+          const total = state.defaultPaymentMilestones.reduce((s, m) => s + (Number(m.percentage) || 0), 0);
+          const infoEl = document.querySelector('#default-milestones-editor .default-ms-pct-info');
+          if (infoEl) {
+            infoEl.innerHTML = `סך אחוזים: <strong style="color:${Math.abs(total-100)<0.01?'var(--success)':'var(--danger)'}">${total}%</strong>`;
+          }
+        }
+        saveState();
+      }
+      return;
+    }
+
     if (t.hasAttribute('data-extra-label') || t.hasAttribute('data-extra-value')) {
       const id = t.getAttribute('data-extra-label') || t.getAttribute('data-extra-value');
       const field = t.hasAttribute('data-extra-label') ? 'label' : 'value';
@@ -2484,9 +2732,41 @@
       const sid = t.getAttribute('data-add-item');
       const s = state.sections.find(x => x.id === sid);
       if (s) {
-        s.items.push({ id: uid(), name: '', description: '', quantity: 1, unitPrice: 0 });
+        s.items.push({ id: uid(), name: '', description: '', quantity: 1, unit: "יח'", unitPrice: 0 });
         render();
       }
+      return;
+    }
+
+    // ============ COMPANY LOCK / UNLOCK ============
+    if (t.id === 'btn-unlock-company') {
+      if (state.companyFieldsLocked) {
+        if (confirm('האם אתה בטוח שברצונך לערוך את פרטי החברה?\n\nהשדות האלה משותפים לכל ההצעות והם רגישים — שינוי לא נכון עלול לבלבל הצעות עתידיות.')) {
+          state.companyFieldsLocked = false;
+          renderCompanyLock();
+          saveState();
+        }
+      } else {
+        state.companyFieldsLocked = true;
+        renderCompanyLock();
+        saveState();
+      }
+      return;
+    }
+
+    // ============ DEFAULT MILESTONES (in protected section) ============
+    if (t.id === 'btn-add-default-ms') {
+      state.defaultPaymentMilestones = state.defaultPaymentMilestones || [];
+      state.defaultPaymentMilestones.push({ description: '', percentage: 0 });
+      renderDefaultMilestones();
+      saveState();
+      return;
+    }
+    if (t.matches('[data-default-ms-delete]')) {
+      const idx = Number(t.getAttribute('data-default-ms-delete'));
+      state.defaultPaymentMilestones.splice(idx, 1);
+      renderDefaultMilestones();
+      saveState();
       return;
     }
 
@@ -2723,13 +3003,35 @@
 
   // ============ DIRECT BUTTON HANDLERS (more reliable than delegation for fixed buttons) ============
   document.getElementById('btn-print').addEventListener('click', () => {
+    // Validation: customer name + date are required before printing
+    const missing = [];
+    if (!state.customerName || !state.customerName.trim()) missing.push('שם לקוח');
+    if (!state.date) missing.push('תאריך הצעה');
+    if (missing.length > 0) {
+      alert('לפני הדפסה חובה למלא:\n\n• ' + missing.join('\n• ') + '\n\nגלול למעלה ומלא את השדות האלה.');
+      // Highlight the missing fields
+      missing.forEach(field => {
+        const dataField = field === 'שם לקוח' ? 'customerName' : 'date';
+        const el = document.querySelector(`[data-field="${dataField}"]`);
+        if (el) {
+          el.style.borderColor = '#ef4444';
+          el.style.background = '#fef2f2';
+          el.focus();
+          setTimeout(() => {
+            el.style.borderColor = '';
+            el.style.background = '';
+          }, 3000);
+        }
+      });
+      return;
+    }
     window.print();
   });
 
   document.getElementById('btn-reset').addEventListener('click', () => {
     if (confirm('לנקות את כל הנתונים ולהתחיל מחדש?\n(פרטי החברה והלוגו יישמרו)')) {
       const company = {};
-      ['logo','companyName','companyTag','companyAddress','companyPhone','companyEmail','companyWebsite','companyId','bankLine1','bankAccount','bankOwner']
+      ['logo','companyName','companyTag','companyAddress','companyPhone','companyEmail','companyWebsite','companyId','bankLine1','bankAccount','bankOwner','signatureLine','companyFieldsLocked','panelWidthPx','defaultPaymentMilestones']
         .forEach(k => company[k] = state[k]);
       state = JSON.parse(JSON.stringify(defaultState));
       Object.assign(state, company);
@@ -2738,6 +3040,22 @@
       state.date = todayISO(new Date());
       const v = new Date(); v.setDate(v.getDate() + 30);
       state.validUntil = todayISO(v);
+      // Auto-create payment block from default milestones
+      const defaultMs = state.defaultPaymentMilestones || [];
+      if (defaultMs.length > 0) {
+        state.blocks = state.blocks || [];
+        state.blocks.push({
+          id: uid(),
+          type: 'payment',
+          title: 'תנאי תשלום',
+          intro: 'מבנה מוצע (לתיאום סופי עם המזמין):',
+          milestones: defaultMs.map(m => ({
+            id: uid(),
+            description: m.description,
+            percentage: m.percentage
+          }))
+        });
+      }
       // Detach from cloud so the next save creates a brand-new row
       cloudSync.detach();
       render();
@@ -2773,6 +3091,56 @@
     }
     e.target.value = '';
   });
+
+  // ============ PANEL RESIZER ============
+  function applyPanelWidth() {
+    const w = Math.max(320, Math.min(state.panelWidthPx || 480, 900));
+    document.documentElement.style.setProperty('--form-panel-width', w + 'px');
+  }
+  applyPanelWidth();
+
+  (function setupResizer() {
+    const resizer = document.getElementById('panel-resizer');
+    if (!resizer) return;
+    let startX = 0;
+    let startW = 480;
+    let dragging = false;
+
+    function onMove(e) {
+      if (!dragging) return;
+      const x = e.touches ? e.touches[0].clientX : e.clientX;
+      // In RTL: dragging LEFT widens the form panel (it's on the right)
+      const delta = startX - x;
+      const w = Math.max(320, Math.min(startW + delta, 900));
+      state.panelWidthPx = w;
+      applyPanelWidth();
+    }
+    function onUp() {
+      if (!dragging) return;
+      dragging = false;
+      resizer.classList.remove('dragging');
+      document.body.style.userSelect = '';
+      saveState();
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    }
+    function onDown(e) {
+      dragging = true;
+      startX = e.touches ? e.touches[0].clientX : e.clientX;
+      startW = state.panelWidthPx || 480;
+      resizer.classList.add('dragging');
+      document.body.style.userSelect = 'none';
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('touchend', onUp);
+      e.preventDefault();
+    }
+    resizer.addEventListener('mousedown', onDown);
+    resizer.addEventListener('touchstart', onDown, { passive: false });
+  })();
 
   // ============ INIT ============
   render();
