@@ -4,12 +4,22 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
   AlertCircle, ChevronDown, ChevronUp, ExternalLink, Loader2,
-  LogOut, Pencil, Search, ShieldCheck, Wrench, X,
+  LogOut, Pencil, Pin, PinOff, Plus, Search, ShieldCheck,
+  StickyNote, Trash2, Wrench, X,
 } from "lucide-react";
 import type { UIRoute, APIRoute } from "../../../lib/discover-routes";
 import type { ExternalLinkGroup } from "../../../data/external-links";
 
 type Author = "Hanan" | "Moti";
+
+interface AdminNote {
+  id: string;
+  title: string;
+  body: string;
+  pinned: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function groupBy<T>(arr: T[], key: (t: T) => string): Record<string, T[]> {
@@ -301,6 +311,78 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
     Array.from({ length: QUICK_LINKS.length }, (_, i) => i)
   );
 
+  // Personal notes
+  const [notes, setNotes]               = useState<AdminNote[]>([]);
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [noteFormOpen, setNoteFormOpen] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [draftTitle,    setDraftTitle]    = useState("");
+  const [draftBody,     setDraftBody]     = useState("");
+  const [draftPinned,   setDraftPinned]   = useState(false);
+  const [noteSaving,    setNoteSaving]    = useState(false);
+
+  async function loadNotes() {
+    setNotesLoading(true);
+    try {
+      const res  = await fetch("/api/admin/notes");
+      const data = await res.json();
+      if (res.ok) setNotes(data.notes ?? []);
+    } catch { /* ignore */ }
+    finally { setNotesLoading(false); }
+  }
+  function openNewNote() {
+    setEditingNoteId(null); setDraftTitle(""); setDraftBody(""); setDraftPinned(false);
+    setNoteFormOpen(true);
+  }
+  function openEditNote(n: AdminNote) {
+    setEditingNoteId(n.id); setDraftTitle(n.title); setDraftBody(n.body); setDraftPinned(n.pinned);
+    setNoteFormOpen(true);
+  }
+  function closeNoteForm() {
+    setNoteFormOpen(false); setEditingNoteId(null);
+    setDraftTitle(""); setDraftBody(""); setDraftPinned(false);
+  }
+  async function saveNote() {
+    if (!draftTitle.trim() || noteSaving) return;
+    setNoteSaving(true);
+    try {
+      const payload = { title: draftTitle.trim(), body: draftBody, pinned: draftPinned };
+      const res = editingNoteId
+        ? await fetch(`/api/admin/notes/${editingNoteId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          })
+        : await fetch("/api/admin/notes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+      if (res.ok) {
+        closeNoteForm();
+        await loadNotes();
+      }
+    } finally { setNoteSaving(false); }
+  }
+  async function togglePin(n: AdminNote) {
+    await fetch(`/api/admin/notes/${n.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pinned: !n.pinned }),
+    });
+    await loadNotes();
+  }
+  async function deleteNote(id: string) {
+    if (!confirm("למחוק את הפתקית?")) return;
+    await fetch(`/api/admin/notes/${id}`, { method: "DELETE" });
+    await loadNotes();
+  }
+
+  // Load notes once we know we're authed
+  useEffect(() => {
+    if (author) loadNotes();
+  }, [author]);
+
   // Check existing auth cookie
   useEffect(() => {
     fetch("/api/executive/auth")
@@ -526,6 +608,106 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
             </div>
           ) : (
             <p className="text-[#2D2926]/30 text-sm py-3">אין תוצאות</p>
+          )}
+        </section>
+
+        {/* Personal Notes */}
+        <section>
+          <SectionLabel action={
+            <button
+              onClick={openNewNote}
+              className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#8D775F] text-white hover:bg-[#7A6451] transition-colors inline-flex items-center gap-1"
+            >
+              <Plus size={11} strokeWidth={2.5} /> פתקית
+            </button>
+          }>
+            פתקיות אישיות{notes.length > 0 ? ` (${notes.length})` : ""}
+          </SectionLabel>
+
+          {noteFormOpen && (
+            <div className="bg-white border-2 border-[#8D775F]/40 rounded-lg p-4 mb-4 space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <StickyNote size={14} className="text-[#8D775F]" />
+                <p className="text-xs font-bold text-[#2D2926]">{editingNoteId ? "ערוך פתקית" : "פתקית חדשה"}</p>
+              </div>
+              <input
+                type="text"
+                value={draftTitle}
+                onChange={e => setDraftTitle(e.target.value)}
+                placeholder="כותרת (למשל: 'Vercel 2FA backup')"
+                maxLength={200}
+                autoFocus
+                className="w-full border border-[#E0DFD9] bg-[#F5F4F0] px-3 py-2 text-sm focus:border-[#8D775F] focus:outline-none transition-colors"
+              />
+              <textarea
+                value={draftBody}
+                onChange={e => setDraftBody(e.target.value)}
+                placeholder="הערה / רמז (לא לסיסמאות — רק רמזים, חשבונות, ואיפה למצוא מה שצריך)"
+                rows={4}
+                maxLength={5000}
+                className="w-full border border-[#E0DFD9] bg-[#F5F4F0] px-3 py-2 text-sm focus:border-[#8D775F] focus:outline-none transition-colors resize-y"
+              />
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 text-xs cursor-pointer">
+                  <input type="checkbox" checked={draftPinned} onChange={e => setDraftPinned(e.target.checked)} className="accent-[#8D775F]" />
+                  <span className="text-[#2D2926]/70">הצמד למעלה</span>
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={closeNoteForm}
+                    className="text-xs px-3 py-1.5 border border-[#E0DFD9] text-[#2D2926]/60 hover:border-[#8D775F] transition-colors"
+                  >
+                    ביטול
+                  </button>
+                  <button
+                    onClick={saveNote}
+                    disabled={!draftTitle.trim() || noteSaving}
+                    className="text-xs px-3 py-1.5 bg-[#8D775F] text-white hover:bg-[#7A6451] disabled:opacity-40 transition-colors inline-flex items-center gap-1"
+                  >
+                    {noteSaving ? <><Loader2 size={11} className="animate-spin" /> שומר…</> : "שמור"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {notesLoading && notes.length === 0 ? (
+            <p className="text-[#2D2926]/30 text-sm py-3">טוען…</p>
+          ) : notes.length === 0 && !noteFormOpen ? (
+            <p className="text-[#2D2926]/30 text-sm py-3">
+              אין עדיין פתקיות. לחץ "+ פתקית" להוסיף רמזים לחשבונות, 2FA, וכל מה ששווה לזכור.
+              <br />
+              <span className="text-[0.7rem] text-[#2D2926]/40">⚠ לא לאחסן סיסמאות כאן — השתמש ב-password manager.</span>
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              {notes.map(n => (
+                <div key={n.id} className="bg-white border border-[#E0DFD9] rounded-lg p-3 group hover:border-[#8D775F]/40 transition-colors">
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <div className="flex items-center gap-1 min-w-0">
+                      {n.pinned && <Pin size={11} className="text-[#8D775F] shrink-0" fill="currentColor" />}
+                      <p className="text-sm font-bold text-[#2D2926] truncate">{n.title}</p>
+                    </div>
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <button onClick={() => togglePin(n)} title={n.pinned ? "בטל הצמדה" : "הצמד"} className="p-1 hover:bg-[#F5F4F0] rounded">
+                        {n.pinned ? <PinOff size={11} className="text-[#2D2926]/50" /> : <Pin size={11} className="text-[#2D2926]/50" />}
+                      </button>
+                      <button onClick={() => openEditNote(n)} title="ערוך" className="p-1 hover:bg-[#F5F4F0] rounded">
+                        <Pencil size={11} className="text-[#2D2926]/50" />
+                      </button>
+                      <button onClick={() => deleteNote(n.id)} title="מחק" className="p-1 hover:bg-red-50 rounded">
+                        <Trash2 size={11} className="text-red-500/70" />
+                      </button>
+                    </div>
+                  </div>
+                  {n.body && (
+                    <p className="text-xs text-[#2D2926]/60 leading-relaxed whitespace-pre-wrap break-words">
+                      {n.body}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </section>
 
