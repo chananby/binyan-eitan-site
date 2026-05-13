@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, ChevronRight, FileText } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Loader2, ChevronRight, FileText, List } from "lucide-react";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
 
 export default function QuoteGeneratorClient() {
   const [auth, setAuth] = useState<AuthState>("loading");
   const [adminName, setAdminName] = useState<string>("");
+  const searchParams = useSearchParams();
+  const quoteId = searchParams?.get("id") || "";
 
   useEffect(() => {
     let cancelled = false;
@@ -31,7 +34,23 @@ export default function QuoteGeneratorClient() {
     };
   }, []);
 
-  // ── Loading state ───────────────────────────────────────────────────────────
+  // Listen for the iframe announcing it created a new quote — sync URL so a
+  // browser refresh keeps the same quote loaded.
+  useEffect(() => {
+    function onMsg(e: MessageEvent) {
+      const d = e.data as { type?: string; id?: string } | null;
+      if (d?.type === "quote-id-assigned" && d.id && !quoteId) {
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set("id", d.id);
+          window.history.replaceState({}, "", url.toString());
+        } catch {}
+      }
+    }
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [quoteId]);
+
   if (auth === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F5F4F0]">
@@ -40,7 +59,6 @@ export default function QuoteGeneratorClient() {
     );
   }
 
-  // ── Not authenticated — point user to the admin portal ──────────────────────
   if (auth === "unauthenticated") {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F4F0] p-8 text-center">
@@ -62,10 +80,14 @@ export default function QuoteGeneratorClient() {
     );
   }
 
-  // ── Admin: render the iframe to the standalone quote generator HTML ────────
+  // Pass the quote id through to the iframe via URL parameter so the HTML
+  // can hydrate from the cloud when editing an existing quote.
+  const iframeSrc = quoteId
+    ? `/admin-tools/quote-generator.html?id=${encodeURIComponent(quoteId)}`
+    : "/admin-tools/quote-generator.html";
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F4F0]">
-      {/* Slim top bar with breadcrumb + admin name */}
       <header className="bg-white border-b border-[#2D2926]/10 px-4 py-2 flex items-center justify-between shadow-sm shrink-0">
         <div className="flex items-center gap-2 text-sm">
           <Link
@@ -76,22 +98,36 @@ export default function QuoteGeneratorClient() {
             Hub
           </Link>
           <span className="text-[#2D2926]/40">/</span>
+          <Link
+            href="/admin/quotes/list"
+            className="text-[#8D775F] flex items-center gap-1 hover:underline"
+          >
+            רשימת הצעות
+          </Link>
+          <span className="text-[#2D2926]/40">/</span>
           <span className="text-[#2D2926] font-semibold flex items-center gap-1.5">
             <FileText size={14} strokeWidth={2} />
-            מחולל הצעות מחיר
+            {quoteId ? "עריכת הצעה" : "הצעה חדשה"}
           </span>
         </div>
-        {adminName && (
-          <div className="text-[#2D2926]/60 text-xs">
-            מחובר כ-<span className="font-semibold text-[#2D2926]">{adminName}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/quotes/list"
+            className="text-[#8D775F] text-xs flex items-center gap-1 hover:underline"
+          >
+            <List size={13} />
+            כל ההצעות
+          </Link>
+          {adminName && (
+            <div className="text-[#2D2926]/60 text-xs">
+              מחובר כ-<span className="font-semibold text-[#2D2926]">{adminName}</span>
+            </div>
+          )}
+        </div>
       </header>
 
-      {/* The generator itself, sandboxed in an iframe.
-          Uses localStorage (same origin) so all data persists naturally. */}
       <iframe
-        src="/admin-tools/quote-generator.html"
+        src={iframeSrc}
         className="flex-1 w-full border-0 bg-white"
         title="מחולל הצעות מחיר"
       />

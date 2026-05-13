@@ -49,6 +49,23 @@
   .toolbar h1 { font-size: 18px; font-weight: 600; }
   .toolbar h1 small { font-weight: 400; opacity: 0.7; font-size: 13px; margin-inline-start: 8px; }
   .toolbar-actions { display: flex; gap: 8px; align-items: center; }
+  .cloud-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 5px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
+    transition: background 0.2s;
+  }
+  .cloud-status.synced { background: rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.4); }
+  .cloud-status.saving { background: rgba(245,158,11,0.2); border-color: rgba(245,158,11,0.4); }
+  .cloud-status.error  { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4); }
+  .cloud-status .cloud-icon { font-size: 13px; }
+  .cloud-status .cloud-text { font-weight: 500; white-space: nowrap; }
   .btn {
     background: white;
     color: var(--brand);
@@ -1190,6 +1207,10 @@
 <div class="toolbar">
   <h1>מחולל הצעות מחיר <small>בניין איתן</small></h1>
   <div class="toolbar-actions">
+    <div id="cloud-status" class="cloud-status" title="סטטוס שמירה בענן">
+      <span class="cloud-icon">💾</span>
+      <span class="cloud-text">מקומי בלבד</span>
+    </div>
     <button class="btn btn-ghost" id="btn-reset">נקה הכל</button>
     <button class="btn btn-primary" id="btn-print">📄 הדפס / שמור PDF</button>
   </div>
@@ -1479,7 +1500,133 @@
   }
   function saveState() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    cloudSync.scheduleSave();
   }
+
+  // ============ CLOUD SYNC (Supabase via /api/admin/quotes) ============
+  // Strategy: localStorage stays the fast tier (instant). Cloud is the source
+  // of truth (persistence across devices). Every saveState() triggers a
+  // debounced cloud save. On boot, if URL has ?id=, hydrate from cloud.
+  const cloudSync = (() => {
+    let quoteId = null;
+    let saveTimer = null;
+    let inFlight = false;
+    let pendingSave = false;
+    const SAVE_DEBOUNCE_MS = 1500;
+
+    function getQuoteIdFromURL() {
+      try {
+        const url = new URL(window.location.href);
+        return url.searchParams.get('id');
+      } catch { return null; }
+    }
+
+    function updateURLWithId(id) {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('id', id);
+        window.history.replaceState({}, '', url.toString());
+        try { window.parent?.postMessage({ type: 'quote-id-assigned', id }, '*'); } catch {}
+      } catch {}
+    }
+
+    function setStatus(kind, text) {
+      const el = document.getElementById('cloud-status');
+      if (!el) return;
+      el.classList.remove('synced', 'saving', 'error');
+      const icons = { synced: '☁️', saving: '⏳', error: '⚠️', local: '💾' };
+      const icon = el.querySelector('.cloud-icon');
+      const lbl  = el.querySelector('.cloud-text');
+      if (icon) icon.textContent = icons[kind] || '💾';
+      if (lbl) lbl.textContent = text;
+      if (kind === 'synced') el.classList.add('synced');
+      if (kind === 'saving') el.classList.add('saving');
+      if (kind === 'error')  el.classList.add('error');
+    }
+
+    async function doSave() {
+      if (inFlight) { pendingSave = true; return; }
+      inFlight = true;
+      setStatus('saving', 'שומר…');
+      try {
+        const body = JSON.stringify({ data: state });
+        let res;
+        if (quoteId) {
+          res = await fetch(`/api/admin/quotes/${encodeURIComponent(quoteId)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+          });
+        } else {
+          res = await fetch('/api/admin/quotes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+          });
+        }
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const result = await res.json();
+        if (result.id && !quoteId) {
+          quoteId = result.id;
+          updateURLWithId(quoteId);
+        }
+        setStatus('synced', 'שמור בענן');
+      } catch (e) {
+        setStatus('error', 'שמירה נכשלה');
+        console.warn('[cloud-sync] save failed:', e);
+      } finally {
+        inFlight = false;
+        if (pendingSave) {
+          pendingSave = false;
+          doSave();
+        }
+      }
+    }
+
+    return {
+      scheduleSave() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(doSave, SAVE_DEBOUNCE_MS);
+      },
+
+      async init() {
+        const id = getQuoteIdFromURL();
+        if (!id) {
+          setStatus('local', 'טיוטה מקומית');
+          return;
+        }
+        setStatus('saving', 'טוען מהענן…');
+        try {
+          const res = await fetch(`/api/admin/quotes/${encodeURIComponent(id)}`);
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const result = await res.json();
+          if (result.quote?.data) {
+            quoteId = id;
+            state = Object.assign({}, defaultState, result.quote.data);
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+            render();
+            setStatus('synced', 'שמור בענן');
+          } else {
+            setStatus('error', 'הצעה לא נמצאה');
+          }
+        } catch (e) {
+          console.warn('[cloud-sync] load failed:', e);
+          setStatus('error', 'טעינה נכשלה');
+        }
+      },
+
+      detach() {
+        quoteId = null;
+        clearTimeout(saveTimer);
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('id');
+          window.history.replaceState({}, '', url.toString());
+        } catch {}
+        setStatus('local', 'טיוטה חדשה');
+      },
+    };
+  })();
 
   // ============ HELPERS ============
   const fmt = new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', minimumFractionDigits: 2 });
@@ -2591,6 +2738,8 @@
       state.date = todayISO(new Date());
       const v = new Date(); v.setDate(v.getDate() + 30);
       state.validUntil = todayISO(v);
+      // Detach from cloud so the next save creates a brand-new row
+      cloudSync.detach();
       render();
     }
   });
@@ -2627,6 +2776,7 @@
 
   // ============ INIT ============
   render();
+  cloudSync.init();
 </script>
 
 </body>
