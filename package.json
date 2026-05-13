@@ -19,6 +19,7 @@
     "@vercel/kv": "^1.0.0",
     "autoprefixer": "^10",
     "bcryptjs": "^3.0.3",
+    "exceljs": "^4.4.0",
     "framer-motion": "^10.12.16",
     "lucide-react": "latest",
     "next": "^14.2.35",

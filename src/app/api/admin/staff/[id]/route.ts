@@ -14,7 +14,17 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { active?: boolean; name?: string; phone?: string; role?: string; national_id?: string; hourly_rate?: number | null; daily_rate?: number | null; pin?: string | null };
+  let body: {
+    active?: boolean; name?: string; phone?: string; role?: string;
+    national_id?: string;
+    hourly_rate?: number | null; daily_rate?: number | null;
+    employment_type?: string;
+    monthly_global_salary?: number | null;
+    travel_allowance?: boolean;
+    pension_status?: string | null;
+    holiday_eligible?: boolean;
+    pin?: string | null;
+  };
   try {
     body = await req.json();
   } catch {
@@ -48,6 +58,28 @@ export async function PATCH(
 
   if (body.hourly_rate !== undefined) update.hourly_rate = body.hourly_rate ?? null;
   if (body.daily_rate  !== undefined) update.daily_rate  = body.daily_rate  ?? null;
+
+  if (body.employment_type !== undefined) {
+    const validTypes = ["hourly", "daily", "global"];
+    if (!validTypes.includes(body.employment_type)) {
+      return NextResponse.json({ error: "סוג העסקה לא תקין" }, { status: 400 });
+    }
+    update.employment_type = body.employment_type;
+  }
+  if (body.monthly_global_salary !== undefined) {
+    if (body.monthly_global_salary !== null) {
+      if (typeof body.monthly_global_salary !== "number" || body.monthly_global_salary < 0) {
+        return NextResponse.json({ error: "שכר גלובלי חייב להיות מספר חיובי" }, { status: 400 });
+      }
+    }
+    update.monthly_global_salary = body.monthly_global_salary;
+  }
+  if (body.travel_allowance !== undefined) update.travel_allowance = !!body.travel_allowance;
+  if (body.pension_status !== undefined) {
+    update.pension_status = body.pension_status?.trim() || null;
+  }
+  if (body.holiday_eligible !== undefined) update.holiday_eligible = !!body.holiday_eligible;
+
   if (body.pin !== undefined) {
     if (body.pin && !/^\d{4,8}$/.test(body.pin.trim())) {
       return NextResponse.json({ error: "PIN חייב להיות 4–8 ספרות" }, { status: 400 });
@@ -64,7 +96,7 @@ export async function PATCH(
     .from("staff")
     .update(update)
     .eq("id", params.id)
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, pin")
     .single();
 
   if (error) {

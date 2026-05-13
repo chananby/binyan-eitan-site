@@ -17,7 +17,7 @@ import {
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
-type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "matrix" | "income" | "reports" | "account";
+type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "matrix" | "income" | "reports" | "payroll" | "account";
 type LoginMode = "pin" | "password";
 
 const HASH_TO_TAB: Record<string, AdminTab> = {
@@ -31,13 +31,43 @@ const HASH_TO_TAB: Record<string, AdminTab> = {
   weekly:     "matrix",
   income:     "income",
   reports:    "reports",
+  payroll:    "payroll",
+  salary:     "payroll",
   account:    "account",
 };
 
 interface StaffMember {
   id: string; name: string; phone: string; role: string; active: boolean;
   national_id?: string | null; hourly_rate?: number | null; daily_rate?: number | null;
+  employment_type?: "hourly" | "daily" | "global";
+  monthly_global_salary?: number | null;
+  travel_allowance?: boolean;
+  pension_status?: string | null;
+  holiday_eligible?: boolean;
   has_pin?: boolean;
+}
+interface VacationRecord {
+  id: string;
+  staff_id: string;
+  date: string;
+  half_day: boolean;
+  notes: string | null;
+}
+interface PayrollRow {
+  staff_id: string;
+  name: string;
+  national_id: string | null;
+  employment_type: string;
+  days_worked: number;
+  hours_worked: number;
+  hourly_rate: number | null;
+  daily_rate: number | null;
+  monthly_global_salary: number | null;
+  vacation_days: number;
+  holiday_eligible: boolean;
+  travel_allowance: boolean;
+  pension_status: string | null;
+  gross_salary: number;
 }
 interface AttendanceRecord {
   id: string; action: string; timestamp_label: string; recorded_at: string;
@@ -187,6 +217,11 @@ export default function AdminPortal() {
   const [newHourlyRate, setNewHourlyRate] = useState("");
   const [newDailyRate,  setNewDailyRate]  = useState("");
   const [newPin,        setNewPin]        = useState("");
+  const [newEmploymentType,   setNewEmploymentType]   = useState<"hourly" | "daily" | "global">("hourly");
+  const [newGlobalSalary,     setNewGlobalSalary]     = useState("");
+  const [newTravelAllowance,  setNewTravelAllowance]  = useState(false);
+  const [newPensionStatus,    setNewPensionStatus]    = useState("");
+  const [newHolidayEligible,  setNewHolidayEligible]  = useState(true);
   const [addLoading, setAddLoading] = useState(false);
   const [addMsg,     setAddMsg]     = useState("");
   const [editingId,       setEditingId]       = useState<string | null>(null);
@@ -197,8 +232,31 @@ export default function AdminPortal() {
   const [editHourlyRate,  setEditHourlyRate]  = useState("");
   const [editDailyRate,   setEditDailyRate]   = useState("");
   const [editPin,         setEditPin]         = useState("");
+  const [editEmploymentType,  setEditEmploymentType]  = useState<"hourly" | "daily" | "global">("hourly");
+  const [editGlobalSalary,    setEditGlobalSalary]    = useState("");
+  const [editTravelAllowance, setEditTravelAllowance] = useState(false);
+  const [editPensionStatus,   setEditPensionStatus]   = useState("");
+  const [editHolidayEligible, setEditHolidayEligible] = useState(true);
   const [editLoading, setEditLoading] = useState(false);
   const [editMsg,     setEditMsg]     = useState("");
+
+  // Vacation editor (per-staff drawer)
+  const [vacationFor,    setVacationFor]    = useState<string | null>(null);
+  const [vacationRows,   setVacationRows]   = useState<VacationRecord[]>([]);
+  const [vacationDate,   setVacationDate]   = useState("");
+  const [vacationHalf,   setVacationHalf]   = useState(false);
+  const [vacationLoading, setVacationLoading] = useState(false);
+  const [vacationMsg,    setVacationMsg]    = useState("");
+
+  // Payroll tab
+  const [payrollMonth, setPayrollMonth] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const [payrollProject,    setPayrollProject]    = useState<string>("");
+  const [payrollRows,       setPayrollRows]       = useState<PayrollRow[]>([]);
+  const [payrollLoading,    setPayrollLoading]    = useState(false);
+  const [payrollExporting,  setPayrollExporting]  = useState(false);
 
   // Projects UI
   const [newProjectName,    setNewProjectName]    = useState("");
@@ -755,13 +813,28 @@ ${detailHtml}
     e.preventDefault(); setAddLoading(true); setAddMsg("");
     try {
       const res  = await fetch("/api/admin/staff", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName, phone: newPhone, role: newRole, national_id: newNationalId,
+        body: JSON.stringify({
+          name: newName, phone: newPhone, role: newRole, national_id: newNationalId,
           hourly_rate: newHourlyRate ? parseFloat(newHourlyRate) : null,
-          daily_rate: newDailyRate   ? parseFloat(newDailyRate)  : null,
-          pin: newPin || undefined }) });
+          daily_rate:  newDailyRate  ? parseFloat(newDailyRate)  : null,
+          employment_type:       newEmploymentType,
+          monthly_global_salary: newGlobalSalary ? parseFloat(newGlobalSalary) : null,
+          travel_allowance:      newTravelAllowance,
+          pension_status:        newPensionStatus,
+          holiday_eligible:      newHolidayEligible,
+          pin: newPin || undefined,
+        }) });
       const data = await res.json();
-      if (res.ok) { setAddMsg("✓ " + newName + " נוסף"); setNewName(""); setNewPhone(""); setNewNationalId(""); setNewHourlyRate(""); setNewDailyRate(""); setNewPin(""); reload(); }
-      else        { setAddMsg("שגיאה: " + (data.error ?? res.status)); }
+      if (res.ok) {
+        setAddMsg("✓ " + newName + " נוסף");
+        setNewName(""); setNewPhone(""); setNewNationalId("");
+        setNewHourlyRate(""); setNewDailyRate(""); setNewPin("");
+        setNewEmploymentType("hourly"); setNewGlobalSalary("");
+        setNewTravelAllowance(false); setNewPensionStatus(""); setNewHolidayEligible(true);
+        reload();
+      } else {
+        setAddMsg("שגיאה: " + (data.error ?? res.status));
+      }
     } catch (err) { setAddMsg("שגיאת רשת: " + String(err)); }
     finally { setAddLoading(false); }
   }
@@ -771,6 +844,11 @@ ${detailHtml}
     setEditNationalId(s.national_id ?? "");
     setEditHourlyRate(s.hourly_rate != null ? String(s.hourly_rate) : "");
     setEditDailyRate(s.daily_rate   != null ? String(s.daily_rate)  : "");
+    setEditEmploymentType(s.employment_type ?? "hourly");
+    setEditGlobalSalary(s.monthly_global_salary != null ? String(s.monthly_global_salary) : "");
+    setEditTravelAllowance(!!s.travel_allowance);
+    setEditPensionStatus(s.pension_status ?? "");
+    setEditHolidayEligible(s.holiday_eligible !== false); // default true
     setEditPin(""); // always blank — admin sets a new PIN explicitly
     setEditMsg("");
   }
@@ -779,9 +857,16 @@ ${detailHtml}
     e.preventDefault(); if (!editingId) return;
     setEditLoading(true); setEditMsg("");
     try {
-      const body: Record<string, unknown> = { name: editName, phone: editPhone, role: editRole, national_id: editNationalId,
+      const body: Record<string, unknown> = {
+        name: editName, phone: editPhone, role: editRole, national_id: editNationalId,
         hourly_rate: editHourlyRate ? parseFloat(editHourlyRate) : null,
-        daily_rate:  editDailyRate  ? parseFloat(editDailyRate)  : null };
+        daily_rate:  editDailyRate  ? parseFloat(editDailyRate)  : null,
+        employment_type:       editEmploymentType,
+        monthly_global_salary: editGlobalSalary ? parseFloat(editGlobalSalary) : null,
+        travel_allowance:      editTravelAllowance,
+        pension_status:        editPensionStatus,
+        holiday_eligible:      editHolidayEligible,
+      };
       if (editPin) body.pin = editPin; // only send if a new PIN was entered
       const res  = await fetch(`/api/admin/staff/${editingId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
@@ -789,6 +874,88 @@ ${detailHtml}
       else        { setEditMsg("שגיאה: " + (data.error ?? res.status)); }
     } catch (err) { setEditMsg("שגיאת רשת: " + String(err)); }
     finally { setEditLoading(false); }
+  }
+
+  // ── Vacation drawer ────────────────────────────────────────────────────────
+  async function openVacationDrawer(staffId: string) {
+    setVacationFor(staffId);
+    setVacationDate(""); setVacationHalf(false); setVacationMsg("");
+    await loadVacationRows(staffId);
+  }
+  async function loadVacationRows(staffId: string) {
+    try {
+      const res = await fetch(`/api/admin/vacation?staff_id=${staffId}`);
+      const data = await res.json();
+      if (res.ok) setVacationRows(data.records ?? []);
+    } catch { /* keep current rows */ }
+  }
+  async function handleAddVacation(e: React.FormEvent) {
+    e.preventDefault();
+    if (!vacationFor || !vacationDate) return;
+    setVacationLoading(true); setVacationMsg("");
+    try {
+      const res = await fetch("/api/admin/vacation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ staff_id: vacationFor, date: vacationDate, half_day: vacationHalf }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setVacationDate(""); setVacationHalf(false);
+        await loadVacationRows(vacationFor);
+      } else {
+        setVacationMsg("שגיאה: " + (data.error ?? res.status));
+      }
+    } catch (err) {
+      setVacationMsg("שגיאת רשת: " + String(err));
+    } finally {
+      setVacationLoading(false);
+    }
+  }
+  async function handleDeleteVacation(id: string) {
+    if (!vacationFor) return;
+    await fetch(`/api/admin/vacation/${id}`, { method: "DELETE" });
+    await loadVacationRows(vacationFor);
+  }
+
+  // ── Payroll ────────────────────────────────────────────────────────────────
+  async function loadPayroll() {
+    setPayrollLoading(true);
+    try {
+      const q = new URLSearchParams({ month: payrollMonth });
+      if (payrollProject) q.set("project_id", payrollProject);
+      const res = await fetch(`/api/admin/payroll?${q.toString()}`);
+      const data = await res.json();
+      if (res.ok) setPayrollRows(data.rows ?? []);
+      else setPayrollRows([]);
+    } catch {
+      setPayrollRows([]);
+    } finally {
+      setPayrollLoading(false);
+    }
+  }
+  async function exportPayroll() {
+    setPayrollExporting(true);
+    try {
+      const q = new URLSearchParams({ month: payrollMonth });
+      if (payrollProject) q.set("project_id", payrollProject);
+      const res = await fetch(`/api/admin/payroll/export?${q.toString()}`);
+      if (!res.ok) {
+        alert("שגיאה בייצוא: " + res.status);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `payroll-${payrollMonth}${payrollProject ? "-project" : ""}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setPayrollExporting(false);
+    }
   }
 
   async function toggleActive(id: string, current: boolean) {
@@ -1123,6 +1290,7 @@ ${detailHtml}
     { key: "matrix",     label: "מטריצה שבועית", icon: <Grid3x3   size={13} />, adminOnly: true },
     { key: "income",     label: "הכנסות",        icon: <DollarSign size={13} />, adminOnly: true },
     { key: "reports",    label: "דוחות",      icon: <BarChart2 size={13} />,      adminOnly: true },
+    { key: "payroll",    label: "שכר",         icon: <DollarSign size={13} />,    adminOnly: true },
     { key: "account",    label: "חשבון",      icon: <UserCog   size={13} />,      adminOnly: true },
   ].filter(t => !t.adminOnly || isAdmin) as TabDef[];
 
@@ -1980,9 +2148,40 @@ ${detailHtml}
                   </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="שכר שעתי (₪)"><input value={newHourlyRate} onChange={e => setNewHourlyRate(e.target.value)} type="number" min="0" step="0.5" placeholder="45.00" dir="ltr" className={INPUT} /></Field>
-                  <Field label="שכר יומי (₪)"><input value={newDailyRate}  onChange={e => setNewDailyRate(e.target.value)}  type="number" min="0" step="1"   placeholder="350"   dir="ltr" className={INPUT} /></Field>
+                  <Field label="סוג העסקה">
+                    <select value={newEmploymentType} onChange={e => setNewEmploymentType(e.target.value as "hourly" | "daily" | "global")} className={INPUT}>
+                      <option value="hourly">שעתי</option>
+                      <option value="daily">יומי</option>
+                      <option value="global">גלובלי</option>
+                    </select>
+                  </Field>
+                  {newEmploymentType === "hourly" && (
+                    <Field label="שכר שעתי (₪)"><input value={newHourlyRate} onChange={e => setNewHourlyRate(e.target.value)} type="number" min="0" step="0.5" placeholder="45.00" dir="ltr" className={INPUT} /></Field>
+                  )}
+                  {newEmploymentType === "daily" && (
+                    <Field label="שכר יומי (₪)"><input value={newDailyRate}  onChange={e => setNewDailyRate(e.target.value)}  type="number" min="0" step="1" placeholder="350" dir="ltr" className={INPUT} /></Field>
+                  )}
+                  {newEmploymentType === "global" && (
+                    <Field label="שכר חודשי גלובלי (₪)"><input value={newGlobalSalary} onChange={e => setNewGlobalSalary(e.target.value)} type="number" min="0" step="1" placeholder="8000" dir="ltr" className={INPUT} /></Field>
+                  )}
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="דמי נסיעות">
+                    <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
+                      <input type="checkbox" checked={newTravelAllowance} onChange={e => setNewTravelAllowance(e.target.checked)} className="accent-accent" />
+                      <span className="text-charcoal/70">זכאי לנסיעות</span>
+                    </label>
+                  </Field>
+                  <Field label="זכאות לחגים">
+                    <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
+                      <input type="checkbox" checked={newHolidayEligible} onChange={e => setNewHolidayEligible(e.target.checked)} className="accent-accent" />
+                      <span className="text-charcoal/70">זכאי לתשלום על חגים</span>
+                    </label>
+                  </Field>
+                </div>
+                <Field label="סטטוס פנסיה (טקסט חופשי)">
+                  <input value={newPensionStatus} onChange={e => setNewPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
+                </Field>
                 {newRole === "ממונה" && (
                   <Field label="PIN לכניסה לפורטל (4–8 ספרות)">
                     <input value={newPin} onChange={e => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 8))} type="text" inputMode="numeric" maxLength={8} placeholder="1234" dir="ltr" className={INPUT} />
@@ -2013,9 +2212,40 @@ ${detailHtml}
                         </select>
                       </Field>
                       <Field label='ת"ז'><input value={editNationalId} onChange={e => setEditNationalId(e.target.value.replace(/\D/g, ""))} inputMode="numeric" maxLength={9} dir="ltr" className={INPUT} /></Field>
-                      <Field label="שכר שעתי (₪)"><input value={editHourlyRate} onChange={e => setEditHourlyRate(e.target.value)} type="number" min="0" step="0.5" dir="ltr" className={INPUT} /></Field>
-                      <Field label="שכר יומי (₪)"><input value={editDailyRate}  onChange={e => setEditDailyRate(e.target.value)}  type="number" min="0" step="1"   dir="ltr" className={INPUT} /></Field>
+                      <Field label="סוג העסקה">
+                        <select value={editEmploymentType} onChange={e => setEditEmploymentType(e.target.value as "hourly" | "daily" | "global")} className={INPUT}>
+                          <option value="hourly">שעתי</option>
+                          <option value="daily">יומי</option>
+                          <option value="global">גלובלי</option>
+                        </select>
+                      </Field>
+                      {editEmploymentType === "hourly" && (
+                        <Field label="שכר שעתי (₪)"><input value={editHourlyRate} onChange={e => setEditHourlyRate(e.target.value)} type="number" min="0" step="0.5" dir="ltr" className={INPUT} /></Field>
+                      )}
+                      {editEmploymentType === "daily" && (
+                        <Field label="שכר יומי (₪)"><input value={editDailyRate}  onChange={e => setEditDailyRate(e.target.value)}  type="number" min="0" step="1" dir="ltr" className={INPUT} /></Field>
+                      )}
+                      {editEmploymentType === "global" && (
+                        <Field label="שכר חודשי גלובלי (₪)"><input value={editGlobalSalary} onChange={e => setEditGlobalSalary(e.target.value)} type="number" min="0" step="1" dir="ltr" className={INPUT} /></Field>
+                      )}
                     </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="דמי נסיעות">
+                        <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
+                          <input type="checkbox" checked={editTravelAllowance} onChange={e => setEditTravelAllowance(e.target.checked)} className="accent-accent" />
+                          <span className="text-charcoal/70">זכאי</span>
+                        </label>
+                      </Field>
+                      <Field label="זכאות לחגים">
+                        <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
+                          <input type="checkbox" checked={editHolidayEligible} onChange={e => setEditHolidayEligible(e.target.checked)} className="accent-accent" />
+                          <span className="text-charcoal/70">זכאי</span>
+                        </label>
+                      </Field>
+                    </div>
+                    <Field label="סטטוס פנסיה">
+                      <input value={editPensionStatus} onChange={e => setEditPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
+                    </Field>
                     {editRole === "ממונה" && (
                       <Field label="PIN חדש (השאר ריק לשמירת הנוכחי)">
                         <input value={editPin} onChange={e => setEditPin(e.target.value.replace(/\D/g, "").slice(0, 8))} type="text" inputMode="numeric" maxLength={8} placeholder="4–8 ספרות" dir="ltr" className={INPUT} />
@@ -2048,6 +2278,7 @@ ${detailHtml}
                     </div>
                     <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
                     <button onClick={() => startEdit(s)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">ערוך</button>
+                    <button onClick={() => openVacationDrawer(s.id)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">חופשה</button>
                     <button onClick={() => toggleActive(s.id, s.active)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{s.active ? "השבת" : "הפעל"}</button>
                   </div>
                 ))}
@@ -2694,6 +2925,109 @@ ${detailHtml}
           </div>
         )}
 
+        {/* ── PAYROLL (admin only) ───────────────────────────────────────────── */}
+        {tab === "payroll" && isAdmin && (
+          <div className="space-y-3">
+            <Card>
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign size={16} strokeWidth={1.5} className="text-accent" />
+                <h2 className="font-heading text-base font-bold">דוח שכר חודשי</h2>
+              </div>
+              <p className="text-xs text-charcoal/50 mb-4 leading-relaxed">
+                בחר חודש ולחץ "טען" לראות סיכום ימי עבודה, שעות, חופשה ושכר ברוטו לכל עובד פעיל.
+                ייצוא ל-XLSX מוכן לשליחה לרוא"ח.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Field label="חודש">
+                  <input
+                    type="month"
+                    value={payrollMonth}
+                    onChange={e => setPayrollMonth(e.target.value)}
+                    className={INPUT}
+                    dir="ltr"
+                  />
+                </Field>
+                <Field label="פרויקט (אופציונלי)">
+                  <select value={payrollProject} onChange={e => setPayrollProject(e.target.value)} className={INPUT}>
+                    <option value="">כל הפרויקטים</option>
+                    {activeProjects.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </Field>
+                <div className="flex items-end gap-2">
+                  <button
+                    onClick={loadPayroll}
+                    disabled={payrollLoading}
+                    className="flex-1 bg-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    {payrollLoading ? <><Loader2 size={13} className="animate-spin" /> טוען…</> : "טען נתונים"}
+                  </button>
+                  <button
+                    onClick={exportPayroll}
+                    disabled={payrollExporting || payrollLoading}
+                    className="flex-1 border border-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-accent hover:bg-accent/[0.08] disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
+                    title="ייצוא ל-XLSX (גם בלי לטעון תחילה)"
+                  >
+                    {payrollExporting ? <><Loader2 size={13} className="animate-spin" /> מייצא…</> : <><Download size={13} /> XLSX</>}
+                  </button>
+                </div>
+              </div>
+            </Card>
+
+            {payrollRows.length > 0 && (
+              <Card>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-heading text-sm font-bold">{payrollRows.length} עובדים</h3>
+                  <span className="text-sm font-bold text-accent tabular-nums">
+                    סה"כ ברוטו: ₪{payrollRows.reduce((s, r) => s + r.gross_salary, 0).toLocaleString("he-IL", { maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="overflow-x-auto -mx-5 px-5">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-warm-gray-light">
+                        <th className="text-start py-2 font-semibold text-charcoal/60">שם</th>
+                        <th className="text-start py-2 font-semibold text-charcoal/60">סוג</th>
+                        <th className="text-center py-2 font-semibold text-charcoal/60">ימים</th>
+                        <th className="text-center py-2 font-semibold text-charcoal/60">שעות</th>
+                        <th className="text-center py-2 font-semibold text-charcoal/60">חופשה</th>
+                        <th className="text-center py-2 font-semibold text-charcoal/60">חגים</th>
+                        <th className="text-center py-2 font-semibold text-charcoal/60">נסיעות</th>
+                        <th className="text-start py-2 font-semibold text-charcoal/60">פנסיה</th>
+                        <th className="text-end py-2 font-semibold text-charcoal/60">ברוטו</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payrollRows.map(r => (
+                        <tr key={r.staff_id} className="border-b border-charcoal/5">
+                          <td className="py-2 font-semibold">{r.name}</td>
+                          <td className="py-2 text-charcoal/60">
+                            {r.employment_type === "hourly" ? "שעתי" : r.employment_type === "daily" ? "יומי" : "גלובלי"}
+                          </td>
+                          <td className="py-2 text-center tabular-nums">{r.days_worked}</td>
+                          <td className="py-2 text-center tabular-nums">{r.hours_worked.toFixed(1)}</td>
+                          <td className="py-2 text-center tabular-nums">{r.vacation_days}</td>
+                          <td className="py-2 text-center">{r.holiday_eligible ? "✓" : "—"}</td>
+                          <td className="py-2 text-center">{r.travel_allowance ? "✓" : "—"}</td>
+                          <td className="py-2 text-charcoal/60 truncate max-w-[120px]">{r.pension_status ?? "—"}</td>
+                          <td className="py-2 text-end font-bold text-accent tabular-nums">₪{r.gross_salary.toLocaleString("he-IL", { maximumFractionDigits: 2 })}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
+
+            {!payrollLoading && payrollRows.length === 0 && (
+              <Card>
+                <p className="text-sm text-charcoal/30 text-center py-6">לחץ "טען נתונים" לראות דוח לחודש שנבחר.</p>
+              </Card>
+            )}
+          </div>
+        )}
+
         {/* ── ACCOUNT (admin only) ───────────────────────────────────────────── */}
         {tab === "account" && isAdmin && (
           <div className="space-y-3">
@@ -2761,6 +3095,64 @@ ${detailHtml}
           בניין איתן — פורטל ניהול פנימי
         </p>
       </div>
+
+      {/* ── VACATION DRAWER (overlay) ───────────────────────────────────────── */}
+      {vacationFor && (() => {
+        const worker = staff.find(s => s.id === vacationFor);
+        return (
+          <div className="fixed inset-0 bg-charcoal/40 z-50 flex items-center justify-center p-4" onClick={() => setVacationFor(null)}>
+            <div className="bg-bone max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
+              <div className="bg-white border-b border-warm-gray-light px-5 py-4 flex items-center justify-between">
+                <div>
+                  <p className="text-[0.65rem] text-charcoal/40 uppercase tracking-widest">ימי חופשה</p>
+                  <h3 className="font-heading text-base font-bold">{worker?.name ?? "—"}</h3>
+                </div>
+                <button onClick={() => setVacationFor(null)} className="text-charcoal/40 hover:text-charcoal transition-colors p-1">
+                  <ChevronLeft size={18} />
+                </button>
+              </div>
+
+              <div className="p-5 space-y-4">
+                <form onSubmit={handleAddVacation} className="space-y-3">
+                  <Field label="תאריך">
+                    <input type="date" value={vacationDate} onChange={e => setVacationDate(e.target.value)} required className={INPUT} dir="ltr" />
+                  </Field>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" checked={vacationHalf} onChange={e => setVacationHalf(e.target.checked)} className="accent-accent" />
+                    <span className="text-charcoal/70">חצי יום</span>
+                  </label>
+                  <button type="submit" disabled={vacationLoading || !vacationDate} className="w-full bg-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5">
+                    {vacationLoading ? <><Loader2 size={13} className="animate-spin" /> מוסיף…</> : <><Plus size={13} /> הוסף יום חופש</>}
+                  </button>
+                  {vacationMsg && <p className="text-xs text-red-500">{vacationMsg}</p>}
+                </form>
+
+                <div className="border-t border-warm-gray-light pt-4">
+                  <p className="text-[0.7rem] text-charcoal/50 mb-2">היסטוריה ({vacationRows.length})</p>
+                  {vacationRows.length === 0 ? (
+                    <p className="text-xs text-charcoal/30 text-center py-4">אין ימי חופשה רשומים</p>
+                  ) : (
+                    <div className="divide-y divide-charcoal/5">
+                      {vacationRows.map(v => (
+                        <div key={v.id} className="flex items-center justify-between py-2.5">
+                          <div>
+                            <p className="text-sm font-semibold tabular-nums" dir="ltr">
+                              {new Date(v.date).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                            </p>
+                            {v.half_day && <p className="text-[0.65rem] text-amber-600">חצי יום</p>}
+                            {v.notes && <p className="text-[0.65rem] text-charcoal/50">{v.notes}</p>}
+                          </div>
+                          <button onClick={() => handleDeleteVacation(v.id)} className="text-charcoal/30 hover:text-red-500 transition-colors text-xs border border-charcoal/15 px-2 py-1">מחק</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
     </>
   );

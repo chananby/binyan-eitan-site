@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
   // Admin path — all staff
   const { data, error } = await supabase
     .from("staff")
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, pin")
     .order("active", { ascending: false })
     .order("name",   { ascending: true });
 
@@ -80,14 +80,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { name?: string; phone?: string; role?: string; national_id?: string; hourly_rate?: number; daily_rate?: number; pin?: string };
+  let body: {
+    name?: string; phone?: string; role?: string;
+    national_id?: string;
+    hourly_rate?: number; daily_rate?: number;
+    employment_type?: string;
+    monthly_global_salary?: number;
+    travel_allowance?: boolean;
+    pension_status?: string;
+    holiday_eligible?: boolean;
+    pin?: string;
+  };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { name, phone, role, national_id, hourly_rate, daily_rate, pin } = body;
+  const {
+    name, phone, role, national_id, hourly_rate, daily_rate,
+    employment_type, monthly_global_salary, travel_allowance,
+    pension_status, holiday_eligible, pin,
+  } = body;
   if (!name?.trim() || !phone?.trim()) {
     return NextResponse.json({ error: "שם וטלפון הם שדות חובה" }, { status: 400 });
   }
@@ -95,6 +109,17 @@ export async function POST(req: NextRequest) {
   const validRoles = ["עובד", "ממונה", "מנהל"];
   if (role && !validRoles.includes(role)) {
     return NextResponse.json({ error: "תפקיד לא תקין" }, { status: 400 });
+  }
+
+  const validEmploymentTypes = ["hourly", "daily", "global"];
+  if (employment_type && !validEmploymentTypes.includes(employment_type)) {
+    return NextResponse.json({ error: "סוג העסקה לא תקין" }, { status: 400 });
+  }
+
+  if (monthly_global_salary !== undefined && monthly_global_salary !== null) {
+    if (typeof monthly_global_salary !== "number" || monthly_global_salary < 0) {
+      return NextResponse.json({ error: "שכר גלובלי חייב להיות מספר חיובי" }, { status: 400 });
+    }
   }
 
   const normalizedPhone = normalizePhone(phone);
@@ -121,9 +146,14 @@ export async function POST(req: NextRequest) {
       national_id: national_id?.trim() || null,
       hourly_rate: hourly_rate ?? null,
       daily_rate: daily_rate ?? null,
+      employment_type: employment_type ?? "hourly",
+      monthly_global_salary: monthly_global_salary ?? null,
+      travel_allowance: travel_allowance ?? false,
+      pension_status: pension_status?.trim() || null,
+      holiday_eligible: holiday_eligible ?? true,
       pin: pin?.trim() || null,
     })
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, pin")
     .single();
 
   if (error) {
