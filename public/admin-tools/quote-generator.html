@@ -968,6 +968,17 @@
   .item-row-rich .field-cell.delete-cell {
     align-self: end;
   }
+  textarea.auto-grow {
+    resize: none;
+    overflow: hidden;
+    font-family: inherit;
+    line-height: 1.4;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
   .item-row-rich .item-desc {
     width: 100%;
     box-sizing: border-box;
@@ -1365,7 +1376,7 @@
       <div class="form-row full">
         <div class="form-group">
           <label>שם / שם הפרויקט</label>
-          <input type="text" data-field="customerName" placeholder="למשל: יוסי כהן - רחוב הרצל 12 ירושלים">
+          <textarea class="auto-grow" rows="1" data-field="customerName" placeholder="למשל: יוסי כהן - רחוב הרצל 12 ירושלים"></textarea>
         </div>
       </div>
       <div class="form-row">
@@ -1385,7 +1396,7 @@
         </div>
         <div class="form-group">
           <label>כתובת (אופציונלי)</label>
-          <input type="text" data-field="customerAddress">
+          <textarea class="auto-grow" rows="1" data-field="customerAddress"></textarea>
         </div>
       </div>
       <div id="extra-fields-container"></div>
@@ -1486,19 +1497,19 @@
       <div class="form-row full">
         <div class="form-group">
           <label>שם חברה</label>
-          <input type="text" data-field="companyName" data-protected value='בניין איתן בע"מ'>
+          <textarea class="auto-grow" rows="1" data-field="companyName" data-protected>בניין איתן בע"מ</textarea>
         </div>
       </div>
       <div class="form-row full">
         <div class="form-group">
           <label>כותרת משנה</label>
-          <input type="text" data-field="companyTag" data-protected value="קבלן רשום">
+          <textarea class="auto-grow" rows="1" data-field="companyTag" data-protected>קבלן רשום</textarea>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>כתובת</label>
-          <input type="text" data-field="companyAddress" data-protected value="עפרה 23, גבעת זאב">
+          <textarea class="auto-grow" rows="1" data-field="companyAddress" data-protected>עפרה 23, גבעת זאב</textarea>
         </div>
         <div class="form-group">
           <label>טלפון</label>
@@ -1522,7 +1533,7 @@
         </div>
         <div class="form-group">
           <label>בנק (שורה אחת)</label>
-          <input type="text" data-field="bankLine1" data-protected value="בנק מזרחי טפחות, סניף 430">
+          <textarea class="auto-grow" rows="1" data-field="bankLine1" data-protected>בנק מזרחי טפחות, סניף 430</textarea>
         </div>
       </div>
       <div class="form-row">
@@ -1532,13 +1543,13 @@
         </div>
         <div class="form-group">
           <label>ע"ש <span class="hint-tiny">(על שם בעל החשבון)</span></label>
-          <input type="text" data-field="bankOwner" data-protected value='בניין איתן בע"מ'>
+          <textarea class="auto-grow" rows="1" data-field="bankOwner" data-protected>בניין איתן בע"מ</textarea>
         </div>
       </div>
       <div class="form-row full">
         <div class="form-group">
           <label>שורת חתימה אישית (תופיע בסוף המסמך)</label>
-          <input type="text" data-field="signatureLine" data-protected placeholder='למשל: בניין איתן בע"מ — חנן (058-500-8447 / chanan@binyaneitan.com)'>
+          <textarea class="auto-grow" rows="1" data-field="signatureLine" data-protected placeholder='למשל: בניין איתן בע"מ — חנן (058-500-8447 / chanan@binyaneitan.com)'></textarea>
         </div>
       </div>
       <div class="form-row full">
@@ -1586,7 +1597,7 @@
         id: 's1',
         name: '',
         items: [
-          { id: 'i1', name: '', description: '', quantity: 1, unit: 'יח\'', unitPrice: 0 }
+          { id: 'i1', name: '', description: '', quantity: 1, unit: 'יח\'', unitPrice: 0, unitIsCustom: false }
         ]
       }
     ],
@@ -1796,32 +1807,27 @@
   // Standard units list (matches dropdown options); empty value = "custom" → shows free-text input
   const UNIT_OPTIONS = ["יח'", 'מ"א', 'מ"ר', 'מ"ק', 'קומפ\'', "ש'/שעות", 'יום', 'חודש'];
 
-  function isCustomUnit(unit) {
-    if (!unit) return false;
-    return !UNIT_OPTIONS.includes(unit);
-  }
-
   function renderSections() {
     const container = document.getElementById('sections-container');
     container.innerHTML = state.sections.map((section, sIdx) => `
       <div class="section-card" data-section-id="${section.id}">
         <div class="section-card-header">
-          <input type="text" placeholder="שם הפרק (למשל: עבודות הריסה ופירוק)" 
-                 value="${esc(section.name)}" 
-                 data-section-name="${section.id}">
+          <textarea class="auto-grow" rows="1" placeholder="שם הפרק (למשל: עבודות הריסה ופירוק)"
+                    data-section-name="${section.id}">${esc(section.name)}</textarea>
           <button class="btn-icon" data-delete-section="${section.id}" title="מחק פרק">🗑</button>
         </div>
         ${section.items.map(item => {
           const unit = item.unit || "יח'";
-          const customUnit = isCustomUnit(unit);
+          // Explicit flag wins; OR fallback for legacy items that have a non-standard unit
+          // without the flag (backward compat with quotes saved before the flag existed).
+          const unitIsCustom = !!item.unitIsCustom || (!!item.unit && !UNIT_OPTIONS.includes(item.unit));
           const lineTotal = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
           const nameMissing = !item.name && (item.description || Number(item.quantity) || Number(item.unitPrice));
           return `
           <div class="item-row-rich" data-item-id="${item.id}">
             <div class="item-name-row">
-              <input class="item-name${nameMissing ? ' is-empty-required' : ''}" type="text" placeholder="שם הפריט"
-                     value="${esc(item.name || '')}"
-                     data-item-field="name" data-section-id="${section.id}" data-item-id="${item.id}">
+              <textarea class="item-name auto-grow${nameMissing ? ' is-empty-required' : ''}" rows="1" placeholder="שם הפריט"
+                        data-item-field="name" data-section-id="${section.id}" data-item-id="${item.id}">${esc(item.name || '')}</textarea>
               <button class="btn-icon" data-delete-item="${item.id}" data-section-id="${section.id}" title="מחק פריט">✕</button>
             </div>
             <div class="item-fields-row">
@@ -1834,8 +1840,8 @@
               <div class="field-cell">
                 <span class="field-label-tiny">יחידה</span>
                 <select data-item-field="unit" data-section-id="${section.id}" data-item-id="${item.id}">
-                  ${UNIT_OPTIONS.map(u => `<option value="${esc(u)}"${unit === u ? ' selected' : ''}>${esc(u)}</option>`).join('')}
-                  <option value="__custom__"${customUnit ? ' selected' : ''}>אחר…</option>
+                  ${UNIT_OPTIONS.map(u => `<option value="${esc(u)}"${!unitIsCustom && unit === u ? ' selected' : ''}>${esc(u)}</option>`).join('')}
+                  <option value="__custom__"${unitIsCustom ? ' selected' : ''}>אחר…</option>
                 </select>
               </div>
               <div class="field-cell">
@@ -1850,12 +1856,12 @@
               </div>
               <div class="field-cell delete-cell"></div>
             </div>
-            ${customUnit ? `
+            ${unitIsCustom ? `
               <input type="text" class="item-unit-custom" placeholder="הקלד יחידה מותאמת"
                      value="${esc(unit)}"
                      data-item-field="unitCustom" data-section-id="${section.id}" data-item-id="${item.id}">
             ` : ''}
-            <textarea class="item-desc" placeholder="תיאור מפורט (אופציונלי - תומך מספר שורות)"
+            <textarea class="item-desc auto-grow" rows="1" placeholder="תיאור מפורט (אופציונלי - תומך מספר שורות)"
                       data-item-field="description" data-section-id="${section.id}" data-item-id="${item.id}">${esc(item.description || '')}</textarea>
           </div>
           `;
@@ -1871,7 +1877,7 @@
   function renderNotes() {
     document.getElementById('notes-container').innerHTML = state.notes.map((note, i) => `
       <div class="list-row">
-        <input type="text" data-note-index="${i}" value="${esc(note)}" placeholder="הערה">
+        <textarea class="auto-grow" rows="1" data-note-index="${i}" placeholder="הערה">${esc(note)}</textarea>
         <button class="btn-icon" data-delete-note="${i}">✕</button>
       </div>
     `).join('');
@@ -1880,7 +1886,7 @@
   function renderExclusions() {
     document.getElementById('exclusions-container').innerHTML = state.exclusions.map((ex, i) => `
       <div class="list-row">
-        <input type="text" data-exclusion-index="${i}" value="${esc(ex)}" placeholder="פריט שלא כלול בהצעה">
+        <textarea class="auto-grow" rows="1" data-exclusion-index="${i}" placeholder="פריט שלא כלול בהצעה">${esc(ex)}</textarea>
         <button class="btn-icon" data-delete-exclusion="${i}">✕</button>
       </div>
     `).join('');
@@ -1962,6 +1968,18 @@
       const field = el.getAttribute('data-field');
       if (state[field] !== undefined) el.value = state[field];
     });
+  }
+
+  // Auto-resize textarea.auto-grow to fit its content. Setting height to 'auto'
+  // first lets scrollHeight shrink when text is removed; +2 absorbs sub-pixel
+  // rounding so the last line doesn't show a stray scrollbar.
+  function autoSize(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight + 2) + 'px';
+  }
+  function autoSizeAll() {
+    document.querySelectorAll('textarea.auto-grow').forEach(autoSize);
   }
 
   // ============ RENDER PREVIEW ============
@@ -2185,8 +2203,8 @@
     if (!container) return;
     container.innerHTML = state.customerExtraFields.map((f, i) => `
       <div class="extra-field-row" data-extra-id="${f.id}">
-        <input type="text" placeholder="תווית (למשל: אדריכל)" value="${esc(f.label)}" data-extra-label="${f.id}">
-        <input type="text" placeholder="ערך" value="${esc(f.value)}" data-extra-value="${f.id}">
+        <textarea class="auto-grow" rows="1" placeholder="תווית (למשל: אדריכל)" data-extra-label="${f.id}">${esc(f.label)}</textarea>
+        <textarea class="auto-grow" rows="1" placeholder="ערך" data-extra-value="${f.id}">${esc(f.value)}</textarea>
         <button class="btn-icon" data-delete-extra="${f.id}" title="מחק">✕</button>
       </div>
     `).join('');
@@ -2271,7 +2289,7 @@
   function renderHeadingBody(b) {
     return `
       <label class="field-label">טקסט הכותרת</label>
-      <input class="block-card-title-input" type="text" placeholder="למשל: 'סעיפים שאינם כלולים בהצעה זו'" value="${esc(b.title)}" data-block-field="title" data-block-id="${b.id}" style="width:100%;font-size:14px">
+      <textarea class="block-card-title-input auto-grow" rows="1" placeholder="למשל: 'סעיפים שאינם כלולים בהצעה זו'" data-block-field="title" data-block-id="${b.id}" style="width:100%;font-size:14px">${esc(b.title)}</textarea>
       <div style="font-size:11px;color:var(--text-muted);margin-top:6px">כותרת היררכית מעל קבוצת בלוקים. אין לה תוכן - רק טקסט.</div>
     `;
   }
@@ -2279,22 +2297,23 @@
   function renderOptionsBody(b) {
     return `
       <label class="field-label">כותרת</label>
-      <input class="block-card-title-input" type="text" placeholder="למשל: מערכת חימום תת-רצפתי" value="${esc(b.title)}" data-block-field="title" data-block-id="${b.id}" style="width:100%">   <label class="field-label">תיאור/הקדמה (אופציונלי)</label>
-      <textarea class="intro-textarea" placeholder="הסבר על האופציות, למשל: 'ההצעה הבסיסית לא כוללת חימום תת-רצפתי. במידה והמזמין מעוניין...'" data-block-field="intro" data-block-id="${b.id}">${esc(b.intro)}</textarea>
+      <textarea class="block-card-title-input auto-grow" rows="1" placeholder="למשל: מערכת חימום תת-רצפתי" data-block-field="title" data-block-id="${b.id}" style="width:100%">${esc(b.title)}</textarea>
+      <label class="field-label">תיאור/הקדמה (אופציונלי)</label>
+      <textarea class="intro-textarea auto-grow" rows="1" placeholder="הסבר על האופציות, למשל: 'ההצעה הבסיסית לא כוללת חימום תת-רצפתי. במידה והמזמין מעוניין...'" data-block-field="intro" data-block-id="${b.id}">${esc(b.intro)}</textarea>
       <label class="field-label">פריטים אופציונליים</label>
       ${b.items.map(item => `
         <div class="item-row-rich" data-item-id="${item.id}">
-          <input class="item-name" type="text" placeholder="שם הפריט" value="${esc(item.name || '')}" data-block-item-field="name" data-block-id="${b.id}" data-item-id="${item.id}">
+          <textarea class="item-name auto-grow" rows="1" placeholder="שם הפריט" data-block-item-field="name" data-block-id="${b.id}" data-item-id="${item.id}">${esc(item.name || '')}</textarea>
           <input type="number" step="any" placeholder="כמות" value="${item.quantity}" data-block-item-field="quantity" data-block-id="${b.id}" data-item-id="${item.id}">
           <input type="number" step="any" placeholder="מחיר יח'" value="${item.unitPrice}" data-block-item-field="unitPrice" data-block-id="${b.id}" data-item-id="${item.id}">
           <input type="text" readonly value="${money((Number(item.quantity)||0)*(Number(item.unitPrice)||0))}" style="background:#f9fafb;text-align:center;font-size:11px">
           <button class="btn-icon" data-block-item-delete="${item.id}" data-block-id="${b.id}" title="מחק">✕</button>
-          <textarea class="item-desc" placeholder="תיאור (אופציונלי)" data-block-item-field="description" data-block-id="${b.id}" data-item-id="${item.id}">${esc(item.description || '')}</textarea>
+          <textarea class="item-desc auto-grow" rows="1" placeholder="תיאור (אופציונלי)" data-block-item-field="description" data-block-id="${b.id}" data-item-id="${item.id}">${esc(item.description || '')}</textarea>
         </div>
       `).join('')}
       <button class="btn-small" data-block-add-item="${b.id}" style="margin-top:6px">+ הוסף פריט</button>
       <label class="field-label">תווית לסיכום (אופציונלי)</label>
-      <input type="text" placeholder='למשל: "תוספת בגין מערכת חימום תת-רצפתי קומפלט"' value="${esc(b.summaryLabel || '')}" data-block-field="summaryLabel" data-block-id="${b.id}" style="width:100%;font-size:13px;padding:6px 10px;border:1px solid var(--border-strong);border-radius:4px">
+      <textarea class="auto-grow" rows="1" placeholder='למשל: "תוספת בגין מערכת חימום תת-רצפתי קומפלט"' data-block-field="summaryLabel" data-block-id="${b.id}" style="width:100%;font-size:13px;padding:6px 10px;border:1px solid var(--border-strong);border-radius:4px">${esc(b.summaryLabel || '')}</textarea>
     `;
   }
   
@@ -2303,13 +2322,13 @@
     const totalPct = b.milestones.reduce((s, m) => s + (Number(m.percentage) || 0), 0);
     return `
       <label class="field-label">כותרת</label>
-      <input class="block-card-title-input" type="text" placeholder="תנאי תשלום" value="${esc(b.title)}" data-block-field="title" data-block-id="${b.id}" style="width:100%">
+      <textarea class="block-card-title-input auto-grow" rows="1" placeholder="תנאי תשלום" data-block-field="title" data-block-id="${b.id}" style="width:100%">${esc(b.title)}</textarea>
       <label class="field-label">הקדמה (אופציונלי)</label>
-      <textarea class="intro-textarea" placeholder="למשל: 'מבנה מוצע (לתיאום סופי עם המזמין)'" data-block-field="intro" data-block-id="${b.id}">${esc(b.intro)}</textarea>
+      <textarea class="intro-textarea auto-grow" rows="1" placeholder="למשל: 'מבנה מוצע (לתיאום סופי עם המזמין)'" data-block-field="intro" data-block-id="${b.id}">${esc(b.intro)}</textarea>
       <label class="field-label">שלבי תשלום (% מסה"כ לפני מע"מ)</label>
       ${b.milestones.map(m => `
         <div class="milestone-row" data-milestone-id="${m.id}">
-          <input type="text" placeholder="תיאור השלב (למשל: 'מקדמה עם חתימת ההסכם')" value="${esc(m.description)}" data-block-milestone-field="description" data-block-id="${b.id}" data-milestone-id="${m.id}">
+          <textarea class="auto-grow" rows="1" placeholder="תיאור השלב (למשל: 'מקדמה עם חתימת ההסכם')" data-block-milestone-field="description" data-block-id="${b.id}" data-milestone-id="${m.id}">${esc(m.description)}</textarea>
           <input type="number" step="any" placeholder="%" value="${m.percentage}" data-block-milestone-field="percentage" data-block-id="${b.id}" data-milestone-id="${m.id}">
           <button class="btn-icon" data-block-milestone-delete="${m.id}" data-block-id="${b.id}" title="מחק">✕</button>
         </div>
@@ -2325,22 +2344,22 @@
   function renderNarrativeBody(b) {
     return `
       <label class="field-label">כותרת</label>
-      <input class="block-card-title-input" type="text" placeholder='למשל: "אלומיניום (חלונות, דלתות מרפסת)"' value="${esc(b.title)}" data-block-field="title" data-block-id="${b.id}" style="width:100%">
+      <textarea class="block-card-title-input auto-grow" rows="1" placeholder='למשל: "אלומיניום (חלונות, דלתות מרפסת)"' data-block-field="title" data-block-id="${b.id}" style="width:100%">${esc(b.title)}</textarea>
       <label class="field-label">תוכן (תומך מספר שורות)</label>
-      <textarea placeholder="תוכן הפסקה..." data-block-field="body" data-block-id="${b.id}">${esc(b.body)}</textarea>
+      <textarea class="auto-grow" rows="1" placeholder="תוכן הפסקה..." data-block-field="body" data-block-id="${b.id}">${esc(b.body)}</textarea>
     `;
   }
-  
+
   function renderBulletsBody(b) {
     return `
       <label class="field-label">כותרת</label>
-      <input class="block-card-title-input" type="text" placeholder='למשל: "חומר לבן (לא כלול)"' value="${esc(b.title)}" data-block-field="title" data-block-id="${b.id}" style="width:100%">
+      <textarea class="block-card-title-input auto-grow" rows="1" placeholder='למשל: "חומר לבן (לא כלול)"' data-block-field="title" data-block-id="${b.id}" style="width:100%">${esc(b.title)}</textarea>
       <label class="field-label">הקדמה (אופציונלי)</label>
-      <textarea class="intro-textarea" placeholder="טקסט מבוא לפני הרשימה (אופציונלי)" data-block-field="intro" data-block-id="${b.id}">${esc(b.intro || '')}</textarea>
+      <textarea class="intro-textarea auto-grow" rows="1" placeholder="טקסט מבוא לפני הרשימה (אופציונלי)" data-block-field="intro" data-block-id="${b.id}">${esc(b.intro || '')}</textarea>
       <label class="field-label">פריטי רשימה</label>
       ${b.items.map((item, i) => `
         <div class="list-row">
-          <input type="text" placeholder="פריט" value="${esc(item)}" data-block-bullet-index="${i}" data-block-id="${b.id}">
+          <textarea class="auto-grow" rows="1" placeholder="פריט" data-block-bullet-index="${i}" data-block-id="${b.id}">${esc(item)}</textarea>
           <button class="btn-icon" data-block-bullet-delete="${i}" data-block-id="${b.id}">✕</button>
         </div>
       `).join('')}
@@ -2354,9 +2373,9 @@
         🔒 בלוק זה מוצג בתצוגה המקדימה אך לא יודפס ב-PDF
       </div>
       <label class="field-label">כותרת</label>
-      <input class="block-card-title-input" type="text" placeholder="כותרת הערה פנימית" value="${esc(b.title)}" data-block-field="title" data-block-id="${b.id}" style="width:100%">
+      <textarea class="block-card-title-input auto-grow" rows="1" placeholder="כותרת הערה פנימית" data-block-field="title" data-block-id="${b.id}" style="width:100%">${esc(b.title)}</textarea>
       <label class="field-label">תוכן</label>
-      <textarea placeholder="הערות פנימיות, תקציר תמחור, יחסים, יעדים..." data-block-field="body" data-block-id="${b.id}">${esc(b.body)}</textarea>
+      <textarea class="auto-grow" rows="1" placeholder="הערות פנימיות, תקציר תמחור, יחסים, יעדים..." data-block-field="body" data-block-id="${b.id}">${esc(b.body)}</textarea>
     `;
   }
 
@@ -2503,6 +2522,8 @@
     renderDefaultMilestones();
     renderPreview();
     saveState();
+    // Resize auto-grow textareas after layout settles
+    requestAnimationFrame(autoSizeAll);
   }
 
   function renderCompanyLock() {
@@ -2522,7 +2543,7 @@
     const totalPct = milestones.reduce((s, m) => s + (Number(m.percentage) || 0), 0);
     container.innerHTML = milestones.map((m, i) => `
       <div class="default-ms-row" data-ms-index="${i}">
-        <input type="text" placeholder="תיאור השלב" value="${esc(m.description || '')}" data-default-ms-field="description" data-ms-index="${i}">
+        <textarea class="auto-grow" rows="1" placeholder="תיאור השלב" data-default-ms-field="description" data-ms-index="${i}">${esc(m.description || '')}</textarea>
         <input type="number" step="any" placeholder="%" value="${m.percentage || 0}" data-default-ms-field="percentage" data-ms-index="${i}">
         <button class="btn-icon" data-default-ms-delete="${i}" title="מחק">✕</button>
       </div>
@@ -2535,7 +2556,10 @@
   // ============ EVENT HANDLERS ============
   document.addEventListener('input', e => {
     const t = e.target;
-    
+
+    // Resize auto-grow textareas on every keystroke so the field tracks content
+    if (t.matches && t.matches('textarea.auto-grow')) autoSize(t);
+
     if (t.hasAttribute('data-field')) {
       const field = t.getAttribute('data-field');
       state[field] = t.value;
@@ -2564,14 +2588,27 @@
           item[field] = t.value;
         } else if (field === 'unit') {
           if (t.value === '__custom__') {
-            // Switch to custom mode: set to a non-standard value so re-render shows the text input
-            item.unit = item.unit && isCustomUnit(item.unit) ? item.unit : '';
-            renderSections();  // re-render to show the custom text input
+            // Switch to custom mode. Preserve any existing custom value the user
+            // already typed; otherwise start with a blank input.
+            if (!item.unitIsCustom) item.unit = '';
+            item.unitIsCustom = true;
+            renderSections();
             renderPreview();
             saveState();
             return;
           }
+          const wasCustom = !!item.unitIsCustom;
           item.unit = t.value;
+          item.unitIsCustom = false;
+          if (wasCustom) {
+            // Coming out of custom mode — the custom text input needs to disappear.
+            renderSections();
+            renderPreview();
+            saveState();
+            return;
+          }
+          // Standard → standard: no DOM change needed; fall through to the
+          // per-item update path below.
         } else if (field === 'unitCustom') {
           item.unit = t.value;
         } else {
@@ -2732,7 +2769,7 @@
       const sid = t.getAttribute('data-add-item');
       const s = state.sections.find(x => x.id === sid);
       if (s) {
-        s.items.push({ id: uid(), name: '', description: '', quantity: 1, unit: "יח'", unitPrice: 0 });
+        s.items.push({ id: uid(), name: '', description: '', quantity: 1, unit: "יח'", unitPrice: 0, unitIsCustom: false });
         render();
       }
       return;
