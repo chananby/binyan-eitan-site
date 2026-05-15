@@ -774,11 +774,18 @@ export default function ForemanPortal({
                         <div className="flex items-center gap-1 text-[0.65rem] text-charcoal/50 mt-0.5 flex-wrap">
                           <Clock size={10} strokeWidth={1.5} />
                           <span>{rec.action === "in" || rec.action === "כניסה" ? "כניסה" : "יציאה"} · {rec.timestamp_label ?? "—"}</span>
-                          {rec.distance_from_project_m != null && (() => {
+                          {(() => {
                             const d = rec.distance_from_project_m;
+                            const hasCoords = !!(rec.lat && rec.lng);
+                            if (d == null && !hasCoords) return null;
+                            const mapsUrl = hasCoords ? `https://www.google.com/maps?q=${rec.lat},${rec.lng}` : undefined;
+                            // No distance but has coords → neutral pin
+                            if (d == null) {
+                              const cls = "text-[0.6rem] font-semibold px-1.5 py-0.5 bg-white text-charcoal/50 border border-charcoal/10";
+                              return <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className={cls} title="לחץ לפתיחה במפה">📍 מפה</a>;
+                            }
                             const over = d > FAR_THRESHOLD_M;
                             const label = d < 1000 ? `${d}מ׳` : `${(d / 1000).toFixed(1)}ק"מ`;
-                            const mapsUrl = rec.lat && rec.lng ? `https://www.google.com/maps?q=${rec.lat},${rec.lng}` : undefined;
                             const cls = `text-[0.6rem] font-semibold px-1.5 py-0.5 ${over ? "bg-red-100 text-red-700 border border-red-200" : "bg-white text-charcoal/50 border border-charcoal/10"}`;
                             return mapsUrl
                               ? <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className={cls} title="לחץ לפתיחה במפה">📍 {label}</a>
