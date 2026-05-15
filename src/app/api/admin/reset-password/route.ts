@@ -87,6 +87,13 @@ export async function POST(req: NextRequest) {
     .eq("id", row.admin_id);
   if (updateErr) {
     console.error("[reset-password] password update failed:", updateErr.message);
+    // Revert used_at so the user can retry without requesting a fresh token.
+    // Best-effort: if the revert itself fails, the token is dead and the user
+    // must request a new one — but the password is still unchanged either way.
+    await supabase
+      .from("password_reset_tokens")
+      .update({ used_at: null })
+      .eq("id", row.id);
     return NextResponse.json({ ok: false, error: "server_error" }, { status: 500 });
   }
 

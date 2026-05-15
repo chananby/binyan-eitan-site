@@ -1,7 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag, revalidatePath } from "next/cache";
+import { isAdminAuthedFromRequest } from "../../../lib/admin-auth";
+import { verifyInternalToken } from "../../../lib/admin-auth";
 
-export async function POST() {
+const INTERNAL_COOKIE = "be_internal_token";
+
+function isAuthorized(req: NextRequest): boolean {
+  if (isAdminAuthedFromRequest(req)) return true;
+  const t = req.cookies.get(INTERNAL_COOKIE)?.value;
+  return !!t && verifyInternalToken(t);
+}
+
+export async function POST(req: NextRequest) {
+  if (!isAuthorized(req)) {
+    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  }
   try {
     revalidateTag("translations");
     revalidatePath("/en");

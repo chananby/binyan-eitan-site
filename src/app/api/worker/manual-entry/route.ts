@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
 import { verifyInternalToken } from "../../../../lib/admin-auth";
 import { normalizePhone, phoneVariants } from "../../../../lib/phone";
+import { israelWallClockToISO } from "../../../../lib/israel-time";
 
 export const runtime = "nodejs";
 
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   // Format matching nowLabel() output: "28.4.2026, 08:30"
   const timestamp_label = `${d}.${m}.${y}, ${time}`;
-  const clock_at = new Date(`${date}T${time}:00+03:00`).toISOString();
+  const clock_at = israelWallClockToISO(date, time);
 
   const supabase = createServerClient();
   const normalized = normalizePhone(phone.trim());

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../lib/admin-auth";
+import { israelDayStartISO } from "../../../../lib/israel-time";
 
 export const runtime = "nodejs";
 
@@ -298,18 +299,18 @@ export async function GET(req: NextRequest) {
 
   // Attendance today — read from `attendance` table (same as /api/admin/attendance/today)
   try {
-    const todayStartUTC = todayIsrael + "T00:00:00.000Z"; // midnight UTC ~ midnight Israel (close enough)
+    const todayStart = israelDayStartISO(todayIsrael);
     const { count: attCount, error: attErr } = await supabase
       .from("attendance")
       .select("id", { count: "exact", head: true })
-      .gte("recorded_at", todayStartUTC);
+      .gte("created_at", todayStart);
 
     if (attErr) {
       results.push({
         id: "data_attendance_today", section: "data", name: `נוכחות היום (${todayIsrael})`,
         status: "fail",
         detail: `שגיאה בשאילתת נוכחות: ${attErr.message}`,
-        fix: "ודא שהעמודה recorded_at קיימת בטבלת attendance",
+        fix: "ודא שהעמודה created_at קיימת בטבלת attendance",
       });
     } else {
       const noLogs = (attCount ?? 0) === 0;

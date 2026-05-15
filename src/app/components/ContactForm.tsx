@@ -76,7 +76,7 @@ export default function ContactForm() {
           ].map((person) => (
             <div key={person.name} className="bg-bone p-6 flex flex-col gap-2">
               <p className="font-heading text-sm font-bold text-charcoal">{person.name}</p>
-              <p className="font-body text-[0.68rem] uppercase tracking-[0.14em] text-charcoal/45">{person.role}</p>
+              <p className="font-body text-[0.68rem] uppercase tracking-[0.14em] text-charcoal/65">{person.role}</p>
               <div className="flex items-center gap-3 mt-1">
                 <a
                   href={`tel:${person.tel}`}
@@ -105,7 +105,7 @@ export default function ContactForm() {
             <CheckCircle size={40} strokeWidth={1.5} className="text-accent" />
             <div>
               <p className="font-heading text-xl font-bold text-charcoal">{content.success}</p>
-              <p className="mt-2 font-body text-sm text-charcoal/50">{content.successSub}</p>
+              <p className="mt-2 font-body text-sm text-charcoal/70">{content.successSub}</p>
             </div>
           </div>
         ) : (
@@ -122,7 +122,7 @@ export default function ContactForm() {
                 />
                 <label
                   htmlFor="name"
-                  className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
+                  className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/65 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
                 >
                   {content.name}
                 </label>
@@ -138,7 +138,7 @@ export default function ContactForm() {
                 />
                 <label
                   htmlFor="phone"
-                  className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
+                  className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/65 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
                 >
                   {content.phone}
                 </label>
@@ -156,7 +156,7 @@ export default function ContactForm() {
               />
               <label
                 htmlFor="email"
-                className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
+                className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/65 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
               >
                 {content.email}
               </label>
@@ -207,7 +207,7 @@ export default function ContactForm() {
                 />
                 <label
                   htmlFor="location"
-                  className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
+                  className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/65 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
                 >
                   {lang === "he" ? "מיקום הפרויקט" : "Project Location"}
                 </label>
@@ -225,7 +225,7 @@ export default function ContactForm() {
               />
               <label
                 htmlFor="message"
-                className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/50 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
+                className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/65 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
               >
                 {content.message}
               </label>

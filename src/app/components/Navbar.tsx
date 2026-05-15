@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -27,6 +27,8 @@ export default function Navbar() {
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const hamburgerRef = useRef<HTMLButtonElement | null>(null);
+  const lastFocusBeforeOpen = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 32);
@@ -34,9 +36,24 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Scroll lock + Esc-to-close + focus return when the overlay opens/closes.
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    if (mobileOpen) {
+      lastFocusBeforeOpen.current = (document.activeElement as HTMLElement | null) ?? null;
+      document.body.style.overflow = "hidden";
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") setMobileOpen(false);
+      };
+      window.addEventListener("keydown", onKey);
+      return () => {
+        document.body.style.overflow = "";
+        window.removeEventListener("keydown", onKey);
+        // Return focus to whatever was focused before opening (usually the hamburger).
+        const target = lastFocusBeforeOpen.current ?? hamburgerRef.current;
+        target?.focus?.();
+      };
+    }
+    document.body.style.overflow = "";
   }, [mobileOpen]);
 
   const navLinks: NavLink[] = [
@@ -130,9 +147,12 @@ export default function Navbar() {
 
             {/* Mobile hamburger */}
             <button
+              ref={hamburgerRef}
               onClick={() => setMobileOpen((v) => !v)}
               className="relative z-[60] grid size-10 place-items-center md:hidden"
               aria-label="Toggle menu"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav-overlay"
             >
               <AnimatePresence mode="wait" initial={false}>
                 {mobileOpen ? (
@@ -166,6 +186,10 @@ export default function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
+            id="mobile-nav-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label={lang === "he" ? "תפריט ניווט" : "Navigation menu"}
             dir={dir}
             className="fixed inset-0 z-[100] flex flex-col bg-bone md:hidden"
             initial={{ opacity: 0, y: "-4%" }}

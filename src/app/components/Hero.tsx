@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { ArrowDownRight, ArrowDownLeft } from "lucide-react";
 import { useRef } from "react";
 import { useLang } from "./LangContext";
@@ -53,12 +53,18 @@ export default function Hero() {
   const stat3 = { value: t.stat3Value, label: t.stat3Label };
   const Arrow = lang === "he" ? ArrowDownLeft : ArrowDownRight;
 
+  const prefersReducedMotion = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end start"],
   });
-  const imageY = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
+  // Parallax disabled when user opts out of motion (vestibular sensitivity).
+  const imageY = useTransform(
+    scrollYProgress,
+    [0, 1],
+    prefersReducedMotion ? ["0%", "0%"] : ["0%", "12%"]
+  );
 
   return (
     <section
@@ -245,8 +251,8 @@ export default function Hero() {
           </span>
           <motion.div
             className="h-10 w-px bg-charcoal/15 origin-top"
-            animate={{ scaleY: [0, 1, 0] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+            animate={prefersReducedMotion ? { scaleY: 1 } : { scaleY: [0, 1, 0] }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
           />
         </motion.div>
       </motion.div>

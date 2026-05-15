@@ -3,84 +3,30 @@ import { createClient } from "@supabase/supabase-js";
 import {
   EXEC_COOKIE, buildExecAuthCookie, getExecAuthorFromRequest,
 } from "../../../../lib/exec-auth";
-import { getAdminIdFromRequest } from "../../../../lib/admin-auth";
-import { createServerClient } from "../../../../lib/supabase";
 
 export const runtime = "nodejs";
-
-// ── Hardcoded bypass PINs (temporary — replace when DB sync is confirmed) ─────
-const BYPASS_PINS: Record<string, "Hanan" | "Moti"> = {
-  "108": "Hanan",
-  "274": "Moti",
-};
-
-// Map admin email → executive author identity, so a logged-in admin gets
-// HUB access without entering a separate PIN. Unmapped admins default to Hanan.
-function adminEmailToAuthor(email: string | null | undefined): "Hanan" | "Moti" {
-  const e = (email ?? "").toLowerCase();
-  if (e.startsWith("motti@") || e.startsWith("moti@")) return "Moti";
-  return "Hanan";
-}
 
 /**
  * GET — check exec cookie, return author.
  *
- * Master-key fallback: if no exec cookie but the requester is a logged-in
- * admin (be_admin_token), grant exec access using their identity and mint
- * an exec cookie on the fly. Removes the need for admins to remember a
- * second PIN to enter /admin/hub and other executive surfaces.
+ * Note: admin-cookie auto-grant was removed (admins must enter their PIN
+ * separately to access executive surfaces).
  */
 export async function GET(req: NextRequest) {
   const cookieAuthor = getExecAuthorFromRequest(req);
   if (cookieAuthor) return NextResponse.json({ ok: true, author: cookieAuthor });
-
-  const adminId = getAdminIdFromRequest(req);
-  if (adminId) {
-    try {
-      const supabase = createServerClient();
-      const { data } = await supabase
-        .from("admins")
-        .select("email, active")
-        .eq("id", adminId)
-        .maybeSingle();
-      if (data && data.active) {
-        const author = adminEmailToAuthor(data.email);
-        const { name, value, options } = buildExecAuthCookie(author);
-        const res = NextResponse.json({ ok: true, author });
-        res.cookies.set(name, value, options);
-        return res;
-      }
-    } catch (e) {
-      console.error("[executive/auth] admin fallback lookup failed:", e);
-    }
-  }
-
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
-/** POST — verify PIN, identify user, set cookie */
+/** POST — verify PIN against settings table, identify user, set cookie */
 export async function POST(req: NextRequest) {
   let body: { pin?: string };
   try { body = await req.json(); }
   catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
   const pin = (body.pin ?? "").trim();
-  console.log("[executive/auth] PIN received:", pin);
-
   if (!pin) return NextResponse.json({ error: "PIN required" }, { status: 400 });
 
-  // ── Step 1: Hardcoded bypass (no DB, no env vars) ─────────────────────────
-  const bypassAuthor = BYPASS_PINS[pin];
-  if (bypassAuthor) {
-    console.log("[executive/auth] BYPASS match →", bypassAuthor);
-    const { name, value, options } = buildExecAuthCookie(bypassAuthor);
-    console.log("[executive/auth] Cookie set:", name, "=", value);
-    const res = NextResponse.json({ ok: true, author: bypassAuthor });
-    res.cookies.set(name, value, options);
-    return res;
-  }
-
-  // ── Step 2: DB lookup (fallback for custom PINs) ───────────────────────────
   try {
     const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
     const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
@@ -91,13 +37,14 @@ export async function POST(req: NextRequest) {
       .select("key, value")
       .in("key", ["executive_pin_hanan", "executive_pin_moti"]);
 
-    if (dbErr) console.log("[executive/auth] DB error:", dbErr.message);
+    if (dbErr) {
+      console.error("[executive/auth] DB error code:", dbErr.code);
+      return NextResponse.json({ error: "server_error" }, { status: 500 });
+    }
 
     const pinMap   = Object.fromEntries((rows ?? []).map((r: { key: string; value: string }) => [r.key, r.value]));
     const hananPin = (pinMap["executive_pin_hanan"] ?? "").trim();
     const motiPin  = (pinMap["executive_pin_moti"]  ?? "").trim();
-
-    console.log("[executive/auth] DB PINs — Hanan:", hananPin || "(empty)", "Moti:", motiPin || "(empty)");
 
     let author: "Hanan" | "Moti" | null = null;
     if (hananPin && pin === hananPin) author = "Hanan";
@@ -105,16 +52,14 @@ export async function POST(req: NextRequest) {
 
     if (author) {
       const { name, value, options } = buildExecAuthCookie(author);
-      console.log("[executive/auth] DB match → Cookie set:", name, "=", value);
       const res = NextResponse.json({ ok: true, author });
       res.cookies.set(name, value, options);
       return res;
     }
   } catch (e) {
-    console.log("[executive/auth] DB lookup failed:", String(e));
+    console.error("[executive/auth] lookup failed:", e instanceof Error ? e.message : "unknown");
   }
 
-  console.log("[executive/auth] No match — rejecting PIN");
   return NextResponse.json({ error: "קוד שגוי" }, { status: 401 });
 }
 

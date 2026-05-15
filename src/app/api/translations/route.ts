@@ -1,7 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { kv } from "@vercel/kv";
 import { revalidatePath, revalidateTag } from "next/cache";
 import defaultTranslations from "@/src/lib/translations.json";
+import { isAdminAuthedFromRequest, verifyInternalToken } from "../../../lib/admin-auth";
+
+const INTERNAL_COOKIE = "be_internal_token";
+
+function isContentEditorAuthorized(req: NextRequest): boolean {
+  if (isAdminAuthedFromRequest(req)) return true;
+  const t = req.cookies.get(INTERNAL_COOKIE)?.value;
+  return !!t && verifyInternalToken(t);
+}
 
 // Always run fresh — never serve a cached response from Next.js or CDN
 export const dynamic = "force-dynamic";
@@ -71,7 +80,13 @@ export async function GET() {
   }
 }
 
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
+  if (!isContentEditorAuthorized(req)) {
+    return NextResponse.json(
+      { error: "unauthorized" },
+      { status: 401, headers: NO_CACHE }
+    );
+  }
   try {
     const body = await req.json();
 
@@ -108,6 +123,6 @@ export async function PUT(req: Request) {
 }
 
 // Fallback for environments that block PUT
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   return PUT(req);
 }

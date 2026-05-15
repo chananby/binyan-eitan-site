@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
+import { israelWallClockToISO } from "../../../../../lib/israel-time";
 
 export const runtime = "nodejs";
 
@@ -53,8 +54,8 @@ export async function POST(req: NextRequest) {
 
   const records: Record<string, unknown>[] = isWork
     ? [
-        base("כניסה", `${dp}, ${entry_time}`, new Date(`${date}T${entry_time}:00+03:00`).toISOString()),
-        base("יציאה", `${dp}, ${exit_time}`,  new Date(`${date}T${exit_time}:00+03:00`).toISOString()),
+        base("כניסה", `${dp}, ${entry_time}`, israelWallClockToISO(date, entry_time!)),
+        base("יציאה", `${dp}, ${exit_time}`,  israelWallClockToISO(date, exit_time!)),
       ]
     : [
         base(

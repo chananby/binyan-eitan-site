@@ -257,6 +257,9 @@ export default function PortfolioGallery() {
       <AnimatePresence>
         {activeProject !== null && project && (
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={(ut[`proj_${activeProject}_title`] ?? ui.title) as string}
             className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

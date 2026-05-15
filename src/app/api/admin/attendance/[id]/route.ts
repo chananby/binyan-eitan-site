@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
+import { israelWallClockToISO } from "../../../../../lib/israel-time";
 import {
   isAdminAuthedFromRequest,
   isAuthedFromRequest,
@@ -87,8 +88,11 @@ export async function PATCH(
         const [d2, m2, y2] = parts[0].split(".");
         const [hh, mm]     = parts[1].split(":");
         if (d2 && m2 && y2 && hh && mm) {
-          const dt = new Date(`${y2}-${m2.padStart(2,"0")}-${d2.padStart(2,"0")}T${hh.padStart(2,"0")}:${mm.padStart(2,"0")}:00+03:00`);
-          if (!isNaN(dt.getTime())) update.clock_at = dt.toISOString();
+          const ymd = `${y2}-${m2.padStart(2,"0")}-${d2.padStart(2,"0")}`;
+          const hm  = `${hh.padStart(2,"0")}:${mm.padStart(2,"0")}`;
+          try {
+            update.clock_at = israelWallClockToISO(ymd, hm);
+          } catch { /* invalid date — skip update */ }
         }
       }
     } else {

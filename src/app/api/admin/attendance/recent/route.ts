@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
+import { israelDayStartISO } from "../../../../../lib/israel-time";
 
 export const runtime = "nodejs";
 
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   const sinceYMD = new Date(Date.now() - (days - 1) * 86_400_000)
     .toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" });
-  const fromISO = new Date(`${sinceYMD}T00:00:00+03:00`).toISOString();
+  const fromISO = israelDayStartISO(sinceYMD);
 
   const { data, error } = await supabase
     .from("attendance")

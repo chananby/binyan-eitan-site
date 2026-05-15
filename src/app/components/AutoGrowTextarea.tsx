@@ -52,14 +52,30 @@ export function AutoGrowTextarea({
 }: AutoGrowTextareaProps) {
   const ref = useRef<HTMLTextAreaElement | null>(null);
 
-  useEffect(() => {
+  // Single resize function — used by `value` effect AND window resize listener.
+  // Window resize matters because line-wrapping changes with viewport width
+  // (e.g. mobile rotation), so the required height changes too.
+  const resize = () => {
     const el = ref.current;
     if (!el) return;
     // Reset to auto so scrollHeight can shrink when content is deleted,
     // then size to fit. +2 absorbs sub-pixel rounding (no scrollbar flicker).
     el.style.height = "auto";
     el.style.height = el.scrollHeight + 2 + "px";
-  }, [value]);
+  };
+
+  useEffect(() => { resize(); }, [value]);
+
+  useEffect(() => {
+    // Recompute on viewport resize / orientation change / font load.
+    const onResize = () => resize();
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+    };
+  }, []);
 
   return (
     <textarea

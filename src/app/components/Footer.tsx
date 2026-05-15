@@ -96,21 +96,21 @@ export default function Footer() {
                 </li>
               ))}
               <li className="pt-3 mt-2 border-t border-bone/[0.07]">
-                <p className="font-body text-[0.58rem] font-bold tracking-[0.18em] uppercase text-bone/25 mb-2.5">
+                <p className="font-body text-[0.58rem] font-bold tracking-[0.18em] uppercase text-bone/55 mb-2.5">
                   {lang === "he" ? "כניסת צוות" : "Staff Access"}
                 </p>
                 <div className="flex items-center gap-3">
                   <Link
                     href="/attendance"
-                    className="font-body text-[0.7rem] text-bone/50 hover:text-accent transition-colors duration-200 flex items-center gap-1.5 group"
+                    className="font-body text-[0.7rem] text-bone/65 hover:text-accent transition-colors duration-200 flex items-center gap-1.5 group"
                   >
                     <Clock size={11} strokeWidth={1.5} className="shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
                     {lang === "he" ? "שעון נוכחות" : "Attendance"}
                   </Link>
-                  <span className="text-bone/15 text-xs select-none">|</span>
+                  <span className="text-bone/30 text-xs select-none" aria-hidden="true">|</span>
                   <Link
                     href="/admin"
-                    className="font-body text-[0.7rem] text-bone/50 hover:text-accent transition-colors duration-200 flex items-center gap-1.5 group"
+                    className="font-body text-[0.7rem] text-bone/65 hover:text-accent transition-colors duration-200 flex items-center gap-1.5 group"
                   >
                     <ShieldCheck size={11} strokeWidth={1.5} className="shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
                     {lang === "he" ? "מערכת ניהול" : "Management"}
@@ -199,7 +199,7 @@ export default function Footer() {
       {/* ── Bottom bar ── */}
       <div className="border-t border-bone/[0.08]">
         <div className="max-w-[1280px] mx-auto px-8 py-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <p className="font-body text-[0.62rem] tracking-wider text-bone/25">
+          <p className="font-body text-[0.62rem] tracking-wider text-bone/55">
             &copy; {new Date().getFullYear()} Binyan Eitan.{" "}
             {lang === "he" ? "כל הזכויות שמורות." : "All rights reserved."}
           </p>
@@ -212,14 +212,14 @@ export default function Footer() {
               <Link
                 key={item.anchor}
                 href={`/${lang}/legal#${item.anchor}`}
-                className="font-body text-[0.6rem] tracking-[0.14em] uppercase text-bone/30 hover:text-accent transition-colors duration-200"
+                className="font-body text-[0.6rem] tracking-[0.14em] uppercase text-bone/55 hover:text-accent transition-colors duration-200"
               >
                 {item.label}
               </Link>
             ))}
             <Link
               href={`/${lang}/internal`}
-              className="font-body text-[0.6rem] tracking-[0.14em] uppercase text-bone/18 hover:text-bone/40 transition-colors duration-200"
+              className="font-body text-[0.6rem] tracking-[0.14em] uppercase text-bone/50 hover:text-bone/80 transition-colors duration-200"
             >
               {lang === "he" ? "אזור צוות" : "Staff Portal"}
             </Link>

@@ -1,7 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import kv from "@vercel/kv";
+import { verifyInternalToken } from "../../../../lib/admin-auth";
 
 const KEY_PREFIX = "internal_tasks:";
+const INTERNAL_COOKIE = "be_internal_token";
+
+function unauthorized() {
+  return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+}
+
+function isInternalAuthed(req: NextRequest): boolean {
+  const token = req.cookies.get(INTERNAL_COOKIE)?.value;
+  return !!token && verifyInternalToken(token);
+}
 
 async function getTasks(company: string) {
   const key = KEY_PREFIX + company;
@@ -24,14 +35,16 @@ async function setTasks(company: string, tasks: any[]) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  if (!isInternalAuthed(req)) return unauthorized();
   const url = new URL(req.url);
   const company = url.searchParams.get("company") || "Binyan Eitan";
   const tasks = await getTasks(company);
   return NextResponse.json({ tasks });
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  if (!isInternalAuthed(req)) return unauthorized();
   const body = await req.json();
   const { company = "Binyan Eitan", task } = body;
   if (!task) return NextResponse.json({ error: "missing task" }, { status: 400 });
@@ -43,7 +56,8 @@ export async function POST(req: Request) {
   return NextResponse.json({ task: newTask });
 }
 
-export async function PATCH(req: Request) {
+export async function PATCH(req: NextRequest) {
+  if (!isInternalAuthed(req)) return unauthorized();
   const body = await req.json();
   const { company = "Binyan Eitan", id, patch } = body;
   if (!id || !patch) return NextResponse.json({ error: "missing" }, { status: 400 });
@@ -53,7 +67,8 @@ export async function PATCH(req: Request) {
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
+  if (!isInternalAuthed(req)) return unauthorized();
   const body = await req.json();
   const { company = "Binyan Eitan", id } = body;
   if (!id) return NextResponse.json({ error: "missing id" }, { status: 400 });

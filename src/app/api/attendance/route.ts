@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../lib/supabase";
 import { normalizePhone, phoneVariants } from "../../../lib/phone";
+import { israelDayStartISO } from "../../../lib/israel-time";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,23 @@ function logSupabaseError(context: string, err: { code?: string; message?: strin
 }
 
 export async function POST(req: NextRequest) {
+  // ── Same-origin guard ──────────────────────────────────────────────────────
+  // Blocks browser-originated cross-origin abuse (CSRF). Workers always submit
+  // from the /attendance page, which is same-origin, so this is invisible to
+  // legitimate use. Non-browser scripts that omit Origin still hit the existing
+  // GPS / phone-validity checks below.
+  const origin = req.headers.get("origin");
+  const host = req.headers.get("host");
+  if (origin && host) {
+    try {
+      if (new URL(origin).host !== host) {
+        return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+      }
+    } catch {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+  }
+
   let body: { phone?: string; action?: string; lat?: string; lng?: string; timestamp?: string; project_id?: string };
   try {
     body = await req.json();
@@ -152,7 +170,7 @@ export async function POST(req: NextRequest) {
 
   if (normalizedAction === "in") {
     const todayStr   = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
-    const todayStart = new Date(`${todayStr}T00:00:00+03:00`).toISOString();
+    const todayStart = israelDayStartISO(todayStr);
     const { data: existing } = await supabase
       .from("attendance")
       .select("id")

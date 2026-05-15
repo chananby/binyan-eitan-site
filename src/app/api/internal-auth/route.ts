@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildInternalCookie } from "../../../lib/admin-auth";
+import { buildInternalCookie, verifyInternalToken } from "../../../lib/admin-auth";
 import { checkRateLimit, clientIp } from "../../../lib/rate-limit";
 
 export const runtime = "nodejs";
+
+const INTERNAL_COOKIE = "be_internal_token";
+
+// Cookie probe — used by InternalClientLayout to decide whether to show the PIN gate.
+export async function GET(req: NextRequest) {
+  const token = req.cookies.get(INTERNAL_COOKIE)?.value;
+  if (token && verifyInternalToken(token)) {
+    return NextResponse.json({ ok: true });
+  }
+  return NextResponse.json({ ok: false }, { status: 401 });
+}
 
 export async function POST(req: NextRequest) {
   const rl = checkRateLimit(`${clientIp(req)}:internal-auth`);

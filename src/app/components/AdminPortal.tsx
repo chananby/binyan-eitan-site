@@ -6,6 +6,7 @@ import SuccessFlash from "./SuccessFlash";
 import ForemanPortal from "./ForemanPortal";
 import WeeklyPlanner from "./WeeklyPlanner";
 import { AutoGrowTextarea } from "./AutoGrowTextarea";
+import { parseMoney, parsePositive } from "../../lib/money";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -851,10 +852,10 @@ ${detailHtml}
       const res  = await fetch("/api/admin/staff", { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: newName, phone: newPhone, role: newRole, national_id: newNationalId,
-          hourly_rate: newHourlyRate ? parseFloat(newHourlyRate) : null,
-          daily_rate:  newDailyRate  ? parseFloat(newDailyRate)  : null,
+          hourly_rate: parseMoney(newHourlyRate),
+          daily_rate:  parseMoney(newDailyRate),
           employment_type:       newEmploymentType,
-          monthly_global_salary: newGlobalSalary ? parseFloat(newGlobalSalary) : null,
+          monthly_global_salary: parseMoney(newGlobalSalary),
           travel_allowance:      newTravelAllowance,
           pension_status:        newPensionStatus,
           holiday_eligible:      newHolidayEligible,
@@ -895,10 +896,10 @@ ${detailHtml}
     try {
       const body: Record<string, unknown> = {
         name: editName, phone: editPhone, role: editRole, national_id: editNationalId,
-        hourly_rate: editHourlyRate ? parseFloat(editHourlyRate) : null,
-        daily_rate:  editDailyRate  ? parseFloat(editDailyRate)  : null,
+        hourly_rate: parseMoney(editHourlyRate),
+        daily_rate:  parseMoney(editDailyRate),
         employment_type:       editEmploymentType,
-        monthly_global_salary: editGlobalSalary ? parseFloat(editGlobalSalary) : null,
+        monthly_global_salary: parseMoney(editGlobalSalary),
         travel_allowance:      editTravelAllowance,
         pension_status:        editPensionStatus,
         holiday_eligible:      editHolidayEligible,
@@ -1083,9 +1084,13 @@ ${detailHtml}
   // ── Expense CRUD ───────────────────────────────────────────────────────────
   async function handleAddMaterial(e: React.FormEvent) {
     e.preventDefault(); setMatLoading(true); setMatMsg("");
+    const qty = parsePositive(matQty);
+    if (qty === null) { setMatMsg("שגיאה: כמות חייבת להיות מספר חיובי"); setMatLoading(false); return; }
+    const cost = parseMoney(matCost); // null if empty/invalid; valid 0 stays 0
+    if (matCost.trim() && cost === null) { setMatMsg("שגיאה: עלות לא תקינה"); setMatLoading(false); return; }
     try {
       const res  = await fetch("/api/admin/materials", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project_id: matProjectId, material_name: matName, quantity: parseFloat(matQty) || 1, unit: matUnit, supplier: matSupplier, cost: matCost ? parseFloat(matCost) : null, category: matCategory }) });
+        body: JSON.stringify({ project_id: matProjectId, material_name: matName, quantity: qty, unit: matUnit, supplier: matSupplier, cost, category: matCategory }) });
       const data = await res.json();
       if (res.ok) { feedback.success(); setMatMsg("✓ " + matName + " נרשם"); setMatName(""); setMatQty("1"); setMatSupplier(""); setMatCost(""); loadMaterials(); }
       else        { feedback.error(); setMatMsg("שגיאה: " + (data.error ?? res.status)); }
@@ -1225,9 +1230,11 @@ ${detailHtml}
   // ── Income CRUD ────────────────────────────────────────────────────────────
   async function handleAddIncome(e: React.FormEvent) {
     e.preventDefault(); setIncLoading(true); setIncMsg("");
+    const amount = parsePositive(incAmount);
+    if (amount === null) { setIncMsg("שגיאה: סכום חייב להיות מספר חיובי"); setIncLoading(false); return; }
     try {
       const res  = await fetch("/api/admin/income", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project_id: incProjectId, amount: parseFloat(incAmount), description: incDesc, received_date: incDate }) });
+        body: JSON.stringify({ project_id: incProjectId, amount, description: incDesc, received_date: incDate }) });
       const data = await res.json();
       if (res.ok) { setIncMsg("✓ תשלום נרשם"); setIncAmount(""); setIncDesc(""); loadIncome(); }
       else        { setIncMsg("שגיאה: " + (data.error ?? res.status)); }

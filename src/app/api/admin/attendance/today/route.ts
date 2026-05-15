@@ -5,6 +5,7 @@ import {
   getAdminRoleFromRequest,
   getForemanStaffIdFromRequest,
 } from "../../../../../lib/admin-auth";
+import { israelDayStartISO } from "../../../../../lib/israel-time";
 
 export const runtime = "nodejs";
 
@@ -15,10 +16,10 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   const isAdmin = getAdminRoleFromRequest(req) === "admin";
 
-  // Use Israel timezone to determine start of today
+  // Use Israel timezone to determine start of today (DST-aware)
   const nowIsrael  = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Jerusalem" });
   const todayStr   = nowIsrael.split(" ")[0]; // "YYYY-MM-DD"
-  const todayStart = new Date(`${todayStr}T00:00:00+03:00`).toISOString();
+  const todayStart = israelDayStartISO(todayStr);
 
   // Foreman: restrict to their assigned projects only
   let projectIds: string[] | null = null;

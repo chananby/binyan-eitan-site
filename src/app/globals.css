@@ -41,20 +41,33 @@
     font-weight: 700;
     letter-spacing: 0.04em;
   }
+  /* Hebrew has no ascenders/descenders that benefit from extra tracking — the
+     latin-optimised letter-spacing above hurts readability in RTL.
+     Placed inside @layer base so the cascade order matches the rule above. */
+  [dir="rtl"] h1,
+  [dir="rtl"] h2,
+  [dir="rtl"] h3,
+  [dir="rtl"] h4,
+  [dir="rtl"] h5,
+  [dir="rtl"] h6 {
+    letter-spacing: normal;
+  }
   ::selection {
     background-color: var(--color-accent);
     color: var(--color-bone);
   }
 }
 
-[dir="rtl"] h1,
-[dir="rtl"] h2,
-[dir="rtl"] h3,
-[dir="rtl"] h4,
-[dir="rtl"] h5,
-[dir="rtl"] h6 {
-  letter-spacing: normal;
-  font-weight: 700;
+/* ── Accessibility: respect prefers-reduced-motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 ::-webkit-scrollbar { width: 6px; }

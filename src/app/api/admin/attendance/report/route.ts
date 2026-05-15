@@ -19,6 +19,7 @@ import {
   getForemanStaffIdFromRequest,
 } from "../../../../../lib/admin-auth";
 import { createServerClient } from "../../../../../lib/supabase";
+import { israelDayStartISO, israelDayEndISO } from "../../../../../lib/israel-time";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,9 +42,10 @@ function israelTime(isoStr: string): string {
   });
 }
 
-// Convert a "YYYY-MM-DD" string to start/end-of-day ISO in Israel time
-function dayStartISO(ymd: string): string { return new Date(`${ymd}T00:00:00+03:00`).toISOString(); }
-function dayEndISO(ymd: string): string   { return new Date(`${ymd}T23:59:59+03:00`).toISOString(); }
+// Convert a "YYYY-MM-DD" string to start/end-of-day ISO in Israel time.
+// Uses DST-aware conversion (winter UTC+2, summer UTC+3).
+const dayStartISO = israelDayStartISO;
+const dayEndISO   = israelDayEndISO;
 
 // Shift a YYYY-MM-DD by N days
 function shiftYMD(ymd: string, days: number): string {
@@ -143,10 +145,13 @@ export async function GET(req: NextRequest) {
     }
 
     // ── Build rows ────────────────────────────────────────────────────────────
+    // _diffMs is kept on each row for accurate summary summation; never sent
+    // to the client — stripped after the summary loop.
     const rows: {
       staff_name: string; staff_phone: string;
       date: string; entry: string; exit: string;
       hours: number | null; project: string;
+      _diffMs?: number;
     }[] = [];
 
     for (const [, byDate] of grouped) {
@@ -165,9 +170,13 @@ export async function GET(req: NextRequest) {
         const exitDisplay  = lastExit   ? israelTime(workDate(lastExit).toISOString())   : "—";
 
         let hours: number | null = null;
+        let diffMs: number | undefined;
         if (firstEntry && lastExit) {
-          const diffMs = workDate(lastExit).getTime() - workDate(firstEntry).getTime();
-          if (diffMs > 0) hours = Math.round(diffMs / 36_000) / 100;
+          const ms = workDate(lastExit).getTime() - workDate(firstEntry).getTime();
+          if (ms > 0) {
+            diffMs = ms;
+            hours = Math.round(ms / 36_000) / 100;
+          }
         }
 
         // Most-mentioned project for the day
@@ -183,6 +192,7 @@ export async function GET(req: NextRequest) {
           exit:        exitDisplay,
           hours,
           project,
+          _diffMs: diffMs,
         });
       }
     }
@@ -196,19 +206,26 @@ export async function GET(req: NextRequest) {
     });
 
     // ── Summary ───────────────────────────────────────────────────────────────
-    const summaryMap = new Map<string, { name: string; phone: string; days: number; hours: number }>();
+    // Sum raw milliseconds across days and round ONCE at the end.
+    // Avoids the per-day rounding drift (~9 min/month) of summing rounded hours.
+    const summaryMap = new Map<string, { name: string; phone: string; days: number; _ms: number }>();
     for (const row of rows) {
       const key = row.staff_phone;
       if (!summaryMap.has(key)) {
-        summaryMap.set(key, { name: row.staff_name, phone: row.staff_phone, days: 0, hours: 0 });
+        summaryMap.set(key, { name: row.staff_name, phone: row.staff_phone, days: 0, _ms: 0 });
       }
       const s = summaryMap.get(key)!;
       s.days++;
-      if (row.hours !== null) s.hours = Math.round((s.hours + row.hours) * 100) / 100;
+      if (row._diffMs && row._diffMs > 0) s._ms += row._diffMs;
     }
-    const summary = [...summaryMap.values()].sort((a, b) => a.name.localeCompare(b.name, "he"));
+    const summary = [...summaryMap.values()]
+      .map((s) => ({ name: s.name, phone: s.phone, days: s.days, hours: Math.round(s._ms / 36_000) / 100 }))
+      .sort((a, b) => a.name.localeCompare(b.name, "he"));
 
-    return NextResponse.json({ rows, summary, from, to });
+    // Strip internal _diffMs from rows before sending to client.
+    const rowsOut = rows.map(({ _diffMs, ...rest }) => rest);
+
+    return NextResponse.json({ rows: rowsOut, summary, from, to });
   } catch (fatal) {
     console.error("[attendance/report] FATAL:", fatal);
     return NextResponse.json({ error: String(fatal) }, { status: 500 });

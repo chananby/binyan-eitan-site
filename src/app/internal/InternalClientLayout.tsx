@@ -36,6 +36,7 @@ export function TaskProvider({ company = "Binyan Eitan", children }: { company?:
   const fetchTasks = async () => {
     try {
       const res = await fetch(`/internal/api/tasks?company=${encodeURIComponent(company)}`);
+      if (!res.ok) return;
       const data = await res.json();
       setTasks(data.tasks || []);
     } catch (e) {
@@ -83,34 +84,58 @@ export function TaskProvider({ company = "Binyan Eitan", children }: { company?:
 }
 
 function PinGate({ children }: { children: React.ReactNode }) {
-  const PIN = process.env.NEXT_PUBLIC_INTERNAL_PIN ?? "1234";
   const [input, setInput] = useState("");
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState<boolean | null>(null); // null = checking
+  const [error, setError] = useState(false);
 
+  // Probe server cookie on mount — no client-side trust, no sessionStorage.
   useEffect(() => {
-    const saved = sessionStorage.getItem("internal_unlocked");
-    if (saved === "true") setUnlocked(true);
+    let cancelled = false;
+    fetch("/api/internal-auth", { method: "GET", credentials: "same-origin" })
+      .then((r) => { if (!cancelled) setUnlocked(r.ok); })
+      .catch(() => { if (!cancelled) setUnlocked(false); });
+    return () => { cancelled = true; };
   }, []);
-
-  useEffect(() => {
-    if (unlocked) sessionStorage.setItem("internal_unlocked", "true");
-    else sessionStorage.removeItem("internal_unlocked");
-  }, [unlocked]);
 
   const press = (d: string) => {
     if (input.length >= 4) return;
+    setError(false);
     setInput((s) => s + d);
   };
 
-  const back = () => setInput((s) => s.slice(0, -1));
-  const clear = () => setInput("");
+  const back = () => { setError(false); setInput((s) => s.slice(0, -1)); };
+  const clear = () => { setError(false); setInput(""); };
 
   useEffect(() => {
-    if (input.length === 4) {
-      if (input === PIN) setUnlocked(true);
-      else setTimeout(() => setInput("") , 300);
-    }
-  }, [input, PIN]);
+    if (input.length !== 4) return;
+    const submitted = input;
+    fetch("/api/internal-auth", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ code: submitted }),
+    })
+      .then(async (r) => {
+        if (r.ok) {
+          setUnlocked(true);
+        } else {
+          setError(true);
+          setTimeout(() => { setInput(""); setError(false); }, 400);
+        }
+      })
+      .catch(() => {
+        setError(true);
+        setTimeout(() => { setInput(""); setError(false); }, 400);
+      });
+  }, [input]);
+
+  if (unlocked === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#121212] text-zinc-500 text-sm">
+        בודק הרשאות…
+      </div>
+    );
+  }
 
   if (unlocked) return <>{children}</>;
 
@@ -123,7 +148,7 @@ function PinGate({ children }: { children: React.ReactNode }) {
         <div className="flex justify-center mb-6">
           <div className="flex gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="w-12 h-12 rounded-md bg-zinc-800 flex items-center justify-center text-lg">
+              <div key={i} className={`w-12 h-12 rounded-md flex items-center justify-center text-lg transition-colors ${error ? "bg-red-900/40" : "bg-zinc-800"}`}>
                 {input[i] ? "•" : ""}
               </div>
             ))}

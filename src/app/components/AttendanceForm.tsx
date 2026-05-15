@@ -10,6 +10,7 @@ import {
   ChevronRight, Building2,
 } from "lucide-react";
 import { labelWithDayHe } from "../../lib/date-utils";
+import { israelWallClockToISO } from "../../lib/israel-time";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Step = "phone" | "locating" | "project" | "ready" | "submitting" | "success" | "error" | "history" | "manual" | "manualSuccess";
@@ -441,8 +442,13 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       const [d, m, y] = datePart.split(".");
       const [h, min]  = timePart.split(":");
       if (!d || !m || !y || !h || !min) return null;
-      const dt = new Date(`${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}T${h.padStart(2,"0")}:${min.padStart(2,"0")}:00+03:00`);
-      return isNaN(dt.getTime()) ? null : dt;
+      // DST-aware Israel-local-time → UTC conversion.
+      try {
+        const ymd = `${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`;
+        const hm  = `${h.padStart(2,"0")}:${min.padStart(2,"0")}`;
+        const dt = new Date(israelWallClockToISO(ymd, hm));
+        return isNaN(dt.getTime()) ? null : dt;
+      } catch { return null; }
     }
     function labelTime(label: string | null | undefined): string {
       const dt = parseLabel(label);

@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 import { createServerClient } from "../../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
+import { israelDayStartISO } from "../../../../../lib/israel-time";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -86,8 +87,8 @@ export async function GET(req: NextRequest) {
   let attQuery: any = supabase
     .from("attendance")
     .select("staff_id, action, clock_at, created_at")
-    .gte("created_at", `${monthStart}T00:00:00+03:00`)
-    .lt("created_at", `${nextMonth}T00:00:00+03:00`);
+    .gte("created_at", israelDayStartISO(monthStart))
+    .lt("created_at", israelDayStartISO(nextMonth));
   if (projectId) attQuery = attQuery.eq("project_id", projectId);
   const { data: attData } = await attQuery;
 
