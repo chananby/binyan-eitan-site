@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query: any = supabase
     .from("attendance")
-    .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, staff:staff_id(id, name, phone), project:project_id(id, name)")
+    .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, staff:staff_id(id, name, phone), project:project_id(id, name)")
     .eq("status", "pending")
     .eq("is_manual", true)
     .order("created_at", { ascending: false });

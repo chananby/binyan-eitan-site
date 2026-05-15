@@ -4,6 +4,20 @@ import { isAdminAuthedFromRequest } from "../../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 
+/** GET /api/admin/settings — return all key/value pairs as a map */
+export async function GET(req: NextRequest) {
+  if (!isAdminAuthedFromRequest(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const supabase = createServerClient();
+  const { data, error } = await supabase.from("settings").select("key, value");
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const settings = Object.fromEntries(
+    (data ?? []).map((r: { key: string; value: string }) => [r.key, r.value]),
+  );
+  return NextResponse.json({ settings });
+}
+
 /** PATCH /api/admin/settings  — upsert one or more key/value pairs */
 export async function PATCH(req: NextRequest) {
   if (!isAdminAuthedFromRequest(req)) {

@@ -176,6 +176,32 @@ export async function POST(req: NextRequest) {
   if (project_id) attendancePayload.project_id = project_id;
   attendancePayload.clock_at = new Date().toISOString();
 
+  // ── Distance from project (for GPS anti-fraud flagging) ────────────────────
+  // Best-effort: look up the project's lat/lng and compute Haversine distance.
+  // Stored on the row at submission time so admin views can show flags
+  // without re-querying or recomputing.
+  if (project_id) {
+    try {
+      const { data: proj } = await supabase
+        .from("projects")
+        .select("lat, lng")
+        .eq("id", project_id)
+        .maybeSingle();
+      if (proj?.lat != null && proj?.lng != null) {
+        const { haversineMeters } = await import("../../../lib/distance");
+        const dist = haversineMeters(
+          Number(lat), Number(lng),
+          Number(proj.lat), Number(proj.lng),
+        );
+        if (isFinite(dist)) {
+          attendancePayload.distance_from_project_m = Math.round(dist);
+        }
+      }
+    } catch (e) {
+      console.warn("[attendance] distance calc failed:", e instanceof Error ? e.message : String(e));
+    }
+  }
+
   const { error: insertError } = await supabase
     .from("attendance")
     .insert(attendancePayload);

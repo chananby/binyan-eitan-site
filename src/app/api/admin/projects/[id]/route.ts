@@ -12,7 +12,12 @@ export async function PATCH(
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  let body: { status?: string; name?: string; foreman_id?: string | null };
+  let body: {
+    status?: string; name?: string; foreman_id?: string | null;
+    address?: string | null;
+    lat?: number | null; lng?: number | null;
+    geocode?: boolean; // if true, re-geocode the (possibly updated) address
+  };
   try { body = await req.json(); } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
@@ -22,6 +27,23 @@ export async function PATCH(
   if (body.status     !== undefined) update.status     = body.status;
   if (body.name       !== undefined) update.name       = body.name?.trim() || null;
   if (body.foreman_id !== undefined) update.foreman_id = body.foreman_id || null;
+  if (body.address    !== undefined) update.address    = body.address?.trim() || null;
+  if (body.lat        !== undefined) update.lat        = body.lat;
+  if (body.lng        !== undefined) update.lng        = body.lng;
+
+  // Optional: trigger fresh geocoding. Useful when the admin updates the
+  // address and wants coords refreshed. Done before the DB write so we
+  // include lat/lng in a single transaction.
+  let geocodeFailed = false;
+  if (body.geocode) {
+    const addressToUse = body.address?.trim();
+    if (addressToUse) {
+      const { geocodeAddress } = await import("../../../../../lib/geocode");
+      const r = await geocodeAddress(addressToUse);
+      if (r) { update.lat = r.lat; update.lng = r.lng; }
+      else { geocodeFailed = true; }
+    }
+  }
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "No fields to update" }, { status: 400 });
@@ -32,9 +54,9 @@ export async function PATCH(
     .from("projects")
     .update(update)
     .eq("id", params.id)
-    .select("id, name, status, foreman_id")
+    .select("id, name, status, foreman_id, address, lat, lng")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ project: data });
+  return NextResponse.json({ project: data, geocode_failed: geocodeFailed });
 }

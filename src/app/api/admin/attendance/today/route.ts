@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from("attendance")
-    .select("id, action, lat, lng, timestamp_label, clock_at, project_id, created_at, staff:staff_id(id, name, phone, role), project:project_id(id, name)")
+    .select("id, action, lat, lng, distance_from_project_m, timestamp_label, clock_at, project_id, created_at, staff:staff_id(id, name, phone, role), project:project_id(id, name)")
     .gte("created_at", todayStart)
     .order("created_at", { ascending: false });
 

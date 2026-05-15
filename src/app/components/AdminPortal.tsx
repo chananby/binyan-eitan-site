@@ -72,10 +72,20 @@ interface PayrollRow {
 interface AttendanceRecord {
   id: string; action: string; timestamp_label: string; recorded_at: string;
   clock_at?: string | null; created_at?: string; is_manual?: boolean; status?: string;
+  lat?: string | null; lng?: string | null;
+  distance_from_project_m?: number | null;
   staff: { id: string; name: string; phone: string; role?: string } | null;
   project: { id: string; name: string } | null;
 }
-interface Project { id: string; name: string; status?: string; }
+interface Project {
+  id: string;
+  name: string;
+  status?: string;
+  address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  foreman_id?: string | null;
+}
 interface Task {
   id: string; project_id: string; milestone_id: string | null; task_name: string;
   start_date: string | null; end_date: string | null; contractor: string | null;
@@ -260,8 +270,19 @@ export default function AdminPortal() {
 
   // Projects UI
   const [newProjectName,    setNewProjectName]    = useState("");
+  const [newProjectAddress, setNewProjectAddress] = useState("");
   const [projectAddLoading, setProjectAddLoading] = useState(false);
   const [projectAddMsg,     setProjectAddMsg]     = useState("");
+  const [editingProjectId,  setEditingProjectId]  = useState<string | null>(null);
+  const [editProjectAddress, setEditProjectAddress] = useState("");
+  const [editProjectSaving, setEditProjectSaving]   = useState(false);
+  const [editProjectMsg,    setEditProjectMsg]     = useState("");
+
+  // Distance threshold (system setting). Default 500m if unset.
+  const [farThresholdM,        setFarThresholdM]        = useState<number>(500);
+  const [farThresholdInput,    setFarThresholdInput]    = useState<string>("500");
+  const [farThresholdSaving,   setFarThresholdSaving]   = useState(false);
+  const [farThresholdMsg,      setFarThresholdMsg]      = useState("");
 
   // Expenses UI
   const [matProjectId, setMatProjectId] = useState("");
@@ -535,6 +556,20 @@ ${detailHtml}
       const hashTab = HASH_TO_TAB[hash];
       setTab(hashTab && authState === "admin" ? hashTab : "dashboard");
       loadData(authState);
+    }
+    // Load system settings once on auth (admin only)
+    if (authState === "admin") {
+      fetch("/api/admin/settings")
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          const raw = d?.settings?.["attendance_far_threshold_m"];
+          const n = parseInt(raw, 10);
+          if (!isNaN(n) && n >= 0) {
+            setFarThresholdM(n);
+            setFarThresholdInput(String(n));
+          }
+        })
+        .catch(() => {});
     }
   }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -967,10 +1002,23 @@ ${detailHtml}
   async function handleAddProject(e: React.FormEvent) {
     e.preventDefault(); setProjectAddLoading(true); setProjectAddMsg("");
     try {
-      const res  = await fetch("/api/admin/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newProjectName }) });
+      const res  = await fetch("/api/admin/projects", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newProjectName,
+          address: newProjectAddress.trim() || undefined,
+        }),
+      });
       const data = await res.json();
-      if (res.ok) { setProjectAddMsg("✓ " + newProjectName + " נוסף"); setNewProjectName(""); reload(); }
-      else        { setProjectAddMsg("שגיאה: " + (data.error ?? res.status)); }
+      if (res.ok) {
+        let msg = "✓ " + newProjectName + " נוסף";
+        if (data.geocode_failed) msg += " — אבל לא הצלחתי למצוא קואורדינטות לכתובת";
+        setProjectAddMsg(msg);
+        setNewProjectName(""); setNewProjectAddress("");
+        reload();
+      } else {
+        setProjectAddMsg("שגיאה: " + (data.error ?? res.status));
+      }
     } catch (err) { setProjectAddMsg("שגיאת רשת: " + String(err)); }
     finally { setProjectAddLoading(false); }
   }
@@ -978,6 +1026,57 @@ ${detailHtml}
   async function toggleProjectStatus(id: string, current: string) {
     await fetch(`/api/admin/projects/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: current === "active" ? "inactive" : "active" }) });
     reload();
+  }
+
+  function startEditProjectAddress(p: Project) {
+    setEditingProjectId(p.id);
+    setEditProjectAddress(p.address ?? "");
+    setEditProjectMsg("");
+  }
+
+  async function saveProjectAddress(id: string) {
+    setEditProjectSaving(true); setEditProjectMsg("");
+    try {
+      const res = await fetch(`/api/admin/projects/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          address: editProjectAddress.trim() || null,
+          geocode: true, // request fresh geocoding from the server
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (data.geocode_failed) {
+          setEditProjectMsg("נשמר — אבל לא נמצאו קואורדינטות. נסה כתובת מדויקת יותר (רחוב, מספר, עיר).");
+        } else {
+          setEditingProjectId(null);
+        }
+        reload();
+      } else {
+        setEditProjectMsg("שגיאה: " + (data.error ?? res.status));
+      }
+    } catch (err) { setEditProjectMsg("שגיאת רשת: " + String(err)); }
+    finally { setEditProjectSaving(false); }
+  }
+
+  async function saveFarThreshold() {
+    setFarThresholdSaving(true); setFarThresholdMsg("");
+    try {
+      const n = parseInt(farThresholdInput, 10);
+      if (isNaN(n) || n < 0) {
+        setFarThresholdMsg("צריך מספר חיובי במטרים");
+        return;
+      }
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "attendance_far_threshold_m", value: String(n) }),
+      });
+      if (res.ok) { setFarThresholdM(n); setFarThresholdMsg("✓ נשמר"); }
+      else        { setFarThresholdMsg("שגיאה בשמירה"); }
+    } catch (err) { setFarThresholdMsg("שגיאת רשת: " + String(err)); }
+    finally { setFarThresholdSaving(false); }
   }
 
   // ── Expense CRUD ───────────────────────────────────────────────────────────
@@ -1926,6 +2025,7 @@ ${detailHtml}
                             {r.timestamp_label && (
                               <span className="text-[0.65rem] text-charcoal/40 tabular-nums" dir="ltr">{r.timestamp_label}</span>
                             )}
+                            <DistanceFlag r={r} threshold={farThresholdM} />
                           </div>
                           {r.project && (
                             <div className="flex items-center gap-1 mt-0.5 text-[0.65rem] text-charcoal/40">
@@ -2023,6 +2123,7 @@ ${detailHtml}
                         <span className="text-[0.7rem] text-charcoal/35 tabular-nums shrink-0" dir="ltr">
                           {r.timestamp_label || new Date(r.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
                         </span>
+                        <DistanceFlag r={r} threshold={farThresholdM} />
                         <button onClick={() => startEditAtt(r)} className="text-charcoal/30 hover:text-accent transition-colors shrink-0 p-0.5">
                           <Pencil size={11} strokeWidth={1.5} />
                         </button>
@@ -2108,6 +2209,7 @@ ${detailHtml}
                               <span className="text-[0.7rem] text-charcoal/35 tabular-nums" dir="ltr">
                                 {r.timestamp_label || (r.created_at ? new Date(r.created_at).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—")}
                               </span>
+                              <DistanceFlag r={r} threshold={farThresholdM} />
                               <button onClick={() => startEditAtt(r)} className="text-charcoal/30 hover:text-accent transition-colors p-0.5">
                                 <Pencil size={11} strokeWidth={1.5} />
                               </button>
@@ -2300,6 +2402,17 @@ ${detailHtml}
                 <Field label="שם הפרויקט / אתר">
                   <input value={newProjectName} onChange={e => setNewProjectName(e.target.value)} required placeholder="פרויקט רחוב הרצל 12" className={INPUT} />
                 </Field>
+                <Field label="כתובת האתר (לאיתור GPS)">
+                  <input
+                    value={newProjectAddress}
+                    onChange={e => setNewProjectAddress(e.target.value)}
+                    placeholder="רחוב + מספר, עיר (למשל: הרצל 12, ירושלים)"
+                    className={INPUT}
+                  />
+                  <p className="text-[0.62rem] text-charcoal/40 mt-1">
+                    המערכת תמיר אוטומטית לקואורדינטות. בכניסה/יציאה של עובד, אם המיקום שלו רחוק מעל הסף — תופיע אזהרה אדומה.
+                  </p>
+                </Field>
                 <Btn loading={projectAddLoading}>הוסף פרויקט</Btn>
                 {projectAddMsg && <p className={`text-xs ${projectAddMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{projectAddMsg}</p>}
               </form>
@@ -2311,8 +2424,10 @@ ${detailHtml}
               </div>
               {projects.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין פרויקטים</p>}
               <div className="divide-y divide-charcoal/5">
-                {projects.map((p: Project & { foreman_id?: string | null }) => {
+                {projects.map((p: Project) => {
                   const assignedForeman = staff.find(s => s.id === p.foreman_id);
+                  const hasCoords = p.lat != null && p.lng != null;
+                  const isEditingAddr = editingProjectId === p.id;
                   return (
                   <div key={p.id} className={`py-3 space-y-2 ${p.status !== "active" ? "opacity-45" : ""}`}>
                     <div className="flex items-center justify-between gap-2">
@@ -2323,6 +2438,61 @@ ${detailHtml}
                       <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${p.status === "active" ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{p.status === "active" ? "פעיל" : "לא פעיל"}</span>
                       <button onClick={() => toggleProjectStatus(p.id, p.status ?? "active")} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{p.status === "active" ? "השבת" : "הפעל"}</button>
                     </div>
+
+                    {/* Address + GPS status */}
+                    <div className="flex items-center gap-2 text-[0.65rem] flex-wrap">
+                      <span className="text-charcoal/40 shrink-0">📍 כתובת:</span>
+                      {isEditingAddr ? (
+                        <>
+                          <input
+                            value={editProjectAddress}
+                            onChange={e => setEditProjectAddress(e.target.value)}
+                            placeholder="רחוב + מספר, עיר"
+                            className="flex-1 min-w-[180px] border border-charcoal/15 bg-bone px-2 py-1 focus:border-accent focus:outline-none"
+                          />
+                          <button
+                            onClick={() => saveProjectAddress(p.id)}
+                            disabled={editProjectSaving}
+                            className="text-[0.65rem] border border-accent bg-accent text-bone px-2 py-1 hover:bg-accent-dark disabled:opacity-40 transition-colors shrink-0"
+                          >
+                            {editProjectSaving ? "שומר..." : "שמור + מקם"}
+                          </button>
+                          <button
+                            onClick={() => { setEditingProjectId(null); setEditProjectMsg(""); }}
+                            className="text-[0.65rem] border border-charcoal/15 text-charcoal/50 px-2 py-1 hover:border-accent transition-colors shrink-0"
+                          >
+                            ביטול
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="flex-1 min-w-0 text-charcoal/60 truncate">
+                            {p.address || <span className="text-charcoal/30 italic">לא הוגדרה</span>}
+                          </span>
+                          {hasCoords ? (
+                            <a
+                              href={`https://www.google.com/maps?q=${p.lat},${p.lng}`}
+                              target="_blank" rel="noopener noreferrer"
+                              className="text-[0.6rem] text-green-700 bg-green-50 px-1.5 py-0.5 shrink-0 hover:bg-green-100 transition-colors"
+                              title="פתח במפה"
+                            >
+                              ✓ GPS
+                            </a>
+                          ) : p.address ? (
+                            <span className="text-[0.6rem] text-amber-700 bg-amber-50 px-1.5 py-0.5 shrink-0">⚠ ללא קואורדינטות</span>
+                          ) : null}
+                          <button
+                            onClick={() => startEditProjectAddress(p)}
+                            className="text-[0.65rem] border border-charcoal/15 text-charcoal/50 px-2 py-1 hover:border-accent hover:text-accent transition-colors shrink-0"
+                          >
+                            ערוך
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    {isEditingAddr && editProjectMsg && (
+                      <p className={`text-[0.65rem] ${editProjectMsg.startsWith("נשמר") || editProjectMsg.startsWith("שגיאה") ? "text-amber-700" : "text-red-500"}`}>{editProjectMsg}</p>
+                    )}
                     {/* Foreman assignment */}
                     <div className="flex items-center gap-2">
                       <span className="text-[0.65rem] text-charcoal/40 shrink-0">ממונה:</span>
@@ -3039,6 +3209,37 @@ ${detailHtml}
               </div>
             </Card>
 
+            <Card title="הגדרות מערכת — נוכחות">
+              <Field label="סף מרחק מאתר העבודה (מטרים)">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    step={50}
+                    value={farThresholdInput}
+                    onChange={e => setFarThresholdInput(e.target.value)}
+                    className={INPUT + " flex-1"}
+                    dir="ltr"
+                  />
+                  <button
+                    onClick={saveFarThreshold}
+                    disabled={farThresholdSaving || farThresholdInput === String(farThresholdM)}
+                    className="bg-accent text-bone px-3 py-2 text-xs font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors shrink-0"
+                  >
+                    {farThresholdSaving ? "שומר..." : "שמור"}
+                  </button>
+                </div>
+                <p className="text-[0.62rem] text-charcoal/40 mt-1.5 leading-relaxed">
+                  החתמה שמתבצעת מעל המרחק הזה מהאתר תקבל דגל אדום באזור הנוכחות.
+                  ההחתמה עדיין תקפה — זו רק התראה שמאפשרת לך לבדוק.
+                  ברירת מחדל מומלצת: 500 מטר (כדי לכסות חניה + סטיות ב-GPS).
+                </p>
+                {farThresholdMsg && (
+                  <p className={`text-xs mt-2 ${farThresholdMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{farThresholdMsg}</p>
+                )}
+              </Field>
+            </Card>
+
             <Card title="שנה סיסמה">
               <form onSubmit={handleChangePassword} className="space-y-3">
                 <Field label="סיסמה נוכחית">
@@ -3185,6 +3386,42 @@ function Card({ title, children }: { title?: string; children: React.ReactNode }
       {title && <h2 className="font-heading text-sm font-bold">{title}</h2>}
       {children}
     </div>
+  );
+}
+
+// Distance-from-project flag for an attendance record. Renders nothing when
+// no distance is stored (manual entries, projects without coords, legacy).
+// Red badge when over threshold, neutral when within. Click → Google Maps
+// at the worker's actual clock-in coordinates (if available).
+function DistanceFlag({
+  r,
+  threshold,
+}: {
+  r: { lat?: string | null; lng?: string | null; distance_from_project_m?: number | null };
+  threshold: number;
+}) {
+  const d = r.distance_from_project_m;
+  if (d == null) return null;
+  const over = d > threshold;
+  const label = d < 1000 ? `${d}מ׳` : `${(d / 1000).toFixed(1)}ק"מ`;
+  const mapsUrl = r.lat && r.lng ? `https://www.google.com/maps?q=${r.lat},${r.lng}` : undefined;
+  const className = `text-[0.6rem] font-semibold px-1.5 py-0.5 shrink-0 inline-flex items-center gap-0.5 transition-colors ${
+    over
+      ? "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
+      : "bg-charcoal/[0.04] text-charcoal/50 hover:bg-charcoal/10"
+  }`;
+  const title = over
+    ? `📍 ${d} מטרים מהאתר — מעל הסף (${threshold} מ׳)`
+    : `📍 ${d} מטרים מהאתר`;
+  if (mapsUrl) {
+    return (
+      <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className={className} title={title}>
+        📍 {label}
+      </a>
+    );
+  }
+  return (
+    <span className={className} title={title}>📍 {label}</span>
   );
 }
 

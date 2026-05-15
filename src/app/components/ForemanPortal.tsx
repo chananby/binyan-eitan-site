@@ -39,9 +39,17 @@ interface PendingRecord {
   id: string;
   action: string;
   timestamp_label: string | null;
+  lat?: string | null;
+  lng?: string | null;
+  distance_from_project_m?: number | null;
   staff: { id: string; name: string } | null;
   project: { id: string; name: string } | null;
 }
+
+// Display threshold for the distance flag in the foreman portal.
+// Admin can override system-wide via /admin#account — this is the
+// local fallback when threshold isn't fetched per-request.
+const FAR_THRESHOLD_M = 500;
 
 interface StaffEntry {
   id: string; name: string; role: string; active: boolean;
@@ -763,9 +771,19 @@ export default function ForemanPortal({
                     <div className="flex items-start justify-between gap-3 mb-2.5">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-charcoal text-sm">{rec.staff?.name ?? "—"}</p>
-                        <div className="flex items-center gap-1 text-[0.65rem] text-charcoal/50 mt-0.5">
+                        <div className="flex items-center gap-1 text-[0.65rem] text-charcoal/50 mt-0.5 flex-wrap">
                           <Clock size={10} strokeWidth={1.5} />
                           <span>{rec.action === "in" || rec.action === "כניסה" ? "כניסה" : "יציאה"} · {rec.timestamp_label ?? "—"}</span>
+                          {rec.distance_from_project_m != null && (() => {
+                            const d = rec.distance_from_project_m;
+                            const over = d > FAR_THRESHOLD_M;
+                            const label = d < 1000 ? `${d}מ׳` : `${(d / 1000).toFixed(1)}ק"מ`;
+                            const mapsUrl = rec.lat && rec.lng ? `https://www.google.com/maps?q=${rec.lat},${rec.lng}` : undefined;
+                            const cls = `text-[0.6rem] font-semibold px-1.5 py-0.5 ${over ? "bg-red-100 text-red-700 border border-red-200" : "bg-white text-charcoal/50 border border-charcoal/10"}`;
+                            return mapsUrl
+                              ? <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className={cls} title="לחץ לפתיחה במפה">📍 {label}</a>
+                              : <span className={cls}>📍 {label}</span>;
+                          })()}
                         </div>
                       </div>
                     </div>

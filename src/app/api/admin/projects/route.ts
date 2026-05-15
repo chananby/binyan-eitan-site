@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query: any = supabase
     .from("projects")
-    .select("id, name, status, foreman_id")
+    .select("id, name, status, foreman_id, address, lat, lng")
     .order("status", { ascending: true })
     .order("name",   { ascending: true });
 
@@ -36,28 +36,47 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ projects: data ?? [] });
 }
 
-// POST — create new project (admin only)
+// POST — create new project (admin only). Geocodes address if provided.
 export async function POST(req: NextRequest) {
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { name?: string; foreman_id?: string };
+  let body: { name?: string; foreman_id?: string; address?: string; lat?: number; lng?: number };
   try { body = await req.json(); }
   catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
-  const { name, foreman_id } = body;
+  const { name, foreman_id, address } = body;
   if (!name?.trim()) {
     return NextResponse.json({ error: "שם הפרויקט הוא שדה חובה" }, { status: 400 });
+  }
+
+  // If caller passed lat/lng explicitly use them; else try to geocode the
+  // address. Address-only project (no coords) is fine — admin can still
+  // save and add coords later.
+  let lat: number | null = body.lat ?? null;
+  let lng: number | null = body.lng ?? null;
+  let geocodeFailed = false;
+  if (lat == null && lng == null && address?.trim()) {
+    const { geocodeAddress } = await import("../../../../lib/geocode");
+    const r = await geocodeAddress(address.trim());
+    if (r) { lat = r.lat; lng = r.lng; }
+    else { geocodeFailed = true; }
   }
 
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("projects")
-    .insert({ name: name.trim(), status: "active", foreman_id: foreman_id || null })
-    .select("id, name, status, foreman_id")
+    .insert({
+      name: name.trim(),
+      status: "active",
+      foreman_id: foreman_id || null,
+      address: address?.trim() || null,
+      lat, lng,
+    })
+    .select("id, name, status, foreman_id, address, lat, lng")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ project: data }, { status: 201 });
+  return NextResponse.json({ project: data, geocode_failed: geocodeFailed }, { status: 201 });
 }
