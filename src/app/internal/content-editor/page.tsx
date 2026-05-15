@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import defaultTranslations from "@/src/lib/translations.json";
 import XRaySlider from "@/src/app/components/XRaySlider";
+import { AutoGrowTextarea } from "@/src/app/components/AutoGrowTextarea";
 
 type TranslationsData = typeof defaultTranslations;
 type SectionKey = keyof TranslationsData;
@@ -373,7 +374,7 @@ function MediaManager({
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-600 mb-1">תיאור תמונה (SEO / נגישות)</label>
-                <input type="text"
+                <AutoGrowTextarea
                   value={getHeroVal("imageAlt")}
                   onChange={(e) => setBoth("hero", "imageAlt", e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-gray-50 focus:ring-1 focus:ring-[#8D775F] focus:border-transparent outline-none"
@@ -423,7 +424,7 @@ function MediaManager({
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs font-mono text-gray-800 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
                           placeholder="/project-cover.jpg"
                         />
-                        <input type="text" value={coverAlt}
+                        <AutoGrowTextarea value={coverAlt}
                           onChange={(e) => setBoth("portfolio", `${proj.coverKey}_alt`, e.target.value)}
                           className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-[11px] text-gray-600 bg-gray-50 focus:ring-1 focus:ring-[#8D775F] focus:border-transparent outline-none"
                           placeholder="תיאור תמונה (SEO / נגישות)"
@@ -741,7 +742,7 @@ function ArticlesManager({
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs font-mono text-gray-800 focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
                       placeholder="/article-main-image.jpg"
                     />
-                    <input type="text" value={article.mainImageAlt || ""}
+                    <AutoGrowTextarea value={article.mainImageAlt || ""}
                       onChange={(e) => onUpdate(idx, "mainImageAlt", e.target.value)}
                       className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-[11px] text-gray-600 bg-gray-50 focus:ring-1 focus:ring-[#8D775F] focus:border-transparent outline-none"
                       placeholder="תיאור תמונה (SEO / נגישות)"
@@ -754,12 +755,12 @@ function ArticlesManager({
               <div>
                 <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2.5">כותרת</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input type="text" dir="rtl" value={article.title_he}
+                  <AutoGrowTextarea dir="rtl" value={article.title_he}
                     onChange={(e) => onUpdate(idx, "title_he", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
                     placeholder="כותרת המאמר (עברית)"
                   />
-                  <input type="text" dir="ltr" value={article.title_en}
+                  <AutoGrowTextarea dir="ltr" value={article.title_en}
                     onChange={(e) => onUpdate(idx, "title_en", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
                     placeholder="Article title (English)"
@@ -788,12 +789,12 @@ function ArticlesManager({
               <div className="border border-gray-100 rounded-lg p-4 space-y-3 bg-gray-50/50">
                 <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400">פרק 1</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input type="text" dir="rtl" value={article.s1_title_he || ""}
+                  <AutoGrowTextarea dir="rtl" value={article.s1_title_he || ""}
                     onChange={(e) => onUpdate(idx, "s1_title_he", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-medium focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
                     placeholder="כותרת פרק 1 (עברית)"
                   />
-                  <input type="text" dir="ltr" value={article.s1_title_en || ""}
+                  <AutoGrowTextarea dir="ltr" value={article.s1_title_en || ""}
                     onChange={(e) => onUpdate(idx, "s1_title_en", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-medium focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
                     placeholder="Section 1 title (English)"
@@ -817,12 +818,12 @@ function ArticlesManager({
               <div className="border border-gray-100 rounded-lg p-4 space-y-3 bg-gray-50/50">
                 <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400">פרק 2</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input type="text" dir="rtl" value={article.s2_title_he || ""}
+                  <AutoGrowTextarea dir="rtl" value={article.s2_title_he || ""}
                     onChange={(e) => onUpdate(idx, "s2_title_he", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-medium focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
                     placeholder="כותרת פרק 2 (עברית)"
                   />
-                  <input type="text" dir="ltr" value={article.s2_title_en || ""}
+                  <AutoGrowTextarea dir="ltr" value={article.s2_title_en || ""}
                     onChange={(e) => onUpdate(idx, "s2_title_en", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-medium focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
                     placeholder="Section 2 title (English)"
@@ -847,12 +848,12 @@ function ArticlesManager({
                 <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-1">טבלת השוואה (Table Data)</p>
                 <p className="text-[10px] text-gray-400 mb-2">פורמט: <span dir="ltr" className="font-mono bg-gray-100 px-1 rounded">מפתח:ערך|מפתח:ערך</span></p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input type="text" dir="rtl" value={article.table_data_he || ""}
+                  <AutoGrowTextarea dir="rtl" value={article.table_data_he || ""}
                     onChange={(e) => onUpdate(idx, "table_data_he", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
                     placeholder="מפתח:ערך|מפתח:ערך"
                   />
-                  <input type="text" dir="ltr" value={article.table_data_en || ""}
+                  <AutoGrowTextarea dir="ltr" value={article.table_data_en || ""}
                     onChange={(e) => onUpdate(idx, "table_data_en", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
                     placeholder="Key:Value|Key:Value"
@@ -881,12 +882,12 @@ function ArticlesManager({
               <div>
                 <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2.5">סיכום (Summary)</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input type="text" dir="rtl" value={article.summary_he || ""}
+                  <AutoGrowTextarea dir="rtl" value={article.summary_he || ""}
                     onChange={(e) => onUpdate(idx, "summary_he", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
                     placeholder="משפט סיכום חזק..."
                   />
-                  <input type="text" dir="ltr" value={article.summary_en || ""}
+                  <AutoGrowTextarea dir="ltr" value={article.summary_en || ""}
                     onChange={(e) => onUpdate(idx, "summary_en", e.target.value)}
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white"
                     placeholder="Strong closing statement..."
@@ -1413,11 +1414,11 @@ export default function ContentEditorPage() {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-xs font-bold text-gray-500 mb-1.5">שאלה (עברית)</label>
-                              <input type="text" dir="rtl" value={faq.question_he} onChange={(e) => updateFaq(idx, "question_he", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" placeholder="שאלה נפוצה" />
+                              <AutoGrowTextarea dir="rtl" value={faq.question_he} onChange={(e) => updateFaq(idx, "question_he", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" placeholder="שאלה נפוצה" />
                             </div>
                             <div>
                               <label className="block text-xs font-bold text-gray-500 mb-1.5">Question (English)</label>
-                              <input type="text" dir="ltr" value={faq.question_en} onChange={(e) => updateFaq(idx, "question_en", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" placeholder="Frequently asked question" />
+                              <AutoGrowTextarea dir="ltr" value={faq.question_en} onChange={(e) => updateFaq(idx, "question_en", e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" placeholder="Frequently asked question" />
                             </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
