@@ -152,6 +152,38 @@ function Block({ num, title, children }: { num: string; title: string; children:
   );
 }
 
+// Uncontrolled auto-grow textarea — keeps form-submit behavior (name attr,
+// no React-controlled value) but grows vertically with typed content so the
+// user always sees what they wrote. The Formspree POST receives the field
+// the same way as a plain <textarea>.
+function AutoGrowField({
+  name, id, required, className, placeholder, minRows = 1,
+}: {
+  name: string; id?: string; required?: boolean; className?: string;
+  placeholder?: string; minRows?: number;
+}) {
+  const ref = useRef<HTMLTextAreaElement | null>(null);
+  const resize = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + 2 + "px";
+  };
+  useEffect(() => { resize(); }, []);
+  return (
+    <textarea
+      ref={ref}
+      name={name}
+      id={id}
+      required={required}
+      rows={minRows}
+      className={className}
+      placeholder={placeholder}
+      onInput={resize}
+    />
+  );
+}
+
 // ── Field ─────────────────────────────────────────────────────────────────────
 
 function Field({ label, name, required, multiline, type = "text" }: {
@@ -161,7 +193,9 @@ function Field({ label, name, required, multiline, type = "text" }: {
   return (
     <div className="relative">
       {multiline ? (
-        <textarea name={name} id={name} required={required} rows={4} className={`${base} resize-none`} placeholder=" " />
+        // Auto-grow: starts at ~3 rows, grows with content so the user
+        // always sees what they typed (no scrolling inside the field).
+        <AutoGrowField name={name} id={name} required={required} className={`${base} resize-none`} placeholder=" " minRows={3} />
       ) : (
         <input type={type} name={name} id={name} required={required}
           min={type === "number" ? "0" : undefined}

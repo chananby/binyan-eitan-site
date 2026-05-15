@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useTasks } from "../InternalClientLayout";
+import { AutoGrowTextarea } from "../../components/AutoGrowTextarea";
 
 const people = ["Chanan", "Moti", "Nachman", "Akiva"] as const;
 
@@ -117,7 +118,7 @@ function NewTaskForm({ company, onCreate, onCancel }: { company: string; onCreat
 
   return (
     <div className="space-y-3">
-      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="w-full p-3 rounded bg-zinc-900" />
+      <AutoGrowTextarea value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="w-full p-3 rounded bg-zinc-900" />
       <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" className="w-full p-3 rounded bg-zinc-900" />
       <div className="flex gap-2">
         <select value={creator} onChange={(e) => setCreator(e.target.value)} className="p-2 rounded bg-zinc-900">

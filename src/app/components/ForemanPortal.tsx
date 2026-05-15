@@ -9,6 +9,7 @@ import {
   CloudRain, X, ArrowLeftRight, Target, Timer,
 } from "lucide-react";
 import { useFeedback } from "../hooks/useFeedback";
+import { AutoGrowTextarea } from "./AutoGrowTextarea";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type View      = "loading" | "no_projects" | "select" | "dashboard";
@@ -912,8 +913,8 @@ export default function ForemanPortal({
             </div>
             <div>
               <p className="text-[0.7rem] text-charcoal/50 mb-1.5">תיאור עבודת היום</p>
-              <textarea value={logText} onChange={e => setLogText(e.target.value)} placeholder="תאר את העבודה שבוצעה היום..."
-                rows={5} className="w-full border border-charcoal/15 bg-white px-3 py-3 text-sm text-charcoal resize-none focus:border-accent focus:outline-none transition-colors" />
+              <AutoGrowTextarea value={logText} onChange={e => setLogText(e.target.value)} placeholder="תאר את העבודה שבוצעה היום..."
+                rows={5} className="w-full border border-charcoal/15 bg-white px-3 py-3 text-sm text-charcoal focus:border-accent focus:outline-none transition-colors" />
             </div>
             <div>
               <p className="text-[0.7rem] text-charcoal/50 mb-1.5">עובדי קבלן משנה היום</p>
@@ -953,7 +954,7 @@ export default function ForemanPortal({
             </div>
             <div>
               <p className="text-[0.7rem] text-charcoal/50 mb-1.5">תיאור</p>
-              <input type="text" value={expDesc} onChange={e => setExpDesc(e.target.value)} placeholder="בטון, ברזל, שרברב..."
+              <AutoGrowTextarea value={expDesc} onChange={e => setExpDesc(e.target.value)} placeholder="בטון, ברזל, שרברב..."
                 className="w-full border border-charcoal/15 bg-white px-4 py-3.5 text-sm focus:border-accent focus:outline-none" />
             </div>
             <button onClick={handleSaveExpense} disabled={expSaving || !expAmount || !expDesc.trim()}
@@ -1086,7 +1087,7 @@ export default function ForemanPortal({
                             </button>
                           ) : (
                             <div className="space-y-2">
-                              <input type="text" value={newTaskDesc} onChange={e => setNewTaskDesc(e.target.value)}
+                              <AutoGrowTextarea value={newTaskDesc} onChange={e => setNewTaskDesc(e.target.value)}
                                 placeholder="תיאור המשימה..." autoFocus
                                 className="w-full border border-charcoal/15 bg-white px-3 py-2.5 text-sm focus:border-accent focus:outline-none" />
                               {milestones.length > 0 && (
@@ -1096,7 +1097,7 @@ export default function ForemanPortal({
                                   {milestones.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                                 </select>
                               )}
-                              <input type="text" value={newTaskNotes} onChange={e => setNewTaskNotes(e.target.value)}
+                              <AutoGrowTextarea value={newTaskNotes} onChange={e => setNewTaskNotes(e.target.value)}
                                 placeholder="הערות (אופציונלי)"
                                 className="w-full border border-charcoal/15 bg-white px-3 py-2.5 text-sm focus:border-accent focus:outline-none" />
                               <div className="flex gap-2">

@@ -5,6 +5,7 @@ import { useFeedback } from "../hooks/useFeedback";
 import SuccessFlash from "./SuccessFlash";
 import ForemanPortal from "./ForemanPortal";
 import WeeklyPlanner from "./WeeklyPlanner";
+import { AutoGrowTextarea } from "./AutoGrowTextarea";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -2236,7 +2237,7 @@ ${detailHtml}
               </div>
               <form onSubmit={handleAddWorker} className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="שם מלא"><input value={newName} onChange={e => setNewName(e.target.value)} required placeholder="ישראל ישראלי" className={INPUT} /></Field>
+                  <Field label="שם מלא"><AutoGrowTextarea value={newName} onChange={e => setNewName(e.target.value)} required placeholder="ישראל ישראלי" className={INPUT} /></Field>
                   <Field label="טלפון"><input value={newPhone} onChange={e => setNewPhone(e.target.value)} required placeholder="05X-XXXXXXX" type="tel" dir="ltr" className={INPUT} /></Field>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -2282,7 +2283,7 @@ ${detailHtml}
                   </Field>
                 </div>
                 <Field label="סטטוס פנסיה (טקסט חופשי)">
-                  <input value={newPensionStatus} onChange={e => setNewPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
+                  <AutoGrowTextarea value={newPensionStatus} onChange={e => setNewPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
                 </Field>
                 {newRole === "ממונה" && (
                   <Field label="PIN לכניסה לפורטל (4–8 ספרות)">
@@ -2306,7 +2307,7 @@ ${detailHtml}
                 {staff.map(s => editingId === s.id ? (
                   <form key={s.id} onSubmit={handleEditWorker} className="py-4 space-y-3">
                     <div className="grid grid-cols-2 gap-2">
-                      <Field label="שם"><input value={editName} onChange={e => setEditName(e.target.value)} required className={INPUT} /></Field>
+                      <Field label="שם"><AutoGrowTextarea value={editName} onChange={e => setEditName(e.target.value)} required className={INPUT} /></Field>
                       <Field label="טלפון"><input value={editPhone} onChange={e => setEditPhone(e.target.value)} required type="tel" dir="ltr" className={INPUT} /></Field>
                       <Field label="תפקיד">
                         <select value={editRole} onChange={e => setEditRole(e.target.value)} className={INPUT}>
@@ -2346,7 +2347,7 @@ ${detailHtml}
                       </Field>
                     </div>
                     <Field label="סטטוס פנסיה">
-                      <input value={editPensionStatus} onChange={e => setEditPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
+                      <AutoGrowTextarea value={editPensionStatus} onChange={e => setEditPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
                     </Field>
                     {editRole === "ממונה" && (
                       <Field label="PIN חדש (השאר ריק לשמירת הנוכחי)">
@@ -2400,7 +2401,7 @@ ${detailHtml}
               </div>
               <form onSubmit={handleAddProject} className="space-y-3">
                 <Field label="שם הפרויקט / אתר">
-                  <input value={newProjectName} onChange={e => setNewProjectName(e.target.value)} required placeholder="פרויקט רחוב הרצל 12" className={INPUT} />
+                  <AutoGrowTextarea value={newProjectName} onChange={e => setNewProjectName(e.target.value)} required placeholder="פרויקט רחוב הרצל 12" className={INPUT} />
                 </Field>
                 <Field label="כתובת האתר (לאיתור GPS)">
                   <input
@@ -2545,8 +2546,8 @@ ${detailHtml}
                   </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="תיאור / פריט"><input value={matName} onChange={e => setMatName(e.target.value)} required placeholder="בטון, שרברב..." className={INPUT} /></Field>
-                  <Field label="ספק"><input value={matSupplier} onChange={e => setMatSupplier(e.target.value)} placeholder="שם הספק" className={INPUT} /></Field>
+                  <Field label="תיאור / פריט"><AutoGrowTextarea value={matName} onChange={e => setMatName(e.target.value)} required placeholder="בטון, שרברב..." className={INPUT} /></Field>
+                  <Field label="ספק"><AutoGrowTextarea value={matSupplier} onChange={e => setMatSupplier(e.target.value)} placeholder="שם הספק" className={INPUT} /></Field>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <Field label="כמות"><input value={matQty} onChange={e => setMatQty(e.target.value)} type="number" min="0" step="any" className={INPUT} dir="ltr" /></Field>
