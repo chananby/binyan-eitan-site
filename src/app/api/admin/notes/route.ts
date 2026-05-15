@@ -12,13 +12,18 @@ export async function GET(req: NextRequest) {
   const adminId = getAdminIdFromRequest(req);
   if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { searchParams } = new URL(req.url);
+  const limit  = Math.min(parseInt(searchParams.get("limit")  || "200", 10), 500);
+  const offset = Math.max(parseInt(searchParams.get("offset") || "0",   10), 0);
+
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("admin_notes")
     .select("id, title, body, pinned, created_at, updated_at")
     .eq("admin_id", adminId)
     .order("pinned",      { ascending: false })
-    .order("updated_at",  { ascending: false });
+    .order("updated_at",  { ascending: false })
+    .range(offset, offset + limit - 1);
 
   if (error) {
     console.error("[admin/notes GET]", error.message);

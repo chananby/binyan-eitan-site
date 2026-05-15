@@ -9,6 +9,13 @@ import ExcelJS from "exceljs";
 import { createServerClient } from "../../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 import { israelDayStartISO } from "../../../../../lib/israel-time";
+import {
+  aggregateAttendance,
+  aggregateVacation,
+  computeGross,
+  type AttendanceRec,
+  type VacationRec,
+} from "../../../../../lib/payroll-aggregate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,25 +34,8 @@ interface StaffRow {
   role: string;
 }
 
-interface AttRow {
-  staff_id: string;
-  action: string;
-  clock_at: string | null;
-  created_at: string;
-}
-
-interface VacRow {
-  staff_id: string;
-  date: string;
-  half_day: boolean;
-}
-
-function workDate(rec: { clock_at: string | null; created_at: string }): Date {
-  return rec.clock_at ? new Date(rec.clock_at) : new Date(rec.created_at);
-}
-function toIsraelYMD(d: Date): string {
-  return d.toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" });
-}
+type AttRow = AttendanceRec;
+type VacRow = VacationRec & { date: string };
 
 const EMPLOYMENT_LABELS: Record<string, string> = {
   hourly: "שעתי",
@@ -98,43 +88,8 @@ export async function GET(req: NextRequest) {
     .gte("date", monthStart)
     .lt("date", nextMonth);
 
-  // Aggregate attendance per staff
-  const attMap = new Map<string, { days: number; hours: number }>();
-  {
-    const byStaff = new Map<string, Map<string, { entries: Date[]; exits: Date[] }>>();
-    for (const rec of (attData ?? []) as AttRow[]) {
-      const d = workDate(rec);
-      const ymd = toIsraelYMD(d);
-      if (!ymd.startsWith(month)) continue;
-      if (!byStaff.has(rec.staff_id)) byStaff.set(rec.staff_id, new Map());
-      const byDate = byStaff.get(rec.staff_id)!;
-      if (!byDate.has(ymd)) byDate.set(ymd, { entries: [], exits: [] });
-      const day = byDate.get(ymd)!;
-      if (rec.action === "in" || rec.action === "כניסה") day.entries.push(d);
-      else if (rec.action === "out" || rec.action === "יציאה") day.exits.push(d);
-    }
-    for (const [sid, byDate] of byStaff) {
-      let days = 0, hours = 0;
-      for (const day of byDate.values()) {
-        const firstIn = day.entries[0];
-        const lastOut = day.exits[day.exits.length - 1];
-        if (!firstIn) continue;
-        days++;
-        if (lastOut) {
-          const ms = lastOut.getTime() - firstIn.getTime();
-          if (ms > 0) hours += ms / 3_600_000;
-        }
-      }
-      attMap.set(sid, { days, hours: Math.round(hours * 100) / 100 });
-    }
-  }
-
-  // Aggregate vacation per staff
-  const vacMap = new Map<string, number>();
-  for (const r of (vacData ?? []) as VacRow[]) {
-    const v = r.half_day ? 0.5 : 1;
-    vacMap.set(r.staff_id, (vacMap.get(r.staff_id) ?? 0) + v);
-  }
+  const attMap = aggregateAttendance((attData ?? []) as AttRow[], month);
+  const vacMap = aggregateVacation((vacData ?? []) as VacRow[]);
 
   // ── Build the workbook ──────────────────────────────────────────────────
   const wb = new ExcelJS.Workbook();
@@ -172,10 +127,7 @@ export async function GET(req: NextRequest) {
   for (const s of staff) {
     const att = attMap.get(s.id) ?? { days: 0, hours: 0 };
     const vac = vacMap.get(s.id) ?? 0;
-    let gross = 0;
-    if (s.employment_type === "global") gross = s.monthly_global_salary ?? 0;
-    else if (s.employment_type === "daily") gross = (s.daily_rate ?? 0) * att.days;
-    else gross = Math.round((s.hourly_rate ?? 0) * att.hours * 100) / 100;
+    const gross = computeGross(s, att);
     grandTotal += gross;
 
     sheet.addRow({

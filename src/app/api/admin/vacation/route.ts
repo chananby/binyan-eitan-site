@@ -16,13 +16,16 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const staffId = searchParams.get("staff_id");
   const month   = searchParams.get("month"); // "YYYY-MM"
+  const limit   = Math.min(parseInt(searchParams.get("limit") || "500", 10), 1000);
+  const offset  = Math.max(parseInt(searchParams.get("offset") || "0", 10), 0);
 
   const supabase = createServerClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query: any = supabase
     .from("vacation_days")
     .select("id, staff_id, date, half_day, notes, created_at, staff:staff_id(id, name)")
-    .order("date", { ascending: true });
+    .order("date", { ascending: true })
+    .range(offset, offset + limit - 1);
 
   if (staffId) query = query.eq("staff_id", staffId);
   if (month && /^\d{4}-\d{2}$/.test(month)) {

@@ -12,18 +12,25 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status"); // optional filter
-  const search = searchParams.get("search"); // optional customer-name search
+  const search = searchParams.get("search")?.trim() || null;
   const limit  = Math.min(parseInt(searchParams.get("limit") || "100", 10), 500);
+  const offset = Math.max(parseInt(searchParams.get("offset") || "0", 10), 0);
 
   const supabase = createServerClient();
   let query = supabase
     .from("quotes")
     .select("id, quote_number, customer_name, issue_date, total_before_vat, status, updated_at, created_at")
     .order("updated_at", { ascending: false })
-    .limit(limit);
+    .range(offset, offset + limit - 1);
 
   if (status) query = query.eq("status", status);
-  if (search) query = query.ilike("customer_name", `%${search}%`);
+  // Search both customer_name and quote_number — customers think in either.
+  // The customer_name GIN trigram index (quotes_customer_trgm_idx) accelerates
+  // the ILIKE when the pattern has ≥3 chars between wildcards.
+  if (search) {
+    const pat = `%${search}%`;
+    query = query.or(`customer_name.ilike.${pat},quote_number.ilike.${pat}`);
+  }
 
   const { data, error } = await query;
   if (error) {

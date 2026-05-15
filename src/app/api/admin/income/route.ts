@@ -9,24 +9,44 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get("project_id");
+  const limit  = Math.min(parseInt(searchParams.get("limit")  || "500", 10), 2000);
+  const offset = Math.max(parseInt(searchParams.get("offset") || "0",   10), 0);
 
   const supabase = createServerClient();
-  let query = supabase
+
+  // List query (paginated)
+  let listQuery = supabase
     .from("income")
     .select("id, project_id, amount, description, received_date, created_at, project:project_id(id, name)")
-    .order("received_date", { ascending: false });
+    .order("received_date", { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (projectId) listQuery = listQuery.eq("project_id", projectId);
 
-  if (projectId) query = query.eq("project_id", projectId);
+  // Totals query (separate — must aggregate ALL rows, not just the page).
+  // Cheap: just amount + project_id, no joins.
+  let totalsQuery = supabase
+    .from("income")
+    .select("project_id, amount");
+  if (projectId) totalsQuery = totalsQuery.eq("project_id", projectId);
 
-  const { data, error } = await query;
+  const [{ data, error }, { data: allRows, error: totalsErr }] = await Promise.all([
+    listQuery,
+    totalsQuery,
+  ]);
+
   if (error) {
     console.error("[admin/income GET]", JSON.stringify(error));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  if (totalsErr) {
+    console.error("[admin/income GET totals]", JSON.stringify(totalsErr));
+    return NextResponse.json({ error: totalsErr.message }, { status: 500 });
+  }
 
-  // Totals per project for profitability view
+  // Totals per project for profitability view — computed from ALL rows
+  // so pagination doesn't distort the project total.
   const totals: Record<string, number> = {};
-  for (const r of data ?? []) {
+  for (const r of allRows ?? []) {
     totals[r.project_id] = (totals[r.project_id] ?? 0) + (r.amount ?? 0);
   }
 
