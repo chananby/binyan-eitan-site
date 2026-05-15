@@ -32,7 +32,13 @@ interface Milestone {
 }
 
 interface OnSiteEntry {
-  att_id: string; staff_id: string; name: string; entry_time: string;
+  att_id: string;
+  staff_id: string;
+  name: string;
+  entry_time: string;
+  lat?: string | null;
+  lng?: string | null;
+  distance_from_project_m?: number | null;
 }
 
 interface PendingRecord {
@@ -236,7 +242,14 @@ export default function ForemanPortal({
             const t = rec.clock_at
               ? new Date(rec.clock_at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" })
               : new Date(rec.recorded_at ?? rec.created_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
-            workers.push({ att_id: rec.id, staff_id: sid, name: rec.staff?.name ?? "—", entry_time: t });
+            workers.push({
+              att_id: rec.id, staff_id: sid,
+              name: rec.staff?.name ?? "—",
+              entry_time: t,
+              lat: rec.lat ?? null,
+              lng: rec.lng ?? null,
+              distance_from_project_m: rec.distance_from_project_m ?? null,
+            });
           }
         }
         setOnSite(workers);
@@ -830,8 +843,23 @@ export default function ForemanPortal({
                     <div className="w-2 h-2 rounded-full bg-green-500 shrink-0 animate-pulse" />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-charcoal text-sm">{w.name}</p>
-                      <div className="flex items-center gap-1 text-[0.65rem] text-charcoal/40 mt-0.5">
-                        <Clock size={10} strokeWidth={1.5} /><span>כניסה: {w.entry_time}</span>
+                      <div className="flex items-center gap-2 text-[0.65rem] text-charcoal/40 mt-0.5 flex-wrap">
+                        <span className="inline-flex items-center gap-1"><Clock size={10} strokeWidth={1.5} />כניסה: {w.entry_time}</span>
+                        {(() => {
+                          const d = w.distance_from_project_m;
+                          const hasCoords = !!(w.lat && w.lng);
+                          if (d == null && !hasCoords) return null;
+                          const mapsUrl = hasCoords ? `https://www.google.com/maps?q=${w.lat},${w.lng}` : undefined;
+                          if (d == null) {
+                            return <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="text-[0.6rem] font-semibold px-1.5 py-0.5 bg-charcoal/[0.04] text-charcoal/50 border border-charcoal/10" title="לחץ לפתיחה במפה">📍 מפה</a>;
+                          }
+                          const over = d > FAR_THRESHOLD_M;
+                          const label = d < 1000 ? `${d}מ׳` : `${(d / 1000).toFixed(1)}ק"מ`;
+                          const cls = `text-[0.6rem] font-semibold px-1.5 py-0.5 ${over ? "bg-red-100 text-red-700 border border-red-200" : "bg-charcoal/[0.04] text-charcoal/50 border border-charcoal/10"}`;
+                          return mapsUrl
+                            ? <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className={cls} title="לחץ לפתיחה במפה">📍 {label}</a>
+                            : <span className={cls}>📍 {label}</span>;
+                        })()}
                       </div>
                     </div>
                     <button onClick={() => handleClockOut(w)} disabled={clockOutLoading === w.staff_id}
