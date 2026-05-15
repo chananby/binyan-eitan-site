@@ -1427,7 +1427,7 @@ ${detailHtml}
         </div>
 
         {/* Stats strip */}
-        <div className={`grid gap-2 ${isAdmin ? "grid-cols-4" : "grid-cols-3"}`}>
+        <div className={`grid gap-2 ${isAdmin ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
           {isAdmin && (
             <>
               {[
