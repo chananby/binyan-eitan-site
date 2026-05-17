@@ -165,8 +165,18 @@ export default function RootLayout({
 
       </head>
       <body className="bg-bone text-charcoal antialiased overflow-x-hidden selection:bg-accent selection:text-bone">
+        {/* Skip link — visible only on keyboard focus; lets keyboard / screen-reader
+            users jump past the nav directly to page content. */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-[1000] focus:bg-accent focus:text-bone focus:px-4 focus:py-2 focus:font-body focus:text-sm focus:font-semibold focus:tracking-wider focus:uppercase focus:rounded-sm focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-bone"
+        >
+          {lang === "he" ? "דלג לתוכן" : "Skip to content"}
+        </a>
         <TranslationsProvider>
-          {children}
+          <div id="main-content" tabIndex={-1} className="outline-none">
+            {children}
+          </div>
           <AccessibilityMenu />
         </TranslationsProvider>
         {/* Microsoft Clarity */}

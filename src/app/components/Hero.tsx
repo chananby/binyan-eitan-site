@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { ArrowDownRight, ArrowDownLeft } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
 
@@ -54,6 +54,15 @@ export default function Hero() {
   const Arrow = lang === "he" ? ArrowDownLeft : ArrowDownRight;
 
   const prefersReducedMotion = useReducedMotion();
+  // Pause the scroll-indicator pulse while the tab is hidden — saves a few
+  // animation frames on the background tab and is friendlier to battery.
+  const [tabHidden, setTabHidden] = useState(false);
+  useEffect(() => {
+    const onVis = () => setTabHidden(document.hidden);
+    onVis();
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -251,8 +260,8 @@ export default function Hero() {
           </span>
           <motion.div
             className="h-10 w-px bg-charcoal/15 origin-top"
-            animate={prefersReducedMotion ? { scaleY: 1 } : { scaleY: [0, 1, 0] }}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+            animate={(prefersReducedMotion || tabHidden) ? { scaleY: 1 } : { scaleY: [0, 1, 0] }}
+            transition={(prefersReducedMotion || tabHidden) ? { duration: 0 } : { duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
           />
         </motion.div>
       </motion.div>

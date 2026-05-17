@@ -72,12 +72,14 @@ export default function AccessibilityMenu() {
       role="complementary"
       aria-label="Accessibility menu"
     >
-      {/* Panel */}
+      {/* Panel — region rather than dialog: it's a floating settings panel with
+          no focus trap and no modal behavior. role=dialog+aria-modal=false
+          sent contradictory signals to screen readers. */}
       {open && (
         <div
+          id="a11y-panel"
           className="bg-charcoal/90 text-bone border border-bone/10 shadow-xl w-52 p-4 flex flex-col gap-3"
-          role="dialog"
-          aria-modal="false"
+          role="region"
           aria-label="Accessibility options"
         >
           <p className="font-body text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-warm-gray">
@@ -152,7 +154,7 @@ export default function AccessibilityMenu() {
         }`}
         aria-label="Toggle accessibility menu"
         aria-expanded={open}
-        aria-haspopup="dialog"
+        aria-controls="a11y-panel"
       >
         <A11yIcon />
       </button>

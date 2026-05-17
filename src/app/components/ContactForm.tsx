@@ -164,7 +164,12 @@ export default function ContactForm() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-10">
               <div className="relative">
-                <label htmlFor="project_type" className="sr-only">
+                {/* Visible label sits above the field — matches the floating-label
+                    pattern's "filled" state for the inputs alongside it. */}
+                <label
+                  htmlFor="project_type"
+                  className="absolute start-0 -top-3.5 text-xs font-body font-semibold uppercase tracking-widest text-charcoal/70 pointer-events-none"
+                >
                   {lang === "he" ? "סוג הפרויקט" : "Project Type"}
                 </label>
                 <select
