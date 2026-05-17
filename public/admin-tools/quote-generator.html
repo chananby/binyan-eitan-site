@@ -1654,6 +1654,25 @@
   function saveState() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
     cloudSync.scheduleSave();
+    updateDocumentTitle();
+  }
+
+  // Browser uses document.title both as the PDF header and as the downloaded
+  // filename, so this needs to track the current quote's identity live.
+  function updateDocumentTitle() {
+    const num = state.quoteNumber ? '#' + state.quoteNumber : '';
+    const customer = (state.customerName || '').trim();
+    let title;
+    if (customer && num) {
+      title = `הצעת מחיר ${num} - ${customer}`;
+    } else if (customer) {
+      title = `הצעת מחיר - ${customer}`;
+    } else if (num) {
+      title = `הצעת מחיר ${num}`;
+    } else {
+      title = 'הצעת מחיר חדשה';
+    }
+    document.title = title;
   }
 
   // ============ CLOUD SYNC (Supabase via /api/admin/quotes) ============
@@ -3182,6 +3201,7 @@
   // ============ INIT ============
   render();
   cloudSync.init();
+  updateDocumentTitle();
 </script>
 
 </body>
