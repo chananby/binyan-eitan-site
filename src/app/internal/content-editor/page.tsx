@@ -917,6 +917,10 @@ export default function ContentEditorPage() {
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  // Optimistic-concurrency version. Bumps on every successful PUT; on 409 the
+  // banner offers a Reload that swaps to the server's latest data + version.
+  const [version, setVersion] = useState(0);
+  const [conflict, setConflict] = useState<{ current: TranslationsData; currentVersion: number } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -929,6 +933,7 @@ export default function ContentEditorPage() {
           setArticles(Array.isArray(data.articles) ? data.articles : (defaultTranslations.articles as Article[]));
           setFaqs(Array.isArray(data.faqs) ? data.faqs : (defaultTranslations.faqs as Faq[]));
           setTestimonials(Array.isArray(data.testimonials) ? data.testimonials : []);
+          if (typeof data._version === "number") setVersion(data._version);
         }
       } catch {
         setTranslations(defaultTranslations);
@@ -951,11 +956,12 @@ export default function ContentEditorPage() {
   const autoSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!dirty || saving) return;
+    if (conflict) return; // pause auto-save while a conflict is unresolved
     if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
     autoSaveRef.current = setTimeout(() => { handleSave(); }, 2000);
     return () => { if (autoSaveRef.current) clearTimeout(autoSaveRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dirty, translations, articles, faqs, testimonials]);
+  }, [dirty, translations, articles, faqs, testimonials, conflict]);
 
   // ── Copy section to clipboard ─────────────────────────────────────────────
   const copySectionToClipboard = useCallback((sectionKey: SectionKey, sectionLabel: string, keys: string[]) => {
@@ -1076,25 +1082,57 @@ export default function ContentEditorPage() {
 
   // ── Save ──────────────────────────────────────────────────────────────────
   const handleSave = async () => {
+    if (conflict) return; // user must resolve before another save
     setSaving(true);
     try {
       const res = await fetch("/api/translations", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...translations, articles, faqs, testimonials }),
+        body: JSON.stringify({
+          ...translations,
+          articles,
+          faqs,
+          testimonials,
+          _expectedVersion: version,
+        }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (typeof data.version === "number") setVersion(data.version);
         setDirty(false);
         showToast("נשמר בהצלחה! האתר מתעדכן...", true);
         const ch = new BroadcastChannel("translations-sync");
         ch.postMessage("updated"); ch.close();
         try { await fetch("/api/revalidate", { method: "POST" }); } catch { /**/ }
+      } else if (res.status === 409) {
+        // Optimistic-concurrency mismatch. Pause auto-save until user resolves.
+        const data = await res.json().catch(() => ({}));
+        if (data?.current && typeof data?.currentVersion === "number") {
+          setConflict({ current: data.current as TranslationsData, currentVersion: data.currentVersion });
+        }
+        showToast("מישהו אחר עדכן את התוכן. בחר מה לעשות מהבאנר למעלה.", false);
       } else {
         const e = await res.json().catch(() => ({}));
         showToast(`שמירה נכשלה: ${e.error ?? "שגיאת שרת"}`, false);
       }
     } catch { showToast("שגיאת רשת. נסה שוב.", false); }
     finally { setSaving(false); }
+  };
+
+  // Replace local state with the server's latest. Used by the conflict banner's
+  // "Reload" action. The user's unsaved local edits are dropped.
+  const reloadFromServer = () => {
+    if (!conflict) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = conflict.current as any;
+    setTranslations(data);
+    setArticles(Array.isArray(data.articles) ? data.articles : (defaultTranslations.articles as Article[]));
+    setFaqs(Array.isArray(data.faqs) ? data.faqs : (defaultTranslations.faqs as Faq[]));
+    setTestimonials(Array.isArray(data.testimonials) ? data.testimonials : []);
+    setVersion(conflict.currentVersion);
+    setDirty(false);
+    setConflict(null);
+    showToast("נטענה הגרסה החדשה מהשרת", true);
   };
 
   // ── Article CRUD ──────────────────────────────────────────────────────────
@@ -1283,6 +1321,32 @@ export default function ContentEditorPage() {
       {toast && (
         <div className={`fixed top-4 left-4 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-bold ${toast.ok ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
           {toast.msg}
+        </div>
+      )}
+
+      {/* ── Conflict banner — shown after a 409 from translations PUT ── */}
+      {conflict && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] w-[min(560px,calc(100vw-2rem))] bg-amber-600 text-white shadow-2xl rounded-lg p-4 flex flex-col gap-3">
+          <div>
+            <p className="font-bold text-sm mb-1">מישהו אחר עדכן את התוכן</p>
+            <p className="text-xs opacity-90 leading-relaxed">
+              שינויים שלא שמרת עוד לא נדחפו לשרת. אם תרענן — השינויים שלך יאבדו. אפשר להעתיק טקסטים חשובים לפני הרענון.
+            </p>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => setConflict(null)}
+              className="px-3 py-1.5 bg-white/15 hover:bg-white/25 rounded text-xs font-semibold"
+            >
+              סגור (אמשיך לערוך)
+            </button>
+            <button
+              onClick={reloadFromServer}
+              className="px-3 py-1.5 bg-white text-amber-700 hover:bg-amber-50 rounded text-xs font-bold"
+            >
+              טען מהשרת ודרוס מקומי
+            </button>
+          </div>
         </div>
       )}
 

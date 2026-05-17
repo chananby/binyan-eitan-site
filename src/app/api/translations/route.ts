@@ -15,8 +15,9 @@ function isContentEditorAuthorized(req: NextRequest): boolean {
 // Always run fresh — never serve a cached response from Next.js or CDN
 export const dynamic = "force-dynamic";
 
-const KV_KEY = "site_translations";
-const NO_CACHE = { "Cache-Control": "no-store, no-cache, must-revalidate" };
+const KV_KEY     = "site_translations";
+const KV_VERSION = "site_translations_version";   // monotonically-increasing int
+const NO_CACHE   = { "Cache-Control": "no-store, no-cache, must-revalidate" };
 
 const REVALIDATE_PATHS = [
   "/en", "/he",
@@ -65,18 +66,31 @@ function deepMerge(
   return result;
 }
 
+async function readVersion(): Promise<number> {
+  try {
+    const v = await kv.get(KV_VERSION);
+    if (typeof v === "number") return v;
+    if (typeof v === "string") { const n = parseInt(v, 10); return Number.isFinite(n) ? n : 0; }
+    return 0;
+  } catch {
+    return 0;
+  }
+}
+
 export async function GET() {
   try {
-    const stored = await kv.get(KV_KEY);
-    if (!stored) return NextResponse.json(defaultTranslations, { headers: NO_CACHE });
-    const merged = deepMerge(
-      defaultTranslations as unknown as Record<string, unknown>,
-      stored as Record<string, unknown>
-    );
-    return NextResponse.json(merged, { headers: NO_CACHE });
+    const [stored, version] = await Promise.all([kv.get(KV_KEY), readVersion()]);
+    const merged = stored
+      ? deepMerge(
+          defaultTranslations as unknown as Record<string, unknown>,
+          stored as Record<string, unknown>
+        )
+      : (defaultTranslations as unknown as Record<string, unknown>);
+    // _version is a meta field — clients use it for optimistic-concurrency on PUT.
+    return NextResponse.json({ ...merged, _version: version }, { headers: NO_CACHE });
   } catch (err) {
     console.error("[translations/GET] KV unavailable:", err);
-    return NextResponse.json(defaultTranslations, { headers: NO_CACHE });
+    return NextResponse.json({ ...defaultTranslations, _version: 0 }, { headers: NO_CACHE });
   }
 }
 
@@ -90,10 +104,36 @@ export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Persist to KV
-    await kv.set(KV_KEY, body);
+    // Optimistic concurrency: if caller provides _expectedVersion, it must
+    // match the live one. Mismatch → 409 + current state so the client can
+    // prompt the user to reload before retrying.
+    const expectedVersion = typeof body?._expectedVersion === "number" ? body._expectedVersion : null;
+    const currentVersion = await readVersion();
+    if (expectedVersion !== null && expectedVersion !== currentVersion) {
+      const current = await kv.get(KV_KEY);
+      const merged = current
+        ? deepMerge(
+            defaultTranslations as unknown as Record<string, unknown>,
+            current as Record<string, unknown>
+          )
+        : (defaultTranslations as unknown as Record<string, unknown>);
+      return NextResponse.json(
+        {
+          error: "version_conflict",
+          message: "מישהו אחר עדכן את התוכן מאז שטענת את הדף",
+          currentVersion,
+          current: { ...merged, _version: currentVersion },
+        },
+        { status: 409, headers: NO_CACHE }
+      );
+    }
 
-    // Verify the write succeeded with a read-back
+    // Strip the meta fields before persisting — they aren't part of the data.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _expectedVersion, _version, ...persistable } = body ?? {};
+
+    await kv.set(KV_KEY, persistable);
+
     const verified = await kv.get(KV_KEY);
     if (!verified) {
       return NextResponse.json(
@@ -102,17 +142,17 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Revalidate all static page caches atomically with the save
+    const nextVersion = currentVersion + 1;
+    await kv.set(KV_VERSION, nextVersion);
+
     try {
       revalidateTag("translations");
-      for (const path of REVALIDATE_PATHS) {
-        revalidatePath(path);
-      }
+      for (const path of REVALIDATE_PATHS) revalidatePath(path);
     } catch {
       // Not fatal — client-side BroadcastChannel sync handles live users
     }
 
-    return NextResponse.json({ ok: true, saved: true }, { headers: NO_CACHE });
+    return NextResponse.json({ ok: true, saved: true, version: nextVersion }, { headers: NO_CACHE });
   } catch (err: any) {
     console.error("[translations/PUT] Save failed:", err.message);
     return NextResponse.json(

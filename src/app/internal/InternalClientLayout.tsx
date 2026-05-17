@@ -13,6 +13,7 @@ export type Task = {
   status: "todo" | "in-progress" | "done";
   priority: "Normal" | "Urgent";
   company: "Binyan Eitan" | "Prime Steel";
+  version?: number;
 };
 
 type TaskContextType = {
@@ -20,6 +21,8 @@ type TaskContextType = {
   addTask: (t: Omit<Task, "id">) => Promise<void>;
   updateTask: (id: string, patch: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
+  conflictNotice: string | null;
+  dismissConflict: () => void;
 };
 
 const TaskContext = createContext<TaskContextType | null>(null);
@@ -32,6 +35,8 @@ export function useTasks() {
 
 export function TaskProvider({ company = "Binyan Eitan", children }: { company?: string; children: React.ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [conflictNotice, setConflictNotice] = useState<string | null>(null);
+  const dismissConflict = () => setConflictNotice(null);
 
   const fetchTasks = async () => {
     try {
@@ -61,9 +66,37 @@ export function TaskProvider({ company = "Binyan Eitan", children }: { company?:
   };
 
   const updateTask = async (id: string, patch: Partial<Task>) => {
+    // Optimistic concurrency: include the version we last saw for this task.
+    // If someone else moved it first, the server returns 409 — we re-fetch and
+    // surface a notice so the user knows their click was ignored.
+    const local = tasks.find((t) => t.id === id);
+    const expectedVersion = typeof local?.version === "number" ? local.version : undefined;
     try {
-      await fetch(`/internal/api/tasks`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ company, id, patch }) });
-      setTasks((s) => s.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+      const res = await fetch(`/internal/api/tasks`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ company, id, patch, expectedVersion }),
+      });
+      if (res.status === 409) {
+        const data = await res.json().catch(() => ({}));
+        await fetchTasks();
+        setConflictNotice(
+          `המשימה "${local?.title ?? ""}" עודכנה ע"י מישהו אחר. הצגתי את הגרסה החדשה — נסה שוב.`,
+        );
+        // Surface server's view to caller for completeness (no-op for current UI)
+        if (data?.currentTask) {
+          setTasks((s) => s.map((t) => (t.id === id ? { ...t, ...data.currentTask } : t)));
+        }
+        return;
+      }
+      if (!res.ok) return;
+      const data = await res.json().catch(() => ({}));
+      // Server returns the updated task with its new version — keep local in sync.
+      if (data?.task) {
+        setTasks((s) => s.map((t) => (t.id === id ? { ...t, ...data.task } : t)));
+      } else {
+        setTasks((s) => s.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+      }
     } catch (e) {
       console.error(e);
     }
@@ -78,9 +111,30 @@ export function TaskProvider({ company = "Binyan Eitan", children }: { company?:
     }
   };
 
-  const value = useMemo(() => ({ tasks, addTask, updateTask, deleteTask }), [tasks]);
+  const value = useMemo(
+    () => ({ tasks, addTask, updateTask, deleteTask, conflictNotice, dismissConflict }),
+    [tasks, conflictNotice],
+  );
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
+}
+
+/** Toast that surfaces tasks lost-update conflicts to the user. Sits inside
+ *  the TaskProvider so it appears on any internal dashboard automatically. */
+function TaskConflictToast() {
+  const ctx = useContext(TaskContext);
+  if (!ctx || !ctx.conflictNotice) return null;
+  return (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] w-[min(440px,calc(100vw-2rem))] bg-amber-600 text-white shadow-2xl rounded-lg px-4 py-3 flex items-start gap-3">
+      <p className="flex-1 text-xs leading-relaxed">{ctx.conflictNotice}</p>
+      <button
+        onClick={ctx.dismissConflict}
+        className="shrink-0 text-xs font-bold bg-white/15 hover:bg-white/25 rounded px-2 py-1"
+      >
+        סגור
+      </button>
+    </div>
+  );
 }
 
 function PinGate({ children }: { children: React.ReactNode }) {
@@ -179,7 +233,10 @@ export default function InternalClientLayout({ children }: { children: React.Rea
   return (
     <div className="min-h-screen bg-[#121212] text-white">
       <PinGate>
-        <TaskProvider>{children}</TaskProvider>
+        <TaskProvider>
+          {children}
+          <TaskConflictToast />
+        </TaskProvider>
       </PinGate>
     </div>
   );
