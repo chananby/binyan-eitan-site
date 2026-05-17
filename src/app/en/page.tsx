@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import EnHomeClient from "../components/ClientLayouts/EnHomeClient";
+import ErrorTrigger from "../_dev/ErrorTrigger";
 
 export const metadata: Metadata = {
   title: { absolute: "Binyan Eitan | Engineering & Luxury Construction in Jerusalem" },
@@ -71,6 +73,9 @@ export default function MaintenanceEnglish() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(enLocalBusiness) }} />
+      <Suspense fallback={null}>
+        <ErrorTrigger />
+      </Suspense>
       <EnHomeClient />
     </>
   );

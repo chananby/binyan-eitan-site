@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, Suspense, useContext, useEffect, useMemo, useState } from "react";
+import ErrorTrigger from "../_dev/ErrorTrigger";
 
 type Person = "Chanan" | "Moti" | "Nachman" | "Akiva";
 
@@ -232,6 +233,9 @@ function PinGate({ children }: { children: React.ReactNode }) {
 export default function InternalClientLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#121212] text-white">
+      <Suspense fallback={null}>
+        <ErrorTrigger />
+      </Suspense>
       <PinGate>
         <TaskProvider>
           {children}

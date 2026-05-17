@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
+import { Suspense } from "react";
+import ErrorTrigger from "../_dev/ErrorTrigger";
 
 const AdminPortal = dynamic(() => import("../components/AdminPortal"), { ssr: false });
 
@@ -9,5 +11,12 @@ export const metadata: Metadata = {
 };
 
 export default function AdminPage() {
-  return <AdminPortal />;
+  return (
+    <>
+      <Suspense fallback={null}>
+        <ErrorTrigger />
+      </Suspense>
+      <AdminPortal />
+    </>
+  );
 }
