@@ -20,7 +20,10 @@ export async function middleware(req: NextRequest) {
       if (supabaseUrl && supabaseKey) {
         const res = await fetch(
           `${supabaseUrl}/rest/v1/settings?key=eq.maintenance_mode&select=value&limit=1`,
-          { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
+          {
+            headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+            next: { revalidate: 30, tags: ["maintenance_mode"] },
+          }
         );
         if (res.ok) {
           const rows: { value: string }[] = await res.json();
