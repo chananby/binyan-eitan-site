@@ -78,17 +78,12 @@ const heLocalBusiness = {
   "sameAs": ["https://share.google/mYYDjEprxPi7JdoSG", "https://www.facebook.com/binyaneitan"],
 };
 
-import { Suspense } from "react";
 import HeHomeClient from "../components/ClientLayouts/HeHomeClient";
-import ErrorTrigger from "../_dev/ErrorTrigger";
 
 export default function MaintenanceHebrew() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(heLocalBusiness) }} />
-      <Suspense fallback={null}>
-        <ErrorTrigger />
-      </Suspense>
       <HeHomeClient />
     </>
   );
