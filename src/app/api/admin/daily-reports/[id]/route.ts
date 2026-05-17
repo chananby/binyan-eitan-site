@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
 import { isAuthedFromRequest, getRoleFromRequest } from "../../../../../lib/admin-auth";
+import { unauthorized, badRequest, forbidden, serverError } from "../../../../../lib/api-response";
 
 export const runtime = "nodejs";
 
@@ -11,7 +12,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   if (!isAuthedFromRequest(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return unauthorized();
   }
 
   let body: {
@@ -19,7 +20,7 @@ export async function PATCH(
     status?: string; subcontractor_count?: number;
   };
   try { body = await req.json(); }
-  catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
+  catch { return badRequest("Invalid JSON"); }
 
   const supabase = createServerClient();
 
@@ -33,7 +34,7 @@ export async function PATCH(
 
     const today = new Date().toISOString().slice(0, 10);
     if (!existing || existing.date !== today) {
-      return NextResponse.json({ error: "ניתן לערוך יומן רק של היום" }, { status: 403 });
+      return forbidden("ניתן לערוך יומן רק של היום");
     }
   }
 
@@ -51,6 +52,6 @@ export async function PATCH(
     .select("id, project_id, date, summary, weather, special_events, status, subcontractor_count")
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError(error.message);
   return NextResponse.json({ report: data });
 }
