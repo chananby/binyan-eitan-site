@@ -169,7 +169,18 @@ function AutoGrowField({
     el.style.height = "auto";
     el.style.height = el.scrollHeight + 2 + "px";
   };
-  useEffect(() => { resize(); }, []);
+  useEffect(() => {
+    resize();
+    // Line wrapping depends on viewport width — recompute on resize and
+    // orientation change so the field stays correctly sized on mobile.
+    const onResize = () => resize();
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+    };
+  }, []);
   return (
     <textarea
       ref={ref}
