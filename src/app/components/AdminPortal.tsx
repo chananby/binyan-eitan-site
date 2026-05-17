@@ -16,6 +16,12 @@ import {
   Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag, Grid3x3, Download, Plus,
   UserCog, Check,
 } from "lucide-react";
+import { Card } from "../admin/_components/shared/Card";
+import { Field } from "../admin/_components/shared/Field";
+import { Btn } from "../admin/_components/shared/Btn";
+import { TabRefreshBar } from "../admin/_components/shared/TabRefreshBar";
+import { INPUT, WEATHER_OPTIONS } from "../admin/_components/shared/constants";
+import type { DailyReport } from "../admin/_components/shared/types";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
@@ -110,12 +116,6 @@ interface IncomeRecord {
   id: string; project_id: string; amount: number; description: string | null;
   received_date: string; created_at: string; project?: { id: string; name: string } | null;
 }
-interface DailyReport {
-  id: string; project_id: string; date: string; weather: string | null;
-  summary: string | null; special_events: string | null; created_at: string;
-  project: { id: string; name: string } | null;
-}
-
 // Attendance report types (shared between in-app view and print/PDF export)
 interface AttReportRow    { staff_name: string; staff_phone: string; date: string; entry: string; exit: string; hours: number | null; project: string; }
 interface AttSummaryRow   { name: string; phone: string; days: number; hours: number; }
@@ -130,7 +130,6 @@ const MILESTONE_STATUS_CLS: Record<string, string> = {
 
 const EXPENSE_CATEGORIES = ["חומרים", "קבלן משנה", "הזמנות", "כלי עבודה"];
 const UNITS = ["יחידות", "קוב", 'מ"ר', 'מ"א', "טון", 'ק"ג', "ליטר"];
-const WEATHER_OPTIONS = ["☀️ בהיר", "⛅ מעונן חלקית", "☁️ מעונן", "🌧️ גשום", "🌩️ סוערת", "🌬️ רוחות חזקות"];
 const STATUS_HE: Record<string, string> = { planned: "מתוכנן", in_progress: "בביצוע", completed: "הושלם", delayed: "עיכוב" };
 const DELAY_REASON_HE: Record<string, string> = { workers: "כוח אדם", material: "חומרים", weather: "מזג אוויר", subcontractor: "קבלן משנה" };
 const STATUS_CLS: Record<string, string> = {
@@ -3400,35 +3399,6 @@ ${detailHtml}
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-const INPUT = "w-full border border-charcoal/15 bg-bone px-3 py-2.5 text-sm focus:border-accent focus:outline-none transition-colors";
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1">
-      <label className="text-[0.7rem] text-charcoal/50">{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function Btn({ loading, disabled, children }: { loading: boolean; disabled?: boolean; children: React.ReactNode }) {
-  return (
-    <button type="submit" disabled={loading || disabled}
-      className="w-full bg-accent py-3 text-sm font-semibold tracking-wider uppercase text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors duration-200">
-      {loading ? "שומר..." : children}
-    </button>
-  );
-}
-
-function Card({ title, children }: { title?: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-white border border-warm-gray-light p-5 space-y-3">
-      {title && <h2 className="font-heading text-sm font-bold">{title}</h2>}
-      {children}
-    </div>
-  );
-}
-
 // Distance-from-project flag for an attendance record.
 // Three states:
 //   1. distance present + over threshold → red flag with km/m label
@@ -3483,36 +3453,3 @@ function DistanceFlag({
   );
 }
 
-function TabRefreshBar({ loading, onRefresh, lastRefreshed }: {
-  loading: boolean; onRefresh: () => void; lastRefreshed: Date | null;
-}) {
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const iv = setInterval(() => setTick(t => t + 1), 15_000);
-    return () => clearInterval(iv);
-  }, []);
-
-  const secs = lastRefreshed ? Math.round((Date.now() - lastRefreshed.getTime()) / 1000) : null;
-  const timeStr = secs === null ? null
-    : secs < 10  ? "עכשיו"
-    : secs < 60  ? `לפני ${secs} שניות`
-    : secs < 120 ? "לפני דקה"
-    : `לפני ${Math.round(secs / 60)} דקות`;
-
-  return (
-    <div className="flex items-center justify-end gap-2.5">
-      {timeStr && !loading && (
-        <span className="text-[0.62rem] text-charcoal/30 tabular-nums">עודכן {timeStr}</span>
-      )}
-      <button
-        onClick={onRefresh}
-        disabled={loading}
-        className="flex items-center gap-1.5 border border-charcoal/12 hover:border-accent px-2.5 py-1 text-[0.72rem] text-charcoal/40 hover:text-accent disabled:opacity-40 transition-colors duration-150"
-      >
-        {loading
-          ? <><Loader2 size={10} className="animate-spin" /> מרענן...</>
-          : <><RefreshCw size={10} strokeWidth={1.5} /> רענן</>}
-      </button>
-    </div>
-  );
-}
