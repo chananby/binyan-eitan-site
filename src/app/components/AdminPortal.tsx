@@ -553,11 +553,27 @@ ${detailHtml}
   }, []);
 
   useEffect(() => {
+    let cleanup: (() => void) | undefined;
+
     if (authState === "admin" || authState === "foreman") {
       const hash = typeof window !== "undefined" ? window.location.hash.slice(1).toLowerCase() : "";
       const hashTab = HASH_TO_TAB[hash];
       setTab(hashTab && authState === "admin" ? hashTab : "dashboard");
       loadData(authState);
+
+      // Sync hash ↔ tab in both directions:
+      //  - back/forward through browser history switches the tab
+      //  - URL stays shareable when an admin lands deep in the app
+      // Foreman tabs aren't hash-driven, so the listener no-ops for them.
+      const isAdminAtMount = authState === "admin";
+      const onHashChange = () => {
+        if (!isAdminAtMount) return;
+        const h = window.location.hash.slice(1).toLowerCase();
+        const t = HASH_TO_TAB[h];
+        setTab(t || "dashboard");
+      };
+      window.addEventListener("hashchange", onHashChange);
+      cleanup = () => window.removeEventListener("hashchange", onHashChange);
     }
     // Load system settings once on auth (admin only)
     if (authState === "admin") {
@@ -573,6 +589,8 @@ ${detailHtml}
         })
         .catch(() => {});
     }
+
+    return cleanup;
   }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -1470,8 +1488,22 @@ ${detailHtml}
         {/* Tab bar */}
         <div className="flex flex-wrap border-b border-charcoal/10">
           {TABS.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/70"}`}>
+            <button
+              key={t.key}
+              onClick={() => {
+                setTab(t.key);
+                // Reflect the active tab in the URL so the page is shareable
+                // and the browser back button moves between tabs.
+                // dashboard = no hash (canonical /admin URL).
+                if (typeof window !== "undefined") {
+                  const base = window.location.pathname + window.location.search;
+                  const next = t.key === "dashboard" ? base : `${base}#${t.key}`;
+                  // replaceState avoids littering the back stack with every tab click
+                  history.replaceState(null, "", next);
+                }
+              }}
+              className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/70"}`}
+            >
               {t.icon} {t.label}
             </button>
           ))}

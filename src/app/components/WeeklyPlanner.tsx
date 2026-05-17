@@ -244,7 +244,7 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
       <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
         <div>
           <h2 className="text-sm font-bold tracking-wide text-charcoal">מטריצה שבועית</h2>
-          <p className="text-[0.65rem] text-charcoal/40 mt-0.5">תכנון משאבים, עלויות וסטטוס הזמנות לפי שבוע</p>
+          <p className="text-[0.65rem] text-charcoal/60 mt-0.5">תכנון משאבים, עלויות וסטטוס הזמנות לפי שבוע</p>
         </div>
         <select
           value={projectId}
