@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Plus, Trash2, ChevronDown, ChevronUp, Loader2, AlertCircle, Check } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -77,6 +77,67 @@ function weekNumber(sundayISO: string): number {
 
 function fmt(n: number): string {
   return n.toLocaleString("he-IL", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+// ── EditableCell ─────────────────────────────────────────────────────────────
+// Inline-click-to-edit cell used throughout the matrix. Lives at module scope
+// (NOT inside WeeklyPlanner) — defining it inline would give React a new
+// component type on every parent render, unmounting+remounting the <input>
+// mid-typing and losing focus.
+
+interface EditCtx {
+  editId: string | null;
+  editField: string | null;
+  editVal: string;
+  setEditVal: (v: string) => void;
+  editRef: React.RefObject<HTMLInputElement>;
+  startEdit: (rowId: string, field: string, current: string | number) => void;
+  commitEdit: (rowId: string, field: string, val: string) => void | Promise<void>;
+  cancelEdit: () => void;
+}
+
+interface EditableCellProps {
+  rowId: string;
+  field: string;
+  value: string | number;
+  type?: string;
+  className?: string;
+  edit: EditCtx;
+}
+
+function EditableCell({ rowId, field, value, type = "text", className = "", edit }: EditableCellProps) {
+  const isEditing = edit.editId === rowId && edit.editField === field;
+  if (isEditing) {
+    return (
+      <input
+        ref={edit.editRef}
+        type={type}
+        value={edit.editVal}
+        onChange={(e) => edit.setEditVal(e.target.value)}
+        onBlur={() => edit.commitEdit(rowId, field, edit.editVal)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") edit.commitEdit(rowId, field, edit.editVal);
+          if (e.key === "Escape") edit.cancelEdit();
+        }}
+        className={`w-full bg-accent/[0.06] border-b border-accent px-1 py-0.5 text-xs outline-none ${className}`}
+        dir={type === "number" ? "ltr" : "rtl"}
+      />
+    );
+  }
+  // 0 is a valid value (e.g. "0 workers planned", "0 cost") so it must render
+  // as "0" — not the placeholder dash. Only null / undefined / empty string
+  // count as "empty".
+  const isEmpty = value === null || value === undefined || value === "";
+  return (
+    <span
+      onClick={() => edit.startEdit(rowId, field, value)}
+      className={`block w-full cursor-text min-h-[1.2rem] px-1 py-0.5 hover:bg-accent/[0.05] rounded-sm transition-colors ${className}`}
+    >
+      {isEmpty
+        ? <span className="text-charcoal/20">—</span>
+        : (type === "number" ? fmt(Number(value)) : String(value))}
+    </span>
+  );
 }
 
 // ── Empty new-row state ───────────────────────────────────────────────────────
@@ -201,34 +262,12 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
   }
   const grandTotal = cumulative;
 
-  // ── Editable cell ─────────────────────────────────────────────────────────
-  const EditableCell = ({ rowId, field, value, type = "text", className = "" }: {
-    rowId: string; field: string; value: string | number; type?: string; className?: string;
-  }) => {
-    const isEditing = editId === rowId && editField === field;
-    if (isEditing) {
-      return (
-        <input
-          ref={editRef}
-          type={type}
-          value={editVal}
-          onChange={e => setEditVal(e.target.value)}
-          onBlur={() => commitEdit(rowId, field, editVal)}
-          onKeyDown={e => { if (e.key === "Enter") commitEdit(rowId, field, editVal); if (e.key === "Escape") { setEditId(null); setEditField(null); } }}
-          className={`w-full bg-accent/[0.06] border-b border-accent px-1 py-0.5 text-xs outline-none ${className}`}
-          dir={type === "number" ? "ltr" : "rtl"}
-        />
-      );
-    }
-    return (
-      <span
-        onClick={() => startEdit(rowId, field, value)}
-        className={`block w-full cursor-text min-h-[1.2rem] px-1 py-0.5 hover:bg-accent/[0.05] rounded-sm transition-colors ${className}`}
-      >
-        {value !== null && value !== "" && value !== 0 ? (type === "number" ? fmt(Number(value)) : String(value)) : <span className="text-charcoal/20">—</span>}
-      </span>
-    );
-  };
+  // ── Edit context — passed to EditableCell as a single prop ────────────────
+  const cancelEdit = useCallback(() => { setEditId(null); setEditField(null); }, []);
+  const edit: EditCtx = useMemo(() => ({
+    editId, editField, editVal, setEditVal, editRef, startEdit, commitEdit, cancelEdit,
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [editId, editField, editVal]);
 
   if (!projectId) {
     return (
@@ -358,19 +397,19 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                                 } hover:bg-accent/[0.03] transition-colors`}
                               >
                                 <td className="px-2 py-1.5 min-w-[130px]">
-                                  <EditableCell rowId={row.id} field="task_name" value={row.task_name} />
+                                  <EditableCell rowId={row.id} field="task_name" value={row.task_name} edit={edit} />
                                 </td>
                                 <td className="px-2 py-1.5 min-w-[110px]">
-                                  <EditableCell rowId={row.id} field="subcontractor" value={row.subcontractor ?? ""} />
+                                  <EditableCell rowId={row.id} field="subcontractor" value={row.subcontractor ?? ""} edit={edit} />
                                 </td>
                                 <td className="px-2 py-1.5 w-16">
-                                  <EditableCell rowId={row.id} field="workers_needed" value={row.workers_needed} type="number" />
+                                  <EditableCell rowId={row.id} field="workers_needed" value={row.workers_needed} type="number" edit={edit} />
                                 </td>
                                 <td className="px-2 py-1.5 min-w-[110px]">
-                                  <EditableCell rowId={row.id} field="materials" value={row.materials ?? ""} />
+                                  <EditableCell rowId={row.id} field="materials" value={row.materials ?? ""} edit={edit} />
                                 </td>
                                 <td className="px-2 py-1.5 min-w-[100px]">
-                                  <EditableCell rowId={row.id} field="supplier" value={row.supplier ?? ""} />
+                                  <EditableCell rowId={row.id} field="supplier" value={row.supplier ?? ""} edit={edit} />
                                 </td>
                                 <td className="px-2 py-1.5 w-28">
                                   <select
@@ -385,7 +424,7 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                                   </select>
                                 </td>
                                 <td className="px-2 py-1.5 w-28 text-left">
-                                  <EditableCell rowId={row.id} field="planned_cost" value={row.planned_cost} type="number" className="text-left" />
+                                  <EditableCell rowId={row.id} field="planned_cost" value={row.planned_cost} type="number" className="text-left" edit={edit} />
                                 </td>
                                 <td className="px-1 py-1.5 w-6">
                                   <button
@@ -476,7 +515,7 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                         <div className="flex items-center justify-between">
                           <button
                             onClick={() => { setAddingWeek(weekStart); setNewRow(emptyNewRow()); }}
-                            className="flex items-center gap-1 text-[0.65rem] text-charcoal/35 hover:text-accent transition-colors py-1"
+                            className="flex items-center gap-1 text-[0.65rem] text-charcoal/60 hover:text-accent transition-colors py-1"
                           >
                             <Plus size={11} strokeWidth={2} />
                             הוסף משימה

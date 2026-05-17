@@ -1464,7 +1464,7 @@ ${detailHtml}
               ].map(s => (
                 <div key={s.label} className="bg-white border border-warm-gray-light p-3 text-center">
                   <div className={`font-heading text-2xl font-bold ${s.color}`}>{s.value}</div>
-                  <div className="text-[0.6rem] text-charcoal/40 mt-0.5 leading-tight">{s.label}</div>
+                  <div className="text-[0.6rem] text-charcoal/60 mt-0.5 leading-tight">{s.label}</div>
                 </div>
               ))}
             </>
@@ -1478,7 +1478,7 @@ ${detailHtml}
               ].map(s => (
                 <div key={s.label} className="bg-white border border-warm-gray-light p-3 text-center">
                   <div className={`font-heading text-2xl font-bold ${s.color}`}>{s.value}</div>
-                  <div className="text-[0.6rem] text-charcoal/40 mt-0.5 leading-tight">{s.label}</div>
+                  <div className="text-[0.6rem] text-charcoal/60 mt-0.5 leading-tight">{s.label}</div>
                 </div>
               ))}
             </>
