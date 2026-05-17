@@ -22,7 +22,10 @@ export async function GET(req: NextRequest) {
   const isAdmin = getAdminRoleFromRequest(req) === "admin";
 
   if (!isAdmin) {
-    // Foreman path — return only workers in their projects
+    // Foreman path — return only workers in their projects.
+    // Was 3 sequential round-trips (projects → distinct staff_ids → staff
+    // details); now 2 by joining staff↔attendance via PostgREST's inner-join
+    // syntax. PostgREST deduplicates parent rows automatically.
     const staffId = getForemanStaffIdFromRequest(req);
     if (!staffId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -34,19 +37,10 @@ export async function GET(req: NextRequest) {
     const projectIds = (foremanProjects ?? []).map((p: { id: string }) => p.id);
     if (projectIds.length === 0) return NextResponse.json({ staff: [] });
 
-    // Get distinct worker IDs from attendance in those projects
-    const { data: attRecords } = await supabase
-      .from("attendance")
-      .select("staff_id")
-      .in("project_id", projectIds);
-
-    const workerIds = [...new Set((attRecords ?? []).map((r: { staff_id: string }) => r.staff_id))];
-    if (workerIds.length === 0) return NextResponse.json({ staff: [] });
-
     const { data, error } = await supabase
       .from("staff")
-      .select("id, name, phone, role, active, pin")
-      .in("id", workerIds)
+      .select("id, name, phone, role, active, pin, attendance!inner(project_id)")
+      .in("attendance.project_id", projectIds)
       .order("name", { ascending: true });
 
     if (error) {
@@ -54,7 +48,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const staff = (data ?? []).map(({ pin, ...rest }) => ({ ...rest, has_pin: !!pin }));
+    // Strip the nested attendance array — it was only there to drive the join.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const staff = (data ?? []).map(({ pin, attendance: _att, ...rest }: any) => ({
+      ...rest,
+      has_pin: !!pin,
+    }));
     return NextResponse.json({ staff });
   }
 

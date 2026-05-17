@@ -33,8 +33,11 @@ export function TranslationsProvider({ children }: { children: React.ReactNode }
 
     loadTranslations();
 
-    // Periodic refetch as a safety net
-    const interval = setInterval(loadTranslations, 30000);
+    // Periodic refetch as a safety net. BroadcastChannel handles instant
+    // cross-tab sync after an editor save, and visibilitychange handles the
+    // common case of returning to a tab — so 90s is a generous fallback and
+    // cuts KV read load by ~3x vs the previous 30s cadence.
+    const interval = setInterval(loadTranslations, 90_000);
 
     // Refetch when tab regains focus
     const handleVisibility = () => {

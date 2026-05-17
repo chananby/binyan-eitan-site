@@ -38,6 +38,11 @@ const FALLBACK_LABELS: Record<"en" | "he", string[]> = {
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
+// 8×8 dark-gray PNG, base64. Same placeholder as PortfolioGallery — the
+// lightbox bg is bg-black/95 so a dark fade-in reads cleaner than white.
+const LIGHTBOX_BLUR_PLACEHOLDER =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAQAAAAD52WxAAAAEklEQVR42mNkYPjPwIAFMAAARgEBSNJ47CMAAAAASUVORK5CYII=";
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function EngineeringExcellence() {
@@ -214,6 +219,8 @@ export default function EngineeringExcellence() {
                     sizes="(max-width: 480px) 80vw, 480px"
                     className="object-contain"
                     priority
+                    placeholder="blur"
+                    blurDataURL={LIGHTBOX_BLUR_PLACEHOLDER}
                   />
                 </motion.div>
               </AnimatePresence>

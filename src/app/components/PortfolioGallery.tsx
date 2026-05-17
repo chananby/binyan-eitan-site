@@ -118,6 +118,12 @@ const PROJECTS = [
 
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
+// 8×8 dark-gray PNG, base64. Used as the lightbox blurDataURL so the image
+// fades in from a charcoal panel (matching the bg-black/95 backdrop) instead
+// of flashing white while the full-resolution photo loads.
+const LIGHTBOX_BLUR_PLACEHOLDER =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAQAAAAD52WxAAAAEklEQVR42mNkYPjPwIAFMAAARgEBSNJ47CMAAAAASUVORK5CYII=";
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function PortfolioGallery() {
@@ -319,6 +325,8 @@ export default function PortfolioGallery() {
                     sizes="(max-width: 620px) 88vw, 620px"
                     className="object-contain"
                     priority
+                    placeholder="blur"
+                    blurDataURL={LIGHTBOX_BLUR_PLACEHOLDER}
                   />
                 </motion.div>
               </AnimatePresence>
