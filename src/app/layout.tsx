@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Assistant, Heebo } from "next/font/google";
 import Script from "next/script";
 import { headers } from "next/headers";
@@ -44,6 +44,13 @@ export const metadata: Metadata = {
   verification: {
     google: "B4UV2aj4j03bhNONfNmASSGyJGi3z-b8Gxd8DEaIGRM",
   },
+};
+
+// Mobile-browser chrome (status bar / address bar on Android Chrome,
+// Safari iOS 15+) tinted to match the bone palette so the site reads as
+// a continuous surface rather than ending at the OS edge.
+export const viewport: Viewport = {
+  themeColor: "#F3F2EE",
 };
 
 const jsonLd = {

@@ -598,6 +598,23 @@ function ArticlesManager({
 }) {
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
 
+  // Compute which slugs collide so the editor surfaces a visible warning before
+  // the user saves (two articles sharing a slug would silently shadow each other
+  // at /expertise/[slug]).
+  const slugCounts = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const a of articles) {
+      const s = (a.slug || "").trim().toLowerCase();
+      if (!s) continue;
+      counts[s] = (counts[s] ?? 0) + 1;
+    }
+    return counts;
+  }, [articles]);
+  const isSlugDuplicate = (slug: string) => {
+    const s = (slug || "").trim().toLowerCase();
+    return !!s && (slugCounts[s] ?? 0) > 1;
+  };
+
   function copyAllArticles() {
     const row = (label: string, val: string | undefined) => val ? `${label}\n  ${val}` : "";
     const lines: string[] = [];
@@ -704,12 +721,21 @@ function ArticlesManager({
                 <label className="text-xs font-bold text-gray-500 shrink-0">Slug:</label>
                 <input type="text" dir="ltr" value={article.slug}
                   onChange={(e) => onUpdate(idx, "slug", e.target.value)}
-                  className="min-w-0 border border-gray-300 rounded px-2 py-1 text-xs font-mono text-gray-800 w-52 focus:ring-1 focus:ring-[#8D775F] outline-none bg-white"
+                  className={`min-w-0 border rounded px-2 py-1 text-xs font-mono text-gray-800 w-52 focus:ring-1 outline-none bg-white ${
+                    isSlugDuplicate(article.slug)
+                      ? "border-red-400 focus:ring-red-400"
+                      : "border-gray-300 focus:ring-[#8D775F]"
+                  }`}
                   placeholder="article-url-slug"
                 />
                 <span className="text-[11px] text-gray-400 hidden sm:inline" dir="ltr">
                   → /expertise/{article.slug || "…"}
                 </span>
+                {isSlugDuplicate(article.slug) && (
+                  <span className="text-[10px] font-bold text-red-600 shrink-0" title="Slug משוכפל — שני מאמרים לא יכולים להיות באותה כתובת">
+                    ⚠ משוכפל
+                  </span>
+                )}
               </div>
               <button
                 onClick={() => copyArticle(article, idx)}

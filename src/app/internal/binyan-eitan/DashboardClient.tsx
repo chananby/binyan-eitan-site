@@ -16,6 +16,15 @@ function Avatar({ name }: { name: string }) {
 }
 
 function TaskCard({ task, onUpdate, onDelete }: any) {
+  // Move semantics: forward through todo → in-progress → done. From done we go
+  // back one step (in-progress) rather than looping to todo, which surprised
+  // users into thinking the task had been "reset".
+  const nextStatus =
+    task.status === "todo" ? "in-progress"
+    : task.status === "in-progress" ? "done"
+    : "in-progress"; // from "done" → reopen one step
+  const moveLabel = task.status === "done" ? "פתח" : "Move";
+
   return (
     <div className={`p-4 rounded-md shadow-md bg-[#161616] border-l-4 ${task.priority === "Urgent" ? "border-red-500" : "border-amber-700"}`}>
       <div className="flex justify-between items-start gap-3">
@@ -33,10 +42,18 @@ function TaskCard({ task, onUpdate, onDelete }: any) {
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={() => onUpdate(task.id, { status: task.status === "todo" ? "in-progress" : task.status === "in-progress" ? "done" : "todo" })} className="px-3 py-1 rounded bg-zinc-800 text-sm">
-              Move
+            <button
+              onClick={() => onUpdate(task.id, { status: nextStatus })}
+              className="px-3 py-1 rounded bg-zinc-800 text-sm"
+            >
+              {moveLabel}
             </button>
-            <button onClick={() => onDelete(task.id)} className="px-3 py-1 rounded bg-red-600 text-sm">
+            <button
+              onClick={() => {
+                if (confirm(`למחוק את המשימה "${task.title}"?`)) onDelete(task.id);
+              }}
+              className="px-3 py-1 rounded bg-red-600 text-sm"
+            >
               Del
             </button>
           </div>

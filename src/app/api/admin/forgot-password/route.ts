@@ -29,6 +29,7 @@ const GENERIC_OK = NextResponse.json({
 });
 
 export async function POST(req: NextRequest) {
+  // First gate: per-IP. Blocks a single attacker burst.
   const rl = checkRateLimit(`${clientIp(req)}:forgot-password`);
   if (!rl.allowed) {
     return NextResponse.json(
@@ -49,6 +50,14 @@ export async function POST(req: NextRequest) {
   }
 
   const normalized = email.trim().toLowerCase();
+
+  // Second gate: per-email. Blocks the IP-rotation pattern where an attacker
+  // tries the same address from many addresses. Same generic OK response so
+  // the limit doesn't leak which addresses exist.
+  const emailRl = checkRateLimit(`email:${normalized}:forgot-password`);
+  if (!emailRl.allowed) {
+    return GENERIC_OK;
+  }
   const supabase = createServerClient();
 
   const { data: admin, error } = await supabase

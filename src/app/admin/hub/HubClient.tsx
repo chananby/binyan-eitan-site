@@ -320,6 +320,10 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
   const [draftBody,     setDraftBody]     = useState("");
   const [draftPinned,   setDraftPinned]   = useState(false);
   const [noteSaving,    setNoteSaving]    = useState(false);
+  // Tracks pin toggles in flight to prevent the double-click race where a
+  // second click sends a PATCH with the pre-toggle value before the first
+  // returned and updated local state.
+  const [pinningIds, setPinningIds] = useState<Set<string>>(new Set());
 
   async function loadNotes() {
     setNotesLoading(true);
@@ -365,12 +369,18 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
     } finally { setNoteSaving(false); }
   }
   async function togglePin(n: AdminNote) {
-    await fetch(`/api/admin/notes/${n.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pinned: !n.pinned }),
-    });
-    await loadNotes();
+    if (pinningIds.has(n.id)) return; // already in flight
+    setPinningIds((s) => new Set(s).add(n.id));
+    try {
+      await fetch(`/api/admin/notes/${n.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pinned: !n.pinned }),
+      });
+      await loadNotes();
+    } finally {
+      setPinningIds((s) => { const next = new Set(s); next.delete(n.id); return next; });
+    }
   }
   async function deleteNote(id: string) {
     if (!confirm("למחוק את הפתקית?")) return;
@@ -647,6 +657,14 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
                 maxLength={5000}
                 className="w-full border border-[#E0DFD9] bg-[#F5F4F0] px-3 py-2 text-sm focus:border-[#8D775F] focus:outline-none transition-colors resize-y"
               />
+              {/* Soft warning when the body looks like it contains a password (10+
+                  non-whitespace chars with both letters AND digits). Doesn't block
+                  save — just a nudge. Matches the policy stated in placeholder. */}
+              {/\S*[A-Za-z]\S*\d\S*|\S*\d\S*[A-Za-z]\S*/.test(draftBody) && /\S{10,}/.test(draftBody) && (
+                <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded -mt-1">
+                  ⚠ נראה כמו סיסמה בתוך ההערה. השדה לא מוצפן — אחסן רק רמזים (איפה למצוא, מי בעלי החשבון), לא סיסמאות עצמן.
+                </p>
+              )}
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 text-xs cursor-pointer">
                   <input type="checkbox" checked={draftPinned} onChange={e => setDraftPinned(e.target.checked)} className="accent-[#8D775F]" />
@@ -689,7 +707,12 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
                       <p className="text-sm font-bold text-[#2D2926] truncate">{n.title}</p>
                     </div>
                     <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                      <button onClick={() => togglePin(n)} title={n.pinned ? "בטל הצמדה" : "הצמד"} className="p-1 hover:bg-[#F5F4F0] rounded">
+                      <button
+                        onClick={() => togglePin(n)}
+                        disabled={pinningIds.has(n.id)}
+                        title={n.pinned ? "בטל הצמדה" : "הצמד"}
+                        className="p-1 hover:bg-[#F5F4F0] rounded disabled:opacity-50 disabled:cursor-wait"
+                      >
                         {n.pinned ? <PinOff size={11} className="text-[#2D2926]/50" /> : <Pin size={11} className="text-[#2D2926]/50" />}
                       </button>
                       <button onClick={() => openEditNote(n)} title="ערוך" className="p-1 hover:bg-[#F5F4F0] rounded">
