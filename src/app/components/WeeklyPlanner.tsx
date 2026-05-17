@@ -4,10 +4,14 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, Trash2, ChevronDown, ChevronUp, Loader2, AlertCircle, Check } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
+// Days in a displayed week. Israeli construction work week is Sun–Thu (5 days);
+// Fri/Sat are skipped from the matrix display.
+const WEEK_DAYS = 5;
+
 interface WeeklyPlanRow {
   id: string;
   project_id: string;
-  week_start: string; // YYYY-MM-DD (Monday)
+  week_start: string; // YYYY-MM-DD (Sunday — Israeli week start)
   task_name: string;
   subcontractor: string | null;
   workers_needed: number;
@@ -30,30 +34,42 @@ const ORDER_LABELS: Record<string, { label: string; color: string }> = {
 const ORDER_OPTIONS = ["none", "ordered", "in_transit", "delivered"] as const;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function getMondayISO(date: Date): string {
+
+/** YYYY-MM-DD in local timezone. Avoids the TZ shift bug that `toISOString()`
+ *  introduces when local time is on one side of midnight and UTC on the other
+ *  (e.g. midnight Sun in IL = 22:00 Sat UTC → toISOString would say Saturday). */
+function localISODate(d: Date): string {
+  return d.toLocaleDateString("sv-SE"); // "sv-SE" gives YYYY-MM-DD format
+}
+
+/** Sunday of the week containing `date` (Israeli week start, day 0).
+ *  Returns a YYYY-MM-DD string in local time. */
+function getSundayLocal(date: Date): string {
   const d = new Date(date);
-  const day = d.getDay(); // 0=Sun
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  return d.toISOString().slice(0, 10);
+  d.setDate(d.getDate() - d.getDay()); // back to nearest Sunday (incl. today)
+  return localISODate(d);
 }
 
-function addWeeks(mondayISO: string, n: number): string {
-  const d = new Date(mondayISO);
+function addWeeks(sundayISO: string, n: number): string {
+  const d = new Date(sundayISO + "T12:00:00"); // noon avoids DST edge cases
   d.setDate(d.getDate() + n * 7);
-  return d.toISOString().slice(0, 10);
+  return localISODate(d);
 }
 
-function weekLabel(mondayISO: string): string {
-  const d = new Date(mondayISO + "T12:00:00");
-  const end = new Date(mondayISO + "T12:00:00");
-  end.setDate(end.getDate() + 6);
+/** "DD.M – DD.M" range for the displayed work week (Sun + WEEK_DAYS-1 = Thu). */
+function weekLabel(sundayISO: string): string {
+  const d = new Date(sundayISO + "T12:00:00");
+  const end = new Date(sundayISO + "T12:00:00");
+  end.setDate(end.getDate() + (WEEK_DAYS - 1));
   const fmt = (x: Date) => x.toLocaleDateString("he-IL", { day: "numeric", month: "numeric" });
   return `${fmt(d)} – ${fmt(end)}`;
 }
 
-function weekNumber(mondayISO: string): number {
-  const d = new Date(mondayISO + "T12:00:00");
+/** Approximate week number for visual anchoring. Not ISO-compliant — the user
+ *  has flagged the number itself as unimportant; it's kept so adjacent rows
+ *  read as "next/previous week" at a glance. */
+function weekNumber(sundayISO: string): number {
+  const d = new Date(sundayISO + "T12:00:00");
   const startOfYear = new Date(d.getFullYear(), 0, 1);
   const days = Math.floor((d.getTime() - startOfYear.getTime()) / 86400000);
   return Math.ceil((days + startOfYear.getDay() + 1) / 7);
@@ -92,12 +108,12 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
   const editRef = useRef<HTMLInputElement | null>(null);
 
   // ── Derive visible week range ─────────────────────────────────────────────
-  const todayMonday = getMondayISO(new Date());
+  const todaySunday = getSundayLocal(new Date());
   const PAST_WEEKS = 4;
   const FUTURE_WEEKS = 12;
   const visibleWeeks: string[] = [];
   for (let i = -PAST_WEEKS; i <= FUTURE_WEEKS; i++) {
-    visibleWeeks.push(addWeeks(todayMonday, i));
+    visibleWeeks.push(addWeeks(todaySunday, i));
   }
 
   // ── Load ──────────────────────────────────────────────────────────────────
@@ -259,8 +275,8 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
         /* ── Week sections ── */
         <div className="space-y-1">
           {visibleWeeks.map(weekStart => {
-            const isPast    = weekStart < todayMonday;
-            const isToday   = weekStart === todayMonday;
+            const isPast    = weekStart < todaySunday;
+            const isToday   = weekStart === todaySunday;
             const weekRows  = rows.filter(r => r.week_start === weekStart);
             const weekTotal = weekRows.reduce((s, r) => s + (r.planned_cost ?? 0), 0);
             const cumul     = cumulativeByWeek[weekStart] ?? (Object.entries(cumulativeByWeek).filter(([w]) => w <= weekStart).at(-1)?.[1] ?? 0);
