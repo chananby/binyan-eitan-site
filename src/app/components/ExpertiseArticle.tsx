@@ -78,7 +78,12 @@ export default function ExpertiseArticle() {
 
   const rawData = useTranslationsRaw() as Record<string, unknown>;
   const articles: Article[] = Array.isArray(rawData?.articles)
-    ? (rawData.articles as Article[]).filter((a) => !a.archived)
+    ? (rawData.articles as Article[]).filter(
+        // Exclude archived (legacy) AND drafts (published === false).
+        // Articles without a `published` field are treated as published
+        // (backward-compat for content predating the draft flag).
+        (a) => !a.archived && (a as { published?: boolean }).published !== false,
+      )
     : [];
 
   return (

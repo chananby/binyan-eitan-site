@@ -139,13 +139,20 @@ export function isAdminAuthedFromRequest(req: NextRequest): boolean {
   return getAdminRoleFromRequest(req) === "admin";
 }
 
-// ── Server-component helper ────────────────────────────────────────────────────
+// ── Server-component helpers ───────────────────────────────────────────────────
 export function isAdminAuthed(): boolean {
   const secret = getTokenSecret();
   if (!secret) return false;
   const token = cookies().get(ADMIN_COOKIE)?.value;
   if (!token) return false;
   return verifyIdentityToken(token, secret, ADMIN_MAX_AGE) !== null;
+}
+
+/** Server-component variant of verifyInternalToken — reads cookies() directly. */
+export function isInternalAuthed(): boolean {
+  const token = cookies().get(INTERNAL_COOKIE)?.value;
+  if (!token) return false;
+  return verifyInternalToken(token);
 }
 
 // ── Cookie builders ────────────────────────────────────────────────────────────

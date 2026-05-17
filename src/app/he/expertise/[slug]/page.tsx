@@ -1,6 +1,8 @@
 import loadDynamic from "next/dynamic";
 import type { Metadata } from "next";
-import translations from "@/src/lib/translations.json";
+import { notFound } from "next/navigation";
+import { getServerArticleBySlug, isArticlePublic } from "@/src/lib/server-translations";
+import { isAdminAuthed, isInternalAuthed } from "@/src/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -13,12 +15,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const article = (translations.articles as Array<{
-    slug: string;
-    title_he: string;
-    intro_he?: string;
-    heroImage?: string;
-  }>).find((a) => a.slug === params.slug);
+  const article = await getServerArticleBySlug(params.slug);
 
   if (!article) {
     return {
@@ -27,38 +24,53 @@ export async function generateMetadata({
     };
   }
 
-  const description = article.intro_he?.slice(0, 160) ?? "";
+  const description = (article.intro_he ?? "").slice(0, 160);
   const image = article.heroImage ?? "/luxury-interior-finish-transformation.jpg";
+  const title = article.title_he ?? "";
+
+  // Drafts are never indexed even when previewed by an authed editor.
+  const noindex = !isArticlePublic(article);
 
   return {
-    title: article.title_he,
+    title,
     description,
+    robots: noindex ? { index: false, follow: false } : undefined,
     alternates: {
       canonical: `https://binyaneitan.com/he/expertise/${params.slug}`,
       languages: { en: `https://binyaneitan.com/en/expertise/${params.slug}` },
     },
     openGraph: {
-      title: article.title_he,
+      title,
       description,
       url: `https://binyaneitan.com/he/expertise/${params.slug}`,
       siteName: "בניין איתן",
       locale: "he_IL",
       type: "article",
-      images: [{ url: image, width: 1600, height: 900, alt: article.title_he }],
+      images: [{ url: image, width: 1600, height: 900, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
-      title: article.title_he,
+      title,
       description,
       images: [image],
     },
   };
 }
 
-export default function HeExpertiseSlugPage({
+export default async function HeExpertiseSlugPage({
   params,
 }: {
   params: { slug: string };
 }) {
+  const article = await getServerArticleBySlug(params.slug);
+  if (!article) notFound();
+
+  // Drafts (published === false) and archived articles are only viewable by
+  // authed admins/internal users for preview purposes. Everyone else gets 404.
+  if (!isArticlePublic(article)) {
+    const authed = isAdminAuthed() || isInternalAuthed();
+    if (!authed) notFound();
+  }
+
   return <ArticleDetailPage slug={params.slug} />;
 }

@@ -31,6 +31,10 @@ interface Article {
   summary_he?: string;
   mainImage?: string;
   mainImageAlt?: string;
+  // Draft/Published gate. Undefined (older articles) is treated as published
+  // for backward compatibility. Newly-created articles start as `false`
+  // (draft) so editors don't accidentally push half-written content live.
+  published?: boolean;
 }
 
 interface Faq {
@@ -589,12 +593,13 @@ function MediaManager({
 
 // ── Articles Manager ───────────────────────────────────────────────────────────
 function ArticlesManager({
-  articles, onAdd, onUpdate, onDelete,
+  articles, onAdd, onUpdate, onDelete, onTogglePublish,
 }: {
   articles: Article[];
   onAdd: () => void;
   onUpdate: (idx: number, field: keyof Article, value: string) => void;
   onDelete: (idx: number) => void;
+  onTogglePublish: (idx: number) => void;
 }) {
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
 
@@ -717,6 +722,27 @@ function ArticlesManager({
               <span className="font-mono text-xs text-[#8D775F] bg-[#8D775F]/10 px-2 py-0.5 rounded font-bold">
                 #{String(idx + 1).padStart(2, "0")}
               </span>
+              {/* Draft / Published toggle. Articles predating this feature have
+                  `published === undefined` and are treated as published — the
+                  toggle shows them as published until first clicked. */}
+              {(() => {
+                const isDraft = article.published === false;
+                return (
+                  <button
+                    onClick={() => onTogglePublish(idx)}
+                    title={isDraft
+                      ? "טיוטה — לא מוצג באתר הציבורי. לחץ כדי לפרסם."
+                      : "פורסם — מוצג באתר. לחץ כדי להחזיר לטיוטה."}
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded shrink-0 transition-colors ${
+                      isDraft
+                        ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                        : "bg-green-100 text-green-800 hover:bg-green-200"
+                    }`}
+                  >
+                    {isDraft ? "טיוטה" : "פורסם"}
+                  </button>
+                );
+              })()}
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <label className="text-xs font-bold text-gray-500 shrink-0">Slug:</label>
                 <input type="text" dir="ltr" value={article.slug}
@@ -1173,6 +1199,7 @@ export default function ContentEditorPage() {
       tip_en: "", tip_he: "",
       summary_en: "", summary_he: "",
       mainImage: "", mainImageAlt: "",
+      published: false,
     }]);
     setDirty(true);
   };
@@ -1182,6 +1209,16 @@ export default function ContentEditorPage() {
   };
   const deleteArticle = (idx: number) => {
     setArticles((p) => p.filter((_, i) => i !== idx));
+    setDirty(true);
+  };
+  const toggleArticlePublish = (idx: number) => {
+    setArticles((p) => p.map((a, i) => {
+      if (i !== idx) return a;
+      // Default behaviour: legacy articles without a `published` field are
+      // treated as published, so the first toggle moves them to draft.
+      const currentlyPublished = a.published !== false;
+      return { ...a, published: !currentlyPublished };
+    }));
     setDirty(true);
   };
 
@@ -1396,6 +1433,7 @@ export default function ContentEditorPage() {
             onAdd={addArticle}
             onUpdate={updateArticle}
             onDelete={deleteArticle}
+            onTogglePublish={toggleArticlePublish}
           />
         </div>
       )}

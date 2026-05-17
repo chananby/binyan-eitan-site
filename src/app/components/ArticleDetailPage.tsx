@@ -392,7 +392,11 @@ export default function ArticleDetailPage({ slug }: Props) {
           {article.related && (() => {
             const relatedSlugs = article.related!.split("|").filter(Boolean);
             const relatedArticles = (rawData?.articles as Article[] | undefined)
-              ?.filter(a => relatedSlugs.includes(a.slug) && !a.archived) ?? [];
+              ?.filter(a =>
+                relatedSlugs.includes(a.slug) &&
+                !a.archived &&
+                (a as { published?: boolean }).published !== false,
+              ) ?? [];
             if (!relatedArticles.length) return null;
             return (
               <div className="mt-16 pt-12 border-t border-warm-gray-light">
