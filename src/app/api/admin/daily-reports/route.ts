@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query: any = supabase
       .from("daily_reports")
-      .select("*")
+      .select("*, project:projects(id, name)")
       .order("created_at", { ascending: false })
       .limit(50);
 
