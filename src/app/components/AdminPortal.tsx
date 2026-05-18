@@ -113,7 +113,7 @@ interface Milestone {
 }
 interface Material {
   id: string; project_id: string; material_name: string; quantity: number;
-  unit: string; supplier: string | null; cost: number | null; category?: string; created_at: string;
+  unit: string; supplier: string | null; cost: number | null; category?: string; received_at: string | null;
 }
 interface BudgetLine { project_id: string; project_name: string; total: number; }
 interface IncomeRecord {
@@ -504,7 +504,7 @@ ${detailHtml}
   }, [todayLogs, staff]);
 
   const todayExpensesTotal = useMemo(
-    () => materials.filter(m => m.created_at.startsWith(todayStr)).reduce((s, m) => s + (m.cost ?? 0), 0),
+    () => materials.filter(m => (m.received_at ?? "").startsWith(todayStr)).reduce((s, m) => s + (m.cost ?? 0), 0),
     [materials, todayStr]
   );
 
