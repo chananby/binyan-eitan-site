@@ -1346,7 +1346,7 @@
       <span class="cloud-icon">💾</span>
       <span class="cloud-text">מקומי בלבד</span>
     </div>
-    <button class="btn btn-ghost" id="btn-reset">נקה הכל</button>
+    <button class="btn btn-ghost" id="btn-reset" title="פתיחת הצעה חדשה ריקה">✨ הצעה חדשה</button>
     <button class="btn btn-primary" id="btn-print">📄 הדפס / שמור PDF</button>
   </div>
 </div>
@@ -1648,7 +1648,38 @@
     ]
   };
 
-  let state = loadState() || JSON.parse(JSON.stringify(defaultState));
+  // Company-config keys persist across "new quote" — logo, contact info, default
+  // milestones, panel width. Everything else is quote-specific and resets.
+  const COMPANY_CONFIG_KEYS = [
+    'logo','companyName','companyTag','companyAddress','companyPhone','companyEmail',
+    'companyWebsite','companyId','bankLine1','bankAccount','bankOwner','signatureLine',
+    'companyFieldsLocked','panelWidthPx','defaultPaymentMilestones',
+  ];
+
+  function urlHasQuoteId() {
+    try { return !!new URL(window.location.href).searchParams.get('id'); }
+    catch { return false; }
+  }
+
+  // Init logic:
+  //  • URL has ?id=  → existing quote about to be loaded from cloud. Use the
+  //    cached localStorage (likely the same quote) so the form paints something
+  //    instantly; the cloud fetch then overwrites it with the source of truth.
+  //  • URL has no id → user wants a fresh quote. Reset everything except the
+  //    company-config keys so the editor doesn't surface the *previous* quote.
+  let state;
+  if (urlHasQuoteId()) {
+    state = loadState() || JSON.parse(JSON.stringify(defaultState));
+  } else {
+    state = JSON.parse(JSON.stringify(defaultState));
+    const prev = loadState();
+    if (prev) {
+      COMPANY_CONFIG_KEYS.forEach(k => { if (prev[k] !== undefined) state[k] = prev[k]; });
+      // Auto-increment quote number so successive new quotes stay sequential.
+      const num = parseInt(prev.quoteNumber, 10);
+      if (!isNaN(num)) state.quoteNumber = String(num + 1);
+    }
+  }
 
   function loadState() {
     try {
@@ -1670,6 +1701,8 @@
 
   // Browser uses document.title both as the PDF header and as the downloaded
   // filename, so this needs to track the current quote's identity live.
+  // When embedded in an iframe (the /admin/quotes page) the parent tab's title
+  // is independent — postMessage so the host page can mirror it.
   function updateDocumentTitle() {
     const num = state.quoteNumber ? '#' + state.quoteNumber : '';
     const customer = (state.customerName || '').trim();
@@ -1684,6 +1717,11 @@
       title = 'הצעת מחיר חדשה';
     }
     document.title = title;
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'quote-title', title }, '*');
+      }
+    } catch {}
   }
 
   // ============ CLOUD SYNC (Supabase via /api/admin/quotes) ============
@@ -2656,7 +2694,14 @@
           // Standard → standard: no DOM change needed; fall through to the
           // per-item update path below.
         } else if (field === 'unitCustom') {
+          // Custom-unit free text — mirror the value into the same field the
+          // preview reads (item.unit) and trigger an immediate preview refresh
+          // so the right-hand panel stays in sync with every keystroke.
           item.unit = t.value;
+          item.unitIsCustom = true;
+          renderPreview();
+          saveState();
+          return;
         } else {
           item[field] = Number(t.value) || 0;
         }
@@ -3112,37 +3157,20 @@
   });
 
   document.getElementById('btn-reset').addEventListener('click', () => {
-    if (confirm('לנקות את כל הנתונים ולהתחיל מחדש?\n(פרטי החברה והלוגו יישמרו)')) {
-      const company = {};
-      ['logo','companyName','companyTag','companyAddress','companyPhone','companyEmail','companyWebsite','companyId','bankLine1','bankAccount','bankOwner','signatureLine','companyFieldsLocked','panelWidthPx','defaultPaymentMilestones']
-        .forEach(k => company[k] = state[k]);
-      state = JSON.parse(JSON.stringify(defaultState));
-      Object.assign(state, company);
-      const num = parseInt(state.quoteNumber, 10);
-      if (!isNaN(num)) state.quoteNumber = String(num + 1);
-      state.date = todayISO(new Date());
-      const v = new Date(); v.setDate(v.getDate() + 30);
-      state.validUntil = todayISO(v);
-      // Auto-create payment block from default milestones
-      const defaultMs = state.defaultPaymentMilestones || [];
-      if (defaultMs.length > 0) {
-        state.blocks = state.blocks || [];
-        state.blocks.push({
-          id: uid(),
-          type: 'payment',
-          title: 'תנאי תשלום',
-          intro: 'מבנה מוצע (לתיאום סופי עם המזמין):',
-          milestones: defaultMs.map(m => ({
-            id: uid(),
-            description: m.description,
-            percentage: m.percentage
-          }))
-        });
+    // Auto-save means there's no "unsaved" risk — just navigate the parent to
+    // /admin/quotes (no id) and the iframe will reload into a fresh defaultState
+    // (company-config keys are preserved by the init logic via localStorage).
+    try {
+      window.parent?.postMessage({ type: 'quote-new' }, '*');
+    } catch {}
+    // Fallback when not embedded (running the HTML standalone for testing).
+    try {
+      if (window.parent === window) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('id');
+        window.location.assign(url.toString());
       }
-      // Detach from cloud so the next save creates a brand-new row
-      cloudSync.detach();
-      render();
-    }
+    } catch {}
   });
 
   // Logo buttons are inside a re-rendered container, so use delegation with closest()

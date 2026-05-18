@@ -34,17 +34,25 @@ export default function QuoteGeneratorClient() {
     };
   }, []);
 
-  // Listen for the iframe announcing it created a new quote — sync URL so a
-  // browser refresh keeps the same quote loaded.
+  // iframe → parent bridge:
+  //  • quote-id-assigned: sync the URL so a browser refresh keeps the same quote.
+  //  • quote-title:       mirror the iframe's document.title onto the parent tab.
+  //  • quote-new:         the "new quote" button inside the iframe — drop ?id=
+  //                       and reload so the iframe boots into a fresh defaultState.
   useEffect(() => {
     function onMsg(e: MessageEvent) {
-      const d = e.data as { type?: string; id?: string } | null;
-      if (d?.type === "quote-id-assigned" && d.id && !quoteId) {
+      const d = e.data as { type?: string; id?: string; title?: string } | null;
+      if (!d || typeof d !== "object") return;
+      if (d.type === "quote-id-assigned" && d.id && !quoteId) {
         try {
           const url = new URL(window.location.href);
           url.searchParams.set("id", d.id);
           window.history.replaceState({}, "", url.toString());
         } catch {}
+      } else if (d.type === "quote-title" && typeof d.title === "string") {
+        document.title = d.title;
+      } else if (d.type === "quote-new") {
+        window.location.assign("/admin/quotes");
       }
     }
     window.addEventListener("message", onMsg);
