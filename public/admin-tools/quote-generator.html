@@ -1058,6 +1058,7 @@
     font-weight: 700;
     color: var(--brand);
     margin-bottom: 2px;
+    white-space: pre-wrap;
   }
   .item-desc-text {
     font-size: 9.5pt;
@@ -1846,10 +1847,15 @@
           <button class="btn-icon" data-delete-section="${section.id}" title="מחק פרק">🗑</button>
         </div>
         ${section.items.map(item => {
-          const unit = item.unit || "יח'";
           // Explicit flag wins; OR fallback for legacy items that have a non-standard unit
           // without the flag (backward compat with quotes saved before the flag existed).
           const unitIsCustom = !!item.unitIsCustom || (!!item.unit && !UNIT_OPTIONS.includes(item.unit));
+          // standardUnit drives the <select> selected option (only meaningful when not custom);
+          // customUnit drives the free-text input value — must be the raw item.unit, never the
+          // "יח'" placeholder fallback, otherwise switching to "אחר…" looks like the unit is set
+          // when it isn't.
+          const standardUnit = unitIsCustom ? '' : (item.unit || "יח'");
+          const customUnit   = unitIsCustom ? (item.unit || '') : '';
           const lineTotal = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
           const nameMissing = !item.name && (item.description || Number(item.quantity) || Number(item.unitPrice));
           return `
@@ -1869,7 +1875,7 @@
               <div class="field-cell">
                 <span class="field-label-tiny">יחידה</span>
                 <select data-item-field="unit" data-section-id="${section.id}" data-item-id="${item.id}">
-                  ${UNIT_OPTIONS.map(u => `<option value="${esc(u)}"${!unitIsCustom && unit === u ? ' selected' : ''}>${esc(u)}</option>`).join('')}
+                  ${UNIT_OPTIONS.map(u => `<option value="${esc(u)}"${!unitIsCustom && standardUnit === u ? ' selected' : ''}>${esc(u)}</option>`).join('')}
                   <option value="__custom__"${unitIsCustom ? ' selected' : ''}>אחר…</option>
                 </select>
               </div>
@@ -1887,7 +1893,7 @@
             </div>
             ${unitIsCustom ? `
               <input type="text" class="item-unit-custom" placeholder="הקלד יחידה מותאמת"
-                     value="${esc(unit)}"
+                     value="${esc(customUnit)}"
                      data-item-field="unitCustom" data-section-id="${section.id}" data-item-id="${item.id}">
             ` : ''}
             <textarea class="item-desc auto-grow" rows="1" placeholder="תיאור מפורט (אופציונלי - תומך מספר שורות)"
@@ -2625,6 +2631,15 @@
             renderSections();
             renderPreview();
             saveState();
+            // After full rebuild the textareas lose their measured height — re-fit them,
+            // then move focus to the freshly created custom input for immediate typing.
+            requestAnimationFrame(() => {
+              autoSizeAll();
+              const customInput = document.querySelector(
+                `input.item-unit-custom[data-item-id="${item.id}"]`
+              );
+              if (customInput) customInput.focus();
+            });
             return;
           }
           const wasCustom = !!item.unitIsCustom;
@@ -2635,6 +2650,7 @@
             renderSections();
             renderPreview();
             saveState();
+            requestAnimationFrame(autoSizeAll);
             return;
           }
           // Standard → standard: no DOM change needed; fall through to the
