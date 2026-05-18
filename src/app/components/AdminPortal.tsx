@@ -16,12 +16,16 @@ import {
   Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag, Grid3x3, Download, Plus,
   UserCog, Check,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { Card } from "../admin/_components/shared/Card";
 import { Field } from "../admin/_components/shared/Field";
 import { Btn } from "../admin/_components/shared/Btn";
 import { TabRefreshBar } from "../admin/_components/shared/TabRefreshBar";
-import { INPUT, WEATHER_OPTIONS } from "../admin/_components/shared/constants";
-import type { DailyReport } from "../admin/_components/shared/types";
+import { INPUT } from "../admin/_components/shared/constants";
+
+const ReportsTab = dynamic(() => import("../admin/_components/tabs/ReportsTab"), {
+  loading: () => <div className="text-sm text-charcoal/40 text-center py-8">טוען דוחות...</div>,
+});
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
@@ -205,7 +209,6 @@ export default function AdminPortal() {
   const [budget,        setBudget]        = useState<BudgetLine[]>([]);
   const [income,        setIncome]        = useState<IncomeRecord[]>([]);
   const [incomeTotals,  setIncomeTotals]  = useState<Record<string, number>>({});
-  const [reports,       setReports]       = useState<DailyReport[]>([]);
   const [dataLoading,   setDataLoading]   = useState(false);
   const [attLoadErr,    setAttLoadErr]    = useState<string | null>(null);
 
@@ -471,15 +474,6 @@ ${detailHtml}
   const [incLoading,   setIncLoading]   = useState(false);
   const [incMsg,       setIncMsg]       = useState("");
 
-  // Reports UI
-  const [reportProjectId, setReportProjectId] = useState("");
-  const [reportDate,      setReportDate]      = useState(new Date().toISOString().slice(0, 10));
-  const [reportWeather,   setReportWeather]   = useState("");
-  const [reportSummary,   setReportSummary]   = useState("");
-  const [reportSpecial,   setReportSpecial]   = useState("");
-  const [reportLoading,   setReportLoading]   = useState(false);
-  const [reportMsg,       setReportMsg]       = useState("");
-
   // ── Derived values ─────────────────────────────────────────────────────────
   const todayStr = new Date().toISOString().slice(0, 10);
   const weekDays = useMemo(() => getWeekDays(), []);
@@ -597,10 +591,6 @@ ${detailHtml}
   }, [tab, matFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (authState === "admin" && tab === "reports") loadReports();
-  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
     if (authState === "admin" && tab === "income") loadIncome();
   }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -691,11 +681,6 @@ ${detailHtml}
     if (res.ok) { const d = await res.json(); setMaterials(d.materials ?? []); setBudget(d.budget ?? []); }
   }
 
-  async function loadReports() {
-    const res = await fetch("/api/admin/daily-reports");
-    if (res.ok) { const d = await res.json(); setReports(d.reports ?? []); }
-  }
-
   async function loadIncome() {
     const res = await fetch("/api/admin/income");
     if (res.ok) { const d = await res.json(); setIncome(d.income ?? []); setIncomeTotals(d.totals ?? {}); }
@@ -729,7 +714,6 @@ ${detailHtml}
     try {
       if (tab === "expenses")                               { await loadMaterials(); setLastRefreshed(new Date()); }
       else if (tab === "income")                            { await loadIncome();    setLastRefreshed(new Date()); }
-      else if (tab === "reports")                           { await loadReports();   setLastRefreshed(new Date()); }
       else if (tab === "attendance" && authState === "admin")
         await Promise.all([loadData("admin"), loadPending()]);
       else
@@ -797,7 +781,7 @@ ${detailHtml}
     setAdminEmail(null); setAdminName(null);
     setPwCurrent(""); setPwNew(""); setPwConfirm(""); setPwMsg(null);
     setStaff([]); setTodayLogs([]); setProjects([]); setTasks([]);
-    setMaterials([]); setBudget([]); setIncome([]); setReports([]);
+    setMaterials([]); setBudget([]); setIncome([]);
   }
 
   async function handleChangePassword(e: React.FormEvent) {
@@ -1260,17 +1244,6 @@ ${detailHtml}
   }
 
   // ── Daily report ───────────────────────────────────────────────────────────
-  async function handleAddReport(e: React.FormEvent) {
-    e.preventDefault(); setReportLoading(true); setReportMsg("");
-    try {
-      const res  = await fetch("/api/admin/daily-reports", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project_id: reportProjectId, date: reportDate, weather: reportWeather, summary: reportSummary, special_events: reportSpecial }) });
-      const data = await res.json();
-      if (res.ok) { feedback.success(); setReportMsg("✓ דוח נשמר"); setReportSummary(""); setReportSpecial(""); setReportWeather(""); loadReports(); }
-      else        { feedback.error(); setReportMsg("שגיאה: " + (data.error ?? res.status)); }
-    } catch (err) { setReportMsg("שגיאת רשת: " + String(err)); }
-    finally { setReportLoading(false); }
-  }
 
   // ── Render: loading ────────────────────────────────────────────────────────
   if (authState === "loading") {
@@ -3068,60 +3041,14 @@ ${detailHtml}
           </div>
         )}
 
-        {/* ── REPORTS (admin only) ───────────────────────────────────────────── */}
+        {/* ── REPORTS (admin only) — lazy-loaded ─────────────────────────────── */}
         {tab === "reports" && isAdmin && (
-          <div className="space-y-5">
-            <TabRefreshBar loading={refreshing} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
-            <Card>
-              <div className="flex items-center gap-2 mb-3">
-                <ClipboardList size={16} strokeWidth={1.5} className="text-accent" />
-                <h2 className="font-heading text-base font-bold">הגשת דוח יומי</h2>
-              </div>
-              <form onSubmit={handleAddReport} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="פרויקט">
-                    <select value={reportProjectId} onChange={e => setReportProjectId(e.target.value)} required className={INPUT}>
-                      <option value="">בחר פרויקט...</option>
-                      {activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="תאריך"><input type="date" value={reportDate} onChange={e => setReportDate(e.target.value)} className={INPUT} dir="ltr" /></Field>
-                </div>
-                <Field label="מזג אוויר">
-                  <select value={reportWeather} onChange={e => setReportWeather(e.target.value)} className={INPUT}>
-                    <option value="">בחר...</option>
-                    {WEATHER_OPTIONS.map(w => <option key={w} value={w}>{w}</option>)}
-                  </select>
-                </Field>
-                <Field label="סיכום עבודה">
-                  <textarea value={reportSummary} onChange={e => setReportSummary(e.target.value)} placeholder="תאר את עבודת היום..." rows={4} className={`${INPUT} resize-none`} />
-                </Field>
-                <Field label="אירועים מיוחדים">
-                  <textarea value={reportSpecial} onChange={e => setReportSpecial(e.target.value)} placeholder="תקלות, ביקורת, הנחיות..." rows={2} className={`${INPUT} resize-none`} />
-                </Field>
-                <Btn loading={reportLoading} disabled={!reportProjectId}>שמור דוח</Btn>
-                {reportMsg && <p className={`text-xs ${reportMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{reportMsg}</p>}
-              </form>
-            </Card>
-
-            {reports.length > 0 && (
-              <Card title="דוחות אחרונים">
-                <div className="divide-y divide-charcoal/5">
-                  {reports.slice(0, 10).map(r => (
-                    <div key={r.id} className="py-3 space-y-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-semibold">{(r.project as { name?: string } | null)?.name ?? r.project_id}</p>
-                        <span className="text-[0.7rem] text-charcoal/40 tabular-nums">{r.date}</span>
-                      </div>
-                      {r.weather        && <p className="text-xs text-charcoal/50">{r.weather}</p>}
-                      {r.summary        && <p className="text-xs text-charcoal/70 line-clamp-2">{r.summary}</p>}
-                      {r.special_events && <p className="text-xs text-amber-600 line-clamp-1">⚠️ {r.special_events}</p>}
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-          </div>
+          <ReportsTab
+            activeProjects={activeProjects}
+            lastRefreshed={lastRefreshed}
+            refreshing={refreshing}
+            onTabRefresh={handleTabRefresh}
+          />
         )}
 
         {/* ── WEEKLY MATRIX (admin only) ─────────────────────────────────────── */}
