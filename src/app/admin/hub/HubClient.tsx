@@ -301,8 +301,19 @@ export interface HubClientProps {
   externalLinks: ExternalLinkGroup[];
 }
 
+// Map admin identity → "Author" label so an admin Hanan / Moti still shows the
+// same branded chip the exec-PIN path used. Other admins fall back to their name.
+function deriveAuthorFromAdmin(name?: string | null, email?: string | null): Author | null {
+  const n = (name  ?? "").toLowerCase();
+  const e = (email ?? "").toLowerCase();
+  if (n.includes("hanan") || n.includes("חנן") || e.startsWith("chanan") || e.startsWith("hanan")) return "Hanan";
+  if (n.includes("moti")  || n.includes("מוטי") || e.startsWith("moti")) return "Moti";
+  return null;
+}
+
 export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubClientProps) {
   const [author, setAuthor]       = useState<Author | null>(null);
+  const [adminName, setAdminName] = useState<string | null>(null);
   const [checking, setChecking]   = useState(true);
   const [query, setQuery]         = useState("");
   const [showApi, setShowApi]     = useState(false);
@@ -388,18 +399,54 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
     await loadNotes();
   }
 
-  // Load notes once we know we're authed
+  // Load notes once we know we're authed (either via admin cookie or exec PIN)
   useEffect(() => {
-    if (author) loadNotes();
-  }, [author]);
+    if (author || adminName) loadNotes();
+  }, [author, adminName]);
 
-  // Check existing auth cookie
+  // Auth resolution: admin cookie first (bypass PIN), then exec cookie, then redirect.
   useEffect(() => {
-    fetch("/api/executive/auth")
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.author) setAuthor(d.author as Author); })
-      .catch(() => {})
-      .finally(() => setChecking(false));
+    let cancelled = false;
+    (async () => {
+      try {
+        // 1. Authenticated primary admin → bypass PIN entirely.
+        const meRes = await fetch("/api/admin/whoami", { cache: "no-store" });
+        const me    = await meRes.json().catch(() => ({}));
+        if (cancelled) return;
+
+        if (me?.role === "admin") {
+          setAdminName(me.name ?? "מנהל");
+          const derived = deriveAuthorFromAdmin(me.name, me.email);
+          if (derived) setAuthor(derived);
+          setChecking(false);
+          return;
+        }
+
+        // 2. Non-admin session with a valid exec cookie → preserve existing flow.
+        const execRes = await fetch("/api/executive/auth");
+        if (cancelled) return;
+        if (execRes.ok) {
+          const d = await execRes.json().catch(() => ({}));
+          if (d?.author) {
+            setAuthor(d.author as Author);
+            setChecking(false);
+            return;
+          }
+        }
+
+        // 3. Foreman → send to their portal (hub is admin-scoped).
+        if (me?.role === "foreman") {
+          window.location.assign("/admin");
+          return;
+        }
+
+        // 4. No session at all → login, with redirectTo for round-trip.
+        window.location.assign("/admin?redirectTo=/admin/hub");
+      } catch {
+        if (!cancelled) window.location.assign("/admin?redirectTo=/admin/hub");
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   // Load API toggle + quick order from localStorage
@@ -430,8 +477,12 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
   };
 
   const handleLogout = async () => {
-    await fetch("/api/executive/auth", { method: "DELETE" }).catch(() => {});
-    setAuthor(null);
+    // Clear both admin and exec cookies (best-effort) and send to login.
+    await Promise.all([
+      fetch("/api/admin-auth",     { method: "DELETE" }).catch(() => {}),
+      fetch("/api/executive/auth", { method: "DELETE" }).catch(() => {}),
+    ]);
+    window.location.assign("/admin");
   };
 
   // ── Filtered & grouped data ────────────────────────────────────────────────
@@ -483,8 +534,11 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
   );
 
   // ── Auth gate ──────────────────────────────────────────────────────────────
+  // Admin cookie OR exec cookie counts as authed. Anonymous / foreman is handled
+  // by the resolver above (window.location.assign), so this gate only catches
+  // the residual edge case of a non-admin without an exec cookie.
   if (checking) return <div className="min-h-screen bg-[#F5F4F0]" />;
-  if (!author)  return <PinGate onAuth={setAuthor} />;
+  if (!author && !adminName) return <PinGate onAuth={setAuthor} />;
 
   const hasUiResults  = Object.keys(uiGroups).length > 0;
   const hasExtResults = extGroups.length > 0;
@@ -503,7 +557,7 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
               <h1 className="text-[0.95rem] font-bold text-[#2D2926] leading-none mt-0.5">מרכז שליטה</h1>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#2D2926]/40">{author === "Hanan" ? "חנן" : "מוטי"}</span>
+              <span className="text-xs text-[#2D2926]/40">{author === "Hanan" ? "חנן" : author === "Moti" ? "מוטי" : (adminName ?? "מנהל")}</span>
               <ShieldCheck size={12} strokeWidth={1.5} className="text-[#8D775F]/50" />
               <button
                 onClick={handleLogout}
