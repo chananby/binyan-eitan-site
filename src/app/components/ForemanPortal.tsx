@@ -274,7 +274,7 @@ export default function ForemanPortal({
         const d = await matRes.value.json();
         const ws = getWeekStart();
         const total = (d.materials ?? [])
-          .filter((m: { created_at: string; cost: number | null }) => m.created_at >= ws)
+          .filter((m: { received_at: string | null; cost: number | null }) => (m.received_at ?? "") >= ws)
           .reduce((s: number, m: { cost: number | null }) => s + (m.cost ?? 0), 0);
         setWeeklyBurn(total);
       }
