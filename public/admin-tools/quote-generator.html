@@ -1359,7 +1359,7 @@
       <div class="form-row three">
         <div class="form-group">
           <label>מספר הצעה</label>
-          <input type="text" data-field="quoteNumber" value="465">
+          <input type="text" data-field="quoteNumber" value="" placeholder="יוקצה בשמירה" title="המספר ייקבע אוטומטית מהשרת בשמירה הראשונה">
         </div>
         <div class="form-group">
           <label>תאריך</label>
@@ -1591,7 +1591,7 @@
   }
 
   const defaultState = {
-    quoteNumber: '465',
+    quoteNumber: '',
     date: todayISO(today),
     validUntil: todayISO(in30),
     customerName: '',
@@ -1667,17 +1667,20 @@
   //    instantly; the cloud fetch then overwrites it with the source of truth.
   //  • URL has no id → user wants a fresh quote. Reset everything except the
   //    company-config keys so the editor doesn't surface the *previous* quote.
+  //
+  // Quote-number: blank for a fresh quote — the server assigns the number on
+  // the first save (POST /api/admin/quotes). Previously the client kept a
+  // per-device counter in localStorage, which produced gaps (every visit
+  // burned a number) and collisions (two devices ⇒ duplicate quote_number).
   let state;
   if (urlHasQuoteId()) {
     state = loadState() || JSON.parse(JSON.stringify(defaultState));
   } else {
     state = JSON.parse(JSON.stringify(defaultState));
+    state.quoteNumber = '';
     const prev = loadState();
     if (prev) {
       COMPANY_CONFIG_KEYS.forEach(k => { if (prev[k] !== undefined) state[k] = prev[k]; });
-      // Auto-increment quote number so successive new quotes stay sequential.
-      const num = parseInt(prev.quoteNumber, 10);
-      if (!isNaN(num)) state.quoteNumber = String(num + 1);
     }
   }
 
@@ -1707,12 +1710,12 @@
     const num = state.quoteNumber ? '#' + state.quoteNumber : '';
     const customer = (state.customerName || '').trim();
     let title;
-    if (customer && num) {
+    if (num && customer) {
       title = `הצעת מחיר ${num} - ${customer}`;
-    } else if (customer) {
-      title = `הצעת מחיר - ${customer}`;
     } else if (num) {
       title = `הצעת מחיר ${num}`;
+    } else if (customer) {
+      title = `הצעת מחיר חדשה - ${customer}`;
     } else {
       title = 'הצעת מחיר חדשה';
     }
@@ -1790,6 +1793,18 @@
         if (result.id && !quoteId) {
           quoteId = result.id;
           updateURLWithId(quoteId);
+        }
+        // Server-allocated quote_number — surface it to the form, the preview,
+        // the localStorage cache and the tab title. Done surgically (no full
+        // re-render) so the user's caret doesn't jump out of the field they
+        // are typing in when this fires.
+        if (typeof result.quote_number === 'string' && result.quote_number && !state.quoteNumber) {
+          state.quoteNumber = result.quote_number;
+          const numInput = document.querySelector('[data-field="quoteNumber"]');
+          if (numInput && document.activeElement !== numInput) numInput.value = state.quoteNumber;
+          renderPreview();
+          updateDocumentTitle();
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
         }
         setStatus('synced', 'שמור בענן');
       } catch (e) {
@@ -2074,7 +2089,7 @@
           </div>
           <div class="doc-title-area">
             <div class="doc-title">הצעת מחיר</div>
-            <div class="doc-title-num">#${esc(state.quoteNumber)}</div>
+            <div class="doc-title-num">${state.quoteNumber ? '#' + esc(state.quoteNumber) : '<span class="empty-hint">טיוטה</span>'}</div>
           </div>
         </div>
         <div class="doc-header-bottom">
@@ -3131,6 +3146,16 @@
 
   // ============ DIRECT BUTTON HANDLERS (more reliable than delegation for fixed buttons) ============
   document.getElementById('btn-print').addEventListener('click', () => {
+    // The quote_number is allocated by the server on the first save. Printing
+    // before that would produce a PDF with no number on it (and a generic
+    // filename), so require the user to type something — which triggers the
+    // auto-save — before they can print.
+    if (!state.quoteNumber) {
+      alert('ההצעה תקבל מספר אוטומטית בשמירה הראשונה.\nאנא מלא לפחות שם לקוח, המתן רגע, ונסה שוב.');
+      const el = document.querySelector('[data-field="customerName"]');
+      if (el) el.focus();
+      return;
+    }
     // Validation: customer name + date are required before printing
     const missing = [];
     if (!state.customerName || !state.customerName.trim()) missing.push('שם לקוח');

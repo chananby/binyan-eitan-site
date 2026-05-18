@@ -43,7 +43,12 @@ export async function GET(req: NextRequest) {
 
 // ── POST /api/admin/quotes — create a new quote ─────────────────────────────
 // Body: { data: {...full quote state...} }
-// Returns: { id, created_at }
+// Returns: { id, quote_number, created_at, updated_at }
+//
+// Quote-number allocation: if the client sends an empty/missing quoteNumber,
+// the server queries MAX(numeric quote_number) + 1 and assigns it. The DB has
+// a partial UNIQUE index on quote_number, so a concurrent allocator that hits
+// the same MAX surfaces as 23505 and we retry once with a freshly-read MAX.
 export async function POST(req: NextRequest) {
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -57,33 +62,70 @@ export async function POST(req: NextRequest) {
   }
 
   const data = body.data ?? {};
-  // Extract indexable fields from the state object (defensive — all optional)
-  const quote_number    = typeof data.quoteNumber === "string" ? data.quoteNumber : null;
-  const customer_name   = typeof data.customerName === "string" ? data.customerName : null;
-  const issue_date      = typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) ? data.date : null;
+  const clientQuoteNumber = typeof data.quoteNumber === "string" ? data.quoteNumber.trim() : "";
+  const customer_name    = typeof data.customerName === "string" ? data.customerName : null;
+  const issue_date       = typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date) ? data.date : null;
   const total_before_vat = computeTotal(data);
-  const adminId         = getAdminIdFromRequest(req);
+  const adminId          = getAdminIdFromRequest(req);
+  const supabase         = createServerClient();
 
-  const supabase = createServerClient();
-  const { data: row, error } = await supabase
-    .from("quotes")
-    .insert({
-      quote_number,
-      customer_name,
-      issue_date,
-      total_before_vat,
-      data,
-      created_by: adminId,
-    })
-    .select("id, created_at, updated_at")
-    .single();
-
-  if (error) {
-    console.error("[admin/quotes POST]", JSON.stringify(error));
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  async function nextQuoteNumber(): Promise<string> {
+    // RPC-less: read the current max numeric quote_number and add 1.
+    // PostgREST can't sort text as int, so we filter to all-digit values,
+    // pull the small candidate set, and reduce client-side.
+    const { data: rows, error } = await supabase
+      .from("quotes")
+      .select("quote_number")
+      .not("quote_number", "is", null)
+      .neq("quote_number", "");
+    if (error) throw error;
+    let max = 0;
+    for (const r of rows ?? []) {
+      const v = (r as { quote_number: string | null }).quote_number;
+      if (v && /^\d+$/.test(v)) {
+        const n = parseInt(v, 10);
+        if (n > max) max = n;
+      }
+    }
+    return String(max + 1);
   }
 
-  return NextResponse.json({ id: row.id, created_at: row.created_at, updated_at: row.updated_at });
+  async function insertOnce(quote_number: string) {
+    return await supabase
+      .from("quotes")
+      .insert({ quote_number, customer_name, issue_date, total_before_vat, data, created_by: adminId })
+      .select("id, quote_number, created_at, updated_at")
+      .single();
+  }
+
+  let assigned = clientQuoteNumber;
+  let attempt: Awaited<ReturnType<typeof insertOnce>>;
+
+  if (!assigned) {
+    assigned = await nextQuoteNumber();
+    attempt  = await insertOnce(assigned);
+    // 23505 = unique_violation. A racing POST grabbed the same MAX.
+    // Re-read MAX and try one more time before giving up.
+    if (attempt.error && attempt.error.code === "23505") {
+      assigned = await nextQuoteNumber();
+      attempt  = await insertOnce(assigned);
+    }
+  } else {
+    attempt = await insertOnce(assigned);
+  }
+
+  if (attempt.error) {
+    console.error("[admin/quotes POST]", JSON.stringify(attempt.error));
+    return NextResponse.json({ error: attempt.error.message }, { status: 500 });
+  }
+
+  const row = attempt.data!;
+  return NextResponse.json({
+    id:           row.id,
+    quote_number: row.quote_number,
+    created_at:   row.created_at,
+    updated_at:   row.updated_at,
+  });
 }
 
 // ── Helper: compute total from quote state ─────────────────────────────────
