@@ -130,11 +130,15 @@ export default function QuotesListClient() {
 
   // ── Not admin ────────────────────────────────────────────────────────────
   if (auth === "unauthenticated") {
+    const here = typeof window !== "undefined"
+      ? window.location.pathname + window.location.search
+      : "/admin/quotes/list";
+    const loginHref = `/admin?redirectTo=${encodeURIComponent(here)}`;
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F4F0] p-8 text-center">
         <FileText size={32} strokeWidth={1.5} className="text-[#8D775F] mb-4" />
         <h1 className="text-[#2D2926] text-xl font-semibold mb-2">נדרשת התחברות</h1>
-        <Link href="/admin" className="text-[#8D775F] underline text-sm hover:no-underline">
+        <Link href={loginHref} className="text-[#8D775F] underline text-sm hover:no-underline">
           לעמוד ההתחברות ←
         </Link>
       </div>

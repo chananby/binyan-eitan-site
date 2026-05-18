@@ -169,6 +169,37 @@ function getWeekDays(): { date: string; label: string; short: string }[] {
   });
 }
 
+// ── Post-login redirect helpers ────────────────────────────────────────────────
+// Open-redirect protection: target must be a relative path on the same origin.
+// Returns the path (pathname + search + hash) or null if invalid / not present.
+function getValidatedRedirectTo(): string | null {
+  if (typeof window === "undefined") return null;
+  const raw = new URLSearchParams(window.location.search).get("redirectTo");
+  if (!raw) return null;
+  if (!raw.startsWith("/")) return null;   // must be a path
+  if (raw.startsWith("//")) return null;   // protocol-relative → other origin
+  try {
+    const u = new URL(raw, window.location.origin);
+    if (u.origin !== window.location.origin) return null;
+    return u.pathname + u.search + u.hash;
+  } catch {
+    return null;
+  }
+}
+
+// Foreman only has portal access at /admin root. Admin can reach any /admin/* path.
+function canRoleAccessPath(role: "admin" | "foreman", path: string): boolean {
+  const p = path.split(/[?#]/)[0];
+  if (role === "admin") return p === "/admin" || p.startsWith("/admin/");
+  return p === "/admin" || p === "/admin/";
+}
+
+function resolvePostLoginPath(role: "admin" | "foreman"): string {
+  const target = getValidatedRedirectTo();
+  if (target && canRoleAccessPath(role, target)) return target;
+  return role === "admin" ? "/admin/hub" : "/admin";
+}
+
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function AdminPortal() {
   const [authState,      setAuthState]      = useState<AuthState>("loading");
@@ -533,11 +564,20 @@ ${detailHtml}
     fetch("/api/admin/whoami")
       .then(r => r.json())
       .then(d => {
-        setAuthState(d.role ?? "unauthenticated");
-        if (d.role === "admin") {
+        const role = d.role;
+        // Already-authenticated visitor with a valid redirectTo: honor it.
+        if (role === "admin" || role === "foreman") {
+          const target = getValidatedRedirectTo();
+          if (target && canRoleAccessPath(role, target) && target !== window.location.pathname + window.location.search) {
+            window.location.assign(target);
+            return;
+          }
+        }
+        setAuthState(role ?? "unauthenticated");
+        if (role === "admin") {
           if (d.email) setAdminEmail(d.email);
           if (d.name)  setAdminName(d.name);
-        } else if (d.role === "foreman") {
+        } else if (role === "foreman") {
           if (d.name)    setForemanName(d.name);
           if (d.staffId) setForemanStaffId(d.staffId);
         }
@@ -750,7 +790,17 @@ ${detailHtml}
     try {
       const res  = await fetch("/api/foreman-auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: submittedPin }) });
       const data = await res.json();
-      if (data.ok) { feedback.success(); setShowFlash(true); setForemanName(data.name ?? null); setForemanStaffId(data.staffId ?? null); setAuthState("foreman"); }
+      if (data.ok) {
+        feedback.success(); setShowFlash(true);
+        setForemanName(data.name ?? null); setForemanStaffId(data.staffId ?? null);
+        const dest = resolvePostLoginPath("foreman");
+        const here = window.location.pathname + window.location.search + window.location.hash;
+        if (dest !== here) {
+          window.location.assign(dest);
+          return;
+        }
+        setAuthState("foreman");
+      }
       else { feedback.error(); setLoginErr("קוד שגוי"); setPin(""); }
     } catch { setLoginErr("שגיאת רשת"); }
     finally { setLoginLoading(false); }
@@ -767,7 +817,16 @@ ${detailHtml}
         body: JSON.stringify({ email: email.trim(), password }),
       });
       const data = await res.json();
-      if (data.ok) { feedback.success(); setShowFlash(true); setAuthState("admin"); }
+      if (data.ok) {
+        feedback.success(); setShowFlash(true);
+        const dest = resolvePostLoginPath("admin");
+        const here = window.location.pathname + window.location.search + window.location.hash;
+        if (dest !== here) {
+          window.location.assign(dest);
+          return;
+        }
+        setAuthState("admin");
+      }
       else if (res.status === 429) { feedback.error(); setLoginErr("יותר מדי נסיונות. נסה שוב בעוד כמה דקות."); }
       else { feedback.error(); setLoginErr("אימייל או סיסמה שגויים"); setPassword(""); }
     } catch { setLoginErr("שגיאת רשת"); }

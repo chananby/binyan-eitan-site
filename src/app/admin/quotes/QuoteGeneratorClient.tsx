@@ -60,6 +60,10 @@ export default function QuoteGeneratorClient() {
   }
 
   if (auth === "unauthenticated") {
+    const here = typeof window !== "undefined"
+      ? window.location.pathname + window.location.search
+      : "/admin/quotes";
+    const loginHref = `/admin?redirectTo=${encodeURIComponent(here)}`;
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F4F0] p-8 text-center">
         <FileText size={32} strokeWidth={1.5} className="text-[#8D775F] mb-4" />
@@ -71,7 +75,7 @@ export default function QuoteGeneratorClient() {
           רק מנהלים יכולים לגשת למחולל ההצעות
         </p>
         <Link
-          href="/admin"
+          href={loginHref}
           className="text-[#8D775F] underline text-sm hover:no-underline"
         >
           לעמוד ההתחברות ←
