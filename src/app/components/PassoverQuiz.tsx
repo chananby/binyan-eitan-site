@@ -22,7 +22,7 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const QUIZ_URL = 'https://binyaneitan.com/he/passover-quiz';
+const QUIZ_URL = 'https://binyaneitan.com/he/quizzes/passover';
 const LS_KEY   = 'passover-quiz-leaderboard';
 
 // ─── Leaderboard types & helpers ──────────────────────────────────────────────

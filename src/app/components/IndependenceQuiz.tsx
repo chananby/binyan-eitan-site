@@ -13,7 +13,7 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const QUIZ_URL  = 'https://binyaneitan.com/he/independence-quiz';
+const QUIZ_URL  = 'https://binyaneitan.com/he/quizzes/independence';
 const Q_PER_RUN = 15; // questions per session
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
