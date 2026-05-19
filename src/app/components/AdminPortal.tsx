@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useFeedback } from "../hooks/useFeedback";
 import SuccessFlash from "./SuccessFlash";
 import ForemanPortal from "./ForemanPortal";
-import WeeklyPlanner from "./WeeklyPlanner";
 import { AutoGrowTextarea } from "./AutoGrowTextarea";
 import { parseMoney, parsePositive } from "../../lib/money";
 import Image from "next/image";
@@ -12,20 +11,18 @@ import Link from "next/link";
 import {
   LogIn, Building2, Package, BarChart2, LayoutDashboard, Hammer,
   ClipboardList, UserPlus, RefreshCw, Pencil, Loader2, Activity,
-  AlertCircle, AlertTriangle, TrendingUp, DollarSign, Target, CheckSquare2,
+  AlertCircle, AlertTriangle, DollarSign, Target, CheckSquare2,
   Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag, Grid3x3, Download, Plus,
   UserCog, Check,
 } from "lucide-react";
-import dynamic from "next/dynamic";
 import { Card } from "../admin/_components/shared/Card";
 import { Field } from "../admin/_components/shared/Field";
 import { Btn } from "../admin/_components/shared/Btn";
 import { TabRefreshBar } from "../admin/_components/shared/TabRefreshBar";
 import { INPUT } from "../admin/_components/shared/constants";
-
-const ReportsTab = dynamic(() => import("../admin/_components/tabs/ReportsTab"), {
-  loading: () => <div className="text-sm text-charcoal/40 text-center py-8">טוען דוחות...</div>,
-});
+import IncomeTab from "../admin/_components/tabs/IncomeTab";
+import AccountTab from "../admin/_components/tabs/AccountTab";
+import { ReportsTabPanel, MatrixTabPanel } from "../admin/_components/tabs/ReportsAndMatrixTabs";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
@@ -3033,76 +3030,26 @@ ${detailHtml}
 
         {/* ── INCOME (admin only) ────────────────────────────────────────────── */}
         {tab === "income" && isAdmin && (
-          <div className="space-y-5">
-            <TabRefreshBar loading={refreshing} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
-            <Card>
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp size={16} strokeWidth={1.5} className="text-accent" />
-                <h2 className="font-heading text-base font-bold">רישום תשלום</h2>
-              </div>
-              <form onSubmit={handleAddIncome} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="פרויקט">
-                    <select value={incProjectId} onChange={e => setIncProjectId(e.target.value)} required className={INPUT}>
-                      <option value="">בחר פרויקט...</option>
-                      {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="תאריך קבלה"><input type="date" value={incDate} onChange={e => setIncDate(e.target.value)} className={INPUT} dir="ltr" /></Field>
-                </div>
-                <Field label="סכום (₪)"><input value={incAmount} onChange={e => setIncAmount(e.target.value)} required type="number" min="1" step="any" placeholder="10,000" dir="ltr" className={INPUT} /></Field>
-                <Field label="תיאור / הערה"><input value={incDesc} onChange={e => setIncDesc(e.target.value)} placeholder="מקדמה ראשונה, תשלום סופי..." className={INPUT} /></Field>
-                <Btn loading={incLoading} disabled={!incProjectId || !incAmount}>רשום תשלום</Btn>
-                {incMsg && <p className={`text-xs ${incMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{incMsg}</p>}
-              </form>
-            </Card>
-
-            {income.length > 0 && (
-              <>
-                <Card title="סיכום הכנסות לפי פרויקט">
-                  <div className="divide-y divide-charcoal/5">
-                    {Object.entries(incomeTotals).map(([projId, total]) => {
-                      const proj = projects.find(p => p.id === projId);
-                      return (
-                        <div key={projId} className="flex justify-between items-center py-2">
-                          <span className="text-sm text-charcoal/60 truncate flex-1">{proj?.name ?? projId}</span>
-                          <span className="text-sm font-semibold tabular-nums text-green-600">₪{total.toLocaleString("he-IL")}</span>
-                        </div>
-                      );
-                    })}
-                    <div className="flex justify-between items-center pt-2">
-                      <span className="text-sm font-bold">סה&quot;כ הכנסות</span>
-                      <span className="text-base font-bold text-green-600 tabular-nums">
-                        ₪{Object.values(incomeTotals).reduce((a, b) => a + b, 0).toLocaleString("he-IL")}
-                      </span>
-                    </div>
-                  </div>
-                </Card>
-
-                <Card title="יומן תשלומים">
-                  <div className="divide-y divide-charcoal/5">
-                    {income.map(r => (
-                      <div key={r.id} className="py-2.5 flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">
-                            {(r.project as { name?: string } | null)?.name ?? projects.find(p => p.id === r.project_id)?.name ?? "—"}
-                          </p>
-                          {r.description && <p className="text-[0.7rem] text-charcoal/40">{r.description}</p>}
-                          <p className="text-[0.65rem] text-charcoal/30 tabular-nums" dir="ltr">{r.received_date}</p>
-                        </div>
-                        <span className="text-sm font-bold text-green-600 tabular-nums shrink-0">+₪{r.amount.toLocaleString("he-IL")}</span>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </>
-            )}
-          </div>
+          <IncomeTab
+            projects={projects}
+            income={income}
+            incomeTotals={incomeTotals}
+            incProjectId={incProjectId} setIncProjectId={setIncProjectId}
+            incAmount={incAmount}       setIncAmount={setIncAmount}
+            incDesc={incDesc}           setIncDesc={setIncDesc}
+            incDate={incDate}           setIncDate={setIncDate}
+            incLoading={incLoading}
+            incMsg={incMsg}
+            onAddIncome={handleAddIncome}
+            lastRefreshed={lastRefreshed}
+            refreshing={refreshing}
+            onTabRefresh={handleTabRefresh}
+          />
         )}
 
         {/* ── REPORTS (admin only) — lazy-loaded ─────────────────────────────── */}
         {tab === "reports" && isAdmin && (
-          <ReportsTab
+          <ReportsTabPanel
             activeProjects={activeProjects}
             lastRefreshed={lastRefreshed}
             refreshing={refreshing}
@@ -3112,12 +3059,13 @@ ${detailHtml}
 
         {/* ── WEEKLY MATRIX (admin only) ─────────────────────────────────────── */}
         {tab === "matrix" && isAdmin && (
-          <div className="space-y-3">
-            <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
-            <div className="p-1">
-              <WeeklyPlanner projects={activeProjects} />
-            </div>
-          </div>
+          <MatrixTabPanel
+            activeProjects={activeProjects}
+            lastRefreshed={lastRefreshed}
+            refreshing={refreshing}
+            onTabRefresh={handleTabRefresh}
+            dataLoading={dataLoading}
+          />
         )}
 
         {/* ── PAYROLL (admin only) ───────────────────────────────────────────── */}
@@ -3225,96 +3173,22 @@ ${detailHtml}
 
         {/* ── ACCOUNT (admin only) ───────────────────────────────────────────── */}
         {tab === "account" && isAdmin && (
-          <div className="space-y-3">
-            <Card title="הגדרות חשבון">
-              <div className="space-y-1.5 pb-2 border-b border-warm-gray-light">
-                <p className="text-[0.7rem] text-charcoal/50">מחובר/ת כ:</p>
-                <p className="text-sm font-semibold text-charcoal" dir="ltr">{adminEmail ?? "—"}</p>
-                {adminName && <p className="text-xs text-charcoal/50">{adminName}</p>}
-              </div>
-            </Card>
-
-            <Card title="הגדרות מערכת — נוכחות">
-              <Field label="סף מרחק מאתר העבודה (מטרים)">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min={0}
-                    step={50}
-                    value={farThresholdInput}
-                    onChange={e => setFarThresholdInput(e.target.value)}
-                    className={INPUT + " flex-1"}
-                    dir="ltr"
-                  />
-                  <button
-                    onClick={saveFarThreshold}
-                    disabled={farThresholdSaving || farThresholdInput === String(farThresholdM)}
-                    className="bg-accent text-bone px-3 py-2 text-xs font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors shrink-0"
-                  >
-                    {farThresholdSaving ? "שומר..." : "שמור"}
-                  </button>
-                </div>
-                <p className="text-[0.62rem] text-charcoal/40 mt-1.5 leading-relaxed">
-                  החתמה שמתבצעת מעל המרחק הזה מהאתר תקבל דגל אדום באזור הנוכחות.
-                  ההחתמה עדיין תקפה — זו רק התראה שמאפשרת לך לבדוק.
-                  ברירת מחדל מומלצת: 500 מטר (כדי לכסות חניה + סטיות ב-GPS).
-                </p>
-                {farThresholdMsg && (
-                  <p className={`text-xs mt-2 ${farThresholdMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{farThresholdMsg}</p>
-                )}
-              </Field>
-            </Card>
-
-            <Card title="שנה סיסמה">
-              <form onSubmit={handleChangePassword} className="space-y-3">
-                <Field label="סיסמה נוכחית">
-                  <input
-                    type="password"
-                    autoComplete="current-password"
-                    value={pwCurrent}
-                    onChange={e => setPwCurrent(e.target.value)}
-                    className={INPUT}
-                    disabled={pwSaving}
-                  />
-                </Field>
-                <Field label="סיסמה חדשה (8 תווים לפחות)">
-                  <input
-                    type="password"
-                    autoComplete="new-password"
-                    value={pwNew}
-                    onChange={e => setPwNew(e.target.value)}
-                    className={INPUT}
-                    disabled={pwSaving}
-                  />
-                </Field>
-                <Field label="אישור סיסמה חדשה">
-                  <input
-                    type="password"
-                    autoComplete="new-password"
-                    value={pwConfirm}
-                    onChange={e => setPwConfirm(e.target.value)}
-                    className={INPUT}
-                    disabled={pwSaving}
-                  />
-                </Field>
-
-                {pwMsg && (
-                  <div className={`flex items-center gap-2 text-sm ${pwMsg.kind === "ok" ? "text-green-600" : "text-red-500"}`}>
-                    {pwMsg.kind === "ok" ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
-                    <span>{pwMsg.text}</span>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={pwSaving || !pwCurrent || !pwNew || !pwConfirm}
-                  className="w-full bg-accent py-3 font-body text-sm font-semibold tracking-[0.18em] uppercase text-bone hover:bg-accent-dark disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
-                >
-                  {pwSaving ? <><Loader2 size={14} className="animate-spin" /> שומר...</> : "שמור סיסמה חדשה"}
-                </button>
-              </form>
-            </Card>
-          </div>
+          <AccountTab
+            adminEmail={adminEmail}
+            adminName={adminName}
+            farThresholdM={farThresholdM}
+            farThresholdInput={farThresholdInput}
+            setFarThresholdInput={setFarThresholdInput}
+            farThresholdSaving={farThresholdSaving}
+            farThresholdMsg={farThresholdMsg}
+            onSaveFarThreshold={saveFarThreshold}
+            pwCurrent={pwCurrent} setPwCurrent={setPwCurrent}
+            pwNew={pwNew}         setPwNew={setPwNew}
+            pwConfirm={pwConfirm} setPwConfirm={setPwConfirm}
+            pwSaving={pwSaving}
+            pwMsg={pwMsg}
+            onChangePassword={handleChangePassword}
+          />
         )}
 
         <p className="text-center font-body text-[0.55rem] tracking-widest uppercase text-charcoal/20 pt-2">
