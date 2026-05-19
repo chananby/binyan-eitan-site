@@ -37,7 +37,7 @@ async function uploadToBlob(file: File): Promise<string> {
 function SignaturePad({
   sigRef, clearLabel, onStart, onClear,
 }: {
-  sigRef: React.RefObject<HTMLCanvasElement>;
+  sigRef: React.RefObject<HTMLCanvasElement | null>;
   clearLabel: string;
   onStart: () => void;
   onClear: () => void;

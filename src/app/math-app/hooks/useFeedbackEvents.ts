@@ -31,7 +31,7 @@ export function useFeedbackEvents(stats: SessionStats): MilestoneEvent | null {
   const prevCorrect = useRef(stats.correct);
 
   const [event, setEvent] = useState<MilestoneEvent | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     const pl = prevLevel.current;

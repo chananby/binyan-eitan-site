@@ -90,7 +90,7 @@ interface EditCtx {
   editField: string | null;
   editVal: string;
   setEditVal: (v: string) => void;
-  editRef: React.RefObject<HTMLInputElement>;
+  editRef: React.RefObject<HTMLInputElement | null>;
   startEdit: (rowId: string, field: string, current: string | number) => void;
   commitEdit: (rowId: string, field: string, val: string) => void | Promise<void>;
   cancelEdit: () => void;
