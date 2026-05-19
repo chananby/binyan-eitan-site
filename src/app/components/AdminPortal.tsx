@@ -23,6 +23,9 @@ import { INPUT } from "../admin/_components/shared/constants";
 import IncomeTab from "../admin/_components/tabs/IncomeTab";
 import AccountTab from "../admin/_components/tabs/AccountTab";
 import { ReportsTabPanel, MatrixTabPanel } from "../admin/_components/tabs/ReportsAndMatrixTabs";
+import WorkersTab from "../admin/_components/tabs/WorkersTab";
+import ProjectsTab from "../admin/_components/tabs/ProjectsTab";
+import ExpensesTab from "../admin/_components/tabs/ExpensesTab";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
@@ -2295,390 +2298,97 @@ ${detailHtml}
 
         {/* ── WORKERS (admin only) ───────────────────────────────────────────── */}
         {tab === "workers" && isAdmin && (
-          <div className="space-y-5">
-            <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
-            <Card>
-              <div className="flex items-center gap-2 mb-3">
-                <UserPlus size={16} strokeWidth={1.5} className="text-accent" />
-                <h2 className="font-heading text-base font-bold">הוספת עובד</h2>
-              </div>
-              <form onSubmit={handleAddWorker} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="שם מלא"><AutoGrowTextarea value={newName} onChange={e => setNewName(e.target.value)} required placeholder="ישראל ישראלי" className={INPUT} /></Field>
-                  <Field label="טלפון"><input value={newPhone} onChange={e => setNewPhone(e.target.value)} required placeholder="05X-XXXXXXX" type="tel" dir="ltr" className={INPUT} /></Field>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="תפקיד">
-                    <select value={newRole} onChange={e => setNewRole(e.target.value)} className={INPUT}>
-                      <option value="עובד">עובד</option><option value="ממונה">ממונה</option><option value="מנהל">מנהל</option>
-                    </select>
-                  </Field>
-                  <Field label='ת"ז (אופציונלי)'>
-                    <input value={newNationalId} onChange={e => setNewNationalId(e.target.value.replace(/\D/g, ""))} placeholder="123456789" inputMode="numeric" maxLength={9} dir="ltr" className={INPUT} />
-                  </Field>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="סוג העסקה">
-                    <select value={newEmploymentType} onChange={e => setNewEmploymentType(e.target.value as "hourly" | "daily" | "global")} className={INPUT}>
-                      <option value="hourly">שעתי</option>
-                      <option value="daily">יומי</option>
-                      <option value="global">גלובלי</option>
-                    </select>
-                  </Field>
-                  {newEmploymentType === "hourly" && (
-                    <Field label="שכר שעתי (₪)"><input value={newHourlyRate} onChange={e => setNewHourlyRate(e.target.value)} type="number" min="0" step="0.5" placeholder="45.00" dir="ltr" className={INPUT} /></Field>
-                  )}
-                  {newEmploymentType === "daily" && (
-                    <Field label="שכר יומי (₪)"><input value={newDailyRate}  onChange={e => setNewDailyRate(e.target.value)}  type="number" min="0" step="1" placeholder="350" dir="ltr" className={INPUT} /></Field>
-                  )}
-                  {newEmploymentType === "global" && (
-                    <Field label="שכר חודשי גלובלי (₪)"><input value={newGlobalSalary} onChange={e => setNewGlobalSalary(e.target.value)} type="number" min="0" step="1" placeholder="8000" dir="ltr" className={INPUT} /></Field>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="דמי נסיעות">
-                    <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
-                      <input type="checkbox" checked={newTravelAllowance} onChange={e => setNewTravelAllowance(e.target.checked)} className="accent-accent" />
-                      <span className="text-charcoal/70">זכאי לנסיעות</span>
-                    </label>
-                  </Field>
-                  <Field label="זכאות לחגים">
-                    <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
-                      <input type="checkbox" checked={newHolidayEligible} onChange={e => setNewHolidayEligible(e.target.checked)} className="accent-accent" />
-                      <span className="text-charcoal/70">זכאי לתשלום על חגים</span>
-                    </label>
-                  </Field>
-                </div>
-                <Field label="סטטוס פנסיה (טקסט חופשי)">
-                  <AutoGrowTextarea value={newPensionStatus} onChange={e => setNewPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
-                </Field>
-                {newRole === "ממונה" && (
-                  <Field label="PIN לכניסה לפורטל (4–8 ספרות)">
-                    <input value={newPin} onChange={e => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 8))} type="text" inputMode="numeric" maxLength={8} placeholder="1234" dir="ltr" className={INPUT} />
-                  </Field>
-                )}
-                <Btn loading={addLoading}>הוסף עובד</Btn>
-                {addMsg && <p className={`text-xs ${addMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{addMsg}</p>}
-              </form>
-            </Card>
-
-            <Card>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-heading text-base font-bold">עובדים ({staff.length})</h2>
-                <button onClick={reload} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors">
-                  <RefreshCw size={12} strokeWidth={1.5} /> רענן
-                </button>
-              </div>
-              {staff.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין עובדים רשומים</p>}
-              <div className="divide-y divide-charcoal/5">
-                {staff.map(s => editingId === s.id ? (
-                  <form key={s.id} onSubmit={handleEditWorker} className="py-4 space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
-                      <Field label="שם"><AutoGrowTextarea value={editName} onChange={e => setEditName(e.target.value)} required className={INPUT} /></Field>
-                      <Field label="טלפון"><input value={editPhone} onChange={e => setEditPhone(e.target.value)} required type="tel" dir="ltr" className={INPUT} /></Field>
-                      <Field label="תפקיד">
-                        <select value={editRole} onChange={e => setEditRole(e.target.value)} className={INPUT}>
-                          <option value="עובד">עובד</option><option value="ממונה">ממונה</option><option value="מנהל">מנהל</option>
-                        </select>
-                      </Field>
-                      <Field label='ת"ז'><input value={editNationalId} onChange={e => setEditNationalId(e.target.value.replace(/\D/g, ""))} inputMode="numeric" maxLength={9} dir="ltr" className={INPUT} /></Field>
-                      <Field label="סוג העסקה">
-                        <select value={editEmploymentType} onChange={e => setEditEmploymentType(e.target.value as "hourly" | "daily" | "global")} className={INPUT}>
-                          <option value="hourly">שעתי</option>
-                          <option value="daily">יומי</option>
-                          <option value="global">גלובלי</option>
-                        </select>
-                      </Field>
-                      {editEmploymentType === "hourly" && (
-                        <Field label="שכר שעתי (₪)"><input value={editHourlyRate} onChange={e => setEditHourlyRate(e.target.value)} type="number" min="0" step="0.5" dir="ltr" className={INPUT} /></Field>
-                      )}
-                      {editEmploymentType === "daily" && (
-                        <Field label="שכר יומי (₪)"><input value={editDailyRate}  onChange={e => setEditDailyRate(e.target.value)}  type="number" min="0" step="1" dir="ltr" className={INPUT} /></Field>
-                      )}
-                      {editEmploymentType === "global" && (
-                        <Field label="שכר חודשי גלובלי (₪)"><input value={editGlobalSalary} onChange={e => setEditGlobalSalary(e.target.value)} type="number" min="0" step="1" dir="ltr" className={INPUT} /></Field>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Field label="דמי נסיעות">
-                        <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
-                          <input type="checkbox" checked={editTravelAllowance} onChange={e => setEditTravelAllowance(e.target.checked)} className="accent-accent" />
-                          <span className="text-charcoal/70">זכאי</span>
-                        </label>
-                      </Field>
-                      <Field label="זכאות לחגים">
-                        <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
-                          <input type="checkbox" checked={editHolidayEligible} onChange={e => setEditHolidayEligible(e.target.checked)} className="accent-accent" />
-                          <span className="text-charcoal/70">זכאי</span>
-                        </label>
-                      </Field>
-                    </div>
-                    <Field label="סטטוס פנסיה">
-                      <AutoGrowTextarea value={editPensionStatus} onChange={e => setEditPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
-                    </Field>
-                    {editRole === "ממונה" && (
-                      <Field label="PIN חדש (השאר ריק לשמירת הנוכחי)">
-                        <input value={editPin} onChange={e => setEditPin(e.target.value.replace(/\D/g, "").slice(0, 8))} type="text" inputMode="numeric" maxLength={8} placeholder="4–8 ספרות" dir="ltr" className={INPUT} />
-                      </Field>
-                    )}
-                    {editMsg && <p className="text-xs text-red-500">{editMsg}</p>}
-                    <div className="flex gap-2">
-                      <button type="submit" disabled={editLoading} className="flex-1 bg-accent py-2 text-xs font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">{editLoading ? "שומר..." : "שמור"}</button>
-                      <button type="button" onClick={() => setEditingId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/50 hover:border-accent transition-colors">ביטול</button>
-                    </div>
-                  </form>
-                ) : (
-                  <div key={s.id} className={`flex items-center justify-between py-3 gap-2 ${!s.active ? "opacity-45" : ""}`}>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">{s.name}</p>
-                      <p className="text-[0.7rem] text-charcoal/40 tabular-nums" dir="ltr">{s.phone}</p>
-                      {(s.hourly_rate || s.daily_rate) && (
-                        <p className="text-[0.65rem] text-accent/70">
-                          {s.hourly_rate ? `₪${s.hourly_rate}/ש׳` : ""}{s.hourly_rate && s.daily_rate ? " · " : ""}{s.daily_rate ? `₪${s.daily_rate}/יום` : ""}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      <span className="text-[0.65rem] text-charcoal/40">{s.role}</span>
-                      {s.role === "ממונה" && (
-                        <span className={`text-[0.55rem] px-1.5 py-0.5 ${s.has_pin ? "bg-accent/10 text-accent" : "bg-red-50 text-red-400"}`}>
-                          {s.has_pin ? "PIN מוגדר" : "ללא PIN"}
-                        </span>
-                      )}
-                    </div>
-                    <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
-                    <button onClick={() => startEdit(s)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">ערוך</button>
-                    <button onClick={() => openVacationDrawer(s.id)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">חופשה</button>
-                    <button onClick={() => toggleActive(s.id, s.active)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{s.active ? "השבת" : "הפעל"}</button>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
+          <WorkersTab
+            staff={staff}
+            newName={newName}                       setNewName={setNewName}
+            newPhone={newPhone}                     setNewPhone={setNewPhone}
+            newRole={newRole}                       setNewRole={setNewRole}
+            newNationalId={newNationalId}           setNewNationalId={setNewNationalId}
+            newEmploymentType={newEmploymentType}   setNewEmploymentType={setNewEmploymentType}
+            newHourlyRate={newHourlyRate}           setNewHourlyRate={setNewHourlyRate}
+            newDailyRate={newDailyRate}             setNewDailyRate={setNewDailyRate}
+            newGlobalSalary={newGlobalSalary}       setNewGlobalSalary={setNewGlobalSalary}
+            newTravelAllowance={newTravelAllowance} setNewTravelAllowance={setNewTravelAllowance}
+            newHolidayEligible={newHolidayEligible} setNewHolidayEligible={setNewHolidayEligible}
+            newPensionStatus={newPensionStatus}     setNewPensionStatus={setNewPensionStatus}
+            newPin={newPin}                         setNewPin={setNewPin}
+            addLoading={addLoading} addMsg={addMsg}
+            onAddWorker={handleAddWorker}
+            editingId={editingId}                   setEditingId={setEditingId}
+            editName={editName}                     setEditName={setEditName}
+            editPhone={editPhone}                   setEditPhone={setEditPhone}
+            editRole={editRole}                     setEditRole={setEditRole}
+            editNationalId={editNationalId}         setEditNationalId={setEditNationalId}
+            editEmploymentType={editEmploymentType} setEditEmploymentType={setEditEmploymentType}
+            editHourlyRate={editHourlyRate}         setEditHourlyRate={setEditHourlyRate}
+            editDailyRate={editDailyRate}           setEditDailyRate={setEditDailyRate}
+            editGlobalSalary={editGlobalSalary}     setEditGlobalSalary={setEditGlobalSalary}
+            editTravelAllowance={editTravelAllowance} setEditTravelAllowance={setEditTravelAllowance}
+            editHolidayEligible={editHolidayEligible} setEditHolidayEligible={setEditHolidayEligible}
+            editPensionStatus={editPensionStatus}   setEditPensionStatus={setEditPensionStatus}
+            editPin={editPin}                       setEditPin={setEditPin}
+            editLoading={editLoading} editMsg={editMsg}
+            onEditWorker={handleEditWorker}
+            onStartEdit={startEdit}
+            onToggleActive={toggleActive}
+            onOpenVacation={openVacationDrawer}
+            onReload={reload}
+            lastRefreshed={lastRefreshed}
+            refreshing={refreshing}
+            dataLoading={dataLoading}
+            onTabRefresh={handleTabRefresh}
+          />
         )}
 
         {/* ── PROJECTS (admin only) ──────────────────────────────────────────── */}
         {tab === "projects" && isAdmin && (
-          <div className="space-y-5">
-            <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
-            <Card>
-              <div className="flex items-center gap-2 mb-3">
-                <Building2 size={16} strokeWidth={1.5} className="text-accent" />
-                <h2 className="font-heading text-base font-bold">הוספת פרויקט</h2>
-              </div>
-              <form onSubmit={handleAddProject} className="space-y-3">
-                <Field label="שם הפרויקט / אתר">
-                  <AutoGrowTextarea value={newProjectName} onChange={e => setNewProjectName(e.target.value)} required placeholder="פרויקט רחוב הרצל 12" className={INPUT} />
-                </Field>
-                <Field label="כתובת האתר (לאיתור GPS)">
-                  <input
-                    value={newProjectAddress}
-                    onChange={e => setNewProjectAddress(e.target.value)}
-                    placeholder="רחוב + מספר, עיר (למשל: הרצל 12, ירושלים)"
-                    className={INPUT}
-                  />
-                  <p className="text-[0.62rem] text-charcoal/40 mt-1">
-                    המערכת תמיר אוטומטית לקואורדינטות. בכניסה/יציאה של עובד, אם המיקום שלו רחוק מעל הסף — תופיע אזהרה אדומה.
-                  </p>
-                </Field>
-                <Btn loading={projectAddLoading}>הוסף פרויקט</Btn>
-                {projectAddMsg && <p className={`text-xs ${projectAddMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{projectAddMsg}</p>}
-              </form>
-            </Card>
-            <Card>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-heading text-base font-bold">פרויקטים ({projects.length})</h2>
-                <button onClick={reload} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /> רענן</button>
-              </div>
-              {projects.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין פרויקטים</p>}
-              <div className="divide-y divide-charcoal/5">
-                {projects.map((p: Project) => {
-                  const assignedForeman = staff.find(s => s.id === p.foreman_id);
-                  const hasCoords = p.lat != null && p.lng != null;
-                  const isEditingAddr = editingProjectId === p.id;
-                  return (
-                  <div key={p.id} className={`py-3 space-y-2 ${p.status !== "active" ? "opacity-45" : ""}`}>
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate">{p.name}</p>
-                        <p className="text-[0.65rem] text-charcoal/30">{tasks.filter(t => t.project_id === p.id && t.status !== "completed").length} משימות פעילות</p>
-                      </div>
-                      <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${p.status === "active" ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{p.status === "active" ? "פעיל" : "לא פעיל"}</span>
-                      <button onClick={() => toggleProjectStatus(p.id, p.status ?? "active")} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{p.status === "active" ? "השבת" : "הפעל"}</button>
-                    </div>
-
-                    {/* Address + GPS status */}
-                    <div className="flex items-center gap-2 text-[0.65rem] flex-wrap">
-                      <span className="text-charcoal/40 shrink-0">📍 כתובת:</span>
-                      {isEditingAddr ? (
-                        <>
-                          <input
-                            value={editProjectAddress}
-                            onChange={e => setEditProjectAddress(e.target.value)}
-                            placeholder="רחוב + מספר, עיר"
-                            className="flex-1 min-w-[180px] border border-charcoal/15 bg-bone px-2 py-1 focus:border-accent focus:outline-none"
-                          />
-                          <button
-                            onClick={() => saveProjectAddress(p.id)}
-                            disabled={editProjectSaving}
-                            className="text-[0.65rem] border border-accent bg-accent text-bone px-2 py-1 hover:bg-accent-dark disabled:opacity-40 transition-colors shrink-0"
-                          >
-                            {editProjectSaving ? "שומר..." : "שמור + מקם"}
-                          </button>
-                          <button
-                            onClick={() => { setEditingProjectId(null); setEditProjectMsg(""); }}
-                            className="text-[0.65rem] border border-charcoal/15 text-charcoal/50 px-2 py-1 hover:border-accent transition-colors shrink-0"
-                          >
-                            ביטול
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <span className="flex-1 min-w-0 text-charcoal/60 truncate">
-                            {p.address || <span className="text-charcoal/30 italic">לא הוגדרה</span>}
-                          </span>
-                          {hasCoords ? (
-                            <a
-                              href={`https://www.google.com/maps?q=${p.lat},${p.lng}`}
-                              target="_blank" rel="noopener noreferrer"
-                              className="text-[0.6rem] text-green-700 bg-green-50 px-1.5 py-0.5 shrink-0 hover:bg-green-100 transition-colors"
-                              title="פתח במפה"
-                            >
-                              ✓ GPS
-                            </a>
-                          ) : p.address ? (
-                            <span className="text-[0.6rem] text-amber-700 bg-amber-50 px-1.5 py-0.5 shrink-0">⚠ ללא קואורדינטות</span>
-                          ) : null}
-                          <button
-                            onClick={() => startEditProjectAddress(p)}
-                            className="text-[0.65rem] border border-charcoal/15 text-charcoal/50 px-2 py-1 hover:border-accent hover:text-accent transition-colors shrink-0"
-                          >
-                            ערוך
-                          </button>
-                        </>
-                      )}
-                    </div>
-                    {isEditingAddr && editProjectMsg && (
-                      <p className={`text-[0.65rem] ${editProjectMsg.startsWith("נשמר") || editProjectMsg.startsWith("שגיאה") ? "text-amber-700" : "text-red-500"}`}>{editProjectMsg}</p>
-                    )}
-                    {/* Foreman assignment */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-[0.65rem] text-charcoal/40 shrink-0">ממונה:</span>
-                      <select
-                        value={p.foreman_id ?? ""}
-                        onChange={async e => {
-                          await fetch(`/api/admin/projects/${p.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ foreman_id: e.target.value || null }) });
-                          reload();
-                        }}
-                        className="flex-1 text-[0.65rem] border border-charcoal/10 bg-bone px-2 py-1 focus:border-accent focus:outline-none"
-                      >
-                        <option value="">— ללא ממונה —</option>
-                        {staff.filter(s => s.role === "ממונה" && s.active).map(s => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
-                        ))}
-                      </select>
-                      {assignedForeman && (
-                        <span className="text-[0.6rem] bg-accent/10 text-accent px-1.5 py-0.5 shrink-0">{assignedForeman.name}</span>
-                      )}
-                    </div>
-                  </div>
-                  );
-                })}
-              </div>
-            </Card>
-          </div>
+          <ProjectsTab
+            projects={projects}
+            staff={staff}
+            tasks={tasks}
+            newProjectName={newProjectName}       setNewProjectName={setNewProjectName}
+            newProjectAddress={newProjectAddress} setNewProjectAddress={setNewProjectAddress}
+            projectAddLoading={projectAddLoading} projectAddMsg={projectAddMsg}
+            onAddProject={handleAddProject}
+            editingProjectId={editingProjectId}     setEditingProjectId={setEditingProjectId}
+            editProjectAddress={editProjectAddress} setEditProjectAddress={setEditProjectAddress}
+            editProjectSaving={editProjectSaving}
+            editProjectMsg={editProjectMsg}         setEditProjectMsg={setEditProjectMsg}
+            onStartEditAddress={startEditProjectAddress}
+            onSaveProjectAddress={saveProjectAddress}
+            onToggleProjectStatus={toggleProjectStatus}
+            onReload={reload}
+            lastRefreshed={lastRefreshed}
+            refreshing={refreshing}
+            dataLoading={dataLoading}
+            onTabRefresh={handleTabRefresh}
+          />
         )}
 
         {/* ── EXPENSES ──────────────────────────────────────────────────────── */}
         {tab === "expenses" && (
-          <div className="space-y-5">
-            <TabRefreshBar loading={refreshing} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
-            <Card>
-              <div className="flex items-center gap-2 mb-3">
-                <Package size={16} strokeWidth={1.5} className="text-accent" />
-                <h2 className="font-heading text-base font-bold">רישום הוצאה</h2>
-              </div>
-              <form onSubmit={handleAddMaterial} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="פרויקט">
-                    <select value={matProjectId} onChange={e => setMatProjectId(e.target.value)} required className={INPUT}>
-                      <option value="">בחר פרויקט...</option>
-                      {activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="קטגוריה">
-                    <select value={matCategory} onChange={e => setMatCategory(e.target.value)} className={INPUT}>
-                      {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </Field>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="תיאור / פריט"><AutoGrowTextarea value={matName} onChange={e => setMatName(e.target.value)} required placeholder="בטון, שרברב..." className={INPUT} /></Field>
-                  <Field label="ספק"><AutoGrowTextarea value={matSupplier} onChange={e => setMatSupplier(e.target.value)} placeholder="שם הספק" className={INPUT} /></Field>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <Field label="כמות"><input value={matQty} onChange={e => setMatQty(e.target.value)} type="number" min="0" step="any" className={INPUT} dir="ltr" /></Field>
-                  <Field label="יחידה">
-                    <select value={matUnit} onChange={e => setMatUnit(e.target.value)} className={INPUT}>
-                      {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="עלות (₪)"><input value={matCost} onChange={e => setMatCost(e.target.value)} type="number" min="0" step="any" placeholder="0.00" className={INPUT} dir="ltr" /></Field>
-                </div>
-                <Btn loading={matLoading} disabled={!matProjectId}>רשום הוצאה</Btn>
-                {matMsg && <p className={`text-xs ${matMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{matMsg}</p>}
-              </form>
-            </Card>
-
-            {materials.length > 0 && (
-              <Card title="סיכום לפי קטגוריה">
-                <div className="divide-y divide-charcoal/5">
-                  {EXPENSE_CATEGORIES.map(cat => {
-                    const total = materials.filter(m => (m.category ?? "חומרים") === cat).reduce((s, m) => s + (m.cost ?? 0), 0);
-                    if (!total) return null;
-                    return (
-                      <div key={cat} className="flex justify-between items-center py-2">
-                        <span className="text-sm text-charcoal/60">{cat}</span>
-                        <span className="text-sm font-semibold tabular-nums">₪{total.toLocaleString("he-IL")}</span>
-                      </div>
-                    );
-                  })}
-                  <div className="flex justify-between items-center pt-2">
-                    <span className="text-sm font-bold">סה&quot;כ</span>
-                    <span className="text-base font-bold text-accent tabular-nums">₪{budget.reduce((s, b) => s + b.total, 0).toLocaleString("he-IL")}</span>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            <Card>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-heading text-sm font-bold">יומן הוצאות</h2>
-                <div className="flex items-center gap-2">
-                  <select value={matFilter} onChange={e => setMatFilter(e.target.value)} className="text-xs border border-charcoal/15 bg-bone px-2 py-1 focus:border-accent focus:outline-none">
-                    <option value="">כל הפרויקטים</option>
-                    {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                  <button onClick={loadMaterials} className="text-charcoal/40 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /></button>
-                </div>
-              </div>
-              {materials.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין הוצאות רשומות</p>}
-              <div className="divide-y divide-charcoal/5">
-                {materials.map(m => (
-                  <div key={m.id} className="py-2.5 flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">{m.material_name}</p>
-                      <p className="text-[0.7rem] text-charcoal/40">
-                        {m.category && <span className="bg-charcoal/5 px-1.5 py-0.5 me-1.5">{m.category}</span>}
-                        {m.quantity} {m.unit}{m.supplier ? ` · ${m.supplier}` : ""}
-                      </p>
-                    </div>
-                    {m.cost != null && <span className="text-sm font-bold text-accent tabular-nums shrink-0">₪{m.cost.toLocaleString("he-IL")}</span>}
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
+          <ExpensesTab
+            materials={materials}
+            budget={budget}
+            projects={projects}
+            activeProjects={activeProjects}
+            matProjectId={matProjectId} setMatProjectId={setMatProjectId}
+            matCategory={matCategory}   setMatCategory={setMatCategory}
+            matName={matName}           setMatName={setMatName}
+            matSupplier={matSupplier}   setMatSupplier={setMatSupplier}
+            matQty={matQty}             setMatQty={setMatQty}
+            matUnit={matUnit}           setMatUnit={setMatUnit}
+            matCost={matCost}           setMatCost={setMatCost}
+            matLoading={matLoading} matMsg={matMsg}
+            matFilter={matFilter}       setMatFilter={setMatFilter}
+            onAddMaterial={handleAddMaterial}
+            onReloadMaterials={loadMaterials}
+            expenseCategories={EXPENSE_CATEGORIES}
+            units={UNITS}
+            lastRefreshed={lastRefreshed}
+            refreshing={refreshing}
+            onTabRefresh={handleTabRefresh}
+          />
         )}
 
         {/* ── PLANNING ──────────────────────────────────────────────────────── */}
