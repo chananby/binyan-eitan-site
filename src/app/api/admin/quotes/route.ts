@@ -103,12 +103,23 @@ export async function POST(req: NextRequest) {
 
   if (!assigned) {
     assigned = await nextQuoteNumber();
-    attempt  = await insertOnce(assigned);
+    // Keep the JSON blob in sync with the column we're about to write. If
+    // we don't, a later iframe reload hydrates state from this blob, sees
+    // an empty quoteNumber, and the PATCH handler then overwrites the
+    // column to "" — the regression that filled the table with empty-
+    // numbered rows from 2026-05-18T12:08 onward.
+    if (data && typeof data === "object") {
+      (data as Record<string, unknown>).quoteNumber = assigned;
+    }
+    attempt = await insertOnce(assigned);
     // 23505 = unique_violation. A racing POST grabbed the same MAX.
     // Re-read MAX and try one more time before giving up.
     if (attempt.error && attempt.error.code === "23505") {
       assigned = await nextQuoteNumber();
-      attempt  = await insertOnce(assigned);
+      if (data && typeof data === "object") {
+        (data as Record<string, unknown>).quoteNumber = assigned;
+      }
+      attempt = await insertOnce(assigned);
     }
   } else {
     attempt = await insertOnce(assigned);

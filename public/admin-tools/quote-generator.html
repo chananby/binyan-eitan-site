@@ -1839,6 +1839,13 @@
           if (result.quote?.data) {
             quoteId = id;
             state = Object.assign({}, defaultState, result.quote.data);
+            // Recover from an older row whose JSON blob predates the
+            // server-allocated number — pull from the column as fallback
+            // so the UI shows the real number and a subsequent PATCH
+            // round-trips it back without blanking the DB.
+            if (!state.quoteNumber && result.quote.quote_number) {
+              state.quoteNumber = result.quote.quote_number;
+            }
             try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
             render();
             setStatus('synced', 'שמור בענן');

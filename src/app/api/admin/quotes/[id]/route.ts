@@ -51,7 +51,11 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     // Refresh extracted indexable fields from new data
     if (data && typeof data === "object") {
       const d = data as Record<string, unknown>;
-      if (typeof d.quoteNumber === "string")  updates.quote_number    = d.quoteNumber;
+      // Skip empty quoteNumber so a reload that hydrates state from an old
+      // data blob can't blank out a column the server already assigned.
+      if (typeof d.quoteNumber === "string" && d.quoteNumber.trim() !== "") {
+        updates.quote_number = d.quoteNumber;
+      }
       if (typeof d.customerName === "string") updates.customer_name   = d.customerName;
       if (typeof d.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.date)) updates.issue_date = d.date;
       updates.total_before_vat = computeTotal(data);
