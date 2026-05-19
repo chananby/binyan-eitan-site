@@ -9,11 +9,11 @@ import { parseMoney, parsePositive } from "../../lib/money";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  LogIn, Building2, Package, BarChart2, LayoutDashboard, Hammer,
+  LogIn, Building2, Package, BarChart2, LayoutDashboard,
   ClipboardList, UserPlus, RefreshCw, Pencil, Loader2, Activity,
-  AlertCircle, AlertTriangle, DollarSign, Target, CheckSquare2,
-  Calendar, ChevronDown, ChevronUp, ChevronLeft, Flag, Grid3x3, Download, Plus,
-  UserCog, Check,
+  AlertCircle, AlertTriangle, DollarSign, Target,
+  Calendar, ChevronLeft, Grid3x3, Download, Plus,
+  UserCog,
 } from "lucide-react";
 import { Card } from "../admin/_components/shared/Card";
 import { Field } from "../admin/_components/shared/Field";
@@ -26,6 +26,7 @@ import { ReportsTabPanel, MatrixTabPanel } from "../admin/_components/tabs/Repor
 import WorkersTab from "../admin/_components/tabs/WorkersTab";
 import ProjectsTab from "../admin/_components/tabs/ProjectsTab";
 import ExpensesTab from "../admin/_components/tabs/ExpensesTab";
+import PlanningTab from "../admin/_components/tabs/PlanningTab";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
@@ -2393,349 +2394,37 @@ ${detailHtml}
 
         {/* ── PLANNING ──────────────────────────────────────────────────────── */}
         {tab === "planning" && (
-          <div className="space-y-5">
-            <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
-
-            {/* ── Add milestone ──────────────────────────────────────────── */}
-            <Card>
-              <div className="flex items-center gap-2 mb-3">
-                <Flag size={15} strokeWidth={1.5} className="text-accent" />
-                <h2 className="font-heading text-base font-bold">הוספת אבן דרך</h2>
-              </div>
-              <form onSubmit={handleAddMilestone} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="פרויקט">
-                    <select value={newMsProjectId} onChange={e => { setNewMsProjectId(e.target.value); setNewTaskMilestoneId(""); }} required className={INPUT}>
-                      <option value="">בחר פרויקט...</option>
-                      {activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="יעד תאריך">
-                    <input type="date" value={newMsTargetDate} onChange={e => setNewMsTargetDate(e.target.value)} className={INPUT} dir="ltr" />
-                  </Field>
-                </div>
-                <Field label="שם אבן הדרך">
-                  <input value={newMsName} onChange={e => setNewMsName(e.target.value)} required placeholder="בסיס ושלד, גמר פנים, מסירה..." className={INPUT} />
-                </Field>
-                <Btn loading={msAddLoading} disabled={!newMsProjectId}>הוסף אבן דרך</Btn>
-                {msAddMsg && <p className={`text-xs ${msAddMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{msAddMsg}</p>}
-              </form>
-            </Card>
-
-            {/* ── Add task ───────────────────────────────────────────────── */}
-            <Card>
-              <div className="flex items-center gap-2 mb-3">
-                <CheckSquare2 size={15} strokeWidth={1.5} className="text-accent" />
-                <h2 className="font-heading text-base font-bold">הוספת משימה שבועית</h2>
-              </div>
-              <form onSubmit={handleAddTask} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="פרויקט">
-                    <select value={newTaskProjectId} onChange={e => { setNewTaskProjectId(e.target.value); setNewTaskMilestoneId(""); }} required className={INPUT}>
-                      <option value="">בחר פרויקט...</option>
-                      {activeProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="תחת אבן דרך">
-                    <select value={newTaskMilestoneId} onChange={e => setNewTaskMilestoneId(e.target.value)} className={INPUT}>
-                      <option value="">ללא אבן דרך</option>
-                      {milestones.filter(m => m.project_id === newTaskProjectId && m.status !== "completed").map(m => (
-                        <option key={m.id} value={m.id}>{m.name}</option>
-                      ))}
-                    </select>
-                  </Field>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="שם המשימה">
-                    <input value={newTaskName} onChange={e => setNewTaskName(e.target.value)} required placeholder="ריצוף, גבס, אינסטלציה..." className={INPUT} />
-                  </Field>
-                  <Field label="קבלן / צוות">
-                    <input value={newTaskContractor} onChange={e => setNewTaskContractor(e.target.value)} placeholder="שם קבלן" className={INPUT} />
-                  </Field>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="תאריך התחלה"><input type="date" value={newTaskStart} onChange={e => setNewTaskStart(e.target.value)} className={INPUT} dir="ltr" /></Field>
-                  <Field label="תאריך סיום">  <input type="date" value={newTaskEnd}   onChange={e => setNewTaskEnd(e.target.value)}   className={INPUT} dir="ltr" /></Field>
-                </div>
-                <Btn loading={taskAddLoading} disabled={!newTaskProjectId}>הוסף משימה</Btn>
-                {taskAddMsg && <p className={`text-xs ${taskAddMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{taskAddMsg}</p>}
-              </form>
-            </Card>
-
-            {/* ── Weekly look-ahead ──────────────────────────────────────── */}
-            <Card>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Calendar size={14} strokeWidth={1.5} className="text-accent" />
-                  <h2 className="font-heading text-sm font-bold">לוח שבועי — שבוע נוכחי</h2>
-                </div>
-                <button onClick={reload} className="text-charcoal/40 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /></button>
-              </div>
-
-              {/* Unscheduled this week */}
-              {(() => {
-                const weekDateSet = new Set(weekDays.map(d => d.date));
-                const unscheduled = tasks.filter(t => t.status !== "completed" && (!t.start_date || !weekDateSet.has(t.start_date)));
-                if (!unscheduled.length) return null;
-                return (
-                  <div className="mb-4 space-y-2">
-                    <p className="text-[0.65rem] font-bold tracking-widest uppercase text-charcoal/30">ללא לו&quot;ז לשבוע זה</p>
-                    {unscheduled.map(t => (
-                      <div key={t.id} className="bg-bone border border-charcoal/10 p-2.5 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <CheckSquare2 size={11} strokeWidth={1.5} className="text-charcoal/20 shrink-0" />
-                          <p className="text-xs font-semibold flex-1 truncate">{t.task_name}</p>
-                          <span className={`text-[0.6rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {weekDays.map(d => (
-                            <button key={d.date} onClick={() => assignTaskDay(t.id, d.date)}
-                              className={`text-[0.6rem] px-2 py-1 border transition-colors ${d.date === todayStr ? "border-accent text-accent" : "border-charcoal/15 text-charcoal/50 hover:border-accent hover:text-accent"}`}>
-                              {d.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-
-              {/* Day columns */}
-              <div className="space-y-2">
-                {weekDays.map(day => {
-                  const dayTasks = tasks.filter(t => t.start_date === day.date && t.status !== "completed");
-                  const isToday  = day.date === todayStr;
-                  return (
-                    <div key={day.date} className={`border ${isToday ? "border-accent/40" : "border-charcoal/10"}`}>
-                      <div className={`flex items-center justify-between px-3 py-2 ${isToday ? "bg-accent/[0.05]" : "bg-charcoal/[0.02]"}`}>
-                        <span className={`text-xs font-bold ${isToday ? "text-accent" : "text-charcoal/60"}`}>{day.label}</span>
-                        <span className="text-[0.6rem] text-charcoal/30 tabular-nums" dir="ltr">{day.short}</span>
-                      </div>
-                      {dayTasks.length === 0 ? (
-                        <p className="text-[0.6rem] text-charcoal/20 text-center py-1.5">ריק</p>
-                      ) : (
-                        <div className="divide-y divide-charcoal/5">
-                          {dayTasks.map(t => (
-                            <div key={t.id} className="flex items-center gap-2 px-3 py-2">
-                              <CheckSquare2 size={11} strokeWidth={1.5} className={`shrink-0 ${t.status === "in_progress" ? "text-amber-500" : "text-charcoal/20"}`} />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-semibold truncate">{t.task_name}</p>
-                                {t.contractor && <p className="text-[0.6rem] text-charcoal/40">{t.contractor}</p>}
-                              </div>
-                              {t.status === "planned" && (
-                                <button onClick={() => setTaskStatus(t.id, "in_progress")} className="text-[0.6rem] border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">▶</button>
-                              )}
-                              {t.status !== "completed" && (
-                                <button onClick={() => setTaskStatus(t.id, "completed")} className="text-[0.6rem] border border-green-300 px-1.5 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">✓</button>
-                              )}
-                              <button onClick={() => assignTaskDay(t.id, null)} className="text-[0.6rem] text-charcoal/20 hover:text-red-400 transition-colors shrink-0">✕</button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-
-            {/* ── Red Alerts ───────────────────────────────────────────────── */}
-            {(() => {
-              const delayed   = tasks.filter(t => t.status === "delayed");
-              const notReady  = tasks.filter(t => t.status !== "completed" && t.status !== "delayed" && (!t.material_ready || !t.sub_confirmed || !t.equipment_on_site));
-              const total     = delayed.length + notReady.length;
-              if (!total) return null;
-              return (
-                <Card>
-                  <div className="flex items-center gap-2 mb-3">
-                    <AlertTriangle size={15} strokeWidth={1.5} className="text-red-500" />
-                    <h2 className="font-heading text-sm font-bold text-red-700">התראות לוגיסטיות ({total})</h2>
-                  </div>
-                  <div className="space-y-1.5">
-                    {delayed.map(t => {
-                      const proj = projects.find(p => p.id === t.project_id);
-                      return (
-                        <div key={t.id} className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-100">
-                          <span className="text-[0.6rem] px-1.5 py-0.5 bg-red-100 text-red-700 font-semibold shrink-0">עיכוב</span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold truncate">{t.task_name}</p>
-                            <p className="text-[0.6rem] text-charcoal/40">{proj?.name}{t.delay_reason ? ` · ${DELAY_REASON_HE[t.delay_reason] ?? t.delay_reason}` : ""}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {notReady.map(t => {
-                      const proj    = projects.find(p => p.id === t.project_id);
-                      const missing = [
-                        !t.material_ready    && "חומרים",
-                        !t.sub_confirmed     && "קבלן משנה",
-                        !t.equipment_on_site && "ציוד",
-                      ].filter(Boolean).join(", ");
-                      return (
-                        <div key={t.id} className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-100">
-                          <span className="text-[0.6rem] px-1.5 py-0.5 bg-amber-100 text-amber-700 font-semibold shrink-0">לא מוכן</span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold truncate">{t.task_name}</p>
-                            <p className="text-[0.6rem] text-charcoal/40">{proj?.name}{missing ? ` · חסר: ${missing}` : ""}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </Card>
-              );
-            })()}
-
-            {/* ── Macro plan — milestones ─────────────────────────────────── */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-2">
-                  <Target size={14} strokeWidth={1.5} className="text-accent" />
-                  <h2 className="font-heading text-sm font-bold">תוכנית מאקרו — אבני דרך</h2>
-                </div>
-                <div className="flex items-center gap-2">
-                  <select value={taskFilter} onChange={e => setTaskFilter(e.target.value)} className="text-xs border border-charcoal/15 bg-bone px-2 py-1 focus:border-accent focus:outline-none">
-                    <option value="">כל הפרויקטים</option>
-                    {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                  <button onClick={reload} className="text-charcoal/40 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /></button>
-                </div>
-              </div>
-
-              {milestones.filter(m => !taskFilter || m.project_id === taskFilter).length === 0 && (
-                <p className="text-sm text-charcoal/30 text-center py-6">אין אבני דרך — הוסף אחת למעלה</p>
-              )}
-
-              {milestones
-                .filter(m => !taskFilter || m.project_id === taskFilter)
-                .map(ms => {
-                  const msTasks     = tasks.filter(t => t.milestone_id === ms.id);
-                  const doneCount   = msTasks.filter(t => t.status === "completed").length;
-                  const delayCount  = msTasks.filter(t => t.status === "delayed").length;
-                  const pct         = msTasks.length ? Math.round((doneCount / msTasks.length) * 100) : 0;
-                  const isExpanded  = expandedMs.has(ms.id);
-                  const proj        = projects.find(p => p.id === ms.project_id);
-
-                  return (
-                    <div key={ms.id} className={`border ${ms.status === "completed" ? "border-charcoal/8 opacity-60" : delayCount > 0 ? "border-red-200" : "border-charcoal/15"} bg-white`}>
-                      {/* Milestone header */}
-                      <button onClick={() => toggleMs(ms.id)} className="w-full flex items-center gap-2.5 px-4 py-3 text-right hover:bg-bone/60 transition-colors">
-                        <Target size={14} strokeWidth={1.5} className={`shrink-0 ${ms.status === "completed" ? "text-green-500" : ms.status === "in_progress" ? "text-amber-500" : "text-accent/50"}`} />
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-bold truncate ${ms.status === "completed" ? "line-through text-charcoal/50" : "text-charcoal"}`}>{ms.name}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            {proj && <span className="text-[0.6rem] text-charcoal/35">{proj.name}</span>}
-                            {ms.target_date && <span className="text-[0.6rem] text-charcoal/35 tabular-nums" dir="ltr">· {ms.target_date}</span>}
-                          </div>
-                          {msTasks.length > 0 && (
-                            <div className="mt-1.5 flex items-center gap-1.5">
-                              <div className="flex-1 h-1 bg-charcoal/8 overflow-hidden">
-                                <div className="h-full bg-accent transition-all duration-300" style={{ width: `${pct}%` }} />
-                              </div>
-                              <span className="text-[0.55rem] text-charcoal/35 tabular-nums shrink-0">{pct}%</span>
-                            </div>
-                          )}
-                        </div>
-                        {delayCount > 0 && <span className="text-[0.6rem] px-1.5 py-0.5 bg-red-50 text-red-600 shrink-0">{delayCount} עיכוב</span>}
-                        <span className={`text-[0.6rem] px-2 py-0.5 shrink-0 ${MILESTONE_STATUS_CLS[ms.status]}`}>{MILESTONE_STATUS_HE[ms.status]}</span>
-                        <span className="text-[0.6rem] text-charcoal/30 shrink-0 tabular-nums">{doneCount}/{msTasks.length}</span>
-                        {isExpanded ? <ChevronUp size={13} strokeWidth={1.5} className="shrink-0 text-charcoal/30" /> : <ChevronDown size={13} strokeWidth={1.5} className="shrink-0 text-charcoal/30" />}
-                      </button>
-
-                      {/* Expanded body */}
-                      {isExpanded && (
-                        <div className="border-t border-charcoal/8">
-                          {msTasks.length === 0 ? (
-                            <p className="text-[0.65rem] text-charcoal/25 text-center py-3">אין משימות תחת אבן דרך זו</p>
-                          ) : (
-                            <div className="divide-y divide-charcoal/5">
-                              {msTasks.map(t => (
-                                <div key={t.id} className={`flex items-center gap-2 px-4 py-2.5 ${t.status === "completed" ? "opacity-50" : ""}`}>
-                                  <CheckSquare2 size={12} strokeWidth={1.5} className={`shrink-0 ${t.status === "completed" ? "text-green-500" : t.status === "in_progress" ? "text-amber-400" : t.status === "delayed" ? "text-red-400" : "text-charcoal/20"}`} />
-                                  <div className="flex-1 min-w-0">
-                                    <p className={`text-xs font-semibold truncate ${t.status === "completed" ? "line-through" : ""}`}>{t.task_name}</p>
-                                    <div className="flex items-center gap-2 text-[0.6rem] text-charcoal/35 mt-0.5 flex-wrap">
-                                      {t.contractor && <span>{t.contractor}</span>}
-                                      {t.start_date && <span dir="ltr">{t.start_date}{t.end_date ? ` → ${t.end_date}` : ""}</span>}
-                                      {t.status === "delayed" && t.delay_reason && <span className="text-red-500">{DELAY_REASON_HE[t.delay_reason] ?? t.delay_reason}</span>}
-                                      {t.status !== "completed" && (!t.material_ready || !t.sub_confirmed || !t.equipment_on_site) && (
-                                        <span className="text-amber-600">
-                                          {[!t.material_ready && "חומרים", !t.sub_confirmed && "קב״מ", !t.equipment_on_site && "ציוד"].filter(Boolean).join(", ")} ✗
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <span className={`text-[0.6rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status] ?? ""}`}>{STATUS_HE[t.status] ?? t.status}</span>
-                                  {t.status !== "completed" && (
-                                    <>
-                                      {t.status === "planned" && (
-                                        <button onClick={() => setTaskStatus(t.id, "in_progress")} className="text-[0.6rem] border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">▶</button>
-                                      )}
-                                      {t.status === "in_progress" && (
-                                        <button onClick={() => setTaskStatus(t.id, "planned")} className="text-[0.6rem] border border-charcoal/20 px-1.5 py-0.5 text-charcoal/40 hover:border-accent transition-colors shrink-0">⏸</button>
-                                      )}
-                                      <button onClick={() => setTaskStatus(t.id, "completed")} className="text-[0.6rem] border border-green-300 px-1.5 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">✓</button>
-                                    </>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Milestone action bar */}
-                          {ms.status !== "completed" && (
-                            <div className="flex gap-2 px-4 py-2 bg-bone/50 border-t border-charcoal/8">
-                              {ms.status === "pending" && (
-                                <button onClick={() => setMilestoneStatus(ms.id, "in_progress")} className="text-[0.65rem] border border-amber-300 px-3 py-1 text-amber-700 hover:bg-amber-50 transition-colors">▶ הפעל אבן דרך</button>
-                              )}
-                              {ms.status === "in_progress" && (
-                                <button onClick={() => setMilestoneStatus(ms.id, "pending")} className="text-[0.65rem] border border-charcoal/20 px-3 py-1 text-charcoal/50 hover:border-accent transition-colors">⏸ עצור</button>
-                              )}
-                              <button onClick={() => setMilestoneStatus(ms.id, "completed")} className="text-[0.65rem] border border-green-300 px-3 py-1 text-green-700 hover:bg-green-50 transition-colors">✓ סיים אבן דרך</button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-              {/* Free tasks (no milestone) */}
-              {(() => {
-                const free = tasks.filter(t => !t.milestone_id && t.status !== "completed" && (!taskFilter || t.project_id === taskFilter));
-                if (!free.length) return null;
-                return (
-                  <div className="border border-charcoal/10 bg-white">
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-charcoal/[0.02] border-b border-charcoal/8">
-                      <Hammer size={12} strokeWidth={1.5} className="text-charcoal/30" />
-                      <p className="text-xs font-semibold text-charcoal/50">משימות ללא אבן דרך</p>
-                    </div>
-                    <div className="divide-y divide-charcoal/5">
-                      {free.map(t => {
-                        const proj = projects.find(p => p.id === t.project_id);
-                        return (
-                          <div key={t.id} className="flex items-center gap-2 px-4 py-2.5">
-                            <CheckSquare2 size={12} strokeWidth={1.5} className="shrink-0 text-charcoal/20" />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold truncate">{t.task_name}</p>
-                              <div className="flex items-center gap-2 text-[0.6rem] text-charcoal/35 mt-0.5">
-                                {proj && <span>{proj.name}</span>}
-                                {t.contractor && <span>· {t.contractor}</span>}
-                              </div>
-                            </div>
-                            <span className={`text-[0.6rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
-                            {t.status === "planned" && <button onClick={() => setTaskStatus(t.id, "in_progress")} className="text-[0.6rem] border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 shrink-0">▶</button>}
-                            <button onClick={() => setTaskStatus(t.id, "completed")} className="text-[0.6rem] border border-green-300 px-1.5 py-0.5 text-green-700 hover:bg-green-50 shrink-0">✓</button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
+          <PlanningTab
+            projects={projects}
+            activeProjects={activeProjects}
+            tasks={tasks}
+            milestones={milestones}
+            weekDays={weekDays}
+            todayStr={todayStr}
+            newMsProjectId={newMsProjectId}   setNewMsProjectId={setNewMsProjectId}
+            newMsName={newMsName}             setNewMsName={setNewMsName}
+            newMsTargetDate={newMsTargetDate} setNewMsTargetDate={setNewMsTargetDate}
+            msAddLoading={msAddLoading} msAddMsg={msAddMsg}
+            onAddMilestone={handleAddMilestone}
+            newTaskProjectId={newTaskProjectId}     setNewTaskProjectId={setNewTaskProjectId}
+            newTaskMilestoneId={newTaskMilestoneId} setNewTaskMilestoneId={setNewTaskMilestoneId}
+            newTaskName={newTaskName}               setNewTaskName={setNewTaskName}
+            newTaskContractor={newTaskContractor}   setNewTaskContractor={setNewTaskContractor}
+            newTaskStart={newTaskStart}             setNewTaskStart={setNewTaskStart}
+            newTaskEnd={newTaskEnd}                 setNewTaskEnd={setNewTaskEnd}
+            taskAddLoading={taskAddLoading} taskAddMsg={taskAddMsg}
+            onAddTask={handleAddTask}
+            taskFilter={taskFilter} setTaskFilter={setTaskFilter}
+            expandedMs={expandedMs} onToggleMs={toggleMs}
+            onAssignTaskDay={assignTaskDay}
+            onSetTaskStatus={setTaskStatus}
+            onSetMilestoneStatus={setMilestoneStatus}
+            onReload={reload}
+            lastRefreshed={lastRefreshed}
+            refreshing={refreshing}
+            dataLoading={dataLoading}
+            onTabRefresh={handleTabRefresh}
+          />
         )}
 
         {/* ── INCOME (admin only) ────────────────────────────────────────────── */}
