@@ -1,0 +1,41 @@
+-- ============================================================
+-- Binyan Eitan — Drop legacy NOT NULL on tasks.title
+-- Run once in Supabase SQL Editor (Dashboard → SQL Editor)
+-- ============================================================
+-- Background
+-- ----------
+-- After 20260519_tasks_schema_align.sql added the five columns the planning
+-- API actually writes (task_name, start_date, end_date, contractor, notes),
+-- INSERTs still fail — this time with 23502:
+--    "null value in column 'title' of relation 'tasks' violates not-null
+--     constraint"
+--
+-- The pre-existing public.tasks table (created manually in the dashboard
+-- some time before commit 2e05444) declared `title` as NOT NULL. The
+-- current planning code does not write to `title` — it writes to `task_name`
+-- — so every INSERT leaves title NULL and trips the constraint.
+--
+-- Verified state at the time of this migration
+-- --------------------------------------------
+--   • tasks has 0 rows (no data to migrate; no risk of orphaning)
+--   • Probed every legacy column via repeated INSERT attempts. `title` is
+--     the ONLY legacy column that still has NOT NULL. The rest of the
+--     legacy columns (name, description, due_date, priority, planned_cost,
+--     planned_date, is_completed, week_number, planned_workers, actual_cost,
+--     subcontractor_name, material_needed, material_supplier,
+--     material_order_status, delivery_date) are already nullable or have
+--     defaults that satisfy the insert.
+--   • A simulated INSERT matching the exact shape POST /api/admin/tasks
+--     sends (incl. status='planned') succeeds the moment `title` is either
+--     filled or made nullable.
+--
+-- Why drop NOT NULL instead of dropping the column?
+-- -------------------------------------------------
+-- Dropping the column is irreversible without a backup. The column is
+-- harmless when no code reads or writes it. A future cleanup pass can
+-- drop title (and the other unused legacy columns) deliberately, once we
+-- have explicit confirmation that no ad-hoc tool or manual workflow ever
+-- depends on them.
+-- ============================================================
+
+ALTER TABLE public.tasks ALTER COLUMN title DROP NOT NULL;
