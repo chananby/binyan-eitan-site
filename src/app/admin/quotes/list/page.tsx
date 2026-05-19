@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
-
-const QuotesListClient = dynamic(() => import("./QuotesListClient"), {
-  ssr: false,
-});
+import QuotesListClient from "./QuotesListClient";
 
 export const metadata: Metadata = {
   title: "רשימת הצעות מחיר | בניין איתן",

@@ -153,12 +153,14 @@ const jsonLd = {
   }
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const pathname = headers().get("x-pathname") ?? "";
+export default async function RootLayout(
+  {
+    children,
+  }: {
+    children: React.ReactNode;
+  }
+) {
+  const pathname = (await headers()).get("x-pathname") ?? "";
   const lang = pathname.startsWith("/en") ? "en" : "he";
   const dir  = lang === "en" ? "ltr" : "rtl";
 

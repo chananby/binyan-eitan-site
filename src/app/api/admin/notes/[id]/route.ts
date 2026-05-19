@@ -10,10 +10,8 @@ const MAX_BODY  = 5000;
 // PATCH — partial update. Only fields present in body are touched.
 // Ownership enforced by adding admin_id to the WHERE clause (admins
 // can only mutate their own notes).
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const adminId = getAdminIdFromRequest(req);
   if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -54,10 +52,8 @@ export async function PATCH(
 }
 
 // DELETE — remove a note (only own notes)
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const adminId = getAdminIdFromRequest(req);
   if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

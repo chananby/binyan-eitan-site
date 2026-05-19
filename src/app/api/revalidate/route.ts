@@ -53,8 +53,8 @@ export async function POST(req: NextRequest) {
 
   try {
     // Tag — always bump translations tag, plus any caller-supplied tags.
-    revalidateTag("translations");
-    if (bodyTags) for (const t of bodyTags) revalidateTag(t);
+    revalidateTag("translations", "max");
+    if (bodyTags) for (const t of bodyTags) revalidateTag(t, "max");
 
     // Paths — caller list takes precedence; if missing, fall back to defaults.
     const paths = bodyPaths && bodyPaths.length > 0 ? bodyPaths : DEFAULT_PATHS;

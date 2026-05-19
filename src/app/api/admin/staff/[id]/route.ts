@@ -6,10 +6,8 @@ import { normalizePhone } from "../../../../../lib/phone";
 export const runtime = "nodejs";
 
 // PATCH — toggle active OR full edit (name, phone, role, national_id)
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -108,10 +106,8 @@ export async function PATCH(
 }
 
 // DELETE — hard delete (only if no attendance records linked)
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
-
-const AttendanceForm = dynamic(() => import("../../../components/AttendanceForm"), { ssr: false });
+import AttendanceForm from "../../../components/AttendanceForm";
 
 export const metadata: Metadata = {
   title: "שעון נוכחות",

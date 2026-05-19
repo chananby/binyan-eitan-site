@@ -10,11 +10,12 @@ const ArticleDetailPage = loadDynamic(
   () => import("../../../components/ArticleDetailPage")
 );
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const article = await getServerArticleBySlug(params.slug);
 
   if (!article) {
@@ -57,18 +58,19 @@ export async function generateMetadata({
   };
 }
 
-export default async function HeExpertiseSlugPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function HeExpertiseSlugPage(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
   const article = await getServerArticleBySlug(params.slug);
   if (!article) notFound();
 
   // Drafts (published === false) and archived articles are only viewable by
   // authed admins/internal users for preview purposes. Everyone else gets 404.
   if (!isArticlePublic(article)) {
-    const authed = isAdminAuthed() || isInternalAuthed();
+    const authed = (await isAdminAuthed()) || (await isInternalAuthed());
     if (!authed) notFound();
   }
 

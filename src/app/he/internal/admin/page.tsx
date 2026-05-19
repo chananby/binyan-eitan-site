@@ -47,7 +47,7 @@ async function getProjects(): Promise<{ projects: ProjectRow[]; error: string | 
 }
 
 export default async function AdminProjectsPage() {
-  if (!isAdminAuthed()) redirect("/he/internal");
+  if (!(await isAdminAuthed())) redirect("/he/internal");
 
   const { projects, error } = await getProjects();
 

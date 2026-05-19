@@ -5,7 +5,8 @@ import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 export const runtime = "nodejs";
 
 // ── GET /api/admin/quotes/[id] — fetch a single quote with full state ─────
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -29,7 +30,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 // ── PATCH /api/admin/quotes/[id] — update an existing quote ────────────────
 // Body: { data: {...full quote state...}, status?: "draft"|"sent"|... }
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -88,7 +90,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // ── DELETE /api/admin/quotes/[id] — delete a quote ─────────────────────────
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

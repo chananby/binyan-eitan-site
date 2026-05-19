@@ -1,10 +1,5 @@
 import type { Metadata } from 'next';
-import dynamic from 'next/dynamic';
-
-const VoucherGenerator = dynamic(
-  () => import('../../components/VoucherGenerator'),
-  { ssr: false },
-);
+import VoucherGenerator from '../../components/VoucherGenerator';
 
 export const metadata: Metadata = {
   title: 'מחולל שוברי מתנה',

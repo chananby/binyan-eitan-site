@@ -5,10 +5,8 @@ import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 export const runtime = "nodejs";
 
 // DELETE — remove a vacation day record
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

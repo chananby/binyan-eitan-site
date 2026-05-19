@@ -7,10 +7,8 @@ export const runtime = "nodejs";
 
 // PATCH — update an existing daily report.
 // Foreman can only update today's log (enforced by checking the record's date).
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAuthedFromRequest(req)) {
     return unauthorized();
   }

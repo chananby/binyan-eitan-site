@@ -140,17 +140,17 @@ export function isAdminAuthedFromRequest(req: NextRequest): boolean {
 }
 
 // ── Server-component helpers ───────────────────────────────────────────────────
-export function isAdminAuthed(): boolean {
+export async function isAdminAuthed(): Promise<boolean> {
   const secret = getTokenSecret();
   if (!secret) return false;
-  const token = cookies().get(ADMIN_COOKIE)?.value;
+  const token = (await cookies()).get(ADMIN_COOKIE)?.value;
   if (!token) return false;
   return verifyIdentityToken(token, secret, ADMIN_MAX_AGE) !== null;
 }
 
 /** Server-component variant of verifyInternalToken — reads cookies() directly. */
-export function isInternalAuthed(): boolean {
-  const token = cookies().get(INTERNAL_COOKIE)?.value;
+export async function isInternalAuthed(): Promise<boolean> {
+  const token = (await cookies()).get(INTERNAL_COOKIE)?.value;
   if (!token) return false;
   return verifyInternalToken(token);
 }

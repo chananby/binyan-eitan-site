@@ -15,11 +15,12 @@ export function generateStaticParams() {
 
 // ── Metadata ───────────────────────────────────────────────────────────────────
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+): Promise<Metadata> {
+  const params = await props.params;
   const project = getProjectBySlug(params.slug);
   if (!project) return {};
 
@@ -93,7 +94,8 @@ function buildJsonLd(slug: string) {
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 
-export default function EnProjectDetailPage({ params }: { params: { slug: string } }) {
+export default async function EnProjectDetailPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const project = getProjectBySlug(params.slug);
   if (!project) notFound();
 

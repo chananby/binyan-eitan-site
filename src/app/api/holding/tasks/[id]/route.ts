@@ -21,10 +21,8 @@ function resolveAuthor(req: NextRequest): "Hanan" | "Moti" | null {
 }
 
 // ── PATCH ─────────────────────────────────────────────────────────────────────
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   // One outer try/catch: the server WILL return JSON no matter what
   try {
 
@@ -117,10 +115,8 @@ export async function PATCH(
 }
 
 // ── DELETE ────────────────────────────────────────────────────────────────────
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const author = resolveAuthor(req);
     if (!author) {

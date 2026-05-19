@@ -30,6 +30,6 @@ export async function POST(req: NextRequest) {
   if (error) return serverError(error.message);
   // Invalidate the middleware's cached read so the change takes effect now
   // instead of waiting for the 30s revalidate window.
-  revalidateTag("maintenance_mode");
+  revalidateTag("maintenance_mode", "max");
   return NextResponse.json({ maintenance: body.enabled });
 }

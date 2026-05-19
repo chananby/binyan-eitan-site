@@ -4,10 +4,8 @@ import { isAuthedFromRequest, isAdminAuthedFromRequest } from "../../../../../li
 
 export const runtime = "nodejs";
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let body: { status?: string; name?: string; description?: string; target_date?: string };
@@ -41,10 +39,8 @@ export async function PATCH(
   return NextResponse.json({ milestone: data });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAdminAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = createServerClient();

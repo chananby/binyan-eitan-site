@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
+import InternalClient from "./InternalClientLayout";
 
 export const metadata: Metadata = {
   title: "Internal — Management Dashboards",
@@ -10,8 +10,6 @@ export const metadata: Metadata = {
     googleBot: { index: false, follow: false, noimageindex: true },
   },
 };
-
-const InternalClient = dynamic(() => import("./InternalClientLayout"), { ssr: false });
 
 export default function InternalLayout({ children }: { children: React.ReactNode }) {
   return <InternalClient>{children}</InternalClient>;

@@ -146,7 +146,7 @@ export async function PUT(req: NextRequest) {
     await kv.set(KV_VERSION, nextVersion);
 
     try {
-      revalidateTag("translations");
+      revalidateTag("translations", "max");
       for (const path of REVALIDATE_PATHS) revalidatePath(path);
     } catch {
       // Not fatal — client-side BroadcastChannel sync handles live users

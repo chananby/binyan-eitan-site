@@ -12,10 +12,8 @@ export const runtime = "nodejs";
 
 // PATCH — retroactive edit of an attendance record.
 // Admin: full edit. Foreman: status only (approve/reject), scoped to their projects.
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let body: { action?: string; project_id?: string | null; timestamp_label?: string; status?: string };

@@ -5,10 +5,8 @@ import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 export const runtime = "nodejs";
 
 // PATCH — update project (status toggle or rename)
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAdminAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

@@ -7,10 +7,8 @@ export const runtime = "nodejs";
 const VALID_STATUSES = ["planned", "in_progress", "delayed", "completed"];
 const VALID_DELAY_REASONS = ["workers", "material", "weather", "subcontractor"];
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let body: {
@@ -67,10 +65,8 @@ export async function PATCH(
   return NextResponse.json({ task: data });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!isAdminAuthedFromRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const supabase = createServerClient();
   const { error } = await supabase.from("tasks").delete().eq("id", params.id);
