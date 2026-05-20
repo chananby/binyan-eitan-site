@@ -384,7 +384,7 @@ ${detailHtml}
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-5 bg-accent" />
                       <p className="font-heading font-bold text-sm">{name}</p>
-                      <span className="text-[0.6rem] text-charcoal/40">{ws?.phone}</span>
+                      <span className="text-[0.75rem] text-charcoal/40">{ws?.phone}</span>
                     </div>
                     <div className="flex gap-3 text-[0.68rem] text-charcoal/50">
                       <span><strong className="text-charcoal">{ws?.days ?? 0}</strong> ימים</span>
@@ -607,7 +607,7 @@ function PendingApprovals({
           <AlertTriangle size={15} strokeWidth={1.5} className="text-amber-500" />
           <h2 className="font-heading text-base font-bold">בקשות תיקון ממתינות</h2>
           {pendingRecords.length > 0 && (
-            <span className="bg-amber-100 text-amber-700 text-[0.6rem] font-bold px-2 py-0.5">
+            <span className="bg-amber-100 text-amber-700 text-[0.75rem] font-bold px-2 py-0.5">
               {pendingRecords.length}
             </span>
           )}
@@ -633,21 +633,21 @@ function PendingApprovals({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-semibold">{r.staff?.name ?? "—"}</p>
-                        <span className={`text-[0.6rem] font-semibold px-1.5 py-0.5 ${r.action === "כניסה" || r.action === "in" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+                        <span className={`text-[0.75rem] font-semibold px-1.5 py-0.5 ${r.action === "כניסה" || r.action === "in" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
                           {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
                         </span>
                         {r.timestamp_label && (
-                          <span className="text-[0.65rem] text-charcoal/40 tabular-nums" dir="ltr">{r.timestamp_label}</span>
+                          <span className="text-[0.75rem] text-charcoal/40 tabular-nums" dir="ltr">{r.timestamp_label}</span>
                         )}
                         <DistanceFlag r={r} threshold={farThresholdM} />
                       </div>
                       {r.project && (
-                        <div className="flex items-center gap-1 mt-0.5 text-[0.65rem] text-charcoal/40">
+                        <div className="flex items-center gap-1 mt-0.5 text-[0.75rem] text-charcoal/40">
                           <Building2 size={10} strokeWidth={1.5} /><span>{r.project.name}</span>
                         </div>
                       )}
                       {r.created_at && (
-                        <p className="text-[0.6rem] text-charcoal/30 mt-0.5">
+                        <p className="text-[0.75rem] text-charcoal/30 mt-0.5">
                           הוגש: {new Date(r.created_at).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                         </p>
                       )}
@@ -658,12 +658,12 @@ function PendingApprovals({
                       </button>
                       <button onClick={() => onApproveAtt(r.id)}
                         disabled={pendingActionId !== null}
-                        className="text-[0.65rem] font-semibold border border-green-200 text-green-700 hover:bg-green-600 hover:text-white px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                        className="text-[0.75rem] font-semibold border border-green-200 text-green-700 hover:bg-green-600 hover:text-white px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                         {pendingActionId === r.id ? <Loader2 size={11} className="animate-spin" /> : "אשר"}
                       </button>
                       <button onClick={() => onRejectAtt(r.id)}
                         disabled={pendingActionId !== null}
-                        className="text-[0.65rem] font-semibold border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                        className="text-[0.75rem] font-semibold border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                         {pendingActionId === r.id ? <Loader2 size={11} className="animate-spin" /> : "דחה"}
                       </button>
                     </div>
@@ -698,7 +698,7 @@ function TodayLog({
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="font-heading text-base font-bold">יומן היום</h2>
-          <p className="text-[0.6rem] text-charcoal/30 font-body mt-0.5">מתעדכן אוטומטית כל דקה</p>
+          <p className="text-[0.75rem] text-charcoal/30 font-body mt-0.5">מתעדכן אוטומטית כל דקה</p>
         </div>
         <button onClick={onReload} className="flex items-center gap-1.5 text-xs border border-accent/30 text-accent hover:bg-accent hover:text-bone px-3 py-1.5 transition-colors duration-150">
           <RefreshCw size={12} strokeWidth={1.5} /> רענן עכשיו
@@ -727,7 +727,7 @@ function TodayLog({
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate">{r.staff?.name ?? "—"}</p>
-                      <p className="text-[0.65rem] text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
+                      <p className="text-[0.75rem] text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
                     </div>
                     <span className={`text-xs font-semibold shrink-0 ${r.action === "כניסה" || r.action === "in" ? "text-green-600" : "text-red-400"}`}>
                       {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
@@ -741,7 +741,7 @@ function TodayLog({
                     </button>
                   </div>
                   {r.project && (
-                    <div className="flex items-center gap-1 text-[0.65rem] text-charcoal/40">
+                    <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/40">
                       <Building2 size={10} strokeWidth={1.5} /><span>{r.project.name}</span>
                     </div>
                   )}
@@ -779,7 +779,7 @@ function RecentLogs({
         <div className="flex items-center gap-2">
           <Calendar size={15} strokeWidth={1.5} className="text-accent" />
           <h2 className="font-heading text-base font-bold">עריכת רשומות אחרונות</h2>
-          <span className="text-[0.6rem] text-charcoal/30 font-body">7 ימים אחרונים</span>
+          <span className="text-[0.75rem] text-charcoal/30 font-body">7 ימים אחרונים</span>
         </div>
         {recentLogsVisible && (
           <button onClick={onLoadRecentLogs} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors">
@@ -811,11 +811,11 @@ function RecentLogs({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-sm font-semibold truncate">{r.staff?.name ?? "—"}</p>
-                            <span className={`text-[0.6rem] font-semibold px-1.5 py-0.5 ${r.action === "כניסה" || r.action === "in" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+                            <span className={`text-[0.75rem] font-semibold px-1.5 py-0.5 ${r.action === "כניסה" || r.action === "in" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
                               {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
                             </span>
                           </div>
-                          <p className="text-[0.65rem] text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
+                          <p className="text-[0.75rem] text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           {r.project && <span className="text-[0.62rem] text-charcoal/40 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
@@ -924,10 +924,34 @@ export default function AttendanceTab(p: Props) {
     onApprove:    p.onHandleEditAndApprove,
   };
 
+  // When there are pending approvals, pin the panel to the top of the tab —
+  // approving is the most likely reason the admin opened this tab. Without
+  // pending, the panel stays in its original position to keep the report
+  // panel visible above the fold.
+  const hasPending = p.pendingRecords.length > 0;
+
+  const pendingPanel = (
+    <PendingApprovals
+      pendingRecords={p.pendingRecords}
+      pendingLoading={p.pendingLoading}
+      pendingErr={p.pendingErr}
+      pendingActionId={p.pendingActionId}
+      onLoadPending={p.onLoadPending}
+      onApproveAtt={p.onApproveAtt}
+      onRejectAtt={p.onRejectAtt}
+      onStartEditAtt={p.onStartEditAtt}
+      edit={edit}
+      projects={p.projects}
+      farThresholdM={p.farThresholdM}
+    />
+  );
+
   return (
     <div className="space-y-5">
       <TabRefreshBar loading={p.refreshing || p.dataLoading} onRefresh={p.onTabRefresh} lastRefreshed={p.lastRefreshed} />
-      <p className="text-[0.65rem] text-charcoal/30 text-center -mt-3">מתעדכן אוטומטית כל 2 דקות</p>
+      <p className="text-[0.75rem] text-charcoal/30 text-center -mt-3">מתעדכן אוטומטית כל 2 דקות</p>
+
+      {hasPending && pendingPanel}
 
       <ReportPanel
         attReportFrom={p.attReportFrom}       setAttReportFrom={p.setAttReportFrom}
@@ -954,19 +978,7 @@ export default function AttendanceTab(p: Props) {
         projects={p.projects}
       />
 
-      <PendingApprovals
-        pendingRecords={p.pendingRecords}
-        pendingLoading={p.pendingLoading}
-        pendingErr={p.pendingErr}
-        pendingActionId={p.pendingActionId}
-        onLoadPending={p.onLoadPending}
-        onApproveAtt={p.onApproveAtt}
-        onRejectAtt={p.onRejectAtt}
-        onStartEditAtt={p.onStartEditAtt}
-        edit={edit}
-        projects={p.projects}
-        farThresholdM={p.farThresholdM}
-      />
+      {!hasPending && pendingPanel}
 
       <TodayLog
         todayLogs={p.todayLogs}
