@@ -45,7 +45,7 @@ export interface GalleryProject {
 
 export const GALLERY_PROJECTS: GalleryProject[] = [
   // ─────────────────────────────────────────────────────────────────────────────
-  // 01 — Amshinov Complex
+  // 01 — Kiryat Amshinov
   // ─────────────────────────────────────────────────────────────────────────────
   {
     id: "amshinov",
@@ -80,12 +80,12 @@ export const GALLERY_PROJECTS: GalleryProject[] = [
       img("amshinov-22.jpg"),
     ],
     he: {
-      title: "קומפלקס אמשינוב",
+      title: "קריית אמשינוב",
       category: "תשתיות ציבוריות",
       shortDesc: "ביצוע מדויק באזור עירוני עמוס, עם פתרונות הרמה ותכנון לוגיסטי מורכב.",
     },
     en: {
-      title: "Amshinov Complex",
+      title: "Kiryat Amshinov",
       category: "Public Infrastructure",
       shortDesc: "Precision execution in high-traffic urban zones, with complex crane logistics and access management.",
     },

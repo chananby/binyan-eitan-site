@@ -65,7 +65,7 @@ interface ProjectImage {
 
 // ── Portfolio project definitions ──────────────────────────────────────────────
 const PORTFOLIO_PROJECTS = [
-  { num: "01", projKey: "proj_0", coverKey: "proj_0_cover", titleKey: "proj_0_title", defaultCover: "/amshinov-1.jpg",    defaultName_he: "קרית אמשינוב",       defaultName_en: "Amshinov Complex" },
+  { num: "01", projKey: "proj_0", coverKey: "proj_0_cover", titleKey: "proj_0_title", defaultCover: "/amshinov-1.jpg",    defaultName_he: "קריית אמשינוב",      defaultName_en: "Kiryat Amshinov" },
   { num: "02", projKey: "proj_1", coverKey: "proj_1_cover", titleKey: "proj_1_title", defaultCover: "/bayit-vegan.jpg",   defaultName_he: "אחוזת בית וגן",       defaultName_en: "Bayit Vegan Estate" },
   { num: "03", projKey: "proj_2", coverKey: "proj_2_cover", titleKey: "proj_2_title", defaultCover: "/ohel-avshalom.jpg", defaultName_he: "מוסדות אוהל אבשלום", defaultName_en: "Ohel Avshalom Institutions" },
   { num: "04", projKey: "proj_3", coverKey: "proj_3_cover", titleKey: "proj_3_title", defaultCover: "/ramat-eshkol.jpg",  defaultName_he: "פנטהאוז רמת אשכול",  defaultName_en: "Ramat Eshkol Penthouse" },
