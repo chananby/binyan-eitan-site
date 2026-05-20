@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
     .eq("pin", code.trim())
     .eq("role", "ממונה")
     .eq("active", true)
+    .is("deleted_at", null)
     .maybeSingle();
 
   if (error) {

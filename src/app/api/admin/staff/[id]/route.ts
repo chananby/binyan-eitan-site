@@ -105,7 +105,11 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   return NextResponse.json({ staff: { ...rest, has_pin: !!_pin } });
 }
 
-// DELETE — hard delete (only if no attendance records linked)
+// DELETE — soft delete. Sets deleted_at = NOW().
+// Contract: only inactive workers (active = false) can be deleted. The UI
+// enforces this by exposing the delete button only inside the inactive
+// accordion, but we double-check here so the API is safe on its own.
+// Attendance rows are intentionally preserved for historical payroll.
 export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   if (!isAdminAuthedFromRequest(req)) {
@@ -114,22 +118,30 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
 
   const supabase = createServerClient();
 
-  // Check for linked attendance records first
-  const { count } = await supabase
-    .from("attendance")
-    .select("*", { count: "exact", head: true })
-    .eq("staff_id", params.id);
+  // Verify the worker exists, is not already deleted, and is inactive.
+  const { data: existing, error: fetchErr } = await supabase
+    .from("staff")
+    .select("id, active, deleted_at")
+    .eq("id", params.id)
+    .maybeSingle();
 
-  if (count && count > 0) {
+  if (fetchErr) {
+    console.error("[admin/staff DELETE fetch]", JSON.stringify(fetchErr));
+    return NextResponse.json({ error: fetchErr.message }, { status: 500 });
+  }
+  if (!existing || existing.deleted_at) {
+    return NextResponse.json({ error: "העובד לא נמצא" }, { status: 404 });
+  }
+  if (existing.active) {
     return NextResponse.json(
-      { error: `לא ניתן למחוק — קיימות ${count} רשומות נוכחות. השתמש בהשבתה במקום.` },
+      { error: "ניתן למחוק רק עובד מושבת. יש להשבית את העובד תחילה." },
       { status: 409 }
     );
   }
 
   const { error } = await supabase
     .from("staff")
-    .delete()
+    .update({ deleted_at: new Date().toISOString() })
     .eq("id", params.id);
 
   if (error) {

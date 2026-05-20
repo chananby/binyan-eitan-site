@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
     const { data, error } = await supabase
       .from("staff")
       .select("id, name, phone, role, active, pin, attendance!inner(project_id)")
+      .is("deleted_at", null)
       .in("attendance.project_id", projectIds)
       .order("name", { ascending: true });
 
@@ -57,10 +58,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ staff });
   }
 
-  // Admin path — all staff
+  // Admin path — all staff (soft-deleted workers are hidden everywhere)
   const { data, error } = await supabase
     .from("staff")
     .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, pin")
+    .is("deleted_at", null)
     .order("active", { ascending: false })
     .order("name",   { ascending: true });
 

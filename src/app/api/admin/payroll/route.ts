@@ -45,6 +45,7 @@ interface StaffRow {
   travel_allowance: boolean;
   pension_status: string | null;
   holiday_eligible: boolean;
+  deleted_at?: string | null;
 }
 
 type AttendanceRow = AttendanceRec & { project_id: string | null };
@@ -71,10 +72,13 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServerClient();
 
-  // Fetch active "עובד" + "ממונה" staff (anyone the company pays — admins/manager roles excluded)
+  // Fetch active "עובד" + "ממונה" staff (anyone the company pays — admins/manager roles excluded).
+  // We intentionally do NOT filter deleted_at here — soft-deleted workers
+  // may still appear in retrospective payroll runs; the UI flags them with
+  // "(מחוק)" using the surfaced field below.
   const { data: staffData, error: staffErr } = await supabase
     .from("staff")
-    .select("id, name, national_id, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role")
+    .select("id, name, national_id, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role, deleted_at")
     .eq("active", true)
     .in("role", ["עובד", "ממונה"])
     .order("name", { ascending: true });
@@ -134,6 +138,7 @@ export async function GET(req: NextRequest) {
       travel_allowance: s.travel_allowance,
       pension_status: s.pension_status,
       gross_salary,
+      deleted_at: s.deleted_at ?? null,
     };
   });
 

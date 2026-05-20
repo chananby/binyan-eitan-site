@@ -82,6 +82,7 @@ interface PayrollRow {
   travel_allowance: boolean;
   pension_status: string | null;
   gross_salary: number;
+  deleted_at?: string | null;
 }
 interface AttendanceRecord {
   id: string; action: string; timestamp_label: string; recorded_at: string;
@@ -950,6 +951,16 @@ export default function AdminPortal() {
     reload();
   }
 
+  async function deleteWorker(id: string) {
+    const res = await fetch(`/api/admin/staff/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: "שגיאה במחיקה" }));
+      alert(data.error ?? "שגיאה במחיקה");
+      return;
+    }
+    reload();
+  }
+
   // ── Project CRUD ───────────────────────────────────────────────────────────
   async function handleAddProject(e: React.FormEvent) {
     e.preventDefault(); setProjectAddLoading(true); setProjectAddMsg("");
@@ -1684,6 +1695,7 @@ export default function AdminPortal() {
             onEditWorker={handleEditWorker}
             onStartEdit={startEdit}
             onToggleActive={toggleActive}
+            onDeleteWorker={deleteWorker}
             onOpenVacation={openVacationDrawer}
             onReload={reload}
             lastRefreshed={lastRefreshed}
@@ -1895,7 +1907,10 @@ export default function AdminPortal() {
                     <tbody>
                       {payrollRows.map(r => (
                         <tr key={r.staff_id} className="border-b border-charcoal/5">
-                          <td className="py-2 font-semibold">{r.name}</td>
+                          <td className="py-2 font-semibold">
+                            {r.name}
+                            {r.deleted_at && <span className="ms-2 text-[0.65rem] font-normal text-charcoal/40">🗑️ (מחוק)</span>}
+                          </td>
                           <td className="py-2 text-charcoal/60">
                             {r.employment_type === "hourly" ? "שעתי" : r.employment_type === "daily" ? "יומי" : "גלובלי"}
                           </td>
