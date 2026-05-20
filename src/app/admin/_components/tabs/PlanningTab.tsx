@@ -208,10 +208,10 @@ export default function PlanningTab(p: Props) {
                     <p className="text-xs font-semibold flex-1 truncate">{t.task_name}</p>
                     <span className={`text-[0.75rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
                   </div>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
                     {p.weekDays.map(d => (
                       <button key={d.date} onClick={() => p.onAssignTaskDay(t.id, d.date)}
-                        className={`text-[0.75rem] px-2 py-1 border transition-colors ${d.date === p.todayStr ? "border-accent text-accent" : "border-charcoal/15 text-charcoal/50 hover:border-accent hover:text-accent"}`}>
+                        className={`text-[0.75rem] min-h-[44px] px-2 py-2 border transition-colors flex items-center justify-center ${d.date === p.todayStr ? "border-accent text-accent" : "border-charcoal/15 text-charcoal/50 hover:border-accent hover:text-accent"}`}>
                         {d.label}
                       </button>
                     ))}
