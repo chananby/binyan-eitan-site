@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
       .eq("id", staffId)
       .eq("role", "ממונה")
       .eq("active", true)
+      .is("deleted_at", null)
       .maybeSingle();
 
     if (data) {

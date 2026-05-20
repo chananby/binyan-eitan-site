@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
     .from("staff")
     .select("id, name")
     .in("phone", variants)
+    .is("deleted_at", null)
     .limit(1);
 
   const worker = staffRows?.[0];

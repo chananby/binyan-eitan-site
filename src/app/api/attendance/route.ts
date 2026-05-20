@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
     .from("staff")
     .select("id, name, active")
     .in("phone", variants)
+    .is("deleted_at", null)
     .limit(1);
 
   const staff = staffRows?.[0] ?? null;
@@ -106,7 +107,8 @@ export async function POST(req: NextRequest) {
   if (!staff) {
     const { count, error: countError } = await supabase
       .from("staff")
-      .select("*", { count: "exact", head: true });
+      .select("*", { count: "exact", head: true })
+      .is("deleted_at", null);
 
     if (countError) {
       logSupabaseError("staff count", countError);

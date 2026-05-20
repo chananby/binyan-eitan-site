@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
   // Step 1 — DB connection
   await step("חיבור לסופאבייס", async () => {
-    const { error } = await supabase.from("staff").select("id").limit(1);
+    const { error } = await supabase.from("staff").select("id").is("deleted_at", null).limit(1);
     if (error) throw error.message;
     return "מחובר";
   });
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   // Step 2 — Read from staff table
   let testStaffId: string | null = null;
   await step("קריאת טבלת עובדים", async () => {
-    const { data, error } = await supabase.from("staff").select("id, name, phone").eq("active", true).limit(1).maybeSingle();
+    const { data, error } = await supabase.from("staff").select("id, name, phone").eq("active", true).is("deleted_at", null).limit(1).maybeSingle();
     if (error) throw error.message;
     if (!data) return "אין עובדים פעילים — המערכת פנויה";
     testStaffId = data.id;
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   // Step 5 — Simulate full phone lookup flow (the actual attendance lookup path)
   await step("סימולציית חיפוש טלפון", async () => {
     if (!testStaffId) return "דילוג — אין עובדים פעילים";
-    const { data, error } = await supabase.from("staff").select("id, name, active").eq("id", testStaffId).maybeSingle();
+    const { data, error } = await supabase.from("staff").select("id, name, active").eq("id", testStaffId).is("deleted_at", null).maybeSingle();
     if (error) throw error.message;
     if (!data) throw "עובד לא נמצא";
     if (!data.active) throw "עובד לא פעיל";

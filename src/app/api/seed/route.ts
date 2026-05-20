@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
     .from("staff")
     .select("id, name, phone, role, active")
     .eq("phone", normalizedPhone)
+    .is("deleted_at", null)
     .maybeSingle();
 
   if (lookupError) {

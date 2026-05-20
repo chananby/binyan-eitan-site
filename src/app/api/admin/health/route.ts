@@ -228,8 +228,8 @@ export async function GET(req: NextRequest) {
   // Staff counts
   try {
     const [{ count: staffCount }, { count: activeCount }] = await Promise.all([
-      supabase.from("staff").select("id", { count: "exact", head: true }),
-      supabase.from("staff").select("id", { count: "exact", head: true }).eq("active", true),
+      supabase.from("staff").select("id", { count: "exact", head: true }).is("deleted_at", null),
+      supabase.from("staff").select("id", { count: "exact", head: true }).eq("active", true).is("deleted_at", null),
     ]);
     results.push({
       id: "data_staff_count", section: "data", name: "עובדים רשומים",
@@ -242,7 +242,7 @@ export async function GET(req: NextRequest) {
 
     // Staff without phone
     const { count: noPhone } = await supabase
-      .from("staff").select("id", { count: "exact", head: true }).is("phone", null);
+      .from("staff").select("id", { count: "exact", head: true }).is("phone", null).is("deleted_at", null);
     if ((noPhone ?? 0) > 0) {
       results.push({
         id: "data_staff_no_phone", section: "data", name: "עובדים ללא טלפון",
