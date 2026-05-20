@@ -13,9 +13,10 @@ import {
   ClipboardList, UserPlus, Loader2, Activity,
   AlertCircle, DollarSign, Target,
   ChevronLeft, Grid3x3, Download, Plus,
-  UserCog,
+  UserCog, Clock, MapPin, UserX,
 } from "lucide-react";
 import { Card } from "../admin/_components/shared/Card";
+import AttentionPanel, { type AttentionItem } from "../admin/_components/shared/AttentionPanel";
 import { Field } from "../admin/_components/shared/Field";
 import { Btn } from "../admin/_components/shared/Btn";
 import { TabRefreshBar } from "../admin/_components/shared/TabRefreshBar";
@@ -1356,6 +1357,73 @@ export default function AdminPortal() {
 
   const activeProjects = projects.filter(p => p.status === "active");
 
+  // ── Tab navigation helper ──────────────────────────────────────────────────
+  // Used by both the tab bar and the AttentionPanel; keeps the URL hash in
+  // sync so the active tab is shareable and the back button works.
+  function goToTab(key: AdminTab) {
+    setTab(key);
+    if (typeof window !== "undefined") {
+      const base = window.location.pathname + window.location.search;
+      const next = key === "dashboard" ? base : `${base}#${key}`;
+      history.replaceState(null, "", next);
+    }
+  }
+
+  // ── AttentionPanel inputs ──────────────────────────────────────────────────
+  // All counts are derived from state already loaded by the dashboard; no
+  // new endpoint required. The "not clocked in" item only fires between
+  // 09:00–14:00 Israel time so it doesn't flag overnight or evening hours
+  // when no-one is expected to be on site.
+  const israelHour = parseInt(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Jerusalem", hour: "numeric", hour12: false }),
+    10
+  );
+  const delayedCount = tasks.filter(t => t.status === "delayed").length;
+  const noGpsCount   = projects.filter(p => p.status === "active" && (p.lat == null || p.lng == null)).length;
+  let notClockedInCount = 0;
+  if (isAdmin && israelHour >= 9 && israelHour < 14) {
+    const clockedIds = new Set(
+      todayLogs.filter(r => r.staff?.id).map(r => r.staff!.id)
+    );
+    notClockedInCount = staff.filter(
+      s => s.active && (s.role === "עובד" || s.role === "ממונה") && !clockedIds.has(s.id)
+    ).length;
+  }
+  const attentionItems: AttentionItem[] = [
+    {
+      key: "pending",
+      icon: <Clock size={14} strokeWidth={1.5} />,
+      label: "בקשות תיקון נוכחות ממתינות לאישור",
+      count: pendingRecords.length,
+      severity: "high",
+      onClick: () => goToTab("attendance"),
+    },
+    {
+      key: "delayed",
+      icon: <AlertCircle size={14} strokeWidth={1.5} />,
+      label: "משימות בעיכוב",
+      count: delayedCount,
+      severity: "medium",
+      onClick: () => goToTab("planning"),
+    },
+    {
+      key: "not-clocked",
+      icon: <UserX size={14} strokeWidth={1.5} />,
+      label: "עובדים פעילים שטרם החתימו היום",
+      count: notClockedInCount,
+      severity: "medium",
+      onClick: () => goToTab("attendance"),
+    },
+    {
+      key: "no-gps",
+      icon: <MapPin size={14} strokeWidth={1.5} />,
+      label: "פרויקטים פעילים ללא GPS",
+      count: noGpsCount,
+      severity: "info",
+      onClick: () => goToTab("projects"),
+    },
+  ];
+
   return (
     <>
     <SuccessFlash show={showFlash} onDone={() => setShowFlash(false)} />
@@ -1429,18 +1497,7 @@ export default function AdminPortal() {
             return (
               <button
                 key={t.key}
-                onClick={() => {
-                  setTab(t.key);
-                  // Reflect the active tab in the URL so the page is shareable
-                  // and the browser back button moves between tabs.
-                  // dashboard = no hash (canonical /admin URL).
-                  if (typeof window !== "undefined") {
-                    const base = window.location.pathname + window.location.search;
-                    const next = t.key === "dashboard" ? base : `${base}#${t.key}`;
-                    // replaceState avoids littering the back stack with every tab click
-                    history.replaceState(null, "", next);
-                  }
-                }}
+                onClick={() => goToTab(t.key)}
                 className={`relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/70"}`}
               >
                 {t.icon} {t.label}
@@ -1462,6 +1519,9 @@ export default function AdminPortal() {
           <div className="space-y-4">
             <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
             <p className="text-[0.75rem] text-charcoal/30 text-center -mt-2">מתעדכן אוטומטית כל 2 דקות</p>
+
+            {/* Things that need attention — admin only; auto-hides when empty */}
+            {isAdmin && <AttentionPanel items={attentionItems} />}
 
             {/* On-site */}
             <Card title="⚡ מי באתר כרגע">
