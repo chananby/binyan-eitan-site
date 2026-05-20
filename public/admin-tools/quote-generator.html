@@ -1696,7 +1696,14 @@
     } catch (e) {}
     return null;
   }
+  // `dirty` gates cloud saves so a fresh /admin/quotes load doesn't burn a
+  // quote_number on a quote the user never edited. It flips true the moment
+  // saveState() runs (i.e. real state mutation) and resets in doSave() after
+  // the server confirms the write.
+  let dirty = false;
+
   function saveState() {
+    dirty = true;
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
     cloudSync.scheduleSave();
     updateDocumentTitle();
@@ -1807,6 +1814,7 @@
           try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
         }
         setStatus('synced', 'שמור בענן');
+        dirty = false; // synced — no more pending edits to push
       } catch (e) {
         setStatus('error', 'שמירה נכשלה');
         console.warn('[cloud-sync] save failed:', e);
@@ -1821,6 +1829,7 @@
 
     return {
       scheduleSave() {
+        if (!dirty) return;
         clearTimeout(saveTimer);
         saveTimer = setTimeout(doSave, SAVE_DEBOUNCE_MS);
       },
@@ -2056,6 +2065,7 @@
       }
     }
     render();
+    saveState();
   }
 
   function fillTopFields() {
@@ -2617,8 +2627,10 @@
     renderCompanyLock();
     renderDefaultMilestones();
     renderPreview();
-    saveState();
-    // Resize auto-grow textareas after layout settles
+    // No saveState() here — render() is also called at init time when the
+    // state hasn't actually changed, and calling saveState() then would burn
+    // a quote_number on the first POST. Callers that mutate state must call
+    // saveState() themselves.
     requestAnimationFrame(autoSizeAll);
   }
 
@@ -2884,6 +2896,7 @@
       if (s) {
         s.items.push({ id: uid(), name: '', description: '', quantity: 1, unit: "יח'", unitPrice: 0, unitIsCustom: false });
         render();
+        saveState();
       }
       return;
     }
@@ -2927,9 +2940,11 @@
       if (s && s.items.length > 1) {
         s.items = s.items.filter(i => i.id !== iid);
         render();
+        saveState();
       } else if (s && s.items.length === 1) {
         s.items[0] = { id: uid(), name: '', description: '', quantity: 1, unitPrice: 0 };
         render();
+        saveState();
       }
       return;
     }
@@ -2942,12 +2957,14 @@
         state.sections[0] = { id: uid(), name: '', items: [{ id: uid(), name: '', description: '', quantity: 1, unitPrice: 0 }] };
       }
       render();
+      saveState();
       return;
     }
 
     if (t.id === 'btn-add-section') {
       state.sections.push({ id: uid(), name: '', items: [{ id: uid(), name: '', description: '', quantity: 1, unitPrice: 0 }] });
       render();
+      saveState();
       return;
     }
 
@@ -2991,6 +3008,7 @@
       const iid = t.getAttribute('data-delete-image');
       state.images = state.images.filter(x => x.id !== iid);
       render();
+      saveState();
       return;
     }
 
@@ -3000,6 +3018,7 @@
       if (idx > 0) {
         [state.images[idx - 1], state.images[idx]] = [state.images[idx], state.images[idx - 1]];
         render();
+        saveState();
       }
       return;
     }
@@ -3010,6 +3029,7 @@
       if (idx >= 0 && idx < state.images.length - 1) {
         [state.images[idx], state.images[idx + 1]] = [state.images[idx + 1], state.images[idx]];
         render();
+        saveState();
       }
       return;
     }
@@ -3212,6 +3232,7 @@
     } else if (e.target.closest('#btn-remove-logo')) {
       state.logo = '';
       render();
+      saveState();
     }
   });
 
@@ -3228,6 +3249,7 @@
         const dataUrl = await resizeImage(file, 400, 0.9);
         state.logo = dataUrl;
         render();
+        saveState();
       } catch (err) {
         alert('שגיאה בטעינת הלוגו');
       }
