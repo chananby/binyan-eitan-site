@@ -5,9 +5,10 @@ import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useLightboxHistory } from "../hooks/useLightboxHistory";
+import type { GalleryImage } from "../../data/projects/types";
 
 interface Props {
-  images: string[];
+  images: GalleryImage[];
   projectTitle: string;
   lang: "he" | "en";
 }
@@ -15,6 +16,17 @@ interface Props {
 export default function ProjectGalleryClient({ images, projectTitle, lang }: Props) {
   const [open, setOpen] = useState<number | null>(null);
   const total = images.length;
+
+  const altFor = useCallback(
+    (img: GalleryImage, i: number) => {
+      const specific = lang === "he" ? img.altHE : img.altEN;
+      if (specific) return specific;
+      return lang === "he"
+        ? `${projectTitle} — תמונה ${i + 1}`
+        : `${projectTitle} — image ${i + 1}`;
+    },
+    [lang, projectTitle]
+  );
 
   const close = useCallback(() => setOpen(null), []);
   const goPrev = useCallback(() => setOpen((i) => (i === null ? 0 : (i - 1 + total) % total)), [total]);
@@ -51,9 +63,9 @@ export default function ProjectGalleryClient({ images, projectTitle, lang }: Pro
     <>
       {/* ── Thumbnail grid ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-        {images.map((src, i) => (
+        {images.map((image, i) => (
           <button
-            key={src + i}
+            key={image.src + i}
             onClick={() => setOpen(i)}
             className="relative aspect-[4/3] overflow-hidden bg-warm-gray/20 group cursor-pointer"
             aria-label={
@@ -63,12 +75,8 @@ export default function ProjectGalleryClient({ images, projectTitle, lang }: Pro
             }
           >
             <Image
-              src={src}
-              alt={
-                lang === "he"
-                  ? `${projectTitle} — תמונה ${i + 1}`
-                  : `${projectTitle} — image ${i + 1}`
-              }
+              src={image.src}
+              alt={altFor(image, i)}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
@@ -132,7 +140,7 @@ export default function ProjectGalleryClient({ images, projectTitle, lang }: Pro
                 <div className="relative w-full max-w-5xl h-full">
                   <AnimatePresence mode="wait">
                     <motion.div
-                      key={images[open]}
+                      key={images[open].src}
                       className="absolute inset-0"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -140,12 +148,8 @@ export default function ProjectGalleryClient({ images, projectTitle, lang }: Pro
                       transition={{ duration: 0.2 }}
                     >
                       <Image
-                        src={images[open]}
-                        alt={
-                          lang === "he"
-                            ? `${projectTitle} — תמונה ${open + 1}`
-                            : `${projectTitle} — image ${open + 1}`
-                        }
+                        src={images[open].src}
+                        alt={altFor(images[open], open)}
                         fill
                         className="object-contain"
                         priority
@@ -160,16 +164,16 @@ export default function ProjectGalleryClient({ images, projectTitle, lang }: Pro
             {/* Thumbnail strip */}
             <div className="shrink-0 px-4 pb-4 pt-2" style={{ scrollbarWidth: "none" }}>
               <div className="flex gap-1.5 overflow-x-auto justify-center">
-                {images.map((src, i) => (
+                {images.map((image, i) => (
                   <button
-                    key={src + i}
+                    key={image.src + i}
                     onClick={() => setOpen(i)}
                     className={`shrink-0 w-12 h-9 relative overflow-hidden transition-opacity duration-200 ${
                       i === open ? "opacity-100 ring-1 ring-bone/60" : "opacity-30 hover:opacity-60"
                     }`}
                   >
                     <Image
-                      src={src}
+                      src={image.src}
                       alt={`${projectTitle} — ${i + 1}`}
                       fill
                       className="object-cover"

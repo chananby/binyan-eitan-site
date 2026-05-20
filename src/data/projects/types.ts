@@ -19,12 +19,18 @@ export interface ProjectMetadata {
   descriptionEN: string;
 }
 
+export interface GalleryImage {
+  src: string;
+  altHE?: string;
+  altEN?: string;
+}
+
 export interface ProjectData {
   slug: string;
   num: string;
   aspect: "4/3" | "3/4" | "16/9" | "1/1";
   heroImage: string;
-  galleryImages: string[];
+  galleryImages: GalleryImage[];
   dateCompleted: string;
   projectSize?: number;
   he: ProjectLang;
