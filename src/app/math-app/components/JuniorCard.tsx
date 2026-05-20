@@ -126,7 +126,7 @@ export default function JuniorCard({ question, stats, streakToLevelUp, onSubmit,
                 ].join(" ")}
               />
             ))}
-            <span className="text-[0.6rem] text-slate-400 ms-1">⭐ {stats.streak}/{streakToLevelUp}</span>
+            <span className="text-[0.75rem] text-slate-400 ms-1">⭐ {stats.streak}/{streakToLevelUp}</span>
           </div>
         </div>
 

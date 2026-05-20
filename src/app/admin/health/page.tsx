@@ -68,7 +68,7 @@ function CheckCard({ r }: { r: CheckResult }) {
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-semibold text-white/90">{r.name}</p>
           {r.ms !== undefined && (
-            <span className={`flex items-center gap-1 text-[0.6rem] px-1.5 py-0.5 ${r.ms < 500 ? "bg-emerald-500/10 text-emerald-400" : r.ms < 1500 ? "bg-amber-500/10 text-amber-400" : "bg-red-500/10 text-red-400"}`}>
+            <span className={`flex items-center gap-1 text-[0.75rem] px-1.5 py-0.5 ${r.ms < 500 ? "bg-emerald-500/10 text-emerald-400" : r.ms < 1500 ? "bg-amber-500/10 text-amber-400" : "bg-red-500/10 text-red-400"}`}>
               <Clock size={9} /> {r.ms}ms
             </span>
           )}
@@ -93,7 +93,7 @@ function SectionBlock({ sectionKey, results }: { sectionKey: string; results: Ch
     <div>
       <div className="flex items-center gap-2 mb-2 px-1">
         <span className="text-white/30">{meta?.icon}</span>
-        <h2 className="text-[0.65rem] font-bold tracking-[0.2em] uppercase text-white/35">{meta?.label ?? sectionKey}</h2>
+        <h2 className="text-[0.75rem] font-bold tracking-[0.2em] uppercase text-white/35">{meta?.label ?? sectionKey}</h2>
         {failed > 0 && <span className="text-[0.58rem] px-1.5 py-0.5 bg-red-500/15 text-red-400 font-semibold">{failed} שגיאה</span>}
         {warned > 0 && <span className="text-[0.58rem] px-1.5 py-0.5 bg-amber-500/15 text-amber-400 font-semibold">{warned} אזהרה</span>}
       </div>
@@ -260,7 +260,7 @@ export default function HealthPage() {
               : <Power     size={20} className="text-emerald-400 shrink-0" />}
             <div>
               <p className="text-sm font-bold">{maintenance ? "מצב תחזוקה — פעיל" : "האתר פעיל"}</p>
-              <p className="text-[0.65rem] text-white/35 mt-0.5">
+              <p className="text-[0.75rem] text-white/35 mt-0.5">
                 {maintenance ? "כל הדפים הציבוריים מנותבים לדף תחזוקה" : "הדפים הציבוריים נגישים למבקרים"}
               </p>
             </div>
@@ -278,11 +278,11 @@ export default function HealthPage() {
         <div className="border border-white/8 bg-white/[0.02] px-5 py-4 space-y-3">
           <div className="flex items-center gap-2">
             <ShieldCheck size={14} strokeWidth={1.5} className="text-white/30" />
-            <p className="text-[0.65rem] font-bold tracking-[0.18em] uppercase text-white/35">קודי War Room</p>
+            <p className="text-[0.75rem] font-bold tracking-[0.18em] uppercase text-white/35">קודי War Room</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <label className="text-[0.65rem] text-white/40 shrink-0">חנן</label>
+              <label className="text-[0.75rem] text-white/40 shrink-0">חנן</label>
               <input
                 type="text" inputMode="numeric" maxLength={8} value={pinHanan}
                 onChange={e => { setPinHanan(e.target.value.replace(/\D/g, "")); setPinMsg(null); }}
@@ -290,7 +290,7 @@ export default function HealthPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-[0.65rem] text-white/40 shrink-0">מוטי</label>
+              <label className="text-[0.75rem] text-white/40 shrink-0">מוטי</label>
               <input
                 type="text" inputMode="numeric" maxLength={8} value={pinMoti}
                 onChange={e => { setPinMoti(e.target.value.replace(/\D/g, "")); setPinMsg(null); }}
@@ -306,7 +306,7 @@ export default function HealthPage() {
             </button>
           </div>
           {pinMsg && (
-            <p className={`text-[0.65rem] ${pinMsg.ok ? "text-emerald-400" : "text-red-400"}`}>
+            <p className={`text-[0.75rem] ${pinMsg.ok ? "text-emerald-400" : "text-red-400"}`}>
               {pinMsg.ok ? "✓" : "✗"} {pinMsg.text}
             </p>
           )}
@@ -334,7 +334,7 @@ export default function HealthPage() {
           </div>
 
           {checkedAt && (
-            <p className="text-[0.6rem] text-white/20 tabular-nums">
+            <p className="text-[0.75rem] text-white/20 tabular-nums">
               נבדק: {new Date(checkedAt).toLocaleString("he-IL")}
             </p>
           )}
@@ -358,7 +358,7 @@ export default function HealthPage() {
                 {warned > 0 && ` · ${warned} אזהרות`}
               </p>
             </div>
-            <div className="flex items-center gap-4 text-[0.65rem]">
+            <div className="flex items-center gap-4 text-[0.75rem]">
               <span className="text-emerald-400">{passed} תקין</span>
               {warned > 0 && <span className="text-amber-400">{warned} אזהרה</span>}
               {failed > 0 && <span className="text-red-400">{failed} שגיאה</span>}
@@ -371,7 +371,7 @@ export default function HealthPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 px-1">
               <Zap size={14} strokeWidth={1.5} className="text-accent/60" />
-              <h2 className="text-[0.65rem] font-bold tracking-[0.2em] uppercase text-white/35">בדיקת נוכחות חיה</h2>
+              <h2 className="text-[0.75rem] font-bold tracking-[0.2em] uppercase text-white/35">בדיקת נוכחות חיה</h2>
               {attOk !== null && (
                 <span className={`text-[0.58rem] px-1.5 py-0.5 font-semibold ${attOk ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
                   {attOk ? "תקין" : "נכשל"}

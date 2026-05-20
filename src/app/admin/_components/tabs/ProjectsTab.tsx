@@ -101,14 +101,14 @@ export default function ProjectsTab(p: Props) {
               <div className="flex items-center justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{proj.name}</p>
-                  <p className="text-[0.65rem] text-charcoal/30">{p.tasks.filter(t => t.project_id === proj.id && t.status !== "completed").length} משימות פעילות</p>
+                  <p className="text-[0.75rem] text-charcoal/30">{p.tasks.filter(t => t.project_id === proj.id && t.status !== "completed").length} משימות פעילות</p>
                 </div>
-                <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${proj.status === "active" ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{proj.status === "active" ? "פעיל" : "לא פעיל"}</span>
+                <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${proj.status === "active" ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{proj.status === "active" ? "פעיל" : "לא פעיל"}</span>
                 <button onClick={() => p.onToggleProjectStatus(proj.id, proj.status ?? "active")} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{proj.status === "active" ? "השבת" : "הפעל"}</button>
               </div>
 
               {/* Address + GPS status */}
-              <div className="flex items-center gap-2 text-[0.65rem] flex-wrap">
+              <div className="flex items-center gap-2 text-[0.75rem] flex-wrap">
                 <span className="text-charcoal/40 shrink-0">📍 כתובת:</span>
                 {isEditingAddr ? (
                   <>
@@ -121,13 +121,13 @@ export default function ProjectsTab(p: Props) {
                     <button
                       onClick={() => p.onSaveProjectAddress(proj.id)}
                       disabled={p.editProjectSaving}
-                      className="text-[0.65rem] border border-accent bg-accent text-bone px-2 py-1 hover:bg-accent-dark disabled:opacity-40 transition-colors shrink-0"
+                      className="text-[0.75rem] border border-accent bg-accent text-bone px-2 py-1 hover:bg-accent-dark disabled:opacity-40 transition-colors shrink-0"
                     >
                       {p.editProjectSaving ? "שומר..." : "שמור + מקם"}
                     </button>
                     <button
                       onClick={() => { p.setEditingProjectId(null); p.setEditProjectMsg(""); }}
-                      className="text-[0.65rem] border border-charcoal/15 text-charcoal/50 px-2 py-1 hover:border-accent transition-colors shrink-0"
+                      className="text-[0.75rem] border border-charcoal/15 text-charcoal/50 px-2 py-1 hover:border-accent transition-colors shrink-0"
                     >
                       ביטול
                     </button>
@@ -141,17 +141,17 @@ export default function ProjectsTab(p: Props) {
                       <a
                         href={`https://www.google.com/maps?q=${proj.lat},${proj.lng}`}
                         target="_blank" rel="noopener noreferrer"
-                        className="text-[0.6rem] text-green-700 bg-green-50 px-1.5 py-0.5 shrink-0 hover:bg-green-100 transition-colors"
+                        className="text-[0.75rem] text-green-700 bg-green-50 px-1.5 py-0.5 shrink-0 hover:bg-green-100 transition-colors"
                         title="פתח במפה"
                       >
                         ✓ GPS
                       </a>
                     ) : proj.address ? (
-                      <span className="text-[0.6rem] text-amber-700 bg-amber-50 px-1.5 py-0.5 shrink-0">⚠ ללא קואורדינטות</span>
+                      <span className="text-[0.75rem] text-amber-700 bg-amber-50 px-1.5 py-0.5 shrink-0">⚠ ללא קואורדינטות</span>
                     ) : null}
                     <button
                       onClick={() => p.onStartEditAddress(proj)}
-                      className="text-[0.65rem] border border-charcoal/15 text-charcoal/50 px-2 py-1 hover:border-accent hover:text-accent transition-colors shrink-0"
+                      className="text-[0.75rem] border border-charcoal/15 text-charcoal/50 px-2 py-1 hover:border-accent hover:text-accent transition-colors shrink-0"
                     >
                       ערוך
                     </button>
@@ -159,18 +159,18 @@ export default function ProjectsTab(p: Props) {
                 )}
               </div>
               {isEditingAddr && p.editProjectMsg && (
-                <p className={`text-[0.65rem] ${p.editProjectMsg.startsWith("נשמר") || p.editProjectMsg.startsWith("שגיאה") ? "text-amber-700" : "text-red-500"}`}>{p.editProjectMsg}</p>
+                <p className={`text-[0.75rem] ${p.editProjectMsg.startsWith("נשמר") || p.editProjectMsg.startsWith("שגיאה") ? "text-amber-700" : "text-red-500"}`}>{p.editProjectMsg}</p>
               )}
               {/* Foreman assignment */}
               <div className="flex items-center gap-2">
-                <span className="text-[0.65rem] text-charcoal/40 shrink-0">ממונה:</span>
+                <span className="text-[0.75rem] text-charcoal/40 shrink-0">ממונה:</span>
                 <select
                   value={proj.foreman_id ?? ""}
                   onChange={async e => {
                     await fetch(`/api/admin/projects/${proj.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ foreman_id: e.target.value || null }) });
                     p.onReload();
                   }}
-                  className="flex-1 text-[0.65rem] border border-charcoal/10 bg-bone px-2 py-1 focus:border-accent focus:outline-none"
+                  className="flex-1 text-[0.75rem] border border-charcoal/10 bg-bone px-2 py-1 focus:border-accent focus:outline-none"
                 >
                   <option value="">— ללא ממונה —</option>
                   {p.staff.filter(s => s.role === "ממונה" && s.active).map(s => (
@@ -178,7 +178,7 @@ export default function ProjectsTab(p: Props) {
                   ))}
                 </select>
                 {assignedForeman && (
-                  <span className="text-[0.6rem] bg-accent/10 text-accent px-1.5 py-0.5 shrink-0">{assignedForeman.name}</span>
+                  <span className="text-[0.75rem] bg-accent/10 text-accent px-1.5 py-0.5 shrink-0">{assignedForeman.name}</span>
                 )}
               </div>
             </div>

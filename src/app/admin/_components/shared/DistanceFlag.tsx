@@ -23,7 +23,7 @@ export default function DistanceFlag({
 
   // Case 3: no distance, but we have coords. Show neutral pin.
   if (d == null) {
-    const cls = "text-[0.6rem] font-semibold px-1.5 py-0.5 shrink-0 inline-flex items-center gap-0.5 bg-charcoal/[0.04] text-charcoal/50 hover:bg-charcoal/10 transition-colors";
+    const cls = "text-[0.75rem] font-semibold px-1.5 py-0.5 shrink-0 inline-flex items-center gap-0.5 bg-charcoal/[0.04] text-charcoal/50 hover:bg-charcoal/10 transition-colors";
     return (
       <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className={cls} title="לחץ לפתיחה במפה (אין השוואה לאתר)">
         📍 מפה
@@ -34,7 +34,7 @@ export default function DistanceFlag({
   // Cases 1+2: distance is present
   const over = d > threshold;
   const label = d < 1000 ? `${d}מ׳` : `${(d / 1000).toFixed(1)}ק"מ`;
-  const className = `text-[0.6rem] font-semibold px-1.5 py-0.5 shrink-0 inline-flex items-center gap-0.5 transition-colors ${
+  const className = `text-[0.75rem] font-semibold px-1.5 py-0.5 shrink-0 inline-flex items-center gap-0.5 transition-colors ${
     over
       ? "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
       : "bg-charcoal/[0.04] text-charcoal/50 hover:bg-charcoal/10"

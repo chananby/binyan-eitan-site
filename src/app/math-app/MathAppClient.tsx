@@ -359,7 +359,7 @@ function Dashboard({ profile, topics, parentHref = "/math-app/parent", onPickTop
                   <p className={`text-lg font-bold ${isSpace ? "text-cyan-200" : "text-slate-800"}`}>{topic.title}</p>
                   {topic.badge && (
                     <span className={[
-                      "text-[0.6rem] font-bold px-2 py-0.5 rounded-full border tracking-wider uppercase",
+                      "text-[0.75rem] font-bold px-2 py-0.5 rounded-full border tracking-wider uppercase",
                       isSpace ? "bg-cyan-500/10 border-cyan-500/40 text-cyan-400" : "bg-brand-50 border-brand-200 text-brand-600",
                     ].join(" ")}>
                       {topic.badge}

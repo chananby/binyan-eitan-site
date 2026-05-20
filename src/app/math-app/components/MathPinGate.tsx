@@ -56,7 +56,7 @@ export default function MathPinGate({ children }: { children: React.ReactNode })
       {/* Logo / title */}
       <div className="mb-8 text-center">
         <div className="text-4xl mb-3">🎓</div>
-        <p className="text-cyan-400/60 text-[0.6rem] font-bold tracking-[0.3em] uppercase mb-1">
+        <p className="text-cyan-400/60 text-[0.75rem] font-bold tracking-[0.3em] uppercase mb-1">
           תוכנית המחוננים
         </p>
         <h1 className="text-white/80 text-lg font-bold tracking-wide">

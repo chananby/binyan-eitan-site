@@ -310,13 +310,13 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         </div>
         {autoRegistered && (
           <div className="w-full rounded-sm border border-amber-200 bg-amber-50 px-5 py-4">
-            <p className="mb-1 font-body text-[0.6rem] font-bold tracking-[0.18em] uppercase text-amber-500">{t.autoReg}</p>
+            <p className="mb-1 font-body text-[0.75rem] font-bold tracking-[0.18em] uppercase text-amber-500">{t.autoReg}</p>
             <p className="font-body text-sm leading-relaxed text-charcoal/80">{t.autoRegBody}</p>
           </div>
         )}
         {dailyMessage ? (
           <div className="w-full rounded-sm border border-sky-200 bg-sky-50 px-5 py-4">
-            <p className="mb-1 font-body text-[0.6rem] font-bold tracking-[0.18em] uppercase text-sky-400">{t.dayMsg}</p>
+            <p className="mb-1 font-body text-[0.75rem] font-bold tracking-[0.18em] uppercase text-sky-400">{t.dayMsg}</p>
             <p className="font-body text-base leading-relaxed text-charcoal/80">{dailyMessage}</p>
           </div>
         ) : (
@@ -403,7 +403,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     return (
       <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
         <div className="text-center space-y-1">
-          <p className="font-body text-[0.6rem] font-bold tracking-[0.22em] uppercase text-accent/70">{t.locationOk}</p>
+          <p className="font-body text-[0.75rem] font-bold tracking-[0.22em] uppercase text-accent/70">{t.locationOk}</p>
           <p className="font-body text-sm text-charcoal/50 tabular-nums" dir="ltr">{phone}</p>
           {selectedProject && (
             <div className="flex items-center justify-center gap-1 text-xs text-charcoal/50">
@@ -509,7 +509,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     return (
       <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
         <div className="w-full text-center space-y-1">
-          <p className="font-body text-[0.6rem] font-bold tracking-[0.22em] uppercase text-accent/70">{t.historyTitle}</p>
+          <p className="font-body text-[0.75rem] font-bold tracking-[0.22em] uppercase text-accent/70">{t.historyTitle}</p>
           {historyName && <p className="font-heading text-lg font-bold text-charcoal">{historyName}</p>}
         </div>
         <div className="w-full space-y-2">
@@ -558,7 +558,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         {/* Pending manual entries */}
         {pendingEntries.length > 0 && (
           <div className="w-full space-y-1">
-            <p className="font-body text-[0.6rem] font-bold tracking-[0.2em] uppercase text-amber-500 px-1">{t.pendingBadge}</p>
+            <p className="font-body text-[0.75rem] font-bold tracking-[0.2em] uppercase text-amber-500 px-1">{t.pendingBadge}</p>
             <div className="border border-amber-200 bg-amber-50 divide-y divide-amber-100">
               {pendingEntries.map(r => (
                 <div key={r.id} className="flex items-center justify-between px-3 py-2 gap-3">
@@ -566,7 +566,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
                     {r.action === "in" ? "כניסה" : "יציאה"}
                   </span>
                   <span className="font-body text-xs text-charcoal/60 flex-1" dir="rtl">{labelWithDayHe(r.timestamp_label) ?? "—"}</span>
-                  <span className="font-body text-[0.6rem] text-amber-600 bg-amber-100 px-1.5 py-0.5">{t.pendingBadge}</span>
+                  <span className="font-body text-[0.75rem] text-amber-600 bg-amber-100 px-1.5 py-0.5">{t.pendingBadge}</span>
                 </div>
               ))}
             </div>
@@ -610,12 +610,12 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         {/* Date + Time */}
         <div className="w-full grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <p className="font-body text-[0.65rem] text-charcoal/50 font-semibold tracking-wide uppercase">תאריך</p>
+            <p className="font-body text-[0.75rem] text-charcoal/50 font-semibold tracking-wide uppercase">תאריך</p>
             <input type="date" value={manualDate} max={todayIso} onChange={e => setManualDate(e.target.value)}
               className="w-full border border-charcoal/20 bg-white px-3 py-3 font-body text-sm text-charcoal focus:border-accent focus:outline-none transition-colors" dir="ltr" />
           </div>
           <div className="space-y-1">
-            <p className="font-body text-[0.65rem] text-charcoal/50 font-semibold tracking-wide uppercase">שעה</p>
+            <p className="font-body text-[0.75rem] text-charcoal/50 font-semibold tracking-wide uppercase">שעה</p>
             <input type="time" value={manualTime} onChange={e => setManualTime(e.target.value)}
               className="w-full border border-charcoal/20 bg-white px-3 py-3 font-body text-sm text-charcoal focus:border-accent focus:outline-none transition-colors" dir="ltr" />
           </div>
@@ -624,7 +624,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         {/* Project (optional) */}
         {projects.length > 0 && (
           <div className="w-full space-y-1">
-            <p className="font-body text-[0.65rem] text-charcoal/50 font-semibold tracking-wide uppercase">אתר (אופציונלי)</p>
+            <p className="font-body text-[0.75rem] text-charcoal/50 font-semibold tracking-wide uppercase">אתר (אופציונלי)</p>
             <select value={manualProject} onChange={e => setManualProject(e.target.value)}
               className="w-full border border-charcoal/20 bg-white px-3 py-3 font-body text-sm text-charcoal focus:border-accent focus:outline-none transition-colors">
               <option value="">— ללא אתר —</option>
@@ -743,7 +743,7 @@ function Screen({ children, backHref, backLabel, lang, onLangChange }: {
           RU
         </button>
       </div>
-      <p className="font-body text-[0.55rem] tracking-widest uppercase text-charcoal/20">
+      <p className="font-body text-[0.7rem] tracking-widest uppercase text-charcoal/20">
         {T[lang].footer}
       </p>
     </div>

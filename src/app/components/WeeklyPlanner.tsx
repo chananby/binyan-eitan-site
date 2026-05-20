@@ -283,7 +283,7 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
       <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
         <div>
           <h2 className="text-sm font-bold tracking-wide text-charcoal">מטריצה שבועית</h2>
-          <p className="text-[0.65rem] text-charcoal/60 mt-0.5">תכנון משאבים, עלויות וסטטוס הזמנות לפי שבוע</p>
+          <p className="text-[0.75rem] text-charcoal/60 mt-0.5">תכנון משאבים, עלויות וסטטוס הזמנות לפי שבוע</p>
         </div>
         <select
           value={projectId}
@@ -296,7 +296,7 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
 
       {/* ── Grand total bar ── */}
       <div className="flex items-center justify-between bg-charcoal text-bone px-4 py-2.5 mb-1 rounded-sm">
-        <span className="text-[0.65rem] font-bold tracking-[0.15em] uppercase opacity-60">סה״כ תקציב מתוכנן</span>
+        <span className="text-[0.75rem] font-bold tracking-[0.15em] uppercase opacity-60">סה״כ תקציב מתוכנן</span>
         <span className="text-base font-bold tracking-wide">₪ {fmt(grandTotal)}</span>
       </div>
 
@@ -353,8 +353,8 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                     <span className={`text-[0.68rem] ${isPast ? "text-charcoal/40" : "text-charcoal/70"}`}>
                       {weekLabel(weekStart)}
                     </span>
-                    {isToday && <span className="text-[0.55rem] bg-accent text-bone px-1.5 py-0.5 rounded-full font-bold">שבוע זה</span>}
-                    {isPast  && <span className="text-[0.55rem] bg-charcoal/10 text-charcoal/50 px-1.5 py-0.5 rounded-full">היסטוריה</span>}
+                    {isToday && <span className="text-[0.7rem] bg-accent text-bone px-1.5 py-0.5 rounded-full font-bold">שבוע זה</span>}
+                    {isPast  && <span className="text-[0.7rem] bg-charcoal/10 text-charcoal/50 px-1.5 py-0.5 rounded-full">היסטוריה</span>}
                   </div>
                   <div className="flex items-center gap-4 shrink-0">
                     {weekTotal > 0 && (
@@ -378,7 +378,7 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                           <thead>
                             <tr className={`border-b ${isPast ? "bg-charcoal/[0.03] border-charcoal/8" : "bg-bone/40 border-charcoal/8"}`}>
                               {["משימה","קבלן משנה","עובדים","חומרים","ספק","סטטוס הזמנה","עלות מתוכננת",""].map((h, i) => (
-                                <th key={i} className={`px-2 py-1.5 text-right text-[0.6rem] font-bold tracking-[0.1em] uppercase text-charcoal/35 ${
+                                <th key={i} className={`px-2 py-1.5 text-right text-[0.75rem] font-bold tracking-[0.1em] uppercase text-charcoal/35 ${
                                   i === 6 ? "text-left" : i === 7 ? "w-6" : ""
                                 }`}>
                                   {h}
@@ -515,14 +515,14 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                         <div className="flex items-center justify-between">
                           <button
                             onClick={() => { setAddingWeek(weekStart); setNewRow(emptyNewRow()); }}
-                            className="flex items-center gap-1 text-[0.65rem] text-charcoal/60 hover:text-accent transition-colors py-1"
+                            className="flex items-center gap-1 text-[0.75rem] text-charcoal/60 hover:text-accent transition-colors py-1"
                           >
                             <Plus size={11} strokeWidth={2} />
                             הוסף משימה
                           </button>
                           {/* Running total */}
                           {cumul > 0 && (
-                            <span className="text-[0.6rem] text-charcoal/30 tracking-wide">
+                            <span className="text-[0.75rem] text-charcoal/30 tracking-wide">
                               מצטבר עד כאן: <span className="font-semibold text-charcoal/50">₪ {fmt(cumul)}</span>
                             </span>
                           )}

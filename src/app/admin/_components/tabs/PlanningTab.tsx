@@ -200,18 +200,18 @@ export default function PlanningTab(p: Props) {
           if (!unscheduled.length) return null;
           return (
             <div className="mb-4 space-y-2">
-              <p className="text-[0.65rem] font-bold tracking-widest uppercase text-charcoal/30">ללא לו&quot;ז לשבוע זה</p>
+              <p className="text-[0.75rem] font-bold tracking-widest uppercase text-charcoal/30">ללא לו&quot;ז לשבוע זה</p>
               {unscheduled.map(t => (
                 <div key={t.id} className="bg-bone border border-charcoal/10 p-2.5 space-y-2">
                   <div className="flex items-center gap-2">
                     <CheckSquare2 size={11} strokeWidth={1.5} className="text-charcoal/20 shrink-0" />
                     <p className="text-xs font-semibold flex-1 truncate">{t.task_name}</p>
-                    <span className={`text-[0.6rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
+                    <span className={`text-[0.75rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {p.weekDays.map(d => (
                       <button key={d.date} onClick={() => p.onAssignTaskDay(t.id, d.date)}
-                        className={`text-[0.6rem] px-2 py-1 border transition-colors ${d.date === p.todayStr ? "border-accent text-accent" : "border-charcoal/15 text-charcoal/50 hover:border-accent hover:text-accent"}`}>
+                        className={`text-[0.75rem] px-2 py-1 border transition-colors ${d.date === p.todayStr ? "border-accent text-accent" : "border-charcoal/15 text-charcoal/50 hover:border-accent hover:text-accent"}`}>
                         {d.label}
                       </button>
                     ))}
@@ -231,10 +231,10 @@ export default function PlanningTab(p: Props) {
               <div key={day.date} className={`border ${isToday ? "border-accent/40" : "border-charcoal/10"}`}>
                 <div className={`flex items-center justify-between px-3 py-2 ${isToday ? "bg-accent/[0.05]" : "bg-charcoal/[0.02]"}`}>
                   <span className={`text-xs font-bold ${isToday ? "text-accent" : "text-charcoal/60"}`}>{day.label}</span>
-                  <span className="text-[0.6rem] text-charcoal/30 tabular-nums" dir="ltr">{day.short}</span>
+                  <span className="text-[0.75rem] text-charcoal/30 tabular-nums" dir="ltr">{day.short}</span>
                 </div>
                 {dayTasks.length === 0 ? (
-                  <p className="text-[0.6rem] text-charcoal/20 text-center py-1.5">ריק</p>
+                  <p className="text-[0.75rem] text-charcoal/20 text-center py-1.5">ריק</p>
                 ) : (
                   <div className="divide-y divide-charcoal/5">
                     {dayTasks.map(t => (
@@ -242,15 +242,15 @@ export default function PlanningTab(p: Props) {
                         <CheckSquare2 size={11} strokeWidth={1.5} className={`shrink-0 ${t.status === "in_progress" ? "text-amber-500" : "text-charcoal/20"}`} />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold truncate">{t.task_name}</p>
-                          {t.contractor && <p className="text-[0.6rem] text-charcoal/40">{t.contractor}</p>}
+                          {t.contractor && <p className="text-[0.75rem] text-charcoal/40">{t.contractor}</p>}
                         </div>
                         {t.status === "planned" && (
-                          <button onClick={() => p.onSetTaskStatus(t.id, "in_progress")} className="text-[0.6rem] border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">▶</button>
+                          <button onClick={() => p.onSetTaskStatus(t.id, "in_progress")} className="text-[0.75rem] border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">▶</button>
                         )}
                         {t.status !== "completed" && (
-                          <button onClick={() => p.onSetTaskStatus(t.id, "completed")} className="text-[0.6rem] border border-green-300 px-1.5 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">✓</button>
+                          <button onClick={() => p.onSetTaskStatus(t.id, "completed")} className="text-[0.75rem] border border-green-300 px-1.5 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">✓</button>
                         )}
-                        <button onClick={() => p.onAssignTaskDay(t.id, null)} className="text-[0.6rem] text-charcoal/20 hover:text-red-400 transition-colors shrink-0">✕</button>
+                        <button onClick={() => p.onAssignTaskDay(t.id, null)} className="text-[0.75rem] text-charcoal/20 hover:text-red-400 transition-colors shrink-0">✕</button>
                       </div>
                     ))}
                   </div>
@@ -278,10 +278,10 @@ export default function PlanningTab(p: Props) {
                 const proj = p.projects.find(pr => pr.id === t.project_id);
                 return (
                   <div key={t.id} className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-100">
-                    <span className="text-[0.6rem] px-1.5 py-0.5 bg-red-100 text-red-700 font-semibold shrink-0">עיכוב</span>
+                    <span className="text-[0.75rem] px-1.5 py-0.5 bg-red-100 text-red-700 font-semibold shrink-0">עיכוב</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold truncate">{t.task_name}</p>
-                      <p className="text-[0.6rem] text-charcoal/40">{proj?.name}{t.delay_reason ? ` · ${DELAY_REASON_HE[t.delay_reason] ?? t.delay_reason}` : ""}</p>
+                      <p className="text-[0.75rem] text-charcoal/40">{proj?.name}{t.delay_reason ? ` · ${DELAY_REASON_HE[t.delay_reason] ?? t.delay_reason}` : ""}</p>
                     </div>
                   </div>
                 );
@@ -295,10 +295,10 @@ export default function PlanningTab(p: Props) {
                 ].filter(Boolean).join(", ");
                 return (
                   <div key={t.id} className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-100">
-                    <span className="text-[0.6rem] px-1.5 py-0.5 bg-amber-100 text-amber-700 font-semibold shrink-0">לא מוכן</span>
+                    <span className="text-[0.75rem] px-1.5 py-0.5 bg-amber-100 text-amber-700 font-semibold shrink-0">לא מוכן</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold truncate">{t.task_name}</p>
-                      <p className="text-[0.6rem] text-charcoal/40">{proj?.name}{missing ? ` · חסר: ${missing}` : ""}</p>
+                      <p className="text-[0.75rem] text-charcoal/40">{proj?.name}{missing ? ` · חסר: ${missing}` : ""}</p>
                     </div>
                   </div>
                 );
@@ -346,21 +346,21 @@ export default function PlanningTab(p: Props) {
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-bold truncate ${ms.status === "completed" ? "line-through text-charcoal/50" : "text-charcoal"}`}>{ms.name}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      {proj && <span className="text-[0.6rem] text-charcoal/35">{proj.name}</span>}
-                      {ms.target_date && <span className="text-[0.6rem] text-charcoal/35 tabular-nums" dir="ltr">· {ms.target_date}</span>}
+                      {proj && <span className="text-[0.75rem] text-charcoal/35">{proj.name}</span>}
+                      {ms.target_date && <span className="text-[0.75rem] text-charcoal/35 tabular-nums" dir="ltr">· {ms.target_date}</span>}
                     </div>
                     {msTasks.length > 0 && (
                       <div className="mt-1.5 flex items-center gap-1.5">
                         <div className="flex-1 h-1 bg-charcoal/8 overflow-hidden">
                           <div className="h-full bg-accent transition-all duration-300" style={{ width: `${pct}%` }} />
                         </div>
-                        <span className="text-[0.55rem] text-charcoal/35 tabular-nums shrink-0">{pct}%</span>
+                        <span className="text-[0.7rem] text-charcoal/35 tabular-nums shrink-0">{pct}%</span>
                       </div>
                     )}
                   </div>
-                  {delayCount > 0 && <span className="text-[0.6rem] px-1.5 py-0.5 bg-red-50 text-red-600 shrink-0">{delayCount} עיכוב</span>}
-                  <span className={`text-[0.6rem] px-2 py-0.5 shrink-0 ${MILESTONE_STATUS_CLS[ms.status]}`}>{MILESTONE_STATUS_HE[ms.status]}</span>
-                  <span className="text-[0.6rem] text-charcoal/30 shrink-0 tabular-nums">{doneCount}/{msTasks.length}</span>
+                  {delayCount > 0 && <span className="text-[0.75rem] px-1.5 py-0.5 bg-red-50 text-red-600 shrink-0">{delayCount} עיכוב</span>}
+                  <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${MILESTONE_STATUS_CLS[ms.status]}`}>{MILESTONE_STATUS_HE[ms.status]}</span>
+                  <span className="text-[0.75rem] text-charcoal/30 shrink-0 tabular-nums">{doneCount}/{msTasks.length}</span>
                   {isExpanded ? <ChevronUp size={13} strokeWidth={1.5} className="shrink-0 text-charcoal/30" /> : <ChevronDown size={13} strokeWidth={1.5} className="shrink-0 text-charcoal/30" />}
                 </button>
 
@@ -368,7 +368,7 @@ export default function PlanningTab(p: Props) {
                 {isExpanded && (
                   <div className="border-t border-charcoal/8">
                     {msTasks.length === 0 ? (
-                      <p className="text-[0.65rem] text-charcoal/25 text-center py-3">אין משימות תחת אבן דרך זו</p>
+                      <p className="text-[0.75rem] text-charcoal/25 text-center py-3">אין משימות תחת אבן דרך זו</p>
                     ) : (
                       <div className="divide-y divide-charcoal/5">
                         {msTasks.map(t => (
@@ -376,7 +376,7 @@ export default function PlanningTab(p: Props) {
                             <CheckSquare2 size={12} strokeWidth={1.5} className={`shrink-0 ${t.status === "completed" ? "text-green-500" : t.status === "in_progress" ? "text-amber-400" : t.status === "delayed" ? "text-red-400" : "text-charcoal/20"}`} />
                             <div className="flex-1 min-w-0">
                               <p className={`text-xs font-semibold truncate ${t.status === "completed" ? "line-through" : ""}`}>{t.task_name}</p>
-                              <div className="flex items-center gap-2 text-[0.6rem] text-charcoal/35 mt-0.5 flex-wrap">
+                              <div className="flex items-center gap-2 text-[0.75rem] text-charcoal/35 mt-0.5 flex-wrap">
                                 {t.contractor && <span>{t.contractor}</span>}
                                 {t.start_date && <span dir="ltr">{t.start_date}{t.end_date ? ` → ${t.end_date}` : ""}</span>}
                                 {t.status === "delayed" && t.delay_reason && <span className="text-red-500">{DELAY_REASON_HE[t.delay_reason] ?? t.delay_reason}</span>}
@@ -387,16 +387,16 @@ export default function PlanningTab(p: Props) {
                                 )}
                               </div>
                             </div>
-                            <span className={`text-[0.6rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status] ?? ""}`}>{STATUS_HE[t.status] ?? t.status}</span>
+                            <span className={`text-[0.75rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status] ?? ""}`}>{STATUS_HE[t.status] ?? t.status}</span>
                             {t.status !== "completed" && (
                               <>
                                 {t.status === "planned" && (
-                                  <button onClick={() => p.onSetTaskStatus(t.id, "in_progress")} className="text-[0.6rem] border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">▶</button>
+                                  <button onClick={() => p.onSetTaskStatus(t.id, "in_progress")} className="text-[0.75rem] border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">▶</button>
                                 )}
                                 {t.status === "in_progress" && (
-                                  <button onClick={() => p.onSetTaskStatus(t.id, "planned")} className="text-[0.6rem] border border-charcoal/20 px-1.5 py-0.5 text-charcoal/40 hover:border-accent transition-colors shrink-0">⏸</button>
+                                  <button onClick={() => p.onSetTaskStatus(t.id, "planned")} className="text-[0.75rem] border border-charcoal/20 px-1.5 py-0.5 text-charcoal/40 hover:border-accent transition-colors shrink-0">⏸</button>
                                 )}
-                                <button onClick={() => p.onSetTaskStatus(t.id, "completed")} className="text-[0.6rem] border border-green-300 px-1.5 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">✓</button>
+                                <button onClick={() => p.onSetTaskStatus(t.id, "completed")} className="text-[0.75rem] border border-green-300 px-1.5 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">✓</button>
                               </>
                             )}
                           </div>
@@ -408,12 +408,12 @@ export default function PlanningTab(p: Props) {
                     {ms.status !== "completed" && (
                       <div className="flex gap-2 px-4 py-2 bg-bone/50 border-t border-charcoal/8">
                         {ms.status === "pending" && (
-                          <button onClick={() => p.onSetMilestoneStatus(ms.id, "in_progress")} className="text-[0.65rem] border border-amber-300 px-3 py-1 text-amber-700 hover:bg-amber-50 transition-colors">▶ הפעל אבן דרך</button>
+                          <button onClick={() => p.onSetMilestoneStatus(ms.id, "in_progress")} className="text-[0.75rem] border border-amber-300 px-3 py-1 text-amber-700 hover:bg-amber-50 transition-colors">▶ הפעל אבן דרך</button>
                         )}
                         {ms.status === "in_progress" && (
-                          <button onClick={() => p.onSetMilestoneStatus(ms.id, "pending")} className="text-[0.65rem] border border-charcoal/20 px-3 py-1 text-charcoal/50 hover:border-accent transition-colors">⏸ עצור</button>
+                          <button onClick={() => p.onSetMilestoneStatus(ms.id, "pending")} className="text-[0.75rem] border border-charcoal/20 px-3 py-1 text-charcoal/50 hover:border-accent transition-colors">⏸ עצור</button>
                         )}
-                        <button onClick={() => p.onSetMilestoneStatus(ms.id, "completed")} className="text-[0.65rem] border border-green-300 px-3 py-1 text-green-700 hover:bg-green-50 transition-colors">✓ סיים אבן דרך</button>
+                        <button onClick={() => p.onSetMilestoneStatus(ms.id, "completed")} className="text-[0.75rem] border border-green-300 px-3 py-1 text-green-700 hover:bg-green-50 transition-colors">✓ סיים אבן דרך</button>
                       </div>
                     )}
                   </div>
@@ -440,14 +440,14 @@ export default function PlanningTab(p: Props) {
                       <CheckSquare2 size={12} strokeWidth={1.5} className="shrink-0 text-charcoal/20" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold truncate">{t.task_name}</p>
-                        <div className="flex items-center gap-2 text-[0.6rem] text-charcoal/35 mt-0.5">
+                        <div className="flex items-center gap-2 text-[0.75rem] text-charcoal/35 mt-0.5">
                           {proj && <span>{proj.name}</span>}
                           {t.contractor && <span>· {t.contractor}</span>}
                         </div>
                       </div>
-                      <span className={`text-[0.6rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
-                      {t.status === "planned" && <button onClick={() => p.onSetTaskStatus(t.id, "in_progress")} className="text-[0.6rem] border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 shrink-0">▶</button>}
-                      <button onClick={() => p.onSetTaskStatus(t.id, "completed")} className="text-[0.6rem] border border-green-300 px-1.5 py-0.5 text-green-700 hover:bg-green-50 shrink-0">✓</button>
+                      <span className={`text-[0.75rem] px-1.5 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
+                      {t.status === "planned" && <button onClick={() => p.onSetTaskStatus(t.id, "in_progress")} className="text-[0.75rem] border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 shrink-0">▶</button>}
+                      <button onClick={() => p.onSetTaskStatus(t.id, "completed")} className="text-[0.75rem] border border-green-300 px-1.5 py-0.5 text-green-700 hover:bg-green-50 shrink-0">✓</button>
                     </div>
                   );
                 })}

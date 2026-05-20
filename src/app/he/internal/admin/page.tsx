@@ -20,7 +20,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_LABELS[status] ?? { label: status, color: "bg-charcoal/10 text-charcoal/50 border-charcoal/10" };
   return (
-    <span className={`inline-block rounded-sm border px-2 py-0.5 font-body text-[0.6rem] font-semibold tracking-[0.15em] uppercase ${cfg.color}`}>
+    <span className={`inline-block rounded-sm border px-2 py-0.5 font-body text-[0.75rem] font-semibold tracking-[0.15em] uppercase ${cfg.color}`}>
       {cfg.label}
     </span>
   );
@@ -70,7 +70,7 @@ export default async function AdminProjectsPage() {
         {/* Header */}
         <div className="mb-10 flex items-start justify-between gap-4">
           <div>
-            <p className="font-body text-[0.65rem] font-semibold tracking-[0.22em] uppercase text-accent mb-2">
+            <p className="font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-accent mb-2">
               בניין איתן — ניהול
             </p>
             <h1 className="font-heading text-3xl font-bold text-charcoal md:text-4xl">פרויקטים</h1>
@@ -113,7 +113,7 @@ export default async function AdminProjectsPage() {
         {/* Project sections */}
         {sections.map((section) => (
           <div key={section.label} className="mb-10">
-            <h2 className="mb-4 font-body text-[0.65rem] font-bold tracking-[0.2em] uppercase text-charcoal/40 border-b border-warm-gray-light pb-2">
+            <h2 className="mb-4 font-body text-[0.75rem] font-bold tracking-[0.2em] uppercase text-charcoal/40 border-b border-warm-gray-light pb-2">
               {section.label} ({section.items.length})
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">

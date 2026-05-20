@@ -82,7 +82,7 @@ export default function AccessibilityMenu() {
           role="region"
           aria-label="Accessibility options"
         >
-          <p className="font-body text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-warm-gray">
+          <p className="font-body text-[0.75rem] font-semibold tracking-[0.25em] uppercase text-warm-gray">
             Accessibility / נגישות
           </p>
 
@@ -108,7 +108,7 @@ export default function AccessibilityMenu() {
 
           {/* Font size */}
           <div>
-            <p className="font-body text-[0.6rem] font-semibold tracking-[0.2em] uppercase text-bone/40 mb-2">
+            <p className="font-body text-[0.75rem] font-semibold tracking-[0.2em] uppercase text-bone/40 mb-2">
               Font Size / גודל גופן
             </p>
             <div className="flex items-center gap-2">
@@ -137,7 +137,7 @@ export default function AccessibilityMenu() {
           {/* Reset */}
           <button
             onClick={reset}
-            className="font-body text-[0.6rem] font-semibold tracking-[0.2em] uppercase text-bone/30 hover:text-accent transition-colors text-start"
+            className="font-body text-[0.75rem] font-semibold tracking-[0.2em] uppercase text-bone/30 hover:text-accent transition-colors text-start"
           >
             Reset / איפוס
           </button>

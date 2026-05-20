@@ -215,8 +215,8 @@ function Field({ label, name, required, multiline, type = "text" }: {
       )}
       <label htmlFor={name}
         className="pointer-events-none absolute start-0 top-3 font-body text-sm text-charcoal/40 uppercase tracking-widest transition-all
-          peer-focus:-top-3.5 peer-focus:text-[0.6rem] peer-focus:font-semibold peer-focus:text-accent
-          peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-[0.6rem]">
+          peer-focus:-top-3.5 peer-focus:text-[0.75rem] peer-focus:font-semibold peer-focus:text-accent
+          peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-[0.75rem]">
         {label}
       </label>
     </div>
@@ -387,14 +387,14 @@ export default function ChangeOrderForm() {
             <h1 className="font-heading text-xl font-bold text-charcoal leading-tight md:text-2xl">
               פרוטוקול אישור שינויים ותוספות
             </h1>
-            <p className="mt-1 font-body text-[0.65rem] font-semibold tracking-[0.25em] uppercase text-charcoal/35">
+            <p className="mt-1 font-body text-[0.75rem] font-semibold tracking-[0.25em] uppercase text-charcoal/35">
               חברת בניין איתן בע&quot;מ
             </p>
           </div>
 
           {/* ── Date/time badge ── */}
           <div className="flex items-center justify-between bg-charcoal/[0.03] border-b border-warm-gray-light px-8 py-3">
-            <span className="font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/35">
+            <span className="font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-charcoal/35">
               תאריך ושעה
             </span>
             <span className="font-body text-sm font-semibold text-charcoal tabular-nums">{now}</span>
@@ -410,7 +410,7 @@ export default function ChangeOrderForm() {
               {/* Project selector */}
               <div className="relative">
                 <label htmlFor="project_select"
-                  className="block font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40 mb-2">
+                  className="block font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40 mb-2">
                   פרויקט / Project *
                 </label>
                 <select
@@ -439,7 +439,7 @@ export default function ChangeOrderForm() {
               {/* Category */}
               <div className="relative">
                 <label htmlFor="work_category"
-                  className="block font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40 mb-2">
+                  className="block font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40 mb-2">
                   קטגוריית עבודה / Category
                 </label>
                 <select id="work_category" name="work_category" required defaultValue=""
@@ -471,7 +471,7 @@ export default function ChangeOrderForm() {
 
               {/* Photo upload */}
               <div className="space-y-3">
-                <p className="font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40">
+                <p className="font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40">
                   תיעוד מהשטח / Site Photo
                 </p>
                 <input ref={fileInputRef} id="site_photo" type="file" accept="image/*" capture="environment"
@@ -514,7 +514,7 @@ export default function ChangeOrderForm() {
 
               {/* Pricing type */}
               <div className="space-y-2">
-                <p className="font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40">
+                <p className="font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40">
                   סוג תמחור / Pricing Type
                 </p>
                 <div className="grid grid-cols-2 gap-3">
@@ -537,7 +537,7 @@ export default function ChangeOrderForm() {
 
               <Field label="סכום כולל (₪) / Total Amount" name="agreed_price" required type="number" />
 
-              <p className="font-body text-[0.65rem] text-charcoal/35 tracking-wide border-s-2 border-accent/30 ps-3">
+              <p className="font-body text-[0.75rem] text-charcoal/35 tracking-wide border-s-2 border-accent/30 ps-3">
                 המחיר אינו כולל מע&quot;מ — Price does not include VAT
               </p>
             </Block>
@@ -547,7 +547,7 @@ export default function ChangeOrderForm() {
 
               {/* Approval status */}
               <div className="space-y-2">
-                <p className="font-body text-[0.6rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40">
+                <p className="font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40">
                   החלטת המאשר / Decision
                 </p>
                 <div className="flex flex-col gap-2">

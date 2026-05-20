@@ -50,7 +50,7 @@ export default function MathAdminGate({ children }: { children: React.ReactNode 
     >
       <div className="mb-8 text-center">
         <div className="text-3xl mb-3">🔐</div>
-        <p className="text-cyan-400/60 text-[0.6rem] font-bold tracking-[0.3em] uppercase mb-2">
+        <p className="text-cyan-400/60 text-[0.75rem] font-bold tracking-[0.3em] uppercase mb-2">
           ממשק הורים / מורים
         </p>
         <h1 className="text-white/80 text-lg font-bold tracking-wide">
@@ -87,7 +87,7 @@ export default function MathAdminGate({ children }: { children: React.ReactNode 
         </button>
       </form>
 
-      <p className="mt-10 text-white/15 text-[0.55rem] tracking-widest uppercase">
+      <p className="mt-10 text-white/15 text-[0.7rem] tracking-widest uppercase">
         מתמטיקה — תוכנית המחוננים
       </p>
     </div>

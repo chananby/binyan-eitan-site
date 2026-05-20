@@ -39,7 +39,7 @@ export default function InternalPortalEn() {
     <main className="min-h-screen bg-bone" dir="ltr">
         <div className="mx-auto max-w-3xl px-6 py-16 md:py-24">
           <div className="mb-12">
-            <p className="font-body text-[0.65rem] font-semibold tracking-[0.22em] uppercase text-accent mb-3">
+            <p className="font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-accent mb-3">
               Binyan Eitan — Internal Portal
             </p>
             <h1 className="font-heading text-3xl font-bold text-charcoal md:text-4xl">Staff Portal</h1>
@@ -62,7 +62,7 @@ export default function InternalPortalEn() {
                       <Icon size={18} className={tool.available ? "text-accent" : "text-charcoal/40"} strokeWidth={1.5} />
                     </div>
                     {!tool.available && (
-                      <span className="font-body text-[0.55rem] tracking-[0.18em] uppercase text-charcoal/30 border border-charcoal/10 px-1.5 py-0.5">
+                      <span className="font-body text-[0.7rem] tracking-[0.18em] uppercase text-charcoal/30 border border-charcoal/10 px-1.5 py-0.5">
                         Coming Soon
                       </span>
                     )}

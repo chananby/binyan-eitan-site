@@ -146,7 +146,7 @@ function QuickCard({
             {item.label}
           </p>
           {item.underConstruction && (
-            <span className="text-[0.6rem] text-amber-600/70 font-medium leading-none">🚧 בעבודה</span>
+            <span className="text-[0.75rem] text-amber-600/70 font-medium leading-none">🚧 בעבודה</span>
           )}
         </div>
         {item.ext && !editMode && (
@@ -219,7 +219,7 @@ function UICardExpanded({ route }: { route: UIRoute }) {
           <p className="text-sm font-bold text-[#2D2926]">{route.label}</p>
           <p className="text-xs text-[#2D2926]/30 font-mono">{route.url}</p>
         </div>
-        <span className="text-[0.6rem] text-[#2D2926]/25 uppercase tracking-widest font-semibold">
+        <span className="text-[0.75rem] text-[#2D2926]/25 uppercase tracking-widest font-semibold">
           {ADMIN_TAB_ITEMS.length} לשוניות
         </span>
       </div>
@@ -233,7 +233,7 @@ function UICardExpanded({ route }: { route: UIRoute }) {
             <p className="text-xs font-semibold text-[#2D2926] group-hover:text-[#8D775F] transition-colors leading-snug">
               {item.label}
             </p>
-            <p className="text-[0.65rem] text-[#2D2926]/35 mt-0.5 leading-snug">{item.desc}</p>
+            <p className="text-[0.75rem] text-[#2D2926]/35 mt-0.5 leading-snug">{item.desc}</p>
           </Link>
         ))}
       </div>

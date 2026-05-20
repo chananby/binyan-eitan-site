@@ -116,7 +116,7 @@ function ProfileStats({ stats, name, onDelete }: {
                   : "bg-slate-50 border-slate-100 text-slate-300",
               ].join(" ")}>
                 <p className="text-base font-extrabold">{lvl}</p>
-                <p className="text-[0.6rem] font-medium leading-tight">{DIFFICULTY_LABELS[lvl]}</p>
+                <p className="text-[0.75rem] font-medium leading-tight">{DIFFICULTY_LABELS[lvl]}</p>
                 {lvl <= stats.highestLevel && <p className="text-sm mt-0.5">✔</p>}
               </div>
             ))}
@@ -267,7 +267,7 @@ export default function ParentDashboardView({ backHref, storageKey = STORE_KEY }
                     העתק
                   </button>
                 </div>
-                <p className="text-[0.65rem] text-slate-400 mt-1">
+                <p className="text-[0.75rem] text-slate-400 mt-1">
                   שמור את הקוד — הקלד אותו במכשיר חדש כדי לשחזר את נתוני {activeProf.name}
                 </p>
               </div>
