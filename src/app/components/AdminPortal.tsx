@@ -526,8 +526,11 @@ export default function AdminPortal() {
   }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (authState === "admin" && tab === "attendance") loadPending();
-  }, [tab, authState]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Load on admin auth so the Attendance tab's red badge is accurate from
+    // any starting tab. Also reload when the user opens Attendance to catch
+    // anything created in the last 2 min between auto-refreshes.
+    if (authState === "admin") loadPending();
+  }, [authState, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-refresh attendance every 60 s ────────────────────────────────────
   useEffect(() => {
@@ -1234,7 +1237,7 @@ export default function AdminPortal() {
             <button key={mode} onClick={() => { setLoginMode(mode); setPin(""); setEmail(""); setPassword(""); setLoginErr(""); }}
               className={`flex-1 py-3 text-center transition-colors border-b-2 ${loginMode === mode ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/60"}`}>
               <p className="text-sm font-semibold">{label}</p>
-              <p className="text-[0.6rem] tracking-widest uppercase text-charcoal/30">{sub}</p>
+              <p className="text-[0.75rem] tracking-widest uppercase text-charcoal/30">{sub}</p>
             </button>
           ))}
         </div>
@@ -1313,7 +1316,7 @@ export default function AdminPortal() {
           )}
         </div>
 
-        <p className="font-body text-[0.55rem] tracking-widest uppercase text-charcoal/20">
+        <p className="font-body text-[0.7rem] tracking-widest uppercase text-charcoal/20">
           בניין איתן — פורטל ניהול פנימי
         </p>
       </div>
@@ -1362,7 +1365,7 @@ export default function AdminPortal() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <Link href="/he" className="text-[0.6rem] font-bold tracking-[0.2em] uppercase text-accent/60 hover:text-accent transition-colors duration-200">
+            <Link href="/he" className="text-[0.75rem] font-bold tracking-[0.2em] uppercase text-accent/60 hover:text-accent transition-colors duration-200">
               בניין איתן
             </Link>
             <h1 className="font-heading text-2xl font-bold text-charcoal">
@@ -1396,7 +1399,7 @@ export default function AdminPortal() {
               ].map(s => (
                 <div key={s.label} className="bg-white border border-warm-gray-light p-3 text-center">
                   <div className={`font-heading text-2xl font-bold ${s.color}`}>{s.value}</div>
-                  <div className="text-[0.6rem] text-charcoal/60 mt-0.5 leading-tight">{s.label}</div>
+                  <div className="text-[0.75rem] text-charcoal/60 mt-0.5 leading-tight">{s.label}</div>
                 </div>
               ))}
             </>
@@ -1410,7 +1413,7 @@ export default function AdminPortal() {
               ].map(s => (
                 <div key={s.label} className="bg-white border border-warm-gray-light p-3 text-center">
                   <div className={`font-heading text-2xl font-bold ${s.color}`}>{s.value}</div>
-                  <div className="text-[0.6rem] text-charcoal/60 mt-0.5 leading-tight">{s.label}</div>
+                  <div className="text-[0.75rem] text-charcoal/60 mt-0.5 leading-tight">{s.label}</div>
                 </div>
               ))}
             </>
@@ -1419,33 +1422,46 @@ export default function AdminPortal() {
 
         {/* Tab bar */}
         <div className="flex flex-wrap border-b border-charcoal/10">
-          {TABS.map(t => (
-            <button
-              key={t.key}
-              onClick={() => {
-                setTab(t.key);
-                // Reflect the active tab in the URL so the page is shareable
-                // and the browser back button moves between tabs.
-                // dashboard = no hash (canonical /admin URL).
-                if (typeof window !== "undefined") {
-                  const base = window.location.pathname + window.location.search;
-                  const next = t.key === "dashboard" ? base : `${base}#${t.key}`;
-                  // replaceState avoids littering the back stack with every tab click
-                  history.replaceState(null, "", next);
-                }
-              }}
-              className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/70"}`}
-            >
-              {t.icon} {t.label}
-            </button>
-          ))}
+          {TABS.map(t => {
+            // Only Attendance carries the pending-approvals badge for now.
+            // Easy to extend later: keep the count source local to the tab def.
+            const badgeCount = t.key === "attendance" ? pendingRecords.length : 0;
+            return (
+              <button
+                key={t.key}
+                onClick={() => {
+                  setTab(t.key);
+                  // Reflect the active tab in the URL so the page is shareable
+                  // and the browser back button moves between tabs.
+                  // dashboard = no hash (canonical /admin URL).
+                  if (typeof window !== "undefined") {
+                    const base = window.location.pathname + window.location.search;
+                    const next = t.key === "dashboard" ? base : `${base}#${t.key}`;
+                    // replaceState avoids littering the back stack with every tab click
+                    history.replaceState(null, "", next);
+                  }
+                }}
+                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/70"}`}
+              >
+                {t.icon} {t.label}
+                {badgeCount > 0 && (
+                  <span
+                    className="absolute -top-0.5 -end-0.5 bg-red-500 text-white text-[0.6rem] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center leading-none"
+                    aria-label={`${badgeCount} ממתינים לאישור`}
+                  >
+                    {badgeCount > 99 ? "99+" : badgeCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* ── DASHBOARD ─────────────────────────────────────────────────────── */}
         {tab === "dashboard" && (
           <div className="space-y-4">
             <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
-            <p className="text-[0.65rem] text-charcoal/30 text-center -mt-2">מתעדכן אוטומטית כל 2 דקות</p>
+            <p className="text-[0.75rem] text-charcoal/30 text-center -mt-2">מתעדכן אוטומטית כל 2 דקות</p>
 
             {/* On-site */}
             <Card title="⚡ מי באתר כרגע">
@@ -1461,16 +1477,16 @@ export default function AdminPortal() {
                       <div key={record.id} className="flex items-center justify-between py-2.5 gap-3">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold truncate">{record.staff?.name ?? "—"}</p>
-                          <p className="text-[0.65rem] text-charcoal/40">{record.staff?.role ?? ""}</p>
+                          <p className="text-[0.75rem] text-charcoal/40">{record.staff?.role ?? ""}</p>
                         </div>
                         {record.project && (
-                          <div className="flex items-center gap-1 text-[0.65rem] text-charcoal/50">
+                          <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/50">
                             <Building2 size={10} strokeWidth={1.5} />
                             <span className="truncate max-w-[80px]">{record.project.name}</span>
                           </div>
                         )}
                         {isAdmin && worker?.daily_rate && (
-                          <span className="text-[0.65rem] text-accent/70 shrink-0">₪{worker.daily_rate}/יום</span>
+                          <span className="text-[0.75rem] text-accent/70 shrink-0">₪{worker.daily_rate}/יום</span>
                         )}
                         <span className="text-[0.7rem] text-green-600 tabular-nums shrink-0">מ-{t}</span>
                       </div>
@@ -1513,7 +1529,7 @@ export default function AdminPortal() {
                       <div key={p.id} className="flex items-center justify-between py-2.5 gap-2">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold truncate">{p.name}</p>
-                          <p className="text-[0.65rem] text-charcoal/40">{taskCount} משימות פעילות</p>
+                          <p className="text-[0.75rem] text-charcoal/40">{taskCount} משימות פעילות</p>
                         </div>
                         <span className="text-sm font-bold text-accent tabular-nums shrink-0">
                           {expTotal > 0 ? `₪${expTotal.toLocaleString("he-IL")}` : "—"}
@@ -1538,15 +1554,15 @@ export default function AdminPortal() {
                         <p className="text-sm font-semibold">{p.name}</p>
                         <div className="grid grid-cols-3 gap-2 text-xs">
                           <div className="text-center">
-                            <p className="text-[0.6rem] text-charcoal/40">הכנסות</p>
+                            <p className="text-[0.75rem] text-charcoal/40">הכנסות</p>
                             <p className="font-bold text-green-600 tabular-nums">₪{inc.toLocaleString("he-IL")}</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-[0.6rem] text-charcoal/40">הוצאות</p>
+                            <p className="text-[0.75rem] text-charcoal/40">הוצאות</p>
                             <p className="font-bold text-red-500 tabular-nums">₪{exp.toLocaleString("he-IL")}</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-[0.6rem] text-charcoal/40">רווח נקי</p>
+                            <p className="text-[0.75rem] text-charcoal/40">רווח נקי</p>
                             <p className={`font-bold tabular-nums ${profit >= 0 ? "text-green-600" : "text-red-500"}`}>
                               {profit >= 0 ? "+" : ""}₪{profit.toLocaleString("he-IL")}
                             </p>
@@ -1571,17 +1587,17 @@ export default function AdminPortal() {
                       <div key={t.id} className="flex items-center justify-between py-2.5 gap-2">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold truncate">{t.task_name}</p>
-                          <div className="flex items-center gap-1 text-[0.65rem] text-charcoal/40 mt-0.5">
+                          <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/40 mt-0.5">
                             {proj && <><Building2 size={9} strokeWidth={1.5} /><span>{proj.name}</span></>}
                             {t.contractor && <span className="ms-1">· {t.contractor}</span>}
                           </div>
                         </div>
-                        <span className={`text-[0.65rem] px-2 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
+                        <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
                         {t.status !== "in_progress" && (
-                          <button onClick={() => setTaskStatus(t.id, "in_progress")} className="text-[0.65rem] border border-amber-300 px-2 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">הפעל</button>
+                          <button onClick={() => setTaskStatus(t.id, "in_progress")} className="text-[0.75rem] border border-amber-300 px-2 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">הפעל</button>
                         )}
                         {t.status !== "completed" && (
-                          <button onClick={() => setTaskStatus(t.id, "completed")} className="text-[0.65rem] border border-green-300 px-2 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">סיים</button>
+                          <button onClick={() => setTaskStatus(t.id, "completed")} className="text-[0.75rem] border border-green-300 px-2 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">סיים</button>
                         )}
                       </div>
                     );
@@ -1909,7 +1925,7 @@ export default function AdminPortal() {
                         <tr key={r.staff_id} className="border-b border-charcoal/5">
                           <td className="py-2 font-semibold">
                             {r.name}
-                            {r.deleted_at && <span className="ms-2 text-[0.65rem] font-normal text-charcoal/40">🗑️ (מחוק)</span>}
+                            {r.deleted_at && <span className="ms-2 text-[0.75rem] font-normal text-charcoal/40">🗑️ (מחוק)</span>}
                           </td>
                           <td className="py-2 text-charcoal/60">
                             {r.employment_type === "hourly" ? "שעתי" : r.employment_type === "daily" ? "יומי" : "גלובלי"}
@@ -1957,7 +1973,7 @@ export default function AdminPortal() {
           />
         )}
 
-        <p className="text-center font-body text-[0.55rem] tracking-widest uppercase text-charcoal/20 pt-2">
+        <p className="text-center font-body text-[0.7rem] tracking-widest uppercase text-charcoal/20 pt-2">
           בניין איתן — פורטל ניהול פנימי
         </p>
       </div>
@@ -1970,7 +1986,7 @@ export default function AdminPortal() {
             <div className="bg-bone max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
               <div className="bg-white border-b border-warm-gray-light px-5 py-4 flex items-center justify-between">
                 <div>
-                  <p className="text-[0.65rem] text-charcoal/40 uppercase tracking-widest">ימי חופשה</p>
+                  <p className="text-[0.75rem] text-charcoal/40 uppercase tracking-widest">ימי חופשה</p>
                   <h3 className="font-heading text-base font-bold">{worker?.name ?? "—"}</h3>
                 </div>
                 <button onClick={() => setVacationFor(null)} className="text-charcoal/40 hover:text-charcoal transition-colors p-1">
@@ -2005,8 +2021,8 @@ export default function AdminPortal() {
                             <p className="text-sm font-semibold tabular-nums" dir="ltr">
                               {new Date(v.date).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" })}
                             </p>
-                            {v.half_day && <p className="text-[0.65rem] text-amber-600">חצי יום</p>}
-                            {v.notes && <p className="text-[0.65rem] text-charcoal/50">{v.notes}</p>}
+                            {v.half_day && <p className="text-[0.75rem] text-amber-600">חצי יום</p>}
+                            {v.notes && <p className="text-[0.75rem] text-charcoal/50">{v.notes}</p>}
                           </div>
                           <button onClick={() => handleDeleteVacation(v.id)} className="text-charcoal/30 hover:text-red-500 transition-colors text-xs border border-charcoal/15 px-2 py-1">מחק</button>
                         </div>
