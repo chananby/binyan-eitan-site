@@ -70,12 +70,17 @@ export interface WorkerHistoryDay {
   project: string | null;
   /** Only set when status === "vacation" — true for half-day vacations */
   halfDayVacation?: boolean;
+  /** True if the day has any attendance row still in status="pending" — i.e.
+   *  an unresolved correction request the admin should know about. Independent
+   *  of `status`; can layer on top of present / no-exit. */
+  hasPending?: boolean;
 }
 
 interface DayBucket {
   entries: Date[];
   exits: Date[];
   projects: string[];
+  hasPending: boolean;
 }
 
 /**
@@ -98,10 +103,11 @@ export function aggregateWorkerHistory(
     const d = workDate(rec);
     const ymd = israelYMD(d);
     if (ymd < from || ymd > to) continue;
-    if (!byDay.has(ymd)) byDay.set(ymd, { entries: [], exits: [], projects: [] });
+    if (!byDay.has(ymd)) byDay.set(ymd, { entries: [], exits: [], projects: [], hasPending: false });
     const bucket = byDay.get(ymd)!;
     if (isEntry(rec.action)) bucket.entries.push(d);
     else if (isExit(rec.action)) bucket.exits.push(d);
+    if (rec.status === "pending") bucket.hasPending = true;
     const projName = rec.project?.name;
     if (projName) bucket.projects.push(projName);
   }
@@ -166,9 +172,13 @@ export function aggregateWorkerHistory(
 
     const status: DayStatus = firstEntry && lastExit ? "present" : "no-exit";
 
-    out.push({ date: ymd, dayName, startTime, endTime, hours, status, project });
+    out.push({
+      date: ymd, dayName, startTime, endTime, hours, status, project,
+      ...(bucket.hasPending ? { hasPending: true } : {}),
+    });
   }
-  return out;
+  // Newest first — UI shows recent days at the top of the table.
+  return out.reverse();
 }
 
 /** Yield "YYYY-MM-DD" for each calendar day in [from, to] inclusive.

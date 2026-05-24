@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { UserPlus, RefreshCw, ChevronDown, ChevronUp, Trash2, AlertTriangle } from "lucide-react";
+import { UserPlus, RefreshCw, ChevronDown, ChevronUp, Trash2, AlertTriangle, History } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { Btn } from "../shared/Btn";
@@ -70,6 +70,7 @@ type Props = {
   onStartEdit:  (s: StaffMember) => void;
   onToggleActive: (id: string, active: boolean) => void | Promise<void>;
   onDeleteWorker: (id: string) => void | Promise<void>;
+  onViewHistory:  (id: string) => void;
   onOpenVacation: (staffId: string) => void | Promise<void>;
   onReload: () => void | Promise<void>;
 
@@ -333,6 +334,15 @@ function renderStaffRow(
       </div>
       <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
       <button onClick={() => p.onStartEdit(s)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">ערוך</button>
+      {!isInactive && (
+        <button
+          onClick={() => p.onViewHistory(s.id)}
+          className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0 flex items-center gap-1"
+          aria-label={`היסטוריית ${s.name}`}
+        >
+          <History size={11} strokeWidth={1.5} /> היסטוריה
+        </button>
+      )}
       <button onClick={() => p.onOpenVacation(s.id)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">חופשה</button>
       <button onClick={() => p.onToggleActive(s.id, s.active)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{s.active ? "השבת" : "הפעל"}</button>
       {isInactive && (

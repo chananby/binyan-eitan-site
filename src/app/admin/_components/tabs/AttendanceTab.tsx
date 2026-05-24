@@ -3,13 +3,17 @@
 import React from "react";
 import {
   BarChart2, Loader2, Download, AlertCircle, Calendar, Plus,
-  AlertTriangle, RefreshCw, Building2, Pencil,
+  AlertTriangle, RefreshCw, Building2, Pencil, History,
 } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { TabRefreshBar } from "../shared/TabRefreshBar";
 import { INPUT } from "../shared/constants";
 import DistanceFlag from "../shared/DistanceFlag";
+import WorkerHistoryPanel from "./WorkerHistoryPanel";
+import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
+
+export type AttendanceSubTab = "live" | "history";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 // Duplicated from AdminPortal — these types describe the public prop surface
@@ -903,6 +907,17 @@ type Props = {
   lastRefreshed: Date | null;
   refreshing:    boolean;
   onTabRefresh:  () => void;
+
+  // Sub-tab + Worker-history panel
+  subTab: AttendanceSubTab;
+  setSubTab: (v: AttendanceSubTab) => void;
+  historyStaffId: string;       setHistoryStaffId: (v: string) => void;
+  historyFrom:    string;       setHistoryFrom:    (v: string) => void;
+  historyTo:      string;       setHistoryTo:      (v: string) => void;
+  historyDays:    WorkerHistoryDay[];
+  historyLoading: boolean;
+  historyError:   string | null;
+  onLoadHistory:  () => void;
 };
 
 export default function AttendanceTab(p: Props) {
@@ -949,9 +964,46 @@ export default function AttendanceTab(p: Props) {
   return (
     <div className="space-y-5">
       <TabRefreshBar loading={p.refreshing || p.dataLoading} onRefresh={p.onTabRefresh} lastRefreshed={p.lastRefreshed} />
-      <p className="text-[0.75rem] text-charcoal/30 text-center -mt-3">מתעדכן אוטומטית כל 2 דקות</p>
 
-      {hasPending && pendingPanel}
+      {/* Sub-tab bar — live vs. per-worker history. The pending-approvals
+          badge here mirrors the one on the main Attendance tab so it stays
+          visible even while viewing history. */}
+      <div className="flex border-b border-charcoal/10 -mt-1">
+        <SubTabButton
+          active={p.subTab === "live"}
+          onClick={() => p.setSubTab("live")}
+          badge={p.pendingRecords.length}
+          icon={<Calendar size={13} strokeWidth={1.5} />}
+        >
+          נוכחות חיה
+        </SubTabButton>
+        <SubTabButton
+          active={p.subTab === "history"}
+          onClick={() => p.setSubTab("history")}
+          icon={<History size={13} strokeWidth={1.5} />}
+        >
+          היסטוריית עובד
+        </SubTabButton>
+      </div>
+
+      {p.subTab === "history" && (
+        <WorkerHistoryPanel
+          staff={p.staff}
+          selectedStaffId={p.historyStaffId}    setSelectedStaffId={p.setHistoryStaffId}
+          from={p.historyFrom}                  setFrom={p.setHistoryFrom}
+          to={p.historyTo}                      setTo={p.setHistoryTo}
+          days={p.historyDays}
+          loading={p.historyLoading}
+          error={p.historyError}
+          onReload={p.onLoadHistory}
+        />
+      )}
+
+      {p.subTab === "live" && (
+        <>
+          <p className="text-[0.75rem] text-charcoal/30 text-center -mt-3">מתעדכן אוטומטית כל 2 דקות</p>
+
+          {hasPending && pendingPanel}
 
       <ReportPanel
         attReportFrom={p.attReportFrom}       setAttReportFrom={p.setAttReportFrom}
@@ -1003,6 +1055,36 @@ export default function AttendanceTab(p: Props) {
         projects={p.projects}
         farThresholdM={p.farThresholdM}
       />
+        </>
+      )}
     </div>
+  );
+}
+
+// ── Sub-tab button (segmented) ───────────────────────────────────────────────
+function SubTabButton({
+  active, onClick, badge, icon, children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  badge?: number;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-semibold tracking-wide border-b-2 transition-colors duration-150 ${
+        active ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/70"
+      }`}
+    >
+      {icon}
+      {children}
+      {badge !== undefined && badge > 0 && (
+        <span className="absolute -top-0.5 -end-0.5 bg-red-500 text-white text-[0.6rem] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center leading-none">
+          {badge > 99 ? "99+" : badge}
+        </span>
+      )}
+    </button>
   );
 }

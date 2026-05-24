@@ -28,7 +28,8 @@ import WorkersTab from "../admin/_components/tabs/WorkersTab";
 import ProjectsTab from "../admin/_components/tabs/ProjectsTab";
 import ExpensesTab from "../admin/_components/tabs/ExpensesTab";
 import PlanningTab from "../admin/_components/tabs/PlanningTab";
-import AttendanceTab, { type ManualType } from "../admin/_components/tabs/AttendanceTab";
+import AttendanceTab, { type ManualType, type AttendanceSubTab } from "../admin/_components/tabs/AttendanceTab";
+import type { WorkerHistoryDay } from "../../lib/worker-history-aggregate";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
@@ -373,6 +374,19 @@ export default function AdminPortal() {
   const [pendingErr,       setPendingErr]       = useState<string | null>(null);
   const [pendingActionId,  setPendingActionId]  = useState<string | null>(null);
 
+  // Attendance sub-tab + Worker-history panel
+  const [attendanceSubTab, setAttendanceSubTab] = useState<AttendanceSubTab>("live");
+  const [historyStaffId,   setHistoryStaffId]   = useState("");
+  const [historyFrom, setHistoryFrom] = useState(() =>
+    new Date(Date.now() - 29 * 86_400_000).toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" })
+  );
+  const [historyTo, setHistoryTo] = useState(() =>
+    new Date().toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" })
+  );
+  const [historyDays,    setHistoryDays]    = useState<WorkerHistoryDay[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError,   setHistoryError]   = useState<string | null>(null);
+
   // Recent records (last 7 days) for retroactive editing
   const [recentLogs,        setRecentLogs]        = useState<AttendanceRecord[]>([]);
   const [recentLogsLoading, setRecentLogsLoading] = useState(false);
@@ -640,6 +654,27 @@ export default function AdminPortal() {
     } catch (e) { setRecentLogsErr(String(e)); }
     finally { setRecentLogsLoading(false); }
   }
+
+  // Per-worker history (sub-tab inside Attendance). Cleared when staffId
+  // is empty — that's the "pick a worker" idle state.
+  const loadHistory = useCallback(async () => {
+    if (!historyStaffId) {
+      setHistoryDays([]); setHistoryError(null); return;
+    }
+    setHistoryLoading(true); setHistoryError(null);
+    try {
+      const q = new URLSearchParams({ from: historyFrom, to: historyTo });
+      const res = await fetch(`/api/admin/staff/${historyStaffId}/history?${q.toString()}`);
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error ?? `שגיאה ${res.status}`); }
+      const d = await res.json();
+      setHistoryDays(d.days ?? []);
+    } catch (e) {
+      setHistoryError(e instanceof Error ? e.message : String(e));
+      setHistoryDays([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [historyStaffId, historyFrom, historyTo]);
 
   function reload() { if (authState === "admin" || authState === "foreman") loadData(authState); }
 
@@ -964,6 +999,22 @@ export default function AdminPortal() {
     }
     reload();
   }
+
+  // Called from WorkersTab — jump to the history sub-tab pre-selected with
+  // this worker, regardless of which tab the admin is currently on.
+  function viewWorkerHistory(staffId: string) {
+    setHistoryStaffId(staffId);
+    setAttendanceSubTab("history");
+    goToTab("attendance");
+  }
+
+  // Reload the history any time the selection / range changes, but only while
+  // the user is actually looking at the history sub-tab — saves a roundtrip
+  // when they navigate elsewhere.
+  useEffect(() => {
+    if (tab !== "attendance" || attendanceSubTab !== "history") return;
+    loadHistory();
+  }, [tab, attendanceSubTab, historyStaffId, historyFrom, historyTo, loadHistory]);
 
   // ── Project CRUD ───────────────────────────────────────────────────────────
   async function handleAddProject(e: React.FormEvent) {
@@ -1733,6 +1784,14 @@ export default function AdminPortal() {
             lastRefreshed={lastRefreshed}
             refreshing={refreshing}
             onTabRefresh={handleTabRefresh}
+            subTab={attendanceSubTab}             setSubTab={setAttendanceSubTab}
+            historyStaffId={historyStaffId}       setHistoryStaffId={setHistoryStaffId}
+            historyFrom={historyFrom}             setHistoryFrom={setHistoryFrom}
+            historyTo={historyTo}                 setHistoryTo={setHistoryTo}
+            historyDays={historyDays}
+            historyLoading={historyLoading}
+            historyError={historyError}
+            onLoadHistory={loadHistory}
           />
         )}
 
@@ -1772,6 +1831,7 @@ export default function AdminPortal() {
             onStartEdit={startEdit}
             onToggleActive={toggleActive}
             onDeleteWorker={deleteWorker}
+            onViewHistory={viewWorkerHistory}
             onOpenVacation={openVacationDrawer}
             onReload={reload}
             lastRefreshed={lastRefreshed}
