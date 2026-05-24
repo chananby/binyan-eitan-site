@@ -21,6 +21,8 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     travel_allowance?: boolean;
     pension_status?: string | null;
     holiday_eligible?: boolean;
+    is_freelancer?: boolean;
+    start_date?: string | null;
     pin?: string | null;
   };
   try {
@@ -77,6 +79,14 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     update.pension_status = body.pension_status?.trim() || null;
   }
   if (body.holiday_eligible !== undefined) update.holiday_eligible = !!body.holiday_eligible;
+  if (body.is_freelancer !== undefined) update.is_freelancer = !!body.is_freelancer;
+  if (body.start_date !== undefined) {
+    const sd = body.start_date;
+    if (sd && sd !== "" && !/^\d{4}-\d{2}-\d{2}$/.test(sd)) {
+      return NextResponse.json({ error: "תאריך התחלה לא תקין (פורמט: YYYY-MM-DD)" }, { status: 400 });
+    }
+    update.start_date = sd && sd !== "" ? sd : null;
+  }
 
   if (body.pin !== undefined) {
     if (body.pin && !/^\d{4,8}$/.test(body.pin.trim())) {
@@ -94,7 +104,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     .from("staff")
     .update(update)
     .eq("id", params.id)
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, pin")
     .single();
 
   if (error) {

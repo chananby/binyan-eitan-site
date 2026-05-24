@@ -27,6 +27,8 @@ interface StaffMember {
   travel_allowance?: boolean;
   pension_status?: string | null;
   holiday_eligible?: boolean;
+  is_freelancer?: boolean;
+  start_date?: string | null;
   has_pin?: boolean;
 }
 
@@ -45,6 +47,8 @@ type Props = {
   newTravelAllowance: boolean; setNewTravelAllowance: (v: boolean) => void;
   newHolidayEligible: boolean; setNewHolidayEligible: (v: boolean) => void;
   newPensionStatus: string;   setNewPensionStatus:   (v: string) => void;
+  newIsFreelancer: boolean;   setNewIsFreelancer:    (v: boolean) => void;
+  newStartDate: string;       setNewStartDate:       (v: string) => void;
   newPin: string;             setNewPin:             (v: string) => void;
   addLoading: boolean;
   addMsg: string;
@@ -63,6 +67,8 @@ type Props = {
   editTravelAllowance: boolean; setEditTravelAllowance: (v: boolean) => void;
   editHolidayEligible: boolean; setEditHolidayEligible: (v: boolean) => void;
   editPensionStatus: string;  setEditPensionStatus:   (v: string) => void;
+  editIsFreelancer: boolean;  setEditIsFreelancer:    (v: boolean) => void;
+  editStartDate: string;      setEditStartDate:       (v: string) => void;
   editPin: string;            setEditPin:             (v: string) => void;
   editLoading: boolean;
   editMsg: string;
@@ -147,6 +153,29 @@ export default function WorkersTab(p: Props) {
             </Field>
             <Field label='ת"ז (אופציונלי)'>
               <input value={p.newNationalId} onChange={e => p.setNewNationalId(e.target.value.replace(/\D/g, ""))} placeholder="123456789" inputMode="numeric" maxLength={9} dir="ltr" className={INPUT} />
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="סטטוס העסקה">
+              <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={p.newIsFreelancer}
+                  onChange={e => {
+                    const isFree = e.target.checked;
+                    p.setNewIsFreelancer(isFree);
+                    // Smart default in the add form only: freelancers don't get
+                    // travel; switching back to employee re-enables it. The
+                    // admin can still override either checkbox manually.
+                    p.setNewTravelAllowance(!isFree);
+                  }}
+                  className="accent-accent"
+                />
+                <span className="text-charcoal/70">עצמאי (קבלן)</span>
+              </label>
+            </Field>
+            <Field label="תאריך התחלת עבודה (אופציונלי)">
+              <input type="date" value={p.newStartDate} onChange={e => p.setNewStartDate(e.target.value)} className={INPUT} dir="ltr" />
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -294,6 +323,22 @@ function renderStaffRow(
               <input type="checkbox" checked={p.editHolidayEligible} onChange={e => p.setEditHolidayEligible(e.target.checked)} className="accent-accent" />
               <span className="text-charcoal/70">זכאי</span>
             </label>
+          </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="סטטוס העסקה">
+            <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={p.editIsFreelancer}
+                onChange={e => p.setEditIsFreelancer(e.target.checked)}
+                className="accent-accent"
+              />
+              <span className="text-charcoal/70">עצמאי (קבלן)</span>
+            </label>
+          </Field>
+          <Field label="תאריך התחלת עבודה">
+            <input type="date" value={p.editStartDate} onChange={e => p.setEditStartDate(e.target.value)} className={INPUT} dir="ltr" />
           </Field>
         </div>
         <Field label="סטטוס פנסיה">

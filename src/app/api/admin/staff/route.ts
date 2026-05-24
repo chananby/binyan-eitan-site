@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
   // Admin path — all staff (soft-deleted workers are hidden everywhere)
   const { data, error } = await supabase
     .from("staff")
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, pin")
     .is("deleted_at", null)
     .order("active", { ascending: false })
     .order("name",   { ascending: true });
@@ -90,6 +90,8 @@ export async function POST(req: NextRequest) {
     travel_allowance?: boolean;
     pension_status?: string;
     holiday_eligible?: boolean;
+    is_freelancer?: boolean;
+    start_date?: string;
     pin?: string;
   };
   try {
@@ -101,7 +103,7 @@ export async function POST(req: NextRequest) {
   const {
     name, phone, role, national_id, hourly_rate, daily_rate,
     employment_type, monthly_global_salary, travel_allowance,
-    pension_status, holiday_eligible, pin,
+    pension_status, holiday_eligible, is_freelancer, start_date, pin,
   } = body;
   if (!name?.trim() || !phone?.trim()) {
     return NextResponse.json({ error: "שם וטלפון הם שדות חובה" }, { status: 400 });
@@ -136,6 +138,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "PIN חייב להיות 4–8 ספרות" }, { status: 400 });
   }
 
+  if (start_date !== undefined && start_date !== null && start_date !== "" && !/^\d{4}-\d{2}-\d{2}$/.test(start_date)) {
+    return NextResponse.json({ error: "תאריך התחלה לא תקין (פורמט: YYYY-MM-DD)" }, { status: 400 });
+  }
+
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("staff")
@@ -152,9 +158,11 @@ export async function POST(req: NextRequest) {
       travel_allowance: travel_allowance ?? false,
       pension_status: pension_status?.trim() || null,
       holiday_eligible: holiday_eligible ?? true,
+      is_freelancer: is_freelancer ?? false,
+      start_date: start_date && start_date.trim() ? start_date : null,
       pin: pin?.trim() || null,
     })
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, pin")
     .single();
 
   if (error) {

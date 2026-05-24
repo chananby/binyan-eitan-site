@@ -60,6 +60,8 @@ interface StaffMember {
   travel_allowance?: boolean;
   pension_status?: string | null;
   holiday_eligible?: boolean;
+  is_freelancer?: boolean;
+  start_date?: string | null;
   has_pin?: boolean;
 }
 interface VacationRecord {
@@ -260,9 +262,14 @@ export default function AdminPortal() {
   const [newPin,        setNewPin]        = useState("");
   const [newEmploymentType,   setNewEmploymentType]   = useState<"hourly" | "daily" | "global">("hourly");
   const [newGlobalSalary,     setNewGlobalSalary]     = useState("");
-  const [newTravelAllowance,  setNewTravelAllowance]  = useState(false);
+  // New workers default to "employee" (is_freelancer=false), and the add form
+  // mirrors that with travel_allowance=true. Toggling "freelancer" in the form
+  // flips travel_allowance off (and vice versa) — see WorkersTab.
+  const [newTravelAllowance,  setNewTravelAllowance]  = useState(true);
   const [newPensionStatus,    setNewPensionStatus]    = useState("");
   const [newHolidayEligible,  setNewHolidayEligible]  = useState(true);
+  const [newIsFreelancer,     setNewIsFreelancer]     = useState(false);
+  const [newStartDate,        setNewStartDate]        = useState("");
   const [addLoading, setAddLoading] = useState(false);
   const [addMsg,     setAddMsg]     = useState("");
   const [editingId,       setEditingId]       = useState<string | null>(null);
@@ -278,6 +285,8 @@ export default function AdminPortal() {
   const [editTravelAllowance, setEditTravelAllowance] = useState(false);
   const [editPensionStatus,   setEditPensionStatus]   = useState("");
   const [editHolidayEligible, setEditHolidayEligible] = useState(true);
+  const [editIsFreelancer,    setEditIsFreelancer]    = useState(false);
+  const [editStartDate,       setEditStartDate]       = useState("");
   const [editLoading, setEditLoading] = useState(false);
   const [editMsg,     setEditMsg]     = useState("");
 
@@ -849,6 +858,8 @@ export default function AdminPortal() {
           travel_allowance:      newTravelAllowance,
           pension_status:        newPensionStatus,
           holiday_eligible:      newHolidayEligible,
+          is_freelancer:         newIsFreelancer,
+          start_date:            newStartDate || undefined,
           pin: newPin || undefined,
         }) });
       const data = await res.json();
@@ -857,7 +868,9 @@ export default function AdminPortal() {
         setNewName(""); setNewPhone(""); setNewNationalId("");
         setNewHourlyRate(""); setNewDailyRate(""); setNewPin("");
         setNewEmploymentType("hourly"); setNewGlobalSalary("");
-        setNewTravelAllowance(false); setNewPensionStatus(""); setNewHolidayEligible(true);
+        // Reset to "employee + travel=true" — the default for a fresh add.
+        setNewTravelAllowance(true); setNewPensionStatus(""); setNewHolidayEligible(true);
+        setNewIsFreelancer(false); setNewStartDate("");
         reload();
       } else {
         setAddMsg("שגיאה: " + (data.error ?? res.status));
@@ -876,6 +889,8 @@ export default function AdminPortal() {
     setEditTravelAllowance(!!s.travel_allowance);
     setEditPensionStatus(s.pension_status ?? "");
     setEditHolidayEligible(s.holiday_eligible !== false); // default true
+    setEditIsFreelancer(!!s.is_freelancer);
+    setEditStartDate(s.start_date ?? "");
     setEditPin(""); // always blank — admin sets a new PIN explicitly
     setEditMsg("");
   }
@@ -893,6 +908,8 @@ export default function AdminPortal() {
         travel_allowance:      editTravelAllowance,
         pension_status:        editPensionStatus,
         holiday_eligible:      editHolidayEligible,
+        is_freelancer:         editIsFreelancer,
+        start_date:            editStartDate || null,
       };
       if (editPin) body.pin = editPin; // only send if a new PIN was entered
       const res  = await fetch(`/api/admin/staff/${editingId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -1810,6 +1827,8 @@ export default function AdminPortal() {
             newTravelAllowance={newTravelAllowance} setNewTravelAllowance={setNewTravelAllowance}
             newHolidayEligible={newHolidayEligible} setNewHolidayEligible={setNewHolidayEligible}
             newPensionStatus={newPensionStatus}     setNewPensionStatus={setNewPensionStatus}
+            newIsFreelancer={newIsFreelancer}       setNewIsFreelancer={setNewIsFreelancer}
+            newStartDate={newStartDate}             setNewStartDate={setNewStartDate}
             newPin={newPin}                         setNewPin={setNewPin}
             addLoading={addLoading} addMsg={addMsg}
             onAddWorker={handleAddWorker}
@@ -1825,6 +1844,8 @@ export default function AdminPortal() {
             editTravelAllowance={editTravelAllowance} setEditTravelAllowance={setEditTravelAllowance}
             editHolidayEligible={editHolidayEligible} setEditHolidayEligible={setEditHolidayEligible}
             editPensionStatus={editPensionStatus}   setEditPensionStatus={setEditPensionStatus}
+            editIsFreelancer={editIsFreelancer}     setEditIsFreelancer={setEditIsFreelancer}
+            editStartDate={editStartDate}           setEditStartDate={setEditStartDate}
             editPin={editPin}                       setEditPin={setEditPin}
             editLoading={editLoading} editMsg={editMsg}
             onEditWorker={handleEditWorker}

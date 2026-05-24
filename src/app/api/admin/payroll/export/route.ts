@@ -32,6 +32,7 @@ interface StaffRow {
   pension_status: string | null;
   holiday_eligible: boolean;
   role: string;
+  start_date: string | null;
 }
 
 type AttRow = AttendanceRec;
@@ -66,7 +67,7 @@ export async function GET(req: NextRequest) {
 
   const { data: staffData, error: staffErr } = await supabase
     .from("staff")
-    .select("id, name, national_id, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role")
+    .select("id, name, national_id, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role, start_date")
     .eq("active", true)
     .in("role", ["עובד", "ממונה"])
     .order("name", { ascending: true });
@@ -102,6 +103,7 @@ export async function GET(req: NextRequest) {
   sheet.columns = [
     { header: "שם",            key: "name",            width: 22 },
     { header: "ת.ז.",          key: "national_id",     width: 14 },
+    { header: "תאריך התחלה",   key: "start_date",      width: 13 },
     { header: "סוג העסקה",     key: "employment_type", width: 12 },
     { header: "ימי עבודה",     key: "days_worked",     width: 11 },
     { header: "שעות עבודה",    key: "hours_worked",    width: 12 },
@@ -133,6 +135,8 @@ export async function GET(req: NextRequest) {
     sheet.addRow({
       name:            s.name,
       national_id:     s.national_id ?? "",
+      // Display as DD/MM/YYYY for the accountant; empty if not set.
+      start_date:      s.start_date ? s.start_date.split("-").reverse().join("/") : "",
       employment_type: EMPLOYMENT_LABELS[s.employment_type] ?? s.employment_type,
       days_worked:     att.days,
       hours_worked:    att.hours,
