@@ -120,12 +120,16 @@ export function aggregateWorkerHistory(
     if (v.date >= from && v.date <= to) vacationByDate.set(v.date, v.half_day);
   }
 
-  // 3. Walk every calendar day in the range. Skip Saturdays (not a work
-  //    day in this context). Build the row for each remaining day.
+  // 3. Walk every calendar day in the range. Saturday is always skipped;
+  //    Friday is skipped only when there's no activity (no attendance,
+  //    no vacation) — most workers don't work Friday, so flagging it as
+  //    "missing" would be noise. A Friday with any record still shows.
   const out: WorkerHistoryDay[] = [];
   for (const ymd of iterDaysInclusive(from, to)) {
-    if (dayOfWeekUTC(ymd) === 6) continue; // Saturday
+    const dow = dayOfWeekUTC(ymd);
+    if (dow === 6) continue; // Saturday — always skipped
     const dayName = dayNameHE(ymd);
+    const isFriday = dow === 5;
 
     // Vacation: takes precedence over attendance.
     const vacationHalf = vacationByDate.get(ymd);
@@ -141,6 +145,7 @@ export function aggregateWorkerHistory(
 
     const bucket = byDay.get(ymd);
     if (!bucket || (bucket.entries.length === 0 && bucket.exits.length === 0)) {
+      if (isFriday) continue; // Friday without any record → silently skipped
       out.push({
         date: ymd, dayName,
         startTime: null, endTime: null, hours: null,
