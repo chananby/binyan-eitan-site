@@ -135,16 +135,17 @@ export default function Navbar() {
 
           {/* Trailing: contact buttons (always visible) + lang + hamburger */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Phone — always visible, mobile-first */}
+            {/* Phone + WhatsApp — paired CTAs in the brand palette so they
+                read as a single contact bar. Identical solid-accent fill (matches
+                the site's primary-CTA convention); only the icon differentiates. */}
             <a
               href={`tel:${CHANAN_TEL_E164}`}
               aria-label={lang === "he" ? "התקשרו אלינו" : "Call us"}
-              className="grid size-11 place-items-center border border-accent/40 text-accent hover:bg-accent hover:text-bone transition-colors duration-200"
+              className="grid size-11 place-items-center bg-accent text-bone hover:bg-accent-dark transition-colors duration-200"
             >
               <Phone size={17} strokeWidth={1.7} />
             </a>
 
-            {/* WhatsApp — always visible, brand green for instant recognition */}
             <a
               href={`https://wa.me/${CHANAN_TEL_DIGITS}?text=${encodeURIComponent(
                 lang === "he" ? WHATSAPP_PREFILL_HE : WHATSAPP_PREFILL_EN
@@ -152,7 +153,7 @@ export default function Navbar() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp"
-              className="grid size-11 place-items-center bg-[#25D366] text-white hover:bg-[#20bb5a] transition-colors duration-200"
+              className="grid size-11 place-items-center bg-accent text-bone hover:bg-accent-dark transition-colors duration-200"
             >
               <MessageCircle size={17} strokeWidth={1.7} />
             </a>
