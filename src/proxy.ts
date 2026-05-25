@@ -75,15 +75,21 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // ⚠️ PRE-LAUNCH GUARD: Redirects /projects/* until content is ready.
-  // To launch: remove this block. Coordinate with /admin/hub or PROJECT_STATUS.md.
+  // ⚠️ PRE-LAUNCH GUARD: Only the four projects whose dedicated content pages
+  // aren't ready yet still redirect home. The /projects index and the amshinov
+  // detail page are live as of May 2026. To launch the remaining projects,
+  // remove their slug from BLOCKED_PROJECT_SLUGS once the content lands.
   // See: internal-docs/PROJECT_STATUS.md "Project pages live launch"
-  // redirect sections that are not yet live back to their respective home
-  const redirectPattern = /^\/(en|he)\/(projects)(\/|$)/;
-  if (redirectPattern.test(pathname)) {
-    const locale = pathname.startsWith("/he") ? "/he" : "/en";
+  const BLOCKED_PROJECT_SLUGS = new Set([
+    "bayit-vegan-luxury-apartment",
+    "ohel-avshalom-synagogue-jerusalem",
+    "ramat-eshkol-penthouse",
+    "jerusalem-luxury-residence",
+  ]);
+  const projectMatch = pathname.match(/^\/(en|he)\/projects\/([^/]+)/);
+  if (projectMatch && BLOCKED_PROJECT_SLUGS.has(projectMatch[2])) {
     const dest = req.nextUrl.clone();
-    dest.pathname = locale;
+    dest.pathname = `/${projectMatch[1]}`;
     return NextResponse.redirect(dest);
   }
 

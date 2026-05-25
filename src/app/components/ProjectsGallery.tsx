@@ -35,6 +35,17 @@ const FILTERS: { key: FilterKey; he: string; en: string }[] = [
   { key: "before-after",  he: "לפני ואחרי",      en: "Before & After" },
 ];
 
+// Slugs whose dedicated detail page is still in preparation — must mirror
+// the BLOCKED_PROJECT_SLUGS set in src/proxy.ts. Photos still appear in
+// the in-page lightbox (the gallery's main draw), but the "Project Page"
+// link is hidden for these until the content lands.
+const SLUGS_WITHOUT_DETAIL_PAGE = new Set([
+  "bayit-vegan-luxury-apartment",
+  "ohel-avshalom-synagogue-jerusalem",
+  "ramat-eshkol-penthouse",
+  "jerusalem-luxury-residence",
+]);
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function ProjectsGallery({ lang }: { lang: Lang }) {
@@ -294,13 +305,15 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
                             <span className="inline-block text-[10px] uppercase tracking-widest text-bone/70 border border-bone/30 px-3 py-1.5">
                               {lang === "he" ? "פתח גלריה" : "View Gallery"}
                             </span>
-                            <Link
-                              href={`/${lang}/projects/${proj.urlSlug}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="inline-block text-[10px] uppercase tracking-widest text-bone bg-accent/80 hover:bg-accent px-3 py-1.5 transition-colors"
-                            >
-                              {lang === "he" ? "דף פרויקט" : "Project Page"}
-                            </Link>
+                            {!SLUGS_WITHOUT_DETAIL_PAGE.has(proj.urlSlug) && (
+                              <Link
+                                href={`/${lang}/projects/${proj.urlSlug}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-block text-[10px] uppercase tracking-widest text-bone bg-accent/80 hover:bg-accent px-3 py-1.5 transition-colors"
+                              >
+                                {lang === "he" ? "דף פרויקט" : "Project Page"}
+                              </Link>
+                            )}
                           </div>
                         </div>
                       </div>
