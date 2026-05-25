@@ -8,10 +8,14 @@ type Lang = "en" | "he";
 
 const CONTACT_API = "/api/contact";
 
+// Fallback WhatsApp link surfaced when the form fails — both languages now
+// point to Chanan (single point-of-first-contact) with the correct greeting.
 const WHATSAPP_HE =
-  "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%9E%D7%95%D7%98%D7%99%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%93%D7%A8%D7%9A%20%D7%98%D7%95%D7%A4%D7%A1%20%D7%94%D7%A7%D7%A9%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%A9%D7%9E%D7%95%D7%A2%20%D7%A2%D7%95%D7%93...";
+  "https://wa.me/972585008447?text=" +
+  encodeURIComponent("היי חנן, ניסיתי דרך טופס הקשר באתר ואשמח לעדכון...");
 const WHATSAPP_EN =
-  "https://wa.me/972533214208?text=Hi%20Sam%2C%20I%20tried%20the%20contact%20form%20and%20would%20like%20to%20follow%20up...";
+  "https://wa.me/972585008447?text=" +
+  encodeURIComponent("Hi Chanan, I tried the contact form on the website and would like to follow up...");
 
 type Status = "idle" | "sending" | "success" | "error";
 
@@ -145,86 +149,16 @@ export default function ContactForm() {
               </div>
             </div>
 
-            <div className="relative">
-              <input
-                type="email"
-                id="email"
-                name="email"
-                required
-                className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer transition-colors"
-                placeholder=" "
-              />
-              <label
-                htmlFor="email"
-                className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/65 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
-              >
-                {content.email}
-              </label>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-10">
-              <div className="relative">
-                {/* Visible label sits above the field — matches the floating-label
-                    pattern's "filled" state for the inputs alongside it. */}
-                <label
-                  htmlFor="project_type"
-                  className="absolute start-0 -top-3.5 text-xs font-body font-semibold uppercase tracking-widest text-charcoal/70 pointer-events-none"
-                >
-                  {lang === "he" ? "סוג הפרויקט" : "Project Type"}
-                </label>
-                <select
-                  id="project_type"
-                  name="project_type"
-                  className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent transition-colors appearance-none cursor-pointer"
-                  defaultValue=""
-                >
-                  <option value="" disabled>
-                    {lang === "he" ? "סוג הפרויקט" : "Project Type"}
-                  </option>
-                  {lang === "he" ? (
-                    <>
-                      <option value="new_build">בנייה חדשה</option>
-                      <option value="renovation">שיפוץ ושדרוג</option>
-                      <option value="structural">שלד וקונסטרוקציה</option>
-                      <option value="finishing">גמר ועיצוב פנים</option>
-                      <option value="other">אחר</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="new_build">New Build</option>
-                      <option value="renovation">Renovation & Upgrade</option>
-                      <option value="structural">Structural Engineering</option>
-                      <option value="finishing">Interior Finishing</option>
-                      <option value="other">Other</option>
-                    </>
-                  )}
-                </select>
-                <span className="pointer-events-none absolute end-0 top-3.5 text-charcoal/30 text-xs">▾</span>
-              </div>
-
-              <div className="relative">
-                <input
-                  type="text"
-                  id="location"
-                  name="location"
-                  className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer transition-colors"
-                  placeholder=" "
-                />
-                <label
-                  htmlFor="location"
-                  className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/65 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
-                >
-                  {lang === "he" ? "מיקום הפרויקט" : "Project Location"}
-                </label>
-              </div>
-            </div>
+            {/* Email, project_type, location intentionally removed (May 2026)
+                to cut form length from 6 to 3 fields. Email lives on the
+                /api/contact endpoint as optional; if a need arises we can
+                re-introduce a "+ הוסף פרטים" disclosure here. */}
 
             <div className="relative">
               <textarea
                 id="message"
                 name="message"
-                rows={4}
-                required
+                rows={3}
                 className="w-full bg-transparent border-b border-charcoal/20 py-3 font-body text-charcoal text-start focus:outline-none focus:border-accent peer resize-none transition-colors"
                 placeholder=" "
               />
@@ -233,6 +167,9 @@ export default function ContactForm() {
                 className="absolute start-0 top-3 text-base font-body font-normal text-charcoal/65 transition-all peer-focus:-top-3.5 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-accent peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-xs uppercase tracking-widest pointer-events-none"
               >
                 {content.message}
+                <span className="ms-1.5 text-charcoal/40 normal-case tracking-normal">
+                  ({lang === "he" ? "אופציונלי" : "optional"})
+                </span>
               </label>
             </div>
 
@@ -251,6 +188,11 @@ export default function ContactForm() {
             )}
 
             <div className="pt-8">
+              <p className="text-center text-xs text-charcoal/55 mb-3">
+                {lang === "he"
+                  ? "נחזור אליכם תוך שעה — לרוב מהר יותר"
+                  : "We'll get back to you within an hour — usually sooner"}
+              </p>
               <button
                 type="submit"
                 disabled={status === "sending"}
