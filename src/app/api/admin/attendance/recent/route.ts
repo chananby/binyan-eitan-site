@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabase
     .from("attendance")
-    .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, staff:staff_id(id, name, phone, role), project:project_id(id, name)")
+    .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, source, staff:staff_id(id, name, phone, role), project:project_id(id, name)")
     .gte("created_at", fromISO)
     .order("created_at", { ascending: false });
 

@@ -94,6 +94,7 @@ interface AttendanceRecord {
   clock_at?: string | null; created_at?: string; is_manual?: boolean; status?: string;
   lat?: string | null; lng?: string | null;
   distance_from_project_m?: number | null;
+  source?: string | null;
   staff: { id: string; name: string; phone: string; role?: string } | null;
   project: { id: string; name: string } | null;
 }

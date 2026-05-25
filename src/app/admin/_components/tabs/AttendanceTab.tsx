@@ -3,7 +3,7 @@
 import React from "react";
 import {
   BarChart2, Loader2, Download, AlertCircle, Calendar, Plus,
-  AlertTriangle, RefreshCw, Building2, Pencil, History,
+  AlertTriangle, RefreshCw, Building2, Pencil, History, Phone,
 } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
@@ -31,8 +31,29 @@ export interface AttendanceRecord {
   lat?: string | null;
   lng?: string | null;
   distance_from_project_m?: number | null;
+  /** Origin channel of the row: 'web' (default), 'phone-call', 'manual'.
+   *  Phone-call rows are surfaced with a chip so admins can see at a glance
+   *  that no GPS verification backs the timestamp. */
+  source?: string | null;
   staff: { id: string; name: string; phone: string; role?: string } | null;
   project: { id: string; name: string } | null;
+}
+
+// Amber chip shown next to phone-call attendance rows in the live log,
+// pending list, and recent log. Phone clocks have no GPS / DistanceFlag,
+// so this gives admins a positive signal that the row is intentionally
+// location-less rather than a misconfigured web clock.
+function PhoneCallChip({ source }: { source?: string | null }) {
+  if (source !== "phone-call") return null;
+  return (
+    <span
+      title="החתמה טלפונית — ללא אימות מיקום"
+      className="inline-flex items-center gap-0.5 text-[0.65rem] font-semibold px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 shrink-0"
+    >
+      <Phone size={9} strokeWidth={2} />
+      <span className="hidden sm:inline">ללא אימות מיקום</span>
+    </span>
+  );
 }
 export interface AttReportRow  { staff_name: string; staff_phone: string; date: string; entry: string; exit: string; hours: number | null; project: string; }
 export interface AttSummaryRow { name: string; phone: string; days: number; hours: number; }
@@ -644,6 +665,7 @@ function PendingApprovals({
                           <span className="text-[0.75rem] text-charcoal/40 tabular-nums" dir="ltr">{r.timestamp_label}</span>
                         )}
                         <DistanceFlag r={r} threshold={farThresholdM} />
+                        <PhoneCallChip source={r.source} />
                       </div>
                       {r.project && (
                         <div className="flex items-center gap-1 mt-0.5 text-[0.75rem] text-charcoal/40">
@@ -740,6 +762,7 @@ function TodayLog({
                       {r.timestamp_label || new Date(r.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
                     </span>
                     <DistanceFlag r={r} threshold={farThresholdM} />
+                    <PhoneCallChip source={r.source} />
                     <button onClick={() => onStartEditAtt(r)} className="text-charcoal/30 hover:text-accent transition-colors shrink-0 p-0.5">
                       <Pencil size={11} strokeWidth={1.5} />
                     </button>
@@ -827,6 +850,7 @@ function RecentLogs({
                             {r.timestamp_label || (r.created_at ? new Date(r.created_at).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—")}
                           </span>
                           <DistanceFlag r={r} threshold={farThresholdM} />
+                          <PhoneCallChip source={r.source} />
                           <button onClick={() => onStartEditAtt(r)} className="text-charcoal/30 hover:text-accent transition-colors p-0.5">
                             <Pencil size={11} strokeWidth={1.5} />
                           </button>
