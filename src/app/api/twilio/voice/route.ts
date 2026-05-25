@@ -41,11 +41,17 @@ function twimlResponse(body: string): NextResponse {
   });
 }
 
-/** Hebrew TTS via Amazon Polly Carmit-Neural — natural female voice.
- *  Twilio docs require both the voice and language attributes for proper
- *  fallback when SSML features differ between voice engines. */
+/** Hebrew TTS via Amazon Polly Carmit (standard female voice).
+ *  Carmit is the only he-IL Polly voice available on every Twilio account
+ *  out-of-the-box. The "-Neural" variant exists and sounds noticeably more
+ *  natural, but requires the Amazon Polly Neural add-on to be enabled on
+ *  the Twilio project — Trial accounts and fresh paid accounts don't have
+ *  it on by default, and TwiML with an un-enabled voice fails at runtime
+ *  with "application error, goodbye" (no useful log on Twilio's side).
+ *  Once Neural is opted in via Twilio Console → Voice → Marketplace, this
+ *  can flip to "Polly.Carmit-Neural". */
 function say(text: string): string {
-  return `<Say voice="Polly.Carmit-Neural" language="he-IL">${escapeXml(text)}</Say>`;
+  return `<Say voice="Polly.Carmit" language="he-IL">${escapeXml(text)}</Say>`;
 }
 
 function escapeXml(s: string): string {
