@@ -62,6 +62,7 @@ interface StaffMember {
   holiday_eligible?: boolean;
   is_freelancer?: boolean;
   start_date?: string | null;
+  notes?: string | null;
   has_pin?: boolean;
 }
 interface VacationRecord {
@@ -270,6 +271,7 @@ export default function AdminPortal() {
   const [newHolidayEligible,  setNewHolidayEligible]  = useState(true);
   const [newIsFreelancer,     setNewIsFreelancer]     = useState(false);
   const [newStartDate,        setNewStartDate]        = useState("");
+  const [newNotes,            setNewNotes]            = useState("");
   const [addLoading, setAddLoading] = useState(false);
   const [addMsg,     setAddMsg]     = useState("");
   const [editingId,       setEditingId]       = useState<string | null>(null);
@@ -287,6 +289,7 @@ export default function AdminPortal() {
   const [editHolidayEligible, setEditHolidayEligible] = useState(true);
   const [editIsFreelancer,    setEditIsFreelancer]    = useState(false);
   const [editStartDate,       setEditStartDate]       = useState("");
+  const [editNotes,           setEditNotes]           = useState("");
   const [editLoading, setEditLoading] = useState(false);
   const [editMsg,     setEditMsg]     = useState("");
 
@@ -860,6 +863,7 @@ export default function AdminPortal() {
           holiday_eligible:      newHolidayEligible,
           is_freelancer:         newIsFreelancer,
           start_date:            newStartDate || undefined,
+          notes:                 newNotes || undefined,
           pin: newPin || undefined,
         }) });
       const data = await res.json();
@@ -870,7 +874,7 @@ export default function AdminPortal() {
         setNewEmploymentType("hourly"); setNewGlobalSalary("");
         // Reset to "employee + travel=true" — the default for a fresh add.
         setNewTravelAllowance(true); setNewPensionStatus(""); setNewHolidayEligible(true);
-        setNewIsFreelancer(false); setNewStartDate("");
+        setNewIsFreelancer(false); setNewStartDate(""); setNewNotes("");
         reload();
       } else {
         setAddMsg("שגיאה: " + (data.error ?? res.status));
@@ -891,6 +895,7 @@ export default function AdminPortal() {
     setEditHolidayEligible(s.holiday_eligible !== false); // default true
     setEditIsFreelancer(!!s.is_freelancer);
     setEditStartDate(s.start_date ?? "");
+    setEditNotes(s.notes ?? "");
     setEditPin(""); // always blank — admin sets a new PIN explicitly
     setEditMsg("");
   }
@@ -910,6 +915,7 @@ export default function AdminPortal() {
         holiday_eligible:      editHolidayEligible,
         is_freelancer:         editIsFreelancer,
         start_date:            editStartDate || null,
+        notes:                 editNotes || null,
       };
       if (editPin) body.pin = editPin; // only send if a new PIN was entered
       const res  = await fetch(`/api/admin/staff/${editingId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -1829,6 +1835,7 @@ export default function AdminPortal() {
             newPensionStatus={newPensionStatus}     setNewPensionStatus={setNewPensionStatus}
             newIsFreelancer={newIsFreelancer}       setNewIsFreelancer={setNewIsFreelancer}
             newStartDate={newStartDate}             setNewStartDate={setNewStartDate}
+            newNotes={newNotes}                     setNewNotes={setNewNotes}
             newPin={newPin}                         setNewPin={setNewPin}
             addLoading={addLoading} addMsg={addMsg}
             onAddWorker={handleAddWorker}
@@ -1846,6 +1853,7 @@ export default function AdminPortal() {
             editPensionStatus={editPensionStatus}   setEditPensionStatus={setEditPensionStatus}
             editIsFreelancer={editIsFreelancer}     setEditIsFreelancer={setEditIsFreelancer}
             editStartDate={editStartDate}           setEditStartDate={setEditStartDate}
+            editNotes={editNotes}                   setEditNotes={setEditNotes}
             editPin={editPin}                       setEditPin={setEditPin}
             editLoading={editLoading} editMsg={editMsg}
             onEditWorker={handleEditWorker}

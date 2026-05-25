@@ -29,6 +29,7 @@ interface StaffMember {
   holiday_eligible?: boolean;
   is_freelancer?: boolean;
   start_date?: string | null;
+  notes?: string | null;
   has_pin?: boolean;
 }
 
@@ -49,6 +50,7 @@ type Props = {
   newPensionStatus: string;   setNewPensionStatus:   (v: string) => void;
   newIsFreelancer: boolean;   setNewIsFreelancer:    (v: boolean) => void;
   newStartDate: string;       setNewStartDate:       (v: string) => void;
+  newNotes: string;           setNewNotes:           (v: string) => void;
   newPin: string;             setNewPin:             (v: string) => void;
   addLoading: boolean;
   addMsg: string;
@@ -69,6 +71,7 @@ type Props = {
   editPensionStatus: string;  setEditPensionStatus:   (v: string) => void;
   editIsFreelancer: boolean;  setEditIsFreelancer:    (v: boolean) => void;
   editStartDate: string;      setEditStartDate:       (v: string) => void;
+  editNotes: string;          setEditNotes:           (v: string) => void;
   editPin: string;            setEditPin:             (v: string) => void;
   editLoading: boolean;
   editMsg: string;
@@ -213,6 +216,9 @@ export default function WorkersTab(p: Props) {
           <Field label="סטטוס פנסיה (טקסט חופשי)">
             <AutoGrowTextarea value={p.newPensionStatus} onChange={e => p.setNewPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
           </Field>
+          <Field label="הערות (אופציונלי)">
+            <AutoGrowTextarea value={p.newNotes} onChange={e => p.setNewNotes(e.target.value)} placeholder="הערות חופשיות על העובד..." className={INPUT} />
+          </Field>
           {p.newRole === "ממונה" && (
             <Field label="PIN לכניסה לפורטל (4–8 ספרות)">
               <input value={p.newPin} onChange={e => p.setNewPin(e.target.value.replace(/\D/g, "").slice(0, 8))} type="text" inputMode="numeric" maxLength={8} placeholder="1234" dir="ltr" className={INPUT} />
@@ -343,6 +349,9 @@ function renderStaffRow(
         </div>
         <Field label="סטטוס פנסיה">
           <AutoGrowTextarea value={p.editPensionStatus} onChange={e => p.setEditPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
+        </Field>
+        <Field label="הערות">
+          <AutoGrowTextarea value={p.editNotes} onChange={e => p.setEditNotes(e.target.value)} placeholder="הערות חופשיות על העובד..." className={INPUT} />
         </Field>
         {p.editRole === "ממונה" && (
           <Field label="PIN חדש (השאר ריק לשמירת הנוכחי)">

@@ -23,6 +23,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     holiday_eligible?: boolean;
     is_freelancer?: boolean;
     start_date?: string | null;
+    notes?: string | null;
     pin?: string | null;
   };
   try {
@@ -87,6 +88,9 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     }
     update.start_date = sd && sd !== "" ? sd : null;
   }
+  if (body.notes !== undefined) {
+    update.notes = body.notes?.trim() || null;
+  }
 
   if (body.pin !== undefined) {
     if (body.pin && !/^\d{4,8}$/.test(body.pin.trim())) {
@@ -104,7 +108,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     .from("staff")
     .update(update)
     .eq("id", params.id)
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, notes, pin")
     .single();
 
   if (error) {
