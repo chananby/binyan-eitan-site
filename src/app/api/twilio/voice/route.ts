@@ -41,17 +41,30 @@ function twimlResponse(body: string): NextResponse {
   });
 }
 
-/** Hebrew TTS via Amazon Polly Carmit (standard female voice).
- *  Carmit is the only he-IL Polly voice available on every Twilio account
- *  out-of-the-box. The "-Neural" variant exists and sounds noticeably more
- *  natural, but requires the Amazon Polly Neural add-on to be enabled on
- *  the Twilio project — Trial accounts and fresh paid accounts don't have
- *  it on by default, and TwiML with an un-enabled voice fails at runtime
- *  with "application error, goodbye" (no useful log on Twilio's side).
- *  Once Neural is opted in via Twilio Console → Voice → Marketplace, this
- *  can flip to "Polly.Carmit-Neural". */
+/** Hebrew TTS via Google Cloud — Standard female voice (he-IL).
+ *  Google's he-IL voices are free on every Twilio account out-of-the-box,
+ *  no add-on required, and Twilio routes them through Google Cloud TTS.
+ *
+ *  Why not Polly.Carmit:
+ *    Amazon retired the Standard Carmit voice in favour of Neural-only,
+ *    and "Polly.Carmit" now resolves to no available voice on Twilio.
+ *    A request with that voice returns HTTP 200 with valid TwiML, but
+ *    Twilio fails at runtime with error 13520 "Say: Invalid text" — the
+ *    parser flags the <Say> as un-renderable rather than telling you the
+ *    voice is gone.
+ *
+ *  Why not Polly.Carmit-Neural:
+ *    Works, but requires the Amazon Polly Neural add-on to be opted in
+ *    on the Twilio project (Console → Voice → Marketplace). On a Trial
+ *    account or fresh paid account it isn't enabled by default, and the
+ *    failure mode there is "application error, goodbye" with no useful
+ *    log on Twilio's side.
+ *
+ *  Google.he-IL-Standard-A is the safe default that just works.
+ *  Google determines the language from the voice name itself, so the
+ *  language attribute is unnecessary (Twilio ignores it for Google voices). */
 function say(text: string): string {
-  return `<Say voice="Polly.Carmit" language="he-IL">${escapeXml(text)}</Say>`;
+  return `<Say voice="Google.he-IL-Standard-A">${escapeXml(text)}</Say>`;
 }
 
 function escapeXml(s: string): string {
