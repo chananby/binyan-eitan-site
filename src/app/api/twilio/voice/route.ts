@@ -1,12 +1,14 @@
 /**
- * POST /api/twilio/voice — Twilio inbound-voice webhook (stage 1)
+ * POST /api/twilio/voice — Twilio inbound-voice webhook (stage 2 entry point)
  *
- * STAGE 1 (this file): the bare minimum to prove the chain works end-to-end:
- *   Twilio  →  webhook  →  caller-ID lookup  →  Hebrew TTS greeting
+ * Flow:
+ *   Twilio → here → caller-ID lookup → <Gather> for IN/OUT (DTMF 1 or 2)
  *
- * No attendance row is written here, no IN/OUT logic, no project selection.
- * Stage 2 will add a <Gather> for DTMF, the IN/OUT branch, project picking,
- * and the actual attendance insert with source='phone-call'.
+ * The Gather's action URL is /api/twilio/voice/action?staffId=<id>, which
+ * Twilio POSTs to with the digit the caller pressed. staffId is carried in
+ * the query string because Twilio is stateless across calls; the URL is
+ * part of the X-Twilio-Signature payload so it can't be forged when
+ * TWILIO_AUTH_TOKEN is set.
  *
  * Configure in Twilio Console:
  *   Phone Numbers → Active Numbers → <the IL number> → Voice & Fax
@@ -14,122 +16,25 @@
  *     URL:    https://binyaneitan.com/api/twilio/voice
  *     Method: HTTP POST
  *
- * Required env vars (set in Vercel once the Twilio account exists):
- *   TWILIO_AUTH_TOKEN   — used to verify the X-Twilio-Signature header.
- *                         If unset, the endpoint accepts requests unverified
- *                         and logs a loud warning. Stage 1 writes no data so
- *                         the worst a forged request can do is hear a greeting,
- *                         but production should always have this set.
+ * Required env vars:
+ *   TWILIO_AUTH_TOKEN   — used to verify X-Twilio-Signature. Optional in dev:
+ *                         the endpoint accepts unsigned requests and logs a
+ *                         loud warning. Production should always have this set.
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { createHmac } from "crypto";
+import { NextRequest } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
 import { normalizePhone, phoneVariants } from "../../../../lib/phone";
+import { twimlResponse, say, gatherDigits, readVerifiedForm } from "../../../../lib/twilio";
 
 export const runtime = "nodejs";
-// Always run the request live — never cache. TwiML responses must be fresh
-// because they're tied to the specific caller and (eventually) DB state.
 export const dynamic = "force-dynamic";
 
-// ── TwiML helpers ──────────────────────────────────────────────────────────
-
-function twimlResponse(body: string): NextResponse {
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<Response>${body}</Response>`;
-  return new NextResponse(xml, {
-    headers: { "Content-Type": "text/xml; charset=utf-8" },
-  });
-}
-
-/** Hebrew TTS via Google Cloud — Standard female voice (he-IL).
- *  Google's he-IL voices are free on every Twilio account out-of-the-box,
- *  no add-on required, and Twilio routes them through Google Cloud TTS.
- *
- *  Why not Polly.Carmit:
- *    Amazon retired the Standard Carmit voice in favour of Neural-only,
- *    and "Polly.Carmit" now resolves to no available voice on Twilio.
- *    A request with that voice returns HTTP 200 with valid TwiML, but
- *    Twilio fails at runtime with error 13520 "Say: Invalid text" — the
- *    parser flags the <Say> as un-renderable rather than telling you the
- *    voice is gone.
- *
- *  Why not Polly.Carmit-Neural:
- *    Works, but requires the Amazon Polly Neural add-on to be opted in
- *    on the Twilio project (Console → Voice → Marketplace). On a Trial
- *    account or fresh paid account it isn't enabled by default, and the
- *    failure mode there is "application error, goodbye" with no useful
- *    log on Twilio's side.
- *
- *  Google.he-IL-Standard-A is the safe default that just works.
- *  Google determines the language from the voice name itself, so the
- *  language attribute is unnecessary (Twilio ignores it for Google voices). */
-function say(text: string): string {
-  return `<Say voice="Google.he-IL-Standard-A">${escapeXml(text)}</Say>`;
-}
-
-function escapeXml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
-// ── Signature verification ─────────────────────────────────────────────────
-// Twilio signs each webhook with HMAC-SHA1 over (full URL + sorted POST
-// params concatenated as key+value), base64-encoded, using the auth token
-// as the secret. The signature ships in the X-Twilio-Signature header.
-// Spec: https://www.twilio.com/docs/usage/security#validating-requests
-function verifyTwilioSignature(
-  authToken: string,
-  signature: string,
-  url: string,
-  params: Record<string, string>,
-): boolean {
-  const sortedKeys = Object.keys(params).sort();
-  let data = url;
-  for (const k of sortedKeys) data += k + params[k];
-  const expected = createHmac("sha1", authToken).update(data).digest("base64");
-  return expected === signature;
-}
-
-// ── Handler ────────────────────────────────────────────────────────────────
-
 export async function POST(req: NextRequest) {
-  // Twilio sends application/x-www-form-urlencoded. Next.js parses both
-  // urlencoded and multipart via Request.formData().
-  const fd = await req.formData();
-  const params: Record<string, string> = {};
-  for (const [k, v] of fd.entries()) {
-    if (typeof v === "string") params[k] = v;
-  }
+  const verified = await readVerifiedForm(req, "twilio/voice");
+  if (!verified.ok) return verified.response;
+  const params = verified.params;
 
-  // ── 1. Verify signature (when configured) ────────────────────────────────
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  if (authToken) {
-    const sig = req.headers.get("x-twilio-signature") ?? "";
-    // Reconstruct the public URL Twilio signed. On Vercel the request URL
-    // already reflects the public host; the forwarded headers add safety
-    // if a future deploy sits behind another proxy.
-    const proto = req.headers.get("x-forwarded-proto") ?? "https";
-    const host = req.headers.get("host") ?? new URL(req.url).host;
-    const original = new URL(req.url);
-    const fullUrl = `${proto}://${host}${original.pathname}${original.search}`;
-    if (!verifyTwilioSignature(authToken, sig, fullUrl, params)) {
-      console.warn("[twilio/voice] signature mismatch — rejecting");
-      return new NextResponse("Forbidden", { status: 403 });
-    }
-  } else {
-    // TODO(stage-2): once TWILIO_AUTH_TOKEN is set in Vercel, this branch
-    // should never run in production. Keep the warning loud so the gap
-    // shows up in logs immediately.
-    console.warn(
-      "[twilio/voice] TWILIO_AUTH_TOKEN not set — signature verification skipped (stage-1 dev mode)"
-    );
-  }
-
-  // ── 2. Identify caller ───────────────────────────────────────────────────
   const fromRaw = params.From ?? "";
   if (!fromRaw) {
     console.warn("[twilio/voice] no From in payload");
@@ -138,6 +43,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ── Caller-ID lookup ───────────────────────────────────────────────────────
+  let staffId: string | null = null;
   let staffName: string | null = null;
   try {
     const normalized = normalizePhone(fromRaw);
@@ -153,22 +60,34 @@ export async function POST(req: NextRequest) {
       console.error("[twilio/voice] staff lookup error:", JSON.stringify(error));
     }
     const staff = data?.[0];
-    if (staff && (staff.active ?? true)) staffName = staff.name;
+    if (staff && (staff.active ?? true)) {
+      staffId = staff.id;
+      staffName = staff.name;
+    }
   } catch (e) {
     console.error("[twilio/voice] lookup threw:", e instanceof Error ? e.message : String(e));
   }
 
-  if (!staffName) {
+  if (!staffId || !staffName) {
     console.info("[twilio/voice] unknown caller:", fromRaw);
     return twimlResponse(
       say("המספר לא מזוהה במערכת. אנא פנו למשרד.") + "<Hangup/>"
     );
   }
 
-  // ── 3. Stage-1 greeting (no attendance write yet) ────────────────────────
+  // ── Gather IN/OUT choice ───────────────────────────────────────────────────
+  // staffId travels in the query string so the next hop knows who's on the
+  // line without another DB round-trip; Twilio's signature covers the URL.
   console.info("[twilio/voice] connected:", staffName, "from", fromRaw);
+  const actionUrl = `/api/twilio/voice/action?staffId=${encodeURIComponent(staffId)}`;
   return twimlResponse(
-    say(`שלום ${staffName}. המערכת מחוברת. שלב הבא יתווסף בקרוב.`) +
+    gatherDigits({
+      actionUrl,
+      prompt: `שלום ${staffName}. הקש 1 לכניסה, הקש 2 ליציאה.`,
+    }) +
+    // Fallback if Gather times out with no input — re-prompt is overkill for
+    // stage 2, just hang up cleanly so Twilio doesn't loop.
+    say("לא קיבלנו בחירה. נסו שוב מאוחר יותר.") +
     "<Hangup/>"
   );
 }
