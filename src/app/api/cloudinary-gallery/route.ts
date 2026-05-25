@@ -178,8 +178,17 @@ interface CloudinarySearchResponse {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+/** Same defensive parse as src/lib/cloudinary.ts — accepts either a plain
+ *  cloud name or a full "cloudinary://<key>:<secret>@<cloud_name>" URI. */
+function extractCloudName(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const uriMatch = value.match(/@([^/?#\s]+)/);
+  if (uriMatch) return uriMatch[1];
+  return value.trim() || undefined;
+}
+
 function deliveryUrl(publicId: string, transforms = "f_auto,q_auto,w_1920"): string {
-  const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+  const cloud = extractCloudName(process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME)!;
   return `https://res.cloudinary.com/${cloud}/image/upload/${transforms}/${publicId}`;
 }
 
@@ -221,7 +230,8 @@ async function fetchCloudinaryPage(
 // ── Route handler ─────────────────────────────────────────────────────────────
 
 export async function GET() {
-  const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  // Defensive parse — see extractCloudName comment.
+  const cloud = extractCloudName(process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME);
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 

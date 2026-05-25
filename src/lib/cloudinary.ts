@@ -15,7 +15,22 @@
  * in Cloudinary, keeping the exact same filenames.
  */
 
-const CLOUD = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+/** Accepts either a plain cloud name ("da5fksoyc") or a full Cloudinary URI
+ *  ("cloudinary://<key>:<secret>@<cloud_name>", optionally prefixed with
+ *  "CLOUDINARY_URL=" if someone pasted the dashboard snippet verbatim).
+ *  Returns just the cloud name in all cases, or undefined if the env is
+ *  unset / unparseable. Defensive: prevents the projects gallery from
+ *  going dark when the Vercel env was set to the wrong format. */
+function extractCloudName(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  // URI form has the cloud name as the host: "...@<cloud_name>[/path]"
+  const uriMatch = value.match(/@([^/?#\s]+)/);
+  if (uriMatch) return uriMatch[1];
+  // Otherwise treat as a plain cloud name (trim defensively).
+  return value.trim() || undefined;
+}
+
+const CLOUD = extractCloudName(process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME);
 
 /** Base Cloudinary folder — change this if you prefer a different structure */
 const FOLDER = "binyan-eitan";
