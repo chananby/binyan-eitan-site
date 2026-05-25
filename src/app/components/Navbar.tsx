@@ -16,6 +16,13 @@ interface NavLink {
   href: string;
 }
 
+// Chanan's number — the single point-of-first-contact across the site.
+// Validated against translations.contact.he.chananTel and home.he.phone.
+const CHANAN_TEL_E164 = "+972585008447";
+const CHANAN_TEL_DIGITS = "972585008447";
+const WHATSAPP_PREFILL_HE = "היי חנן, הגעתי דרך האתר ואשמח לשמוע עוד...";
+const WHATSAPP_PREFILL_EN = "Hi Chanan, I reached out via the website and would love to learn more...";
+
 export default function Navbar() {
   const { lang } = useLang() as { lang: Lang };
   const t = useTranslations("nav", lang);
@@ -126,15 +133,29 @@ export default function Navbar() {
             })}
           </ul>
 
-          {/* Trailing: CTA button + lang + hamburger */}
-          <div className="flex items-center gap-3">
-            {/* Contact CTA — desktop only */}
-            <Link
-              href={`/${lang}#contact`}
-              className="hidden md:inline-flex items-center bg-accent text-bone px-5 py-2 text-[11px] font-semibold tracking-[0.18em] uppercase transition-colors duration-300 hover:bg-accent-dark"
+          {/* Trailing: contact buttons (always visible) + lang + hamburger */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Phone — always visible, mobile-first */}
+            <a
+              href={`tel:${CHANAN_TEL_E164}`}
+              aria-label={lang === "he" ? "התקשרו אלינו" : "Call us"}
+              className="grid size-11 place-items-center border border-accent/40 text-accent hover:bg-accent hover:text-bone transition-colors duration-200"
             >
-              {t.contact as string}
-            </Link>
+              <Phone size={17} strokeWidth={1.7} />
+            </a>
+
+            {/* WhatsApp — always visible, brand green for instant recognition */}
+            <a
+              href={`https://wa.me/${CHANAN_TEL_DIGITS}?text=${encodeURIComponent(
+                lang === "he" ? WHATSAPP_PREFILL_HE : WHATSAPP_PREFILL_EN
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="WhatsApp"
+              className="grid size-11 place-items-center bg-[#25D366] text-white hover:bg-[#20bb5a] transition-colors duration-200"
+            >
+              <MessageCircle size={17} strokeWidth={1.7} />
+            </a>
 
             {/* Language switcher */}
             <Link
@@ -280,9 +301,9 @@ export default function Navbar() {
                   </a>
                 )}
                 <a
-                  href={lang === "he"
-                    ? "https://wa.me/972585008447?text=%D7%94%D7%99%D7%99%20%D7%97%D7%A0%D7%9F%2C%20%D7%94%D7%92%D7%A2%D7%AA%D7%99%20%D7%93%D7%A8%D7%9A%20%D7%94%D7%90%D7%AA%D7%A8%20%D7%95%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%94%D7%AA%D7%99%D7%99%D7%A2%D7%A5..."
-                    : "https://wa.me/972585008447?text=Hi%20Sam%2C%20I%20reached%20out%20via%20the%20website%20and%20would%20like%20to%20consult%20regarding%20a%20project..."}
+                  href={`https://wa.me/${CHANAN_TEL_DIGITS}?text=${encodeURIComponent(
+                    lang === "he" ? WHATSAPP_PREFILL_HE : WHATSAPP_PREFILL_EN
+                  )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="WhatsApp"
