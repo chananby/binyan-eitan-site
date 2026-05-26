@@ -12,6 +12,7 @@ import { INPUT } from "../shared/constants";
 import DistanceFlag from "../shared/DistanceFlag";
 import WorkerHistoryPanel from "./WorkerHistoryPanel";
 import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
+import { attendanceTimeHHMM, attendanceDayTimeShort } from "../../../../lib/attendance-time";
 
 export type AttendanceSubTab = "live" | "history";
 
@@ -661,9 +662,16 @@ function PendingApprovals({
                         <span className={`text-[0.75rem] font-semibold px-1.5 py-0.5 ${r.action === "כניסה" || r.action === "in" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
                           {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
                         </span>
-                        {r.timestamp_label && (
-                          <span className="text-[0.75rem] text-charcoal/40 tabular-nums" dir="ltr">{r.timestamp_label}</span>
-                        )}
+                        {(() => {
+                          // Pending entries are usually manual corrections for past
+                          // days, so date + time both matter. Computed from clock_at
+                          // (always reliable) rather than the legacy timestamp_label
+                          // column whose format varies row by row.
+                          const t = attendanceDayTimeShort(r);
+                          return t ? (
+                            <span className="text-[0.75rem] text-charcoal/40 tabular-nums" dir="ltr">{t}</span>
+                          ) : null;
+                        })()}
                         <DistanceFlag r={r} threshold={farThresholdM} />
                         <PhoneCallChip source={r.source} />
                       </div>
@@ -759,7 +767,7 @@ function TodayLog({
                       {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
                     </span>
                     <span className="text-[0.7rem] text-charcoal/35 tabular-nums shrink-0" dir="ltr">
-                      {r.timestamp_label || new Date(r.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
+                      {attendanceTimeHHMM(r)}
                     </span>
                     <DistanceFlag r={r} threshold={farThresholdM} />
                     <PhoneCallChip source={r.source} />
@@ -847,7 +855,7 @@ function RecentLogs({
                         <div className="flex items-center gap-2 shrink-0">
                           {r.project && <span className="text-[0.62rem] text-charcoal/40 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
                           <span className="text-[0.7rem] text-charcoal/35 tabular-nums" dir="ltr">
-                            {r.timestamp_label || (r.created_at ? new Date(r.created_at).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—")}
+                            {attendanceDayTimeShort(r) || "—"}
                           </span>
                           <DistanceFlag r={r} threshold={farThresholdM} />
                           <PhoneCallChip source={r.source} />
