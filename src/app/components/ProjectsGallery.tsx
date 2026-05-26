@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Images } from "lucide-react";
 import Image from "next/image";
@@ -74,6 +74,18 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
     activeFilter === "all"
       ? projects
       : projects.filter((p) => p.categories.includes(activeFilter as ProjectCategory));
+
+  // Show only category filters that have at least one matching project. "All"
+  // stays visible always so the bar never collapses to zero buttons. Empty
+  // categories from FILTERS (e.g. painting, plastering — defined but unused
+  // until tagged images exist) are hidden until the data warrants them.
+  const visibleFilters = useMemo(() => {
+    const present = new Set<ProjectCategory>();
+    for (const p of projects) for (const c of p.categories) present.add(c);
+    return FILTERS.filter(
+      (f) => f.key === "all" || present.has(f.key as ProjectCategory)
+    );
+  }, [projects]);
 
   const project = openProject !== null ? projects[openProject] : null;
   const series = project?.images ?? [];
@@ -171,11 +183,11 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
             className="flex flex-nowrap gap-2 py-3 overflow-x-auto [&::-webkit-scrollbar]:hidden"
             style={{ scrollbarWidth: "none" }}
           >
-            {FILTERS.map((f) => {
+            {visibleFilters.map((f) => {
               const count =
                 f.key === "all"
-                  ? GALLERY_PROJECTS.length
-                  : GALLERY_PROJECTS.filter((p) =>
+                  ? projects.length
+                  : projects.filter((p) =>
                       p.categories.includes(f.key as ProjectCategory)
                     ).length;
               const isActive = activeFilter === f.key;
