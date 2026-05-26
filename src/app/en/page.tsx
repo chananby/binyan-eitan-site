@@ -63,6 +63,17 @@ const enLocalBusiness = {
       { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Premium Finish — Tiling, Waterproofing, Painting" } },
     ],
   },
+  // Aggregate rating mirrors the Google rating chip shown in the Testimonials
+  // section (and now in Hero). Google requires the rating to be visible on the
+  // page itself when claimed in schema; both surfaces use the same 5.0/19
+  // numbers sourced from the public Google Business profile.
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "5.0",
+    "reviewCount": "19",
+    "bestRating": "5",
+    "worstRating": "1",
+  },
   "sameAs": ["https://share.google/mYYDjEprxPi7JdoSG", "https://www.facebook.com/binyaneitan"],
 };
 
