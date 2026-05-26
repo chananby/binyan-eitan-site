@@ -7,6 +7,7 @@ import { ArrowDownRight, ArrowDownLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "./LangContext";
 import { useTranslations } from "./TranslationsProvider";
+import { GoogleIcon, StarRating } from "./RatingIcons";
 
 type Lang = "en" | "he";
 
@@ -51,6 +52,12 @@ export default function Hero() {
   const stat1 = { value: t.stat1Value, label: t.stat1Label };
   const stat2 = { value: t.stat2Value, label: t.stat2Label };
   const stat3 = { value: t.stat3Value, label: t.stat3Label };
+  // Above-the-fold social proof — numbers come from translations.json so
+  // localisation stays in one place and stays in sync with the Testimonials
+  // section (which uses home.<lang>.google_rating_text).
+  const googleRatingValue = t.googleRatingValue as string;
+  const googleRatingCount = t.googleRatingCount as string;
+  const googleRatingAria  = t.googleRatingAria  as string;
   const Arrow = lang === "he" ? ArrowDownLeft : ArrowDownRight;
 
   const prefersReducedMotion = useReducedMotion();
@@ -138,14 +145,38 @@ export default function Hero() {
                 {sub}
               </motion.p>
 
-              {/* ── G1 Certification Badge ── */}
-              <motion.div className="mt-6 md:mt-7" variants={fadeUp(0.2)}>
+              {/* ── Trust row: G1 badge + Google rating chip ──
+                  Both surfaces are positioned at the same vertical to read as
+                  a single "credentials" line. The chip is a quiet anchor
+                  (white card, subtle border) so it doesn't compete with the
+                  G1 mark, while still being clickable through to the full
+                  testimonials section. */}
+              <motion.div
+                className="mt-6 md:mt-7 flex flex-wrap items-center gap-2.5"
+                variants={fadeUp(0.2)}
+              >
                 <span className="inline-flex items-center gap-2.5 border border-accent/50 bg-accent/[0.04] px-4 py-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
                   <span className="font-body text-[0.65rem] font-semibold tracking-[0.22em] uppercase text-accent">
                     {g1Label}
                   </span>
                 </span>
+
+                <Link
+                  href={`/${lang}#testimonials`}
+                  aria-label={googleRatingAria}
+                  className="inline-flex items-center gap-2 border border-warm-gray-light bg-white px-3 py-2 shadow-sm hover:border-accent/60 transition-colors duration-300"
+                >
+                  <GoogleIcon size={14} />
+                  <StarRating rating={5} size={11} />
+                  <span className="font-body text-[0.7rem] font-semibold text-charcoal leading-none">
+                    {googleRatingValue}
+                  </span>
+                  <span className="hidden sm:inline-block h-3 w-px bg-warm-gray-light" aria-hidden="true" />
+                  <span className="hidden sm:inline font-body text-[0.65rem] text-charcoal/55 leading-none">
+                    {googleRatingCount}
+                  </span>
+                </Link>
               </motion.div>
 
               {/* ── CTA ── */}

@@ -64,7 +64,10 @@
       "stat2Label": "Projects Completed",
       "stat3Value": "G1",
       "stat3Label": "Licensed Contractor",
-      "whatsappCta": "WhatsApp Us"
+      "whatsappCta": "WhatsApp Us",
+      "googleRatingValue": "5.0",
+      "googleRatingCount": "19 Google Reviews",
+      "googleRatingAria": "Rated 5.0 out of 5 on Google, 19 reviews"
     },
     "he": {
       "overline": "בניין איתן",
@@ -82,7 +85,10 @@
       "stat2Label": "פרויקטים שהושלמו",
       "stat3Value": "ג1",
       "stat3Label": "קבלן רשום",
-      "whatsappCta": "שלחו הודעה"
+      "whatsappCta": "שלחו הודעה",
+      "googleRatingValue": "5.0",
+      "googleRatingCount": "19 ביקורות בגוגל",
+      "googleRatingAria": "דירוג 5.0 מתוך 5 בגוגל, 19 ביקורות"
     }
   },
   "footer": {
