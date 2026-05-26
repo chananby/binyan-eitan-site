@@ -52,12 +52,13 @@ export default function Hero() {
   const stat1 = { value: t.stat1Value, label: t.stat1Label };
   const stat2 = { value: t.stat2Value, label: t.stat2Label };
   const stat3 = { value: t.stat3Value, label: t.stat3Label };
-  // Above-the-fold social proof — numbers come from translations.json so
-  // localisation stays in one place and stays in sync with the Testimonials
-  // section (which uses home.<lang>.google_rating_text).
+  // Above-the-fold social proof + response-time promise — numbers and copy
+  // come from translations.json so localisation stays in one place and stays
+  // in sync with the Testimonials section (rating) and ContactForm (promise).
   const googleRatingValue = t.googleRatingValue as string;
   const googleRatingCount = t.googleRatingCount as string;
   const googleRatingAria  = t.googleRatingAria  as string;
+  const responseTime      = t.responseTime      as string;
   const Arrow = lang === "he" ? ArrowDownLeft : ArrowDownRight;
 
   const prefersReducedMotion = useReducedMotion();
@@ -179,8 +180,16 @@ export default function Hero() {
                 </Link>
               </motion.div>
 
-              {/* ── CTA ── */}
-              <motion.div className="mt-8 md:mt-10" variants={fadeUp(0.25)}>
+              {/* ── CTA + response-time promise ──
+                  Promise sits directly above the CTA so the visitor reads it
+                  in the same eye-sweep that takes them to the action. Small
+                  font, accent dot mark, mirrors the form's "תוך שעה" wording
+                  for consistency. */}
+              <motion.div className="mt-8 md:mt-10 flex flex-col items-start gap-3" variants={fadeUp(0.25)}>
+                <span className="inline-flex items-center gap-2 font-body text-[0.7rem] text-charcoal/55">
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+                  {responseTime}
+                </span>
                 <Link
                   href={`/${lang}#contact`}
                   className="group inline-flex w-fit items-center gap-3 border-b-2 border-charcoal/80 pb-2.5 font-body text-sm font-semibold tracking-wider uppercase text-charcoal transition-all duration-500 hover:gap-5 hover:border-accent hover:text-accent"

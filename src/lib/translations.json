@@ -67,7 +67,8 @@
       "whatsappCta": "WhatsApp Us",
       "googleRatingValue": "5.0",
       "googleRatingCount": "19 Google Reviews",
-      "googleRatingAria": "Rated 5.0 out of 5 on Google, 19 reviews"
+      "googleRatingAria": "Rated 5.0 out of 5 on Google, 19 reviews",
+      "responseTime": "Response within an hour"
     },
     "he": {
       "overline": "בניין איתן",
@@ -88,7 +89,8 @@
       "whatsappCta": "שלחו הודעה",
       "googleRatingValue": "5.0",
       "googleRatingCount": "19 ביקורות בגוגל",
-      "googleRatingAria": "דירוג 5.0 מתוך 5 בגוגל, 19 ביקורות"
+      "googleRatingAria": "דירוג 5.0 מתוך 5 בגוגל, 19 ביקורות",
+      "responseTime": "מענה תוך שעה"
     }
   },
   "footer": {
