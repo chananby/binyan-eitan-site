@@ -72,41 +72,104 @@ function dirToLabel(name: string): string {
 }
 
 const URL_LABEL_OVERRIDES: Record<string, string> = {
+  // ── Admin / internal (existing) ──────────────────────────────────────────
   "/admin":                          "פורטל ניהול",
   "/admin/health":                   "בריאות מערכת",
   "/admin/hub":                      "מרכז שליטה",
+  "/admin/quotes":                   "מחולל הצעות מחיר",
+  "/admin/quotes/list":              "רשימת הצעות מחיר",
   "/en/internal":                    "פורטל עובדים (EN)",
   "/he/internal":                    "פורטל עובדים",
   "/he/internal/attendance":         "שעון נוכחות",
   "/he/internal/admin":              "ניהול פרויקטים",
+  "/he/internal/admin/dashboard":    "לוח בקרה",
   "/internal/banner":                "באנר להדפסה",
   "/internal/content-editor":        "עורך תוכן",
+
+  // ── Operational tools ────────────────────────────────────────────────────
+  "/attendance":                     "שעון נוכחות (ציבורי)",
+
+  // ── Public site — Hebrew ─────────────────────────────────────────────────
+  "/he":                             "דף בית",
+  "/he/about":                       "אודות",
+  "/he/change-order":                "טופס שינויים",
+  "/he/projects":                    "פרויקטים",
+  "/he/expertise":                   "תחומי מומחיות",
+  "/he/expertise/after-handover":              "מומחיות — אחרי המסירה",
+  "/he/expertise/behind-the-walls":            "מומחיות — מאחורי הקירות",
+  "/he/expertise/building-from-abroad":        "מומחיות — בנייה מחו\"ל",
+  "/he/expertise/how-to-avoid-renovation-mistakes": "מומחיות — הימנעות מטעויות שיפוץ",
+  "/he/expertise/reading-a-professional-quote": "מומחיות — קריאת הצעת מחיר",
+  "/he/faq":                         "שאלות נפוצות",
+  "/he/voucher":                     "שובר מתנה",
+  "/he/quizzes":                     "חידונים",
+  "/he/quizzes/independence":        "חידון יום העצמאות",
+  "/he/quizzes/passover":            "חידון פסח",
+  "/he/quizzes/purim":               "חידון פורים",
+
+  // ── Public site — English ────────────────────────────────────────────────
+  "/en":                             "דף בית (EN)",
+  "/en/about":                       "אודות (EN)",
+  "/en/change-order":                "טופס שינויים (EN)",
+  "/en/projects":                    "פרויקטים (EN)",
+  "/en/expertise":                   "תחומי מומחיות (EN)",
+  "/en/expertise/after-handover":              "מומחיות — אחרי המסירה (EN)",
+  "/en/expertise/behind-the-walls":            "מומחיות — מאחורי הקירות (EN)",
+  "/en/expertise/building-from-abroad":        "מומחיות — בנייה מחו\"ל (EN)",
+  "/en/expertise/how-to-avoid-renovation-mistakes": "מומחיות — הימנעות מטעויות שיפוץ (EN)",
+  "/en/expertise/reading-a-professional-quote": "מומחיות — קריאת הצעת מחיר (EN)",
+  "/en/faq":                         "שאלות נפוצות (EN)",
+
+  // ── Landing pages ────────────────────────────────────────────────────────
+  "/lp/givat-zeev":                  "דף נחיתה — גבעת זאב",
+  "/lp/jerusalem":                   "דף נחיתה — ירושלים",
+  "/lp/overseas":                    "דף נחיתה — חו\"ל",
 };
 
 // ── UI route discovery ────────────────────────────────────────────────────────
 
+// Order matters: more specific roots (admin, *internal) come FIRST so that
+// when the broad public roots (he, en) recurse over the same files, the
+// per-URL dedup in discoverUIRoutes keeps the specific category/label. The
+// broad he/en roots therefore only contribute the *public* pages — their
+// /internal subtrees are already claimed above.
 const UI_ROOTS: { dir: string; category: string }[] = [
   { dir: join(APP, "admin"),              category: "ניהול" },
   { dir: join(APP, "he", "internal"),     category: "פורטל פנימי" },
   { dir: join(APP, "en", "internal"),     category: "פורטל פנימי" },
   { dir: join(APP, "internal"),           category: "כלים פנימיים" },
+  { dir: join(APP, "he"),                 category: "אתר ציבורי" },
+  { dir: join(APP, "en"),                 category: "אתר ציבורי (EN)" },
+  { dir: join(APP, "lp"),                 category: "דפי נחיתה" },
+  { dir: join(APP, "attendance"),         category: "כלים תפעוליים" },
 ];
 
 const EXCLUDED_UI_URLS = new Set([
+  // archived / placeholder (existing)
   "/admin/cockpit",              // archived — redirects to hub
   "/admin/executive",            // archived — redirects to hub
   "/internal/binyan-eitan",      // placeholder Kanban, no DB data
   "/internal/prime-steel",       // placeholder Kanban, no DB data
   "/en/internal/attendance",     // identical to /he/internal/attendance
+  // auth utility pages — not hub destinations
+  "/admin/forgot-password",
+  "/admin/reset-password",
+  // legal / maintenance — not operational, no value in the hub
+  "/maintenance",
+  "/he/legal",
+  "/en/legal",
 ]);
 
 export function discoverUIRoutes(): UIRoute[] {
   const routes: UIRoute[] = [];
+  const seen = new Set<string>(); // dedup by URL — first (most specific) root wins
   for (const { dir, category } of UI_ROOTS) {
     for (const pagePath of collectFiles(dir, "page.tsx")) {
       const url = toUrl(pagePath);
       if (url.includes("[")) continue; // skip dynamic [slug] routes
       if (EXCLUDED_UI_URLS.has(url)) continue;
+      if (seen.has(url)) continue;     // already claimed by an earlier root (e.g. he/internal vs he)
+      seen.add(url);
       const pageDir = pagePath.replace(/\/page\.tsx$/, "");
       const segments = pageDir.split("/");
       const dirName = segments[segments.length - 1] || "page";
