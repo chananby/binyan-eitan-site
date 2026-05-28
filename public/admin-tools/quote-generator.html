@@ -2093,6 +2093,7 @@
     const showQty = state.showQuantity === 'yes';
     const showPrices = state.showItemPrices !== 'no';
     const hasItems = state.sections.some(s => s.items.length > 0 && (s.name || s.items.some(i => i.description)));
+    const hasVat = (Number(state.vatRate) || 0) > 0;
 
     doc.innerHTML = `
       <div class="doc-header">
@@ -2197,6 +2198,7 @@
 
       <div class="doc-totals">
         <table>
+          ${hasVat ? `
           <tr>
             <td class="label">סה"כ לפני מע"מ</td>
             <td class="value">${money(grandTotal())}</td>
@@ -2208,7 +2210,11 @@
           <tr class="grand">
             <td class="label">סה"כ לתשלום</td>
             <td class="value">${money(totalWithVat())}</td>
-          </tr>
+          </tr>` : `
+          <tr class="grand">
+            <td class="label">סה"כ</td>
+            <td class="value">${money(grandTotal())}</td>
+          </tr>`}
         </table>
       </div>
 
