@@ -30,6 +30,9 @@ import {
 } from "./attendance-time";
 
 export interface WorkerHistoryRecord {
+  /** Attendance row id — surfaced so the UI can PATCH/DELETE specific rows
+   *  directly from the day timeline (added for the inline-edit feature). */
+  id: string;
   staff_id: string;
   action: string;
   clock_at: string | null;
@@ -74,11 +77,23 @@ export interface WorkerHistoryDay {
    *  an unresolved correction request the admin should know about. Independent
    *  of `status`; can layer on top of present / no-exit. */
   hasPending?: boolean;
+  /** Attendance row id for the day's first IN record (only set when at least
+   *  one entry exists). Used by the inline-edit UI to PATCH/DELETE this
+   *  specific row without re-querying. */
+  entryId?: string;
+  /** Attendance row id for the day's last OUT record (only set when at
+   *  least one exit exists). */
+  exitId?: string;
+}
+
+interface RecordRef {
+  id: string;
+  at: Date;
 }
 
 interface DayBucket {
-  entries: Date[];
-  exits: Date[];
+  entries: RecordRef[];
+  exits: RecordRef[];
   projects: string[];
   hasPending: boolean;
 }
@@ -105,8 +120,8 @@ export function aggregateWorkerHistory(
     if (ymd < from || ymd > to) continue;
     if (!byDay.has(ymd)) byDay.set(ymd, { entries: [], exits: [], projects: [], hasPending: false });
     const bucket = byDay.get(ymd)!;
-    if (isEntry(rec.action)) bucket.entries.push(d);
-    else if (isExit(rec.action)) bucket.exits.push(d);
+    if (isEntry(rec.action)) bucket.entries.push({ id: rec.id, at: d });
+    else if (isExit(rec.action)) bucket.exits.push({ id: rec.id, at: d });
     if (rec.status === "pending") bucket.hasPending = true;
     const projName = rec.project?.name;
     if (projName) bucket.projects.push(projName);
@@ -155,18 +170,18 @@ export function aggregateWorkerHistory(
     }
 
     const firstEntry = bucket.entries.length
-      ? new Date(Math.min(...bucket.entries.map(e => e.getTime())))
+      ? bucket.entries.reduce((min, e) => (e.at < min.at ? e : min))
       : null;
     const lastExit = bucket.exits.length
-      ? new Date(Math.max(...bucket.exits.map(e => e.getTime())))
+      ? bucket.exits.reduce((max, e) => (e.at > max.at ? e : max))
       : null;
 
-    const startTime = firstEntry ? israelTimeHHMM(firstEntry) : null;
-    const endTime   = lastExit   ? israelTimeHHMM(lastExit)   : null;
+    const startTime = firstEntry ? israelTimeHHMM(firstEntry.at) : null;
+    const endTime   = lastExit   ? israelTimeHHMM(lastExit.at)   : null;
 
     let hours: number | null = null;
     if (firstEntry && lastExit) {
-      const ms = lastExit.getTime() - firstEntry.getTime();
+      const ms = lastExit.at.getTime() - firstEntry.at.getTime();
       if (ms > 0) hours = Math.round(ms / 36_000) / 100;
     }
 
@@ -180,6 +195,8 @@ export function aggregateWorkerHistory(
     out.push({
       date: ymd, dayName, startTime, endTime, hours, status, project,
       ...(bucket.hasPending ? { hasPending: true } : {}),
+      ...(firstEntry ? { entryId: firstEntry.id } : {}),
+      ...(lastExit   ? { exitId:  lastExit.id  } : {}),
     });
   }
   // Newest first — UI shows recent days at the top of the table.
