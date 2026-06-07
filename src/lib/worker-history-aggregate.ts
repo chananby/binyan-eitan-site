@@ -48,14 +48,16 @@ export interface WorkerVacationDay {
 }
 
 /** Per-day status:
- *  - present:  has both an entry and an exit
- *  - vacation: covered by vacation_days (admin-approved)
- *  - missing:  workday with no attendance and no vacation
- *  - no-exit:  has attendance but the entry/exit pair is incomplete
- *              (either entry without exit, or — much rarer — exit
- *              without entry; both indicate "incomplete day")
+ *  - present:     has both an entry and an exit
+ *  - vacation:    covered by vacation_days (admin-approved)
+ *  - missing:     workday with no attendance and no vacation
+ *  - in-progress: TODAY (Israel TZ) with an entry but no exit yet — the
+ *                 worker is still on-shift, no correction is needed
+ *  - no-exit:     a PAST day with attendance but the entry/exit pair is
+ *                 incomplete (either entry without exit, or — much rarer
+ *                 — exit without entry; both indicate "incomplete day")
  */
-export type DayStatus = "present" | "vacation" | "missing" | "no-exit";
+export type DayStatus = "present" | "vacation" | "missing" | "in-progress" | "no-exit";
 
 export interface WorkerHistoryDay {
   /** YYYY-MM-DD */
@@ -111,6 +113,11 @@ export function aggregateWorkerHistory(
   from: string,
   to: string,
 ): WorkerHistoryDay[] {
+  // Today in Israel TZ — used to distinguish a still-on-shift worker
+  // ("in-progress") from a past day where the exit was never recorded ("no-exit").
+  const todayYmd = new Date()
+    .toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
+
   // 1. Bucket attendance records by Israel-local YMD. Records outside the
   //    range are dropped — callers may pass a widened query for TZ safety.
   const byDay = new Map<string, DayBucket>();
@@ -190,7 +197,13 @@ export function aggregateWorkerHistory(
     for (const p of bucket.projects) projectCount[p] = (projectCount[p] ?? 0) + 1;
     const project = Object.entries(projectCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 
-    const status: DayStatus = firstEntry && lastExit ? "present" : "no-exit";
+    // Today + open entry = the worker is still on-shift; that's "in-progress",
+    // not "no-exit" (which would imply a forgotten clock-out that needs
+    // correction). Any past day with a missing exit keeps the "no-exit" flag.
+    const status: DayStatus =
+      firstEntry && lastExit ? "present"
+      : firstEntry && ymd === todayYmd ? "in-progress"
+      : "no-exit";
 
     out.push({
       date: ymd, dayName, startTime, endTime, hours, status, project,

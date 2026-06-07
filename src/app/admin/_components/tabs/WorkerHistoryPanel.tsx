@@ -49,10 +49,13 @@ const STATUS_STYLE: Record<
   WorkerHistoryDay["status"],
   { label: string; cls: string; icon: React.ReactNode }
 > = {
-  present:    { label: "נוכח",      cls: "text-green-700  bg-green-50",          icon: <CheckCircle2  size={11} strokeWidth={1.5} /> },
-  vacation:   { label: "חופש",      cls: "text-charcoal/50 bg-charcoal/[0.05]", icon: <Plane         size={11} strokeWidth={1.5} /> },
-  missing:    { label: "לא הגיע",   cls: "text-red-600    bg-red-50",           icon: <XCircle       size={11} strokeWidth={1.5} /> },
-  "no-exit":  { label: "ללא יציאה", cls: "text-amber-700  bg-amber-50",         icon: <AlertTriangle size={11} strokeWidth={1.5} /> },
+  present:      { label: "נוכח",      cls: "text-green-700  bg-green-50",          icon: <CheckCircle2  size={11} strokeWidth={1.5} /> },
+  vacation:     { label: "חופש",      cls: "text-charcoal/50 bg-charcoal/[0.05]", icon: <Plane         size={11} strokeWidth={1.5} /> },
+  missing:      { label: "לא הגיע",   cls: "text-red-600    bg-red-50",           icon: <XCircle       size={11} strokeWidth={1.5} /> },
+  // in-progress = the worker is *currently* on the clock. Soft green dot
+  // distinguishes from "present" (full day, finished) without screaming.
+  "in-progress":{ label: "בעבודה",   cls: "text-green-700  bg-green-50",          icon: <span className="inline-block w-2 h-2 rounded-full bg-green-600" aria-hidden /> },
+  "no-exit":    { label: "ללא יציאה", cls: "text-amber-700  bg-amber-50",         icon: <AlertTriangle size={11} strokeWidth={1.5} /> },
 };
 
 export default function WorkerHistoryPanel(p: Props) {
