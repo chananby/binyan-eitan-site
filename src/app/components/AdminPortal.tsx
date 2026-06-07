@@ -390,6 +390,11 @@ export default function AdminPortal() {
   const [pendingErr,       setPendingErr]       = useState<string | null>(null);
   const [pendingActionId,  setPendingActionId]  = useState<string | null>(null);
 
+  // Worker correction requests (the "report a mistake" workflow)
+  const [correctionRequests, setCorrectionRequests] = useState<import("../admin/_components/shared/CorrectionRequestsPanel").CorrectionRequest[]>([]);
+  const [correctionsLoading, setCorrectionsLoading] = useState(false);
+  const [correctionsErr,     setCorrectionsErr]     = useState<string | null>(null);
+
   // Attendance sub-tab + Worker-history panel
   const [attendanceSubTab, setAttendanceSubTab] = useState<AttendanceSubTab>("live");
   const [historyStaffId,   setHistoryStaffId]   = useState("");
@@ -560,7 +565,7 @@ export default function AdminPortal() {
     // Load on admin auth so the Attendance tab's red badge is accurate from
     // any starting tab. Also reload when the user opens Attendance to catch
     // anything created in the last 2 min between auto-refreshes.
-    if (authState === "admin") loadPending();
+    if (authState === "admin") { loadPending(); loadCorrectionRequests(); }
   }, [authState, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-refresh attendance every 60 s ────────────────────────────────────
@@ -583,7 +588,7 @@ export default function AdminPortal() {
       if (document.visibilityState !== "visible") return;
       if (!AUTO_TABS.includes(autoTabRef.current)) return;
       if (autoTabRef.current === "attendance" && authState === "admin") {
-        await Promise.all([loadData("admin"), loadPending()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests()]);
       } else {
         await loadData(authState as "admin" | "foreman");
       }
@@ -661,6 +666,42 @@ export default function AdminPortal() {
     finally { setPendingLoading(false); }
   }
 
+  async function loadCorrectionRequests() {
+    setCorrectionsLoading(true); setCorrectionsErr(null);
+    try {
+      const res = await fetch("/api/admin/attendance/corrections");
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error ?? `שגיאה ${res.status}`); }
+      const d = await res.json(); setCorrectionRequests(d.requests ?? []);
+    } catch (e) { setCorrectionsErr(String(e)); }
+    finally { setCorrectionsLoading(false); }
+  }
+
+  // Resolve one request, then prune it from the local list optimistically.
+  // Approval may have rewritten an attendance row — refresh the live logs
+  // too so today/recent reflect the new time.
+  async function resolveCorrection(id: string, status: "approved" | "rejected"): Promise<boolean> {
+    try {
+      const res = await fetch(`/api/admin/attendance/corrections/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        alert(d.error ?? `שגיאה ${res.status}`);
+        return false;
+      }
+      setCorrectionRequests((cur) => cur.filter((r) => r.id !== id));
+      if (status === "approved") {
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests()]);
+      }
+      return true;
+    } catch {
+      alert("שגיאת רשת — נסה שוב");
+      return false;
+    }
+  }
+
   async function loadRecentLogs() {
     setRecentLogsLoading(true); setRecentLogsErr(null);
     try {
@@ -701,7 +742,7 @@ export default function AdminPortal() {
       if (tab === "expenses")                               { await loadMaterials(); setLastRefreshed(new Date()); }
       else if (tab === "income")                            { await loadIncome();    setLastRefreshed(new Date()); }
       else if (tab === "attendance" && authState === "admin")
-        await Promise.all([loadData("admin"), loadPending()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests()]);
       else
         await loadData(authState as "admin" | "foreman");
       // loadData's finally sets lastRefreshed for the branches above that call it
@@ -1796,6 +1837,11 @@ export default function AdminPortal() {
             onLoadPending={loadPending}
             onApproveAtt={approveAttRecord}
             onRejectAtt={rejectAttRecord}
+            correctionRequests={correctionRequests}
+            correctionsLoading={correctionsLoading}
+            correctionsErr={correctionsErr}
+            onLoadCorrections={loadCorrectionRequests}
+            onResolveCorrection={resolveCorrection}
             todayLogs={todayLogs}
             dataLoading={dataLoading}
             attLoadErr={attLoadErr}

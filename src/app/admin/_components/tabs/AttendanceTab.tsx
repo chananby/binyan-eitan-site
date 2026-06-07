@@ -10,6 +10,7 @@ import { Field } from "../shared/Field";
 import { TabRefreshBar } from "../shared/TabRefreshBar";
 import { INPUT } from "../shared/constants";
 import DistanceFlag from "../shared/DistanceFlag";
+import CorrectionRequestsPanel, { type CorrectionRequest } from "../shared/CorrectionRequestsPanel";
 import WorkerHistoryPanel from "./WorkerHistoryPanel";
 import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
 import { attendanceTimeHHMM, attendanceDayTimeShort } from "../../../../lib/attendance-time";
@@ -919,6 +920,13 @@ type Props = {
   onApproveAtt:    (id: string) => void | Promise<void>;
   onRejectAtt:     (id: string) => void | Promise<void>;
 
+  // Worker correction requests
+  correctionRequests: CorrectionRequest[];
+  correctionsLoading: boolean;
+  correctionsErr:     string | null;
+  onLoadCorrections:  () => void | Promise<void>;
+  onResolveCorrection: (id: string, status: "approved" | "rejected") => Promise<boolean>;
+
   // Today + recent
   todayLogs:   AttendanceRecord[];
   dataLoading: boolean;
@@ -993,6 +1001,20 @@ export default function AttendanceTab(p: Props) {
     />
   );
 
+  // Render only when there are open requests, OR when the load is still in
+  // flight, so the panel doesn't clutter the tab on the common "no requests"
+  // case.
+  const hasCorrections = p.correctionRequests.length > 0 || p.correctionsLoading;
+  const correctionsPanel = hasCorrections ? (
+    <CorrectionRequestsPanel
+      requests={p.correctionRequests}
+      loading={p.correctionsLoading}
+      error={p.correctionsErr}
+      onReload={p.onLoadCorrections}
+      onResolve={p.onResolveCorrection}
+    />
+  ) : null;
+
   return (
     <div className="space-y-5">
       <TabRefreshBar loading={p.refreshing || p.dataLoading} onRefresh={p.onTabRefresh} lastRefreshed={p.lastRefreshed} />
@@ -1036,6 +1058,7 @@ export default function AttendanceTab(p: Props) {
           <p className="text-[0.75rem] text-charcoal/30 text-center -mt-3">מתעדכן אוטומטית כל 2 דקות</p>
 
           {hasPending && pendingPanel}
+          {correctionsPanel}
 
       <ReportPanel
         attReportFrom={p.attReportFrom}       setAttReportFrom={p.setAttReportFrom}

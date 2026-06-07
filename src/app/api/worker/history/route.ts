@@ -58,5 +58,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ name: worker.name, records: records ?? [] });
+  // Annotate the records with the worker's open correction requests so the
+  // UI can swap the "דווח על טעות" button for a "תיקון נשלח" chip without
+  // a second roundtrip. Same query for *all* statuses lets the UI also
+  // surface approved/rejected outcomes later if we want.
+  const rows = records ?? [];
+  const ids = rows.map((r) => r.id);
+  const corrections: Record<string, { id: string; status: string; proposed_time: string | null }> = {};
+  if (ids.length > 0) {
+    const { data: corrs } = await supabase
+      .from("attendance_corrections")
+      .select("id, attendance_id, status, proposed_time")
+      .in("attendance_id", ids)
+      .order("created_at", { ascending: false });
+    if (corrs) {
+      // First (newest) per attendance_id wins — the UI cares about the most
+      // recent decision for each row.
+      for (const c of corrs) {
+        if (!corrections[c.attendance_id]) {
+          corrections[c.attendance_id] = {
+            id: c.id, status: c.status, proposed_time: c.proposed_time,
+          };
+        }
+      }
+    }
+  }
+
+  return NextResponse.json({ name: worker.name, records: rows, corrections });
 }

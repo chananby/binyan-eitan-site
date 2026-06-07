@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useFeedback } from "../hooks/useFeedback";
 import SuccessFlash from "./SuccessFlash";
+import AttendanceReportMistake from "./AttendanceReportMistake";
 import {
   LogIn, LogOut, MapPin, CheckCircle, AlertCircle, Loader2,
   ChevronRight, Building2, UserRound,
@@ -195,6 +196,12 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   const [historyName, setHistoryName]       = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError]     = useState<string | null>(null);
+  // Map: attendance_id → most recent correction status. Drives whether the
+  // history row shows a ⚠️ "report" button or a ⏳ "request sent" chip.
+  const [corrections, setCorrections]       = useState<Record<string, { id: string; status: string; proposed_time: string | null }>>({});
+  // Which record is currently being reported (inline form open). Null = no
+  // form open. Only one row in form mode at a time.
+  const [reportingId, setReportingId]       = useState<string | null>(null);
 
   // ── Manual entry state (worker) ───────────────────────────────────────────
   const [manualAction, setManualAction]   = useState<"in" | "out">("in");
@@ -356,7 +363,12 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         body: JSON.stringify({}),
       });
       const data = await res.json();
-      if (res.ok) { setHistoryName(data.name ?? workerName); setHistoryRecords(data.records ?? []); }
+      if (res.ok) {
+        setHistoryName(data.name ?? workerName);
+        setHistoryRecords(data.records ?? []);
+        setCorrections(data.corrections ?? {});
+        setReportingId(null);
+      }
       else if (res.status === 401) { setHistoryError(T[lang].sessionExpired); setIdentifiedStaffId(null); }
       else if (res.status === 429) { setHistoryError(T[lang].tooManyAttempts); }
       else { setHistoryError(T[lang].unknownError); }
@@ -575,8 +587,14 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       return dt ? `יום ${HE_DAYS_LOCAL[dt.getDay()]}` : "";
     }
 
-    // Group records by day, compute hours per day (exclude pending)
-    type DayRow = { date: string; dayName: string; project: string; entry: string; exit: string; hours: number | null };
+    // Group records by day, compute hours per day (exclude pending).
+    // entryId/exitId are surfaced so each cell can offer the worker a
+    // "report mistake" entry-point (or render the ⏳ chip if one is open).
+    type DayRow = {
+      date: string; dayName: string; project: string;
+      entry: string; exit: string; hours: number | null;
+      entryId?: string; exitId?: string;
+    };
     const dayRows: DayRow[] = (() => {
       const sorted = [...historyRecords].filter(r => r.status !== "pending").sort((a, b) =>
         clockDt(a).getTime() - clockDt(b).getTime()
@@ -599,9 +617,35 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
           if (diff > 0) hours = Math.round(diff / 36_000) / 100;
         }
         const dayDt = first ? clockDt(first) : (last ? clockDt(last) : null);
-        return { date, dayName: dayNameFromDt(dayDt), project: day.project, entry: clockTime(first), exit: clockTime(last), hours };
+        return {
+          date, dayName: dayNameFromDt(dayDt), project: day.project,
+          entry: clockTime(first), exit: clockTime(last), hours,
+          entryId: first?.id, exitId: last?.id,
+        };
       }).reverse();
     })();
+
+    // Small helper: returns the in-cell control next to a time —
+    // a ⏳ chip when a correction is already pending, an inline button to
+    // open the report-mistake form otherwise. Returns null if there's no
+    // underlying record for this cell.
+    function reportControl(recordId: string | undefined) {
+      if (!recordId) return null;
+      const corr = corrections[recordId];
+      if (corr?.status === "pending") {
+        return (
+          <span className="ms-1 text-[0.55rem] text-amber-600" title="בקשת תיקון בהמתנה">⏳</span>
+        );
+      }
+      return (
+        <button
+          type="button"
+          onClick={() => setReportingId(recordId)}
+          className="ms-1 text-[0.55rem] text-charcoal/30 hover:text-amber-600 transition-colors"
+          title="דווח על טעות"
+        >⚠️</button>
+      );
+    }
 
     const totalHours = dayRows.reduce((s, r) => s + (r.hours ?? 0), 0);
 
@@ -631,20 +675,39 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
                 <span className="text-end">שעות</span>
               </div>
               <div className="divide-y divide-charcoal/8 max-h-[48vh] overflow-y-auto">
-                {dayRows.map((row, i) => (
-                  <div key={i} className="grid grid-cols-4 gap-1 px-2 py-3 items-center">
-                    <div>
-                      {row.dayName && <p className="font-body text-[0.58rem] font-semibold text-accent/70">{row.dayName}</p>}
-                      <p className="font-body text-xs text-charcoal/70 tabular-nums" dir="ltr">{row.date}</p>
-                      {row.project !== "—" && <p className="font-body text-[0.58rem] text-charcoal/35 truncate">{row.project}</p>}
+                {dayRows.map((row, i) => {
+                  const reportTarget = (reportingId === row.entryId ? row.entryId
+                                      : reportingId === row.exitId  ? row.exitId
+                                      : null);
+                  return (
+                    <div key={i} className="px-2 py-3 space-y-2">
+                      <div className="grid grid-cols-4 gap-1 items-center">
+                        <div>
+                          {row.dayName && <p className="font-body text-[0.58rem] font-semibold text-accent/70">{row.dayName}</p>}
+                          <p className="font-body text-xs text-charcoal/70 tabular-nums" dir="ltr">{row.date}</p>
+                          {row.project !== "—" && <p className="font-body text-[0.58rem] text-charcoal/35 truncate">{row.project}</p>}
+                        </div>
+                        <span className="font-body text-xs font-semibold text-green-700 text-center tabular-nums inline-flex items-center justify-center">
+                          {row.entry || "—"}{reportControl(row.entryId)}
+                        </span>
+                        <span className="font-body text-xs font-semibold text-red-500 text-center tabular-nums inline-flex items-center justify-center">
+                          {row.exit || "—"}{reportControl(row.exitId)}
+                        </span>
+                        <span className="font-body text-sm font-bold text-charcoal text-end tabular-nums">
+                          {row.hours !== null ? row.hours.toFixed(1) : "—"}
+                        </span>
+                      </div>
+                      {reportTarget && (
+                        <AttendanceReportMistake
+                          attendanceId={reportTarget}
+                          lang={lang}
+                          onCancel={() => setReportingId(null)}
+                          onSent={() => fetchHistory()}
+                        />
+                      )}
                     </div>
-                    <span className="font-body text-xs font-semibold text-green-700 text-center tabular-nums">{row.entry || "—"}</span>
-                    <span className="font-body text-xs font-semibold text-red-500 text-center tabular-nums">{row.exit || "—"}</span>
-                    <span className="font-body text-sm font-bold text-charcoal text-end tabular-nums">
-                      {row.hours !== null ? row.hours.toFixed(1) : "—"}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               {/* Total */}
               <div className="flex items-center justify-between bg-charcoal px-3 py-2.5 mt-1">
