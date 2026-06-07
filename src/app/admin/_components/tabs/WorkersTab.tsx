@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { UserPlus, RefreshCw, ChevronDown, ChevronUp, Trash2, AlertTriangle, History } from "lucide-react";
+import { UserPlus, RefreshCw, ChevronDown, ChevronUp, Trash2, AlertTriangle, History, Download, Loader2 } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { Btn } from "../shared/Btn";
@@ -116,6 +116,34 @@ export default function WorkersTab(p: Props) {
   const [confirmName, setConfirmName] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Export — single full-staff XLSX (profile + 3-month activity summary).
+  // Same UX pattern as the payroll-tab exports: button spins while we wait
+  // for the binary, then drives a hidden anchor click to trigger download.
+  const [exporting, setExporting] = useState(false);
+  async function exportStaffReport() {
+    setExporting(true);
+    try {
+      const res = await fetch("/api/admin/staff/export");
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}));
+        alert(`שגיאה בייצוא: ${b.error ?? res.status}`);
+        return;
+      }
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
+      a.href = url;
+      a.download = `staff-report-${today}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  }
+
   function askDelete(s: StaffMember) {
     setPendingDelete(s);
     setConfirmName("");
@@ -138,6 +166,23 @@ export default function WorkersTab(p: Props) {
   return (
     <div className="space-y-5">
       <TabRefreshBar loading={p.refreshing || p.dataLoading} onRefresh={p.onTabRefresh} lastRefreshed={p.lastRefreshed} />
+
+      {/* Single XLSX export — profile + last 3 months' activity. Sits at the
+          top of the tab so it's reachable without scrolling past the
+          worker list. Matches the payroll-tab export button visually. */}
+      <div className="flex justify-end">
+        <button
+          onClick={exportStaffReport}
+          disabled={exporting}
+          className="inline-flex items-center gap-1.5 border border-accent text-accent px-4 py-2 text-[0.7rem] font-semibold tracking-wider uppercase hover:bg-accent/[0.08] disabled:opacity-40 transition-colors"
+          title='ייצוא דוח עובדים מלא ל-XLSX (פרופיל + 3 חודשי פעילות)'
+        >
+          {exporting
+            ? <><Loader2 size={13} className="animate-spin" /> מייצא…</>
+            : <><Download size={13} /> 📥 דוח עובדים</>}
+        </button>
+      </div>
+
       <Card>
         <div className="flex items-center gap-2 mb-3">
           <UserPlus size={16} strokeWidth={1.5} className="text-accent" />
