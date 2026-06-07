@@ -7,7 +7,7 @@ interface Entry { count: number; resetAt: number; }
 const store = new Map<string, Entry>();
 
 const WINDOW_MS  = 15 * 60 * 1000; // 15 minutes
-const MAX_HITS   = 5;               // attempts per window per key
+const DEFAULT_MAX_HITS = 5;        // tight default — fits unauthenticated auth routes
 
 function pruneExpired() {
   const now = Date.now();
@@ -17,10 +17,18 @@ function pruneExpired() {
 }
 
 /**
- * Check whether `key` (e.g. "IP:routeName") has exceeded the limit.
- * Returns { allowed: true } or { allowed: false, retryAfterSec: number }.
+ * Check whether `key` (e.g. "IP:routeName" or "staff:<id>:routeName") has
+ * exceeded the limit. Returns { allowed: true } or
+ * { allowed: false, retryAfterSec: number }.
+ *
+ * `maxHits` defaults to 5 (tight, suits anonymous auth routes). Routes that
+ * key on an authenticated identity — and may legitimately be hit many times
+ * per session by the same actor — should pass a higher value (e.g. 15).
  */
-export function checkRateLimit(key: string): { allowed: true } | { allowed: false; retryAfterSec: number } {
+export function checkRateLimit(
+  key: string,
+  maxHits: number = DEFAULT_MAX_HITS,
+): { allowed: true } | { allowed: false; retryAfterSec: number } {
   pruneExpired();
   const now = Date.now();
   const entry = store.get(key) ?? { count: 0, resetAt: now + WINDOW_MS };
@@ -33,7 +41,7 @@ export function checkRateLimit(key: string): { allowed: true } | { allowed: fals
   entry.count += 1;
   store.set(key, entry);
 
-  if (entry.count > MAX_HITS) {
+  if (entry.count > maxHits) {
     const retryAfterSec = Math.ceil((entry.resetAt - now) / 1000);
     return { allowed: false, retryAfterSec };
   }

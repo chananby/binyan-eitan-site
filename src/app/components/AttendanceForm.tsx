@@ -13,7 +13,7 @@ import { labelWithDayHe } from "../../lib/date-utils";
 import { israelWallClockToISO } from "../../lib/israel-time";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type Step = "phone" | "locating" | "project" | "ready" | "submitting" | "success" | "error" | "history" | "manual" | "manualSuccess";
+type Step = "phone" | "menu" | "locating" | "project" | "ready" | "submitting" | "success" | "error" | "history" | "manual" | "manualSuccess";
 
 interface GeoCoords { lat: number; lng: number; }
 interface Project { id: string; name: string; status?: string; }
@@ -39,6 +39,8 @@ const T: Record<Lang, {
   home: string; footer: string;
   myHistory: string; historyTitle: string; noHistory: string; loadingHistory: string; backToForm: string;
   manualBtn: string; manualTitle: string; manualSentTitle: string; manualSentBody: string; pendingBadge: string;
+  identify: string; identifying: string; tooManyAttempts: string; sessionExpired: string;
+  menuPrompt: string; startClock: string; switchUser: string;
 }> = {
   he: {
     clockTitle: "שעון נוכחות",
@@ -83,6 +85,13 @@ const T: Record<Lang, {
     manualSentTitle: "הדיווח נשלח ✓",
     manualSentBody: "המנהל יאשר את הדיווח בקרוב",
     pendingBadge: "ממתין לאישור",
+    identify: "המשך",
+    identifying: "מאמת...",
+    tooManyAttempts: "יותר מדי ניסיונות. נסה שוב בעוד כמה דקות.",
+    sessionExpired: "פג תוקף ההזדהות. אנא הזדהה מחדש.",
+    menuPrompt: "מה תרצה לעשות?",
+    startClock: "החתמת נוכחות",
+    switchUser: "החלף משתמש",
   },
   ru: {
     clockTitle: "Отметка о явке",
@@ -127,6 +136,13 @@ const T: Record<Lang, {
     manualSentTitle: "Отметка отправлена ✓",
     manualSentBody: "Менеджер скоро подтвердит её",
     pendingBadge: "Ожидает подтверждения",
+    identify: "Продолжить",
+    identifying: "Проверка...",
+    tooManyAttempts: "Слишком много попыток. Попробуйте через несколько минут.",
+    sessionExpired: "Сессия истекла. Войдите снова.",
+    menuPrompt: "Что вы хотите сделать?",
+    startClock: "Отметить явку",
+    switchUser: "Сменить пользователя",
   },
 };
 
@@ -149,6 +165,30 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   const [showFlash,  setShowFlash]  = useState(false);
   const [flashVariant, setFlashVariant] = useState<"in" | "out">("in");
   const feedback = useFeedback();
+
+  // ── Identity state ────────────────────────────────────────────────────────
+  // Identity now lives in a signed httpOnly cookie issued by /api/worker/identify.
+  // Mount probes for an existing session; phone-input becomes "identify" rather
+  // than a clock-in trigger. Until the probe finishes we hide the form to avoid
+  // a phone-input flash for already-authed workers.
+  const [identifiedStaffId, setIdentifiedStaffId] = useState<string | null>(null);
+  const [identifyCheckDone, setIdentifyCheckDone] = useState(false);
+  const [identifying,       setIdentifying]       = useState(false);
+  const [identifyError,     setIdentifyError]     = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/worker/identify", { method: "GET" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.ok) {
+          setIdentifiedStaffId(d.staff_id);
+          setWorkerName(d.name);
+          setStep("menu");
+        }
+      })
+      .catch(() => { /* no session — stay on phone */ })
+      .finally(() => setIdentifyCheckDone(true));
+  }, []);
 
   // ── Worker history state ──────────────────────────────────────────────────
   const [historyRecords, setHistoryRecords] = useState<Array<{ id: string; action: string; timestamp_label: string | null; clock_at?: string | null; created_at: string; is_manual?: boolean; status?: string; project: { id: string; name: string } | null }>>([]);
@@ -184,25 +224,76 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     fetch("/api/projects").then(r => r.json()).then(d => setProjects(d.projects ?? [])).catch(() => {}).finally(() => setProjectsLoading(false));
   }, [step]);
 
+  // ── Identity callbacks ───────────────────────────────────────────────────
+  // Submit the typed phone to /api/worker/identify; on success the cookie is
+  // set server-side, name is shown, and we land on the action menu.
+  const identify = useCallback(async () => {
+    if (phone.replace(/\D/g, "").length < 9) return;
+    setIdentifying(true); setIdentifyError(null);
+    try {
+      const res = await fetch("/api/worker/identify", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: phone.trim() }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d?.ok) {
+        setIdentifiedStaffId(d.staff_id);
+        setWorkerName(d.name);
+        setPhone("");
+        setStep("menu");
+        feedback.success();
+      } else if (res.status === 404) {
+        feedback.error(); setIdentifyError(T[lang].notFound);
+      } else if (res.status === 429) {
+        feedback.error(); setIdentifyError(T[lang].tooManyAttempts);
+      } else if (res.status === 401) {
+        feedback.error(); setIdentifyError(T[lang].noInternalAccess);
+      } else {
+        feedback.error(); setIdentifyError(d?.error ?? T[lang].unknownError);
+      }
+    } catch {
+      feedback.error(); setIdentifyError(T[lang].unknownError);
+    } finally {
+      setIdentifying(false);
+    }
+  }, [phone, lang, feedback]);
+
+  // "Change user" — DELETE clears the worker cookie, then reset UI to phone.
+  // Reset() also routes here when the server tells us our session expired
+  // (401 from any worker endpoint).
+  const switchUser = useCallback(async () => {
+    try { await fetch("/api/worker/identify", { method: "DELETE" }); } catch { /* best effort */ }
+    setIdentifiedStaffId(null);
+    setWorkerName(null);
+    setPhone("");
+    setCoords(null);
+    setSelectedProjectId("");
+    setHistoryRecords([]); setHistoryName(null);
+    setIdentifyError(null);
+    setStep("phone");
+  }, []);
+
   // ── Worker attendance callbacks ───────────────────────────────────────────
+  // Triggered from the menu after identify. No phone check here — identity
+  // is already established at the cookie level.
   const requestLocation = useCallback(() => {
-    if (!phone.trim() || phone.replace(/\D/g, "").length < 9) return;
+    if (!identifiedStaffId) { setStep("phone"); return; }
     setGeoError(null); setStep("locating");
     if (!navigator.geolocation) {
       feedback.error();
       setGeoError(T[lang].geoRequired);
-      setStep("phone"); return;
+      setStep("menu"); return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => { setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setStep("project"); },
       () => {
         feedback.error();
         setGeoError(T[lang].geoRequired);
-        setStep("phone");
+        setStep("menu");
       },
       { timeout: 12000, enableHighAccuracy: true, maximumAge: 60000 }
     );
-  }, [phone, feedback]);
+  }, [identifiedStaffId, lang, feedback]);
 
   const submit = useCallback(async (selectedAction: "in" | "out") => {
     if (!coords) return;
@@ -212,7 +303,6 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       const res = await fetch("/api/attendance", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phone: phone.trim(),
           action: selectedAction === "in" ? "כניסה" : "יציאה",
           lat: coords.lat.toFixed(6), lng: coords.lng.toFixed(6), timestamp: ts,
           ...(selectedProjectId && { project_id: selectedProjectId }),
@@ -220,60 +310,68 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       });
       const data = await res.json();
       if (data.success) {
-        setWorkerName(data.name ?? null); setDailyMessage(data.message ?? null);
-        setAutoRegistered(data.auto_registered ?? false);
+        setWorkerName(data.name ?? workerName); setDailyMessage(data.message ?? null);
         setFlashVariant(selectedAction === "in" ? "in" : "out");
         setShowFlash(true);
         feedback.success();
         setStep("success");
-      } else if (data.error === "phone_not_found") {
+      } else if (res.status === 401) {
+        // Cookie expired / revoked — drop back to phone entry with a hint.
         feedback.error();
-        setErrorMsg(T[lang].notFound); setStep("error");
+        setErrorMsg(T[lang].sessionExpired); setStep("error");
+        setIdentifiedStaffId(null);
       } else if (data.error === "account_inactive") {
         feedback.error();
         setErrorMsg(T[lang].accountInactive); setStep("error");
       } else if (data.error === "already_clocked_in") {
         feedback.error();
         setErrorMsg(T[lang].alreadyClockedIn); setStep("error");
+      } else if (res.status === 429) {
+        feedback.error();
+        setErrorMsg(T[lang].tooManyAttempts); setStep("error");
       } else {
         feedback.error();
         setErrorMsg(data.error ?? T[lang].unknownError); setStep("error");
       }
     } catch { feedback.error(); setErrorMsg(T[lang].unknownError); setStep("error"); }
-  }, [coords, phone, selectedProjectId]);
+  }, [coords, workerName, selectedProjectId, lang, feedback]);
 
+  // reset() returns to the action menu after a single clock-in/out cycle.
+  // It does NOT clear identity — the worker stays logged in.
+  // For "change user", use switchUser() which also clears the cookie.
   const reset = () => {
-    setStep("phone"); setPhone(""); setCoords(null); setGeoError(null);
-    setWorkerName(null); setAction(null); setErrorMsg(null);
+    setStep(identifiedStaffId ? "menu" : "phone");
+    setCoords(null); setGeoError(null);
+    setAction(null); setErrorMsg(null);
     setDailyMessage(null); setAutoRegistered(false); setSelectedProjectId("");
   };
 
   const fetchHistory = useCallback(async () => {
-    if (phone.replace(/\D/g, "").length < 9) return;
+    if (!identifiedStaffId) { setStep("phone"); return; }
     setHistoryLoading(true); setHistoryError(null); setHistoryRecords([]); setHistoryName(null);
     setStep("history");
     try {
       const res  = await fetch("/api/worker/history", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: phone.trim() }),
+        body: JSON.stringify({}),
       });
       const data = await res.json();
-      if (res.ok) { setHistoryName(data.name ?? null); setHistoryRecords(data.records ?? []); }
-      else if (res.status === 401) { setHistoryError(T[lang].noInternalAccess); }
-      else if (data.error === "phone_not_found") { setHistoryError(T[lang].notFound); }
+      if (res.ok) { setHistoryName(data.name ?? workerName); setHistoryRecords(data.records ?? []); }
+      else if (res.status === 401) { setHistoryError(T[lang].sessionExpired); setIdentifiedStaffId(null); }
+      else if (res.status === 429) { setHistoryError(T[lang].tooManyAttempts); }
       else { setHistoryError(T[lang].unknownError); }
     } catch { setHistoryError(T[lang].unknownError); }
     finally { setHistoryLoading(false); }
-  }, [phone, lang]);
+  }, [identifiedStaffId, workerName, lang]);
 
   const submitManual = useCallback(async () => {
+    if (!identifiedStaffId) { setStep("phone"); return; }
     if (!manualDate || !manualTime) { setManualError("יש למלא תאריך ושעה"); return; }
     setManualLoading(true); setManualError(null);
     try {
       const res = await fetch("/api/worker/manual-entry", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phone:      phone.trim(),
           action:     manualAction,
           date:       manualDate,
           time:       manualTime,
@@ -282,11 +380,12 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       });
       const data = await res.json();
       if (data.success) { setStep("manualSuccess"); }
-      else if (res.status === 401) { setManualError(T[lang].noInternalAccess); }
+      else if (res.status === 401) { setManualError(T[lang].sessionExpired); setIdentifiedStaffId(null); }
+      else if (res.status === 429) { setManualError(T[lang].tooManyAttempts); }
       else { setManualError(data.error ?? T[lang].unknownError); }
     } catch { setManualError("שגיאת רשת — נסה שוב"); }
     finally { setManualLoading(false); }
-  }, [phone, manualAction, manualDate, manualTime, manualProject]);
+  }, [identifiedStaffId, manualAction, manualDate, manualTime, manualProject, lang]);
 
   // ── Worker attendance screens ─────────────────────────────────────────────
 
@@ -404,7 +503,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
         <div className="text-center space-y-1">
           <p className="font-body text-[0.75rem] font-bold tracking-[0.22em] uppercase text-accent/70">{t.locationOk}</p>
-          <p className="font-body text-sm text-charcoal/50 tabular-nums" dir="ltr">{phone}</p>
+          {workerName && <p className="font-heading text-base text-charcoal/70">{workerName}</p>}
           {selectedProject && (
             <div className="flex items-center justify-center gap-1 text-xs text-charcoal/50">
               <Building2 size={12} strokeWidth={1.5} /><span>{selectedProject.name}</span>
@@ -667,7 +766,48 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     );
   }
 
-  // Default: phone entry
+  // ── Action menu — post-identify landing screen ───────────────────────────
+  if (step === "menu" && identifiedStaffId) {
+    return (
+      <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
+        <div className="text-center space-y-1">
+          <p className="font-heading text-xl font-bold text-charcoal">{t.hello} {workerName}</p>
+          <p className="font-body text-xs text-charcoal/40">{t.menuPrompt}</p>
+        </div>
+        <div className="w-full space-y-3">
+          <button onClick={requestLocation}
+            className="w-full bg-accent py-5 font-heading text-base font-bold tracking-[0.15em] uppercase text-bone hover:bg-accent-dark transition-colors duration-200 flex items-center justify-center gap-2">
+            <MapPin size={18} strokeWidth={1.5} />
+            {t.startClock}
+          </button>
+          <button onClick={fetchHistory}
+            className="w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/65 hover:border-accent hover:text-accent transition-colors duration-200">
+            {t.myHistory}
+          </button>
+          <button onClick={() => setStep("manual")}
+            className="w-full border border-charcoal/15 py-3 font-body text-sm text-charcoal/55 hover:border-accent hover:text-accent transition-colors duration-200">
+            {t.manualBtn}
+          </button>
+          {geoError && (
+            <div className="flex items-start gap-2 border border-red-200 bg-red-50 px-4 py-3">
+              <AlertCircle size={14} className="mt-0.5 shrink-0 text-red-400" />
+              <p className="font-body text-xs text-red-600 leading-snug">{geoError}</p>
+            </div>
+          )}
+          <button onClick={switchUser}
+            className="font-body text-xs text-charcoal/30 hover:text-charcoal/60 transition-colors duration-200 underline underline-offset-2 w-full text-center pt-2">
+            {t.switchUser}
+          </button>
+        </div>
+      </Screen>
+    );
+  }
+
+  // While the mount probe runs, render nothing — avoids a phone-input flash
+  // for workers who already have a valid session cookie.
+  if (!identifyCheckDone) return null;
+
+  // Default: phone-entry → /api/worker/identify (NOT clock-in).
   return (
     <Screen backHref={portalHref} backLabel={backLabel} lang={lang} onLangChange={setLang}>
       <div className="text-center space-y-1">
@@ -678,25 +818,20 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         <input
           type="tel" inputMode="numeric" value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && requestLocation()}
+          onKeyDown={(e) => e.key === "Enter" && identify()}
           placeholder="05X-XXX-XXXX"
           className="w-full border border-charcoal/20 bg-white px-5 py-5 text-center font-body text-xl tracking-widest text-charcoal placeholder-charcoal/20 focus:border-accent focus:outline-none transition-colors duration-200"
           autoComplete="tel" dir="ltr"
         />
-        {geoError && (
+        {identifyError && (
           <div className="flex items-start gap-2 border border-red-200 bg-red-50 px-4 py-3">
             <AlertCircle size={14} className="mt-0.5 shrink-0 text-red-400" />
-            <p className="font-body text-xs text-red-600 leading-snug">{geoError}</p>
+            <p className="font-body text-xs text-red-600 leading-snug">{identifyError}</p>
           </div>
         )}
-        <button onClick={requestLocation} disabled={phone.replace(/\D/g, "").length < 9}
+        <button onClick={identify} disabled={identifying || phone.replace(/\D/g, "").length < 9}
           className="w-full bg-accent py-5 font-heading text-base font-bold tracking-[0.15em] uppercase text-bone transition-colors duration-200 hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2">
-          <MapPin size={18} strokeWidth={1.5} />
-          {t.confirmLocation}
-        </button>
-        <button onClick={fetchHistory} disabled={phone.replace(/\D/g, "").length < 9}
-          className="w-full border border-charcoal/15 py-3 font-body text-sm text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed">
-          {t.myHistory}
+          {identifying ? <><Loader2 size={18} className="animate-spin" /> {t.identifying}</> : <>{t.identify}</>}
         </button>
       </div>
     </Screen>

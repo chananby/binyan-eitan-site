@@ -1,41 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
-import { verifyInternalToken } from "../../../../lib/admin-auth";
-import { normalizePhone, phoneVariants } from "../../../../lib/phone";
+import { getWorkerStaffIdFromRequest } from "../../../../lib/admin-auth";
+import { checkRateLimit } from "../../../../lib/rate-limit";
 
 export const runtime = "nodejs";
 
-const INTERNAL_COOKIE = "be_internal_token";
-
-// POST { phone } → returns that worker's own attendance history
-// Requires the internal staff PIN cookie (set by /api/internal-auth)
+// POST → returns the calling worker's own attendance history.
+//
+// Identity is read EXCLUSIVELY from the signed worker cookie set by
+// /api/worker/identify. The phone field in the body (if present) is
+// ignored — it used to be the identifier, which let any PIN-holder pull
+// any coworker's records. Strict rejection of unauthenticated callers.
+//
+// Rate-limit keys on the verified staff_id (not IP) so an entire crew
+// clocking in from the same site Wi-Fi can each fetch their history
+// without throttling each other. 15/15min covers normal refresh patterns
+// while still capping a runaway client.
 export async function POST(req: NextRequest) {
-  const token = req.cookies.get(INTERNAL_COOKIE)?.value ?? "";
-  if (!verifyInternalToken(token))
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const staffId = getWorkerStaffIdFromRequest(req);
+  if (!staffId) {
+    return NextResponse.json({ error: "יש להזדהות מחדש" }, { status: 401 });
+  }
 
-  let body: { phone?: string };
-  try { body = await req.json(); }
-  catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
-
-  const { phone } = body;
-  if (!phone?.trim())
-    return NextResponse.json({ error: "phone required" }, { status: 400 });
+  const rl = checkRateLimit(`staff:${staffId}:worker-history`, 15);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: "too_many_attempts" },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
+  }
 
   const supabase = createServerClient();
-  const normalized = normalizePhone(phone.trim());
-  const variants   = phoneVariants(normalized);
 
-  const { data: staffRows } = await supabase
+  // Worker name surfaced so the UI can show "הנוכחות שלי — <name>" without
+  // a second roundtrip. Bail to 401 if the row was deactivated since the
+  // cookie was issued — same posture as /api/worker/identify GET.
+  const { data: worker } = await supabase
     .from("staff")
-    .select("id, name")
-    .in("phone", variants)
+    .select("id, name, active")
+    .eq("id", staffId)
     .is("deleted_at", null)
-    .limit(1);
-
-  const worker = staffRows?.[0];
-  if (!worker)
-    return NextResponse.json({ error: "phone_not_found" }, { status: 404 });
+    .maybeSingle();
+  if (!worker || worker.active === false) {
+    return NextResponse.json({ error: "יש להזדהות מחדש" }, { status: 401 });
+  }
 
   const { data: records, error } = await supabase
     .from("attendance")

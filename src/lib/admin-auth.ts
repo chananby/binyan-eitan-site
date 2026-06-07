@@ -182,6 +182,60 @@ export function buildForemanClearCookie() {
   return { name: FOREMAN_COOKIE, value: "", options: { httpOnly: true, path: "/", maxAge: 0 } };
 }
 
+// ── Worker session token ────────────────────────────────────────────────────
+// Same HMAC-of-staffId shape as the foreman token (base64-encoded
+// "staffId:sig"), set after a worker enters their phone on the staff portal
+// and /api/worker/identify confirms a match. Distinct cookie name so a worker
+// session never collides with a foreman session on the same device. 12-hour
+// max-age matches the PIN cookie — the two refresh on the same cadence.
+
+const WORKER_COOKIE  = "be_worker_token";
+const WORKER_MAX_AGE = 60 * 60 * 12; // 12 h
+
+function workerSig(staffId: string): string {
+  const secret = process.env.AUTH_TOKEN_SECRET;
+  if (!secret) throw new Error("AUTH_TOKEN_SECRET env var is required");
+  // Distinct sig prefix from the foreman sig prevents a foreman cookie from
+  // being replayed as a worker cookie (or vice versa) even if both were ever
+  // logged together. "w:" namespace lives inside the HMAC input.
+  return createHmac("sha256", secret).update(`w:${staffId}`).digest("hex").slice(0, 32);
+}
+
+export function buildWorkerTokenForStaff(staffId: string): string {
+  return Buffer.from(`${staffId}:${workerSig(staffId)}`).toString("base64");
+}
+
+/** Verify cookie value and return staffId, or null if invalid. */
+export function verifyWorkerToken(cookieValue: string): string | null {
+  try {
+    const decoded  = Buffer.from(cookieValue, "base64").toString("utf8");
+    const colonIdx = decoded.indexOf(":");
+    if (colonIdx < 0) return null;
+    const staffId = decoded.slice(0, colonIdx);
+    const sig     = decoded.slice(colonIdx + 1);
+    if (!staffId || sig !== workerSig(staffId)) return null;
+    return staffId;
+  } catch { return null; }
+}
+
+export function getWorkerStaffIdFromRequest(req: NextRequest): string | null {
+  const wt = req.cookies.get(WORKER_COOKIE)?.value;
+  if (!wt) return null;
+  return verifyWorkerToken(wt);
+}
+
+export function buildWorkerAuthCookie(staffId: string) {
+  return {
+    name:    WORKER_COOKIE,
+    value:   buildWorkerTokenForStaff(staffId),
+    options: { ...COOKIE_OPTS, maxAge: WORKER_MAX_AGE },
+  };
+}
+
+export function buildWorkerClearCookie() {
+  return { name: WORKER_COOKIE, value: "", options: { httpOnly: true, path: "/", maxAge: 0 } };
+}
+
 // ── Internal (worker) token helpers ──────────────────────────────────────────
 
 const INTERNAL_COOKIE   = "be_internal_token";
