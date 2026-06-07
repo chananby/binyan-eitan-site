@@ -4,7 +4,8 @@
  * Returns a per-active-staff payroll row for the given month.
  *
  * Each row:
- *   { staff_id, name, national_id, employment_type, days_worked, hours_worked,
+ *   { staff_id, name, national_id, is_freelancer, employment_type,
+ *     days_worked, hours_worked,
  *     hourly_rate, daily_rate, monthly_global_salary,
  *     vacation_days, holiday_eligible, travel_allowance, pension_status,
  *     gross_salary }
@@ -38,6 +39,7 @@ interface StaffRow {
   id: string;
   name: string;
   national_id: string | null;
+  is_freelancer: boolean;
   employment_type: string;
   hourly_rate: number | null;
   daily_rate: number | null;
@@ -73,12 +75,14 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
 
   // Fetch active "עובד" + "ממונה" staff (anyone the company pays — admins/manager roles excluded).
-  // We intentionally do NOT filter deleted_at here — soft-deleted workers
-  // may still appear in retrospective payroll runs; the UI flags them with
-  // "(מחוק)" using the surfaced field below.
+  // active=true alone is sufficient to exclude soft-deleted workers: the
+  // soft-delete contract (DELETE /api/admin/staff/[id]) only sets deleted_at
+  // on rows that are already active=false, so any row with active=true has
+  // deleted_at=null by invariant. We still surface `deleted_at` per row in
+  // case the contract ever loosens; the field is null in practice today.
   const { data: staffData, error: staffErr } = await supabase
     .from("staff")
-    .select("id, name, national_id, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role, deleted_at")
+    .select("id, name, national_id, is_freelancer, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role, deleted_at")
     .eq("active", true)
     .in("role", ["עובד", "ממונה"])
     .order("name", { ascending: true });
@@ -127,6 +131,7 @@ export async function GET(req: NextRequest) {
       staff_id: s.id,
       name: s.name,
       national_id: s.national_id,
+      is_freelancer: s.is_freelancer,
       employment_type: s.employment_type,
       days_worked: stats.days,
       hours_worked: stats.hours,

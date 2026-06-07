@@ -76,6 +76,7 @@ interface PayrollRow {
   staff_id: string;
   name: string;
   national_id: string | null;
+  is_freelancer?: boolean;
   employment_type: string;
   days_worked: number;
   hours_worked: number;
@@ -310,7 +311,9 @@ export default function AdminPortal() {
   const [payrollProject,    setPayrollProject]    = useState<string>("");
   const [payrollRows,       setPayrollRows]       = useState<PayrollRow[]>([]);
   const [payrollLoading,    setPayrollLoading]    = useState(false);
-  const [payrollExporting,  setPayrollExporting]  = useState(false);
+  // Tracks which split-report is currently being downloaded so the buttons
+  // can show their own spinner without one blocking the other.
+  const [payrollExporting,  setPayrollExporting]  = useState<null | "employees" | "freelancers">(null);
 
   // Projects UI
   const [newProjectName,    setNewProjectName]    = useState("");
@@ -985,10 +988,10 @@ export default function AdminPortal() {
       setPayrollLoading(false);
     }
   }
-  async function exportPayroll() {
-    setPayrollExporting(true);
+  async function exportPayroll(type: "employees" | "freelancers") {
+    setPayrollExporting(type);
     try {
-      const q = new URLSearchParams({ month: payrollMonth });
+      const q = new URLSearchParams({ month: payrollMonth, type });
       if (payrollProject) q.set("project_id", payrollProject);
       const res = await fetch(`/api/admin/payroll/export?${q.toString()}`);
       if (!res.ok) {
@@ -999,13 +1002,13 @@ export default function AdminPortal() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `payroll-${payrollMonth}${payrollProject ? "-project" : ""}.xlsx`;
+      a.download = `payroll-${type}-${payrollMonth}${payrollProject ? "-project" : ""}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
     } finally {
-      setPayrollExporting(false);
+      setPayrollExporting(null);
     }
   }
 
@@ -2027,23 +2030,40 @@ export default function AdminPortal() {
                     ))}
                   </select>
                 </Field>
-                <div className="flex items-end gap-2">
+                <div className="flex items-end">
                   <button
                     onClick={loadPayroll}
                     disabled={payrollLoading}
-                    className="flex-1 bg-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
+                    className="w-full bg-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
                   >
                     {payrollLoading ? <><Loader2 size={13} className="animate-spin" /> טוען…</> : "טען נתונים"}
                   </button>
-                  <button
-                    onClick={exportPayroll}
-                    disabled={payrollExporting || payrollLoading}
-                    className="flex-1 border border-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-accent hover:bg-accent/[0.08] disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
-                    title="ייצוא ל-XLSX (גם בלי לטעון תחילה)"
-                  >
-                    {payrollExporting ? <><Loader2 size={13} className="animate-spin" /> מייצא…</> : <><Download size={13} /> XLSX</>}
-                  </button>
                 </div>
+              </div>
+
+              {/* Separate export row — one button per accountant report,
+                  spelled out so it's obvious which one downloads which. */}
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  onClick={() => exportPayroll("employees")}
+                  disabled={payrollExporting !== null || payrollLoading}
+                  className="border border-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-accent hover:bg-accent/[0.08] disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
+                  title='ייצוא XLSX של שכירים בלבד (כולל פנסיה וזכאות לחגים)'
+                >
+                  {payrollExporting === "employees"
+                    ? <><Loader2 size={13} className="animate-spin" /> מייצא…</>
+                    : <>📥 דוח שכירים להנה&quot;ח</>}
+                </button>
+                <button
+                  onClick={() => exportPayroll("freelancers")}
+                  disabled={payrollExporting !== null || payrollLoading}
+                  className="border border-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-accent hover:bg-accent/[0.08] disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
+                  title='ייצוא XLSX של עצמאים בלבד (ללא עמודות פנסיה/חגים)'
+                >
+                  {payrollExporting === "freelancers"
+                    ? <><Loader2 size={13} className="animate-spin" /> מייצא…</>
+                    : <>📥 דוח עצמאים להנה&quot;ח</>}
+                </button>
               </div>
             </Card>
 
@@ -2075,6 +2095,11 @@ export default function AdminPortal() {
                         <tr key={r.staff_id} className="border-b border-charcoal/5">
                           <td className="py-2 font-semibold">
                             {r.name}
+                            {r.is_freelancer && (
+                              <span className="ms-2 inline-flex items-center text-[0.65rem] font-semibold tracking-wide px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 align-middle">
+                                עצמאי
+                              </span>
+                            )}
                             {r.deleted_at && <span className="ms-2 text-[0.75rem] font-normal text-charcoal/40">🗑️ (מחוק)</span>}
                           </td>
                           <td className="py-2 text-charcoal/60">

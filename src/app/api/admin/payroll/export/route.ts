@@ -1,8 +1,15 @@
 /**
- * GET /api/admin/payroll/export?month=YYYY-MM&project_id=...
+ * GET /api/admin/payroll/export?month=YYYY-MM&type=employees|freelancers&project_id=...
  *
  * Returns an XLSX binary of the same data as /api/admin/payroll, formatted
  * for handoff to the accountant. RTL columns + Hebrew headers.
+ *
+ * The `type` param is REQUIRED — the accountant receives separate reports
+ * for employees (שכירים) and freelancers/contractors (עצמאים) because the
+ * downstream processing differs (payslip vs. invoice). Splitting at export
+ * time keeps each file focused and lets us hide irrelevant columns:
+ *   employees    → all columns (pension + holiday eligibility matter)
+ *   freelancers  → pension + "זכאי לחגים" columns removed
  */
 import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
@@ -52,10 +59,18 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const month = searchParams.get("month");
   const projectId = searchParams.get("project_id");
+  const type = searchParams.get("type");
 
   if (!month || !/^\d{4}-\d{2}$/.test(month)) {
     return NextResponse.json({ error: "month query param required (YYYY-MM)" }, { status: 400 });
   }
+  if (type !== "employees" && type !== "freelancers") {
+    return NextResponse.json(
+      { error: "type query param required: 'employees' or 'freelancers'" },
+      { status: 400 }
+    );
+  }
+  const wantFreelancers = type === "freelancers";
 
   const monthStart = `${month}-01`;
   const [yStr, mStr] = month.split("-");
@@ -69,6 +84,7 @@ export async function GET(req: NextRequest) {
     .from("staff")
     .select("id, name, national_id, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role, start_date")
     .eq("active", true)
+    .eq("is_freelancer", wantFreelancers)
     .in("role", ["עובד", "ממונה"])
     .order("name", { ascending: true });
   if (staffErr) return NextResponse.json({ error: staffErr.message }, { status: 500 });
@@ -93,13 +109,28 @@ export async function GET(req: NextRequest) {
   const vacMap = aggregateVacation((vacData ?? []) as VacRow[]);
 
   // ── Build the workbook ──────────────────────────────────────────────────
+  // Hebrew month label for the sheet title — "מאי 2026" rather than 2026-05.
+  // Anchor at noon UTC so DST never bumps the month.
+  const monthLabel = new Intl.DateTimeFormat("he-IL", {
+    timeZone: "Asia/Jerusalem",
+    year: "numeric",
+    month: "long",
+  }).format(new Date(`${monthStart}T12:00:00Z`));
+
+  const titleHe = wantFreelancers
+    ? `דוח שכר עצמאים - ${monthLabel}`
+    : `דוח שכר שכירים - ${monthLabel}`;
+
   const wb = new ExcelJS.Workbook();
   wb.creator = "Binyan Eitan";
   wb.created = new Date();
-  const sheet = wb.addWorksheet(`שכר ${month}`, {
+  const sheet = wb.addWorksheet(titleHe, {
     views: [{ rightToLeft: true }],
   });
 
+  // Column set: freelancers drop pension + holiday eligibility (irrelevant —
+  // freelancers invoice for hours/days, no payslip-side calculation needed).
+  // Building the array conditionally avoids a column with empty cells.
   sheet.columns = [
     { header: "שם",            key: "name",            width: 22 },
     { header: "ת.ז.",          key: "national_id",     width: 14 },
@@ -111,9 +142,13 @@ export async function GET(req: NextRequest) {
     { header: "תעריף יומי",    key: "daily_rate",      width: 12 },
     { header: "שכר גלובלי",    key: "monthly_global",  width: 13 },
     { header: "ימי חופשה",     key: "vacation_days",   width: 11 },
-    { header: "זכאי לחגים",    key: "holiday",         width: 12 },
+    ...(wantFreelancers ? [] : [
+      { header: "זכאי לחגים",  key: "holiday",         width: 12 },
+    ]),
     { header: "דמי נסיעות",    key: "travel",          width: 12 },
-    { header: "פנסיה",         key: "pension",         width: 18 },
+    ...(wantFreelancers ? [] : [
+      { header: "פנסיה",       key: "pension",         width: 18 },
+    ]),
     { header: "סה\"כ ברוטו",   key: "gross",           width: 14 },
   ];
 
@@ -184,7 +219,7 @@ export async function GET(req: NextRequest) {
   });
 
   const buf = await wb.xlsx.writeBuffer();
-  const filename = `payroll-${month}${projectId ? "-project" : ""}.xlsx`;
+  const filename = `payroll-${type}-${month}${projectId ? "-project" : ""}.xlsx`;
   return new NextResponse(buf, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
