@@ -7,7 +7,7 @@ import { useFeedback } from "../hooks/useFeedback";
 import SuccessFlash from "./SuccessFlash";
 import {
   LogIn, LogOut, MapPin, CheckCircle, AlertCircle, Loader2,
-  ChevronRight, Building2,
+  ChevronRight, Building2, UserRound,
 } from "lucide-react";
 import { labelWithDayHe } from "../../lib/date-utils";
 import { israelWallClockToISO } from "../../lib/israel-time";
@@ -794,9 +794,16 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
               <p className="font-body text-xs text-red-600 leading-snug">{geoError}</p>
             </div>
           )}
+        </div>
+
+        {/* Switch-user — visually separated from the action stack so it's
+            obvious this is a "leave-this-account" control, not a fourth
+            action. Icon + sized label so it reads at a glance on phone. */}
+        <div className="w-full pt-4 mt-2 border-t border-charcoal/10">
           <button onClick={switchUser}
-            className="font-body text-xs text-charcoal/30 hover:text-charcoal/60 transition-colors duration-200 underline underline-offset-2 w-full text-center pt-2">
-            {t.switchUser}
+            className="w-full flex items-center justify-center gap-2 border border-charcoal/20 py-3 font-body text-sm font-semibold text-charcoal/65 hover:border-accent hover:text-accent transition-colors duration-200">
+            <UserRound size={15} strokeWidth={1.5} />
+            <span>🔄 {t.switchUser}</span>
           </button>
         </div>
       </Screen>
