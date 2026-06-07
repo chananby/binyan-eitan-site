@@ -115,20 +115,41 @@
   }
   .panel-resizer {
     cursor: col-resize;
-    background: transparent;
+    /* Visible separator — 6px column-coloured bar in the existing palette,
+       hover/drag = brand colour so the affordance is obvious. */
+    width: 6px;
+    background: rgba(45, 41, 38, 0.20);  /* charcoal/20 */
+    border-radius: 3px;
     transition: background 0.15s;
     position: relative;
+    flex-shrink: 0;
   }
   .panel-resizer:hover,
   .panel-resizer.dragging {
-    background: var(--brand);
+    background: var(--brand-accent);
   }
+  /* Three grip dots in the middle (⋮) — pure CSS, no extra DOM */
+  .panel-resizer::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 18px;
+    background: currentColor;
+    color: rgba(255, 255, 255, 0.75);
+    border-radius: 1px;
+    box-shadow:
+       0 -7px 0 currentColor,
+       0  7px 0 currentColor;
+  }
+  /* Invisible 16-px hit-area for easier grabbing — keeps the visible bar
+     thin while the drag target stays comfortable. */
   .panel-resizer::after {
     content: "";
     position: absolute;
-    inset: 0;
-    width: 16px;
-    margin-inline-start: -5px;
+    inset: 0 -5px;  /* widen the click target without enlarging the visual */
   }
   .form-panel { margin-inline-end: 14px; }
   .preview-panel { margin-inline-start: 14px; }
@@ -914,6 +935,52 @@
     margin-bottom: 8px;
     background: white;
   }
+  /* Reorder arrows — visible on hover (desktop) / always (mobile) */
+  .item-reorder {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    opacity: 0;
+    transition: opacity 0.12s;
+    flex-shrink: 0;
+    margin-inline-end: 4px;
+  }
+  .item-row-rich:hover .item-reorder,
+  .item-reorder:focus-within {
+    opacity: 1;
+  }
+  .item-reorder .btn-icon {
+    width: 22px;
+    height: 18px;
+    line-height: 14px;
+    font-size: 11px;
+    padding: 0;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--surface);
+  }
+  .item-reorder .btn-icon:hover:not([disabled]) {
+    color: var(--brand);
+    border-color: var(--brand);
+  }
+  .item-reorder .btn-icon[disabled] {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+  @media (max-width: 768px) {
+    .item-reorder { opacity: 1; }  /* hover semantics don't fit a touch screen */
+  }
+
+  /* Quantity-0 = description-only template row: dim the unit/price cells
+     in the form so the admin sees at a glance that they're inert without
+     locking them — typing a non-zero qty restores full appearance live. */
+  .item-fields-row.is-description-only .field-cell:nth-child(2),
+  .item-fields-row.is-description-only .field-cell:nth-child(3),
+  .item-fields-row.is-description-only .field-cell:nth-child(4) {
+    opacity: 0.4;
+  }
+
   .item-row-rich .item-name-row {
     display: flex;
     gap: 6px;
@@ -1421,7 +1488,7 @@
       <h2>תנאי תשלום</h2>
       <div class="form-row full">
         <div class="form-group">
-          <input type="text" data-field="paymentTerms" placeholder="למשל: מקדמה 50%, היתרה לפי התקדמות">
+          <input type="text" data-field="paymentTerms" placeholder='למשל: מקדמה 20%, היתרה לפי התקדמות ע"פ לוח תשלומים שיצורף'>
         </div>
       </div>
     </div>
@@ -1624,7 +1691,7 @@
         ]
       }
     ],
-    paymentTerms: 'מקדמה 50%, היתרה לפי התקדמות',
+    paymentTerms: 'מקדמה 20%, היתרה לפי התקדמות ע"פ לוח תשלומים שיצורף',
     notes: [
       'הצעת המחיר מבוססת על התכניות שסופקו.',
       'הצעת המחיר אינה כוללת חומר לבן.',
@@ -1951,14 +2018,20 @@
           const customUnit   = unitIsCustom ? (item.unit || '') : '';
           const lineTotal = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
           const nameMissing = !item.name && (item.description || Number(item.quantity) || Number(item.unitPrice));
+          const isFirst = section.items[0]?.id === item.id;
+          const isLast  = section.items[section.items.length - 1]?.id === item.id;
           return `
           <div class="item-row-rich" data-item-id="${item.id}">
             <div class="item-name-row">
+              <div class="item-reorder" aria-label="סידור הפריט">
+                <button class="btn-icon reorder-up"   data-move-item-up="${item.id}"   data-section-id="${section.id}" title="העלה" ${isFirst ? 'disabled' : ''}>▲</button>
+                <button class="btn-icon reorder-down" data-move-item-down="${item.id}" data-section-id="${section.id}" title="הורד" ${isLast  ? 'disabled' : ''}>▼</button>
+              </div>
               <textarea class="item-name auto-grow${nameMissing ? ' is-empty-required' : ''}" rows="1" placeholder="שם הפריט"
                         data-item-field="name" data-section-id="${section.id}" data-item-id="${item.id}">${esc(item.name || '')}</textarea>
               <button class="btn-icon" data-delete-item="${item.id}" data-section-id="${section.id}" title="מחק פריט">✕</button>
             </div>
-            <div class="item-fields-row">
+            <div class="item-fields-row${(Number(item.quantity) || 0) === 0 ? ' is-description-only' : ''}">
               <div class="field-cell">
                 <span class="field-label-tiny">כמות</span>
                 <input type="number" step="any"
@@ -1980,7 +2053,7 @@
               </div>
               <div class="field-cell">
                 <span class="field-label-tiny">סה"כ</span>
-                <input type="text" readonly value="${money(lineTotal)}">
+                <input type="text" readonly value="${(Number(item.quantity) || 0) === 0 ? '' : money(lineTotal)}">
               </div>
               <div class="field-cell delete-cell"></div>
             </div>
@@ -2203,16 +2276,26 @@
                   <td colspan="${totalCols}">${esc(section.name)}</td>
                 </tr>
               ` : ''}
-              ${validItems.map(item => `
-                <tr class="item-row-print">
+              ${validItems.map(item => {
+                // Quantity 0 ⇒ "description-only row" — typical lump-sum
+                // template flow: several zero-qty rows describe the work,
+                // followed by a single summary row that carries the price.
+                // We render qty/unit/price cells empty (not "0") and skip
+                // the line total so it doesn't accidentally appear as "—0".
+                const qtyNum = Number(item.quantity) || 0;
+                const priceNum = Number(item.unitPrice) || 0;
+                const isDescriptionOnly = qtyNum === 0;
+                return `
+                <tr class="item-row-print${isDescriptionOnly ? ' item-row-desc-only' : ''}">
                   <td>
                     ${item.name ? `<div class="item-name-bold">${esc(item.name)}</div>` : ''}
                     ${item.description ? `<div class="item-desc-text">${esc(item.description)}</div>` : ''}
                   </td>
-                  ${showQty ? `<td class="num">${item.quantity}${item.unit ? ' ' + esc(item.unit) : ''}</td>` : ''}
-                  ${showPrices ? `<td class="price">${money(item.unitPrice)}</td><td class="price">${money((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0))}</td>` : ''}
+                  ${showQty ? `<td class="num">${isDescriptionOnly ? '' : `${item.quantity}${item.unit ? ' ' + esc(item.unit) : ''}`}</td>` : ''}
+                  ${showPrices ? `<td class="price">${isDescriptionOnly ? '' : money(priceNum)}</td><td class="price">${isDescriptionOnly ? '' : money(qtyNum * priceNum)}</td>` : ''}
                 </tr>
-              `).join('')}
+              `;
+              }).join('')}
               ${showPrices && (validItems.length > 0 || section.name) && state.sections.length > 1 ? `
                 <tr class="subtotal-row">
                   <td colspan="${showQty ? 3 : 2}">סה"כ ${esc(section.name || '')}</td>
@@ -2991,6 +3074,25 @@
         render();
         saveState();
       }
+      return;
+    }
+
+    // Move item up/down within its section — preserves all other fields,
+    // re-renders the form so the up/down disabled state recomputes, and
+    // saves so the cloud copy reflects the new order on next reload.
+    if (t.matches('[data-move-item-up]') || t.matches('[data-move-item-down]')) {
+      const up  = t.hasAttribute('data-move-item-up');
+      const iid = t.getAttribute(up ? 'data-move-item-up' : 'data-move-item-down');
+      const sid = t.getAttribute('data-section-id');
+      const s   = state.sections.find(x => x.id === sid);
+      if (!s) return;
+      const idx = s.items.findIndex(i => i.id === iid);
+      if (idx < 0) return;
+      const swapWith = up ? idx - 1 : idx + 1;
+      if (swapWith < 0 || swapWith >= s.items.length) return;
+      [s.items[idx], s.items[swapWith]] = [s.items[swapWith], s.items[idx]];
+      render();
+      saveState();
       return;
     }
 
