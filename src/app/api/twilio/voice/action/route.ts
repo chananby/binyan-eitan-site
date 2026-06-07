@@ -81,6 +81,7 @@ export async function POST(req: NextRequest) {
   const { data: existing, error: existingErr } = await supabase
     .from("attendance")
     .select("id, clock_at, timestamp_label, created_at")
+    .is("deleted_at", null)
     .eq("staff_id", staffId)
     .eq("action", action)
     .gte("created_at", todayStart)

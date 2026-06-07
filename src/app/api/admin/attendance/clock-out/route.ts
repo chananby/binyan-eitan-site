@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
       timestamp_label,
       clock_at:        now.toISOString(),
       project_id:      project_id || null,
+      source:          "manual",
       // lat/lng intentionally omitted — manual clock-out has no GPS
     });
 

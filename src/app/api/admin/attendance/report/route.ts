@@ -97,6 +97,7 @@ export async function GET(req: NextRequest) {
     let query = supabase
       .from("attendance")
       .select("id, action, clock_at, created_at, staff:staff_id(id, name, phone), project:project_id(name)")
+      .is("deleted_at", null)
       .gte("created_at", dayStartISO(shiftYMD(from, -3)))
       .lte("created_at", dayEndISO(shiftYMD(to, +3)));
 

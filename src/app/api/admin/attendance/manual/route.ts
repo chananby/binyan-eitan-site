@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
     clock_at: clockAt,
     is_manual: true,
     status: "approved",
+    source: "manual",
     lat: null,
     lng: null,
     ...(project_id?.trim() ? { project_id } : {}),

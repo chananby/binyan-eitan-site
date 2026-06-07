@@ -65,6 +65,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const { count, error: cErr } = await supabase
       .from("attendance")
       .select("id", { count: "exact", head: true })
+      .is("deleted_at", null)
       .eq("staff_id", params.id)
       .in("project_id", projectIds);
     if (cErr) {
@@ -88,6 +89,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     supabase
       .from("attendance")
       .select("staff_id, action, clock_at, created_at, status, project:project_id(id, name)")
+      .is("deleted_at", null)
       .eq("staff_id", params.id)
       .gte("created_at", widenedFrom.toISOString())
       .lte("created_at", widenedTo.toISOString())

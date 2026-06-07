@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
   let query: any = supabase
     .from("attendance")
     .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, source, staff:staff_id(id, name, phone), project:project_id(id, name)")
+    .is("deleted_at", null)
     .eq("status", "pending")
     .eq("is_manual", true)
     .order("created_at", { ascending: false });

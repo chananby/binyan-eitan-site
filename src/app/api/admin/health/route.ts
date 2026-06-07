@@ -303,6 +303,7 @@ export async function GET(req: NextRequest) {
     const { count: attCount, error: attErr } = await supabase
       .from("attendance")
       .select("id", { count: "exact", head: true })
+      .is("deleted_at", null)
       .gte("created_at", todayStart);
 
     if (attErr) {

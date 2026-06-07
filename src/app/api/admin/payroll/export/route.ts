@@ -94,6 +94,7 @@ export async function GET(req: NextRequest) {
   let attQuery: any = supabase
     .from("attendance")
     .select("staff_id, action, clock_at, created_at")
+    .is("deleted_at", null)
     .gte("created_at", israelDayStartISO(monthStart))
     .lt("created_at", israelDayStartISO(nextMonth));
   if (projectId) attQuery = attQuery.eq("project_id", projectId);
