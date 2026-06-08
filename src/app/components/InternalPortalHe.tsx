@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { FileText, ClipboardList, Package, Clock, ArrowRight, LayoutDashboard, BarChart2 } from "lucide-react";
+import { FileText, ClipboardList, Package, Clock, ArrowRight } from "lucide-react";
 
+// The two admin entry-points (project management + dashboard) used to live
+// here too, but they led to /admin which requires a second auth step beyond
+// the worker PIN — confusing for regular workers who only have PIN-level
+// access. The pages still exist; chanan and moti reach them via direct URL.
 const tools = [
   {
     href: "/he/change-order",
@@ -16,20 +20,6 @@ const tools = [
     icon: Clock,
     title: "שעון נוכחות",
     desc: "כניסה ויציאה מהאתר עם אימות טלפון ו-GPS",
-    available: true,
-  },
-  {
-    href: "/he/internal/admin",
-    icon: LayoutDashboard,
-    title: "ניהול פרויקטים",
-    desc: "רשימת פרויקטים פעילים, לוחות זמנים ותקציב",
-    available: true,
-  },
-  {
-    href: "/admin",
-    icon: BarChart2,
-    title: "דשבורד",
-    desc: "דוח נוכחות שבועי וסיכום תקציב לעומת ביצוע",
     available: true,
   },
   {
