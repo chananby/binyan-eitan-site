@@ -1,5 +1,5 @@
 /**
- * GET /api/admin/payroll?month=YYYY-MM&project_id=...
+ * GET /api/admin/payroll?month=YYYY-MM&staff_id=...
  *
  * Returns a per-active-staff payroll row for the given month.
  *
@@ -16,9 +16,8 @@
  *   - daily:  days_worked  * daily_rate
  *   - global: monthly_global_salary
  *
- * project_id (optional) filters attendance by project. Workers with no
- * activity on the filtered project still appear with zeroed hours/days
- * (so the report covers the whole team).
+ * staff_id (optional) narrows both the staff list and the attendance scan
+ * to a single worker — drives the admin's per-worker drilldown view.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
@@ -61,7 +60,10 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const month = searchParams.get("month");
-  const projectId = searchParams.get("project_id");
+  // Per-worker drilldown (admin-only) — when set, the staff query is
+  // narrowed to a single id. Replaces the older project_id filter, which
+  // the UI no longer exposes.
+  const staffId = searchParams.get("staff_id");
 
   if (!month || !/^\d{4}-\d{2}$/.test(month)) {
     return NextResponse.json({ error: "month query param required (YYYY-MM)" }, { status: 400 });
@@ -81,12 +83,15 @@ export async function GET(req: NextRequest) {
   // on rows that are already active=false, so any row with active=true has
   // deleted_at=null by invariant. We still surface `deleted_at` per row in
   // case the contract ever loosens; the field is null in practice today.
-  const { data: staffData, error: staffErr } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let staffQuery: any = supabase
     .from("staff")
     .select("id, name, national_id, is_freelancer, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role, deleted_at")
     .eq("active", true)
     .in("role", ["עובד", "ממונה"])
     .order("name", { ascending: true });
+  if (staffId) staffQuery = staffQuery.eq("id", staffId);
+  const { data: staffData, error: staffErr } = await staffQuery;
   if (staffErr) {
     console.error("[payroll] staff err:", staffErr.message);
     return NextResponse.json({ error: staffErr.message }, { status: 500 });
@@ -104,7 +109,7 @@ export async function GET(req: NextRequest) {
     .is("deleted_at", null)
     .gte("created_at", israelDayStartISO(monthStart))
     .lt("created_at", israelDayStartISO(nextMonth));
-  if (projectId) attQuery = attQuery.eq("project_id", projectId);
+  if (staffId) attQuery = attQuery.eq("staff_id", staffId);
   const { data: attData, error: attErr } = await attQuery;
   if (attErr) {
     console.error("[payroll] attendance err:", attErr.message);
@@ -164,5 +169,5 @@ export async function GET(req: NextRequest) {
     };
   });
 
-  return NextResponse.json({ month, project_id: projectId ?? null, rows });
+  return NextResponse.json({ month, staff_id: staffId ?? null, rows });
 }

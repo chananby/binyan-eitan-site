@@ -3,7 +3,7 @@
 import React from "react";
 import {
   BarChart2, Loader2, Download, AlertCircle, Calendar, Plus,
-  AlertTriangle, RefreshCw, Building2, Pencil, History, Phone,
+  AlertTriangle, RefreshCw, Building2, Pencil, History, Phone, UserX,
 } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
@@ -713,6 +713,39 @@ function PendingApprovals({
   );
 }
 
+// ── 3b. Absent-today panel ───────────────────────────────────────────────────
+// Surfaces the names of active workers (role עובד/ממונה, attendance_exempt=false)
+// who haven't clocked in yet today. The set is computed in AdminPortal so the
+// dashboard attention card and this panel stay byte-identical — this component
+// just renders. Hidden when the set is empty, so it's invisible after every
+// expected worker has clocked.
+function AbsentTodayPanel({ staff, absentTodayIds }: {
+  staff: StaffLite[]; absentTodayIds: Set<string>;
+}) {
+  if (absentTodayIds.size === 0) return null;
+  const absentList = staff
+    .filter(s => absentTodayIds.has(s.id))
+    .sort((a, b) => a.name.localeCompare(b.name, "he"));
+  if (absentList.length === 0) return null;
+  return (
+    <Card>
+      <div className="flex items-center gap-2 mb-2">
+        <UserX size={15} strokeWidth={1.5} className="text-amber-500" />
+        <h2 className="font-heading text-sm font-bold text-amber-700">
+          טרם החתימו היום ({absentList.length})
+        </h2>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {absentList.map(s => (
+          <span key={s.id} className="text-xs px-2 py-1 bg-amber-50 border border-amber-200 text-amber-800">
+            {s.name}
+          </span>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 // ── 4. Today's log ───────────────────────────────────────────────────────────
 function TodayLog({
   todayLogs, dataLoading, attLoadErr,
@@ -1010,6 +1043,10 @@ type Props = {
   staff:    StaffLite[];
   projects: ProjectLite[];
   farThresholdM: number;
+  /** Set of active staff_ids who haven't clocked in today. Drives the
+   *  "missing today" panel in the live sub-tab. Already filtered for
+   *  attendance_exempt by the parent. */
+  absentTodayIds: Set<string>;
 
   // TabRefreshBar
   lastRefreshed: Date | null;
@@ -1154,6 +1191,8 @@ export default function AttendanceTab(p: Props) {
       />
 
       {!hasPending && pendingPanel}
+
+      <AbsentTodayPanel staff={p.staff} absentTodayIds={p.absentTodayIds} />
 
       <TodayLog
         todayLogs={p.todayLogs}

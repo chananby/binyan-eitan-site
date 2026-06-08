@@ -60,6 +60,7 @@ const FAR_THRESHOLD_M = 500;
 
 interface StaffEntry {
   id: string; name: string; role: string; active: boolean;
+  attendance_exempt?: boolean;
 }
 
 interface PlanDay { date: string; label: string; short: string; isToday: boolean; isTomorrow: boolean; }
@@ -266,7 +267,12 @@ export default function ForemanPortal({
       // Staff list (for missing-workers calculation)
       if (staffRes.status === "fulfilled" && staffRes.value.ok) {
         const d = await staffRes.value.json();
-        setAllStaff((d.staff ?? []).filter((s: StaffEntry) => s.active && s.role === "עובד"));
+        // attendance_exempt workers (managers on global salary, etc.) aren't
+        // expected to clock in, so they don't belong in the foreman's
+        // "missing today" sweep — exclude here at fetch time.
+        setAllStaff((d.staff ?? []).filter((s: StaffEntry) =>
+          s.active && s.role === "עובד" && !s.attendance_exempt
+        ));
       }
 
       // Weekly burn

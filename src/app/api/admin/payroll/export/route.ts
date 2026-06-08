@@ -1,5 +1,5 @@
 /**
- * GET /api/admin/payroll/export?month=YYYY-MM&type=employees|freelancers&project_id=...
+ * GET /api/admin/payroll/export?month=YYYY-MM&type=employees|freelancers&staff_id=...
  *
  * Returns an XLSX binary of the same data as /api/admin/payroll, formatted
  * for handoff to the accountant. RTL columns + Hebrew headers.
@@ -59,7 +59,9 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const month = searchParams.get("month");
-  const projectId = searchParams.get("project_id");
+  // Per-worker drilldown — mirrors /api/admin/payroll. Replaces the older
+  // project_id filter, which the UI no longer exposes.
+  const staffId = searchParams.get("staff_id");
   const type = searchParams.get("type");
 
   if (!month || !/^\d{4}-\d{2}$/.test(month)) {
@@ -81,13 +83,16 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServerClient();
 
-  const { data: staffData, error: staffErr } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let staffQuery: any = supabase
     .from("staff")
     .select("id, name, national_id, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role, start_date")
     .eq("active", true)
     .eq("is_freelancer", wantFreelancers)
     .in("role", ["עובד", "ממונה"])
     .order("name", { ascending: true });
+  if (staffId) staffQuery = staffQuery.eq("id", staffId);
+  const { data: staffData, error: staffErr } = await staffQuery;
   if (staffErr) return NextResponse.json({ error: staffErr.message }, { status: 500 });
   const staff = (staffData ?? []) as StaffRow[];
 
@@ -98,7 +103,7 @@ export async function GET(req: NextRequest) {
     .is("deleted_at", null)
     .gte("created_at", israelDayStartISO(monthStart))
     .lt("created_at", israelDayStartISO(nextMonth));
-  if (projectId) attQuery = attQuery.eq("project_id", projectId);
+  if (staffId) attQuery = attQuery.eq("staff_id", staffId);
   const { data: attData } = await attQuery;
 
   const { data: vacData } = await supabase
@@ -235,7 +240,7 @@ export async function GET(req: NextRequest) {
   });
 
   const buf = await wb.xlsx.writeBuffer();
-  const filename = `payroll-${type}-${month}${projectId ? "-project" : ""}.xlsx`;
+  const filename = `payroll-${type}-${month}${staffId ? "-worker" : ""}.xlsx`;
   return new NextResponse(buf, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

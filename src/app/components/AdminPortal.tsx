@@ -311,7 +311,7 @@ export default function AdminPortal() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   });
-  const [payrollProject,    setPayrollProject]    = useState<string>("");
+  const [payrollStaffId,    setPayrollStaffId]    = useState<string>("");
   const [payrollRows,       setPayrollRows]       = useState<PayrollRow[]>([]);
   const [payrollLoading,    setPayrollLoading]    = useState(false);
   // Tracks which split-report is currently being downloaded so the buttons
@@ -1025,7 +1025,7 @@ export default function AdminPortal() {
     setPayrollLoading(true);
     try {
       const q = new URLSearchParams({ month: payrollMonth });
-      if (payrollProject) q.set("project_id", payrollProject);
+      if (payrollStaffId) q.set("staff_id", payrollStaffId);
       const res = await fetch(`/api/admin/payroll?${q.toString()}`);
       const data = await res.json();
       if (res.ok) setPayrollRows(data.rows ?? []);
@@ -1040,7 +1040,7 @@ export default function AdminPortal() {
     setPayrollExporting(type);
     try {
       const q = new URLSearchParams({ month: payrollMonth, type });
-      if (payrollProject) q.set("project_id", payrollProject);
+      if (payrollStaffId) q.set("staff_id", payrollStaffId);
       const res = await fetch(`/api/admin/payroll/export?${q.toString()}`);
       if (!res.ok) {
         alert("שגיאה בייצוא: " + res.status);
@@ -1050,7 +1050,7 @@ export default function AdminPortal() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `payroll-${type}-${payrollMonth}${payrollProject ? "-project" : ""}.xlsx`;
+      a.download = `payroll-${type}-${payrollMonth}${payrollStaffId ? "-worker" : ""}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -1506,14 +1506,23 @@ export default function AdminPortal() {
   );
   const delayedCount = tasks.filter(t => t.status === "delayed").length;
   const noGpsCount   = projects.filter(p => p.status === "active" && (p.lat == null || p.lng == null)).length;
+  // Workers who should be on site today and haven't clocked yet. Excludes
+  // attendance_exempt staff (e.g. managers on global salary who aren't
+  // expected to clock) so they don't pollute the count or the absent list.
   let notClockedInCount = 0;
+  let notClockedInIds: Set<string> = new Set();
   if (isAdmin && israelHour >= 9 && israelHour < 14) {
     const clockedIds = new Set(
       todayLogs.filter(r => r.staff?.id).map(r => r.staff!.id)
     );
-    notClockedInCount = staff.filter(
-      s => s.active && (s.role === "עובד" || s.role === "ממונה") && !clockedIds.has(s.id)
-    ).length;
+    const absent = staff.filter(
+      s => s.active
+        && (s.role === "עובד" || s.role === "ממונה")
+        && !s.attendance_exempt
+        && !clockedIds.has(s.id)
+    );
+    notClockedInCount = absent.length;
+    notClockedInIds   = new Set(absent.map(s => s.id));
   }
   const attentionItems: AttentionItem[] = [
     {
@@ -1538,7 +1547,10 @@ export default function AdminPortal() {
       label: "עובדים פעילים שטרם החתימו היום",
       count: notClockedInCount,
       severity: "medium",
-      onClick: () => goToTab("attendance"),
+      // Force the live sub-tab so the admin lands on TodayLog (and the new
+      // missing-today panel beneath it), regardless of where the last
+      // attendance-tab visit left them.
+      onClick: () => { setAttendanceSubTab("live"); goToTab("attendance"); },
     },
     {
       key: "no-gps",
@@ -1861,6 +1873,7 @@ export default function AdminPortal() {
             staff={staff}
             projects={projects}
             farThresholdM={farThresholdM}
+            absentTodayIds={notClockedInIds}
             lastRefreshed={lastRefreshed}
             refreshing={refreshing}
             onTabRefresh={handleTabRefresh}
@@ -2073,16 +2086,18 @@ export default function AdminPortal() {
                     type="month"
                     value={payrollMonth}
                     onChange={e => setPayrollMonth(e.target.value)}
-                    className={INPUT}
+                    className={`${INPUT} text-end`}
                     dir="ltr"
                   />
                 </Field>
-                <Field label="פרויקט (אופציונלי)">
-                  <select value={payrollProject} onChange={e => setPayrollProject(e.target.value)} className={INPUT}>
-                    <option value="">כל הפרויקטים</option>
-                    {activeProjects.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
+                <Field label="עובד (אופציונלי)">
+                  <select value={payrollStaffId} onChange={e => setPayrollStaffId(e.target.value)} className={INPUT}>
+                    <option value="">כל העובדים</option>
+                    {staff
+                      .filter(s => s.active && (s.role === "עובד" || s.role === "ממונה"))
+                      .map(s => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
                   </select>
                 </Field>
                 <div className="flex items-end">
