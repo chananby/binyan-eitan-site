@@ -29,6 +29,9 @@ import ProjectsTab from "../admin/_components/tabs/ProjectsTab";
 import ExpensesTab from "../admin/_components/tabs/ExpensesTab";
 import PlanningTab from "../admin/_components/tabs/PlanningTab";
 import AttendanceTab, { type ManualType, type AttendanceSubTab } from "../admin/_components/tabs/AttendanceTab";
+import LoginScreen from "../admin/_components/tabs/LoginScreen";
+import DashboardTab from "../admin/_components/tabs/DashboardTab";
+import PayrollTab from "../admin/_components/tabs/PayrollTab";
 import type {
   StaffMember, VacationRecord, PayrollRow, AttendanceRecord,
   Project, Task, Milestone, Material, BudgetLine, IncomeRecord,
@@ -1270,107 +1273,19 @@ export default function AdminPortal() {
   // ── Render: login ──────────────────────────────────────────────────────────
   if (authState === "unauthenticated") {
     return (
-      <>
-      <SuccessFlash show={showFlash} onDone={() => setShowFlash(false)} />
-      <div className="relative min-h-screen bg-bone flex flex-col items-center justify-center px-6 gap-8" dir="rtl">
-        <div className="absolute top-5 start-5">
-          <Link href="/he" className="flex items-center gap-1 font-body text-xs text-charcoal/30 hover:text-accent transition-colors duration-200">
-            <ChevronLeft size={14} strokeWidth={1.5} />
-            <span>דף הבית</span>
-          </Link>
-        </div>
-        <Image src="/logo.png" alt="Binyan Eitan" width={120} height={36} className="h-9 w-auto brightness-0 opacity-60" />
-
-        {/* Mode tabs */}
-        <div className="flex border-b border-charcoal/10 w-full max-w-xs">
-          {([["pin", "מנהל עבודה", "PIN"], ["password", "מנהל ראשי", "סיסמה"]] as [LoginMode, string, string][]).map(([mode, label, sub]) => (
-            <button key={mode} onClick={() => { setLoginMode(mode); setPin(""); setEmail(""); setPassword(""); setLoginErr(""); }}
-              className={`flex-1 py-3 text-center transition-colors border-b-2 ${loginMode === mode ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/60"}`}>
-              <p className="text-sm font-semibold">{label}</p>
-              <p className="text-[0.75rem] tracking-widest uppercase text-charcoal/30">{sub}</p>
-            </button>
-          ))}
-        </div>
-
-        <div className="w-full max-w-xs space-y-6">
-          {loginMode === "pin" ? (
-            <>
-              {/* PIN display — 8 circles, max PIN length */}
-              <div className="flex justify-center gap-2">
-                {Array.from({ length: 8 }, (_, i) => (
-                  <div key={i} className={`w-7 h-7 rounded-full border-2 transition-all duration-150 flex items-center justify-center ${
-                    i < pin.length ? "border-accent bg-accent scale-110" : "border-charcoal/15 bg-white"
-                  }`}>
-                    {i < pin.length && <div className="w-2 h-2 rounded-full bg-white" />}
-                  </div>
-                ))}
-              </div>
-              {/* Keypad — dir="ltr" so digits always render 1-2-3 left-to-right */}
-              <div className="grid grid-cols-3 gap-2" dir="ltr">
-                {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((k, i) => (
-                  <button key={i} disabled={loginLoading || !k}
-                    onClick={() => k === "⌫" ? handlePinBackspace() : k && handlePinKey(k)}
-                    className={`h-14 text-xl font-semibold border transition-all active:scale-95 ${
-                      !k ? "invisible" :
-                      k === "⌫" ? "border-charcoal/10 text-charcoal/40 hover:border-accent hover:text-accent" :
-                      "border-charcoal/15 bg-white text-charcoal hover:border-accent hover:text-accent"
-                    } disabled:opacity-40`}>
-                    {k}
-                  </button>
-                ))}
-              </div>
-              {/* Confirm button — visible once ≥4 digits entered */}
-              <button
-                onClick={() => handlePinLogin(pin)}
-                disabled={pin.length < 4 || loginLoading}
-                className="w-full bg-accent py-3.5 font-body text-sm font-semibold tracking-[0.18em] uppercase text-bone hover:bg-accent-dark disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
-              >
-                {loginLoading
-                  ? <><Loader2 size={15} className="animate-spin" /> מאמת...</>
-                  : <><LogIn size={15} /> כניסה</>}
-              </button>
-            </>
-          ) : (
-            <form onSubmit={handlePasswordLogin} className="space-y-3" dir="rtl">
-              <input
-                type="email"
-                autoFocus
-                autoComplete="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="אימייל"
-                dir="ltr"
-                className="w-full border border-charcoal/20 bg-white px-5 py-4 text-center font-body text-base text-charcoal placeholder-charcoal/25 focus:border-accent focus:outline-none transition-colors"
-              />
-              <input
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="סיסמה"
-                className="w-full border border-charcoal/20 bg-white px-5 py-4 text-center font-body text-base text-charcoal placeholder-charcoal/25 focus:border-accent focus:outline-none transition-colors"
-              />
-              <Btn loading={loginLoading} disabled={!email.trim() || !password.trim()}><LogIn size={14} className="inline me-1.5" />כניסה</Btn>
-              <div className="text-center pt-1">
-                <Link href="/admin/forgot-password" className="text-xs text-charcoal/40 hover:text-accent transition-colors">
-                  שכחתי סיסמה
-                </Link>
-              </div>
-            </form>
-          )}
-
-          {loginErr && (
-            <div className="flex items-center justify-center gap-2 text-red-500 text-sm">
-              <AlertCircle size={14} strokeWidth={1.5} />{loginErr}
-            </div>
-          )}
-        </div>
-
-        <p className="font-body text-[0.7rem] tracking-widest uppercase text-charcoal/20">
-          בניין איתן — פורטל ניהול פנימי
-        </p>
-      </div>
-      </>
+      <LoginScreen
+        showFlash={showFlash} onFlashDone={() => setShowFlash(false)}
+        loginMode={loginMode} setLoginMode={setLoginMode}
+        pin={pin} setPin={setPin}
+        email={email} setEmail={setEmail}
+        password={password} setPassword={setPassword}
+        loginErr={loginErr} setLoginErr={setLoginErr}
+        loginLoading={loginLoading}
+        onPinKey={handlePinKey}
+        onPinBackspace={handlePinBackspace}
+        onPinLogin={handlePinLogin}
+        onPasswordLogin={handlePasswordLogin}
+      />
     );
   }
 
@@ -1577,172 +1492,21 @@ export default function AdminPortal() {
 
         {/* ── DASHBOARD ─────────────────────────────────────────────────────── */}
         {tab === "dashboard" && (
-          <div className="space-y-4">
-            <TabRefreshBar loading={refreshing || dataLoading} onRefresh={handleTabRefresh} lastRefreshed={lastRefreshed} />
-            <p className="text-[0.75rem] text-charcoal/30 text-center -mt-2">מתעדכן אוטומטית כל 2 דקות</p>
-
-            {/* Things that need attention — admin only; auto-hides when empty */}
-            {isAdmin && <AttentionPanel items={attentionItems} />}
-
-            {/* On-site */}
-            <Card title="⚡ מי באתר כרגע">
-              {onSite.length === 0 ? (
-                <p className="text-sm text-charcoal/30 text-center py-2">אין עובדים מדווחים כרגע</p>
-              ) : (
-                <div className="divide-y divide-charcoal/5">
-                  {onSite.map(({ record, worker }) => {
-                    const t = record.clock_at
-                      ? new Date(record.clock_at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" })
-                      : new Date(record.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
-                    return (
-                      <div key={record.id} className="flex items-center justify-between py-2.5 gap-3">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">{record.staff?.name ?? "—"}</p>
-                          <p className="text-[0.75rem] text-charcoal/40">{record.staff?.role ?? ""}</p>
-                        </div>
-                        {record.project && (
-                          <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/50">
-                            <Building2 size={10} strokeWidth={1.5} />
-                            <span className="truncate max-w-[80px]">{record.project.name}</span>
-                          </div>
-                        )}
-                        {isAdmin && worker?.daily_rate && (
-                          <span className="text-[0.75rem] text-accent/70 shrink-0">₪{worker.daily_rate}/יום</span>
-                        )}
-                        <span className="text-[0.7rem] text-green-600 tabular-nums shrink-0">מ-{t}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </Card>
-
-            {/* Admin: daily spend */}
-            {isAdmin && (
-              <Card title="💰 עלויות היום">
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center py-1.5 border-b border-charcoal/5">
-                    <span className="text-sm text-charcoal/60">שכר עובדים (אומדן)</span>
-                    <span className="text-sm font-semibold tabular-nums">₪{Math.round(laborEstimate).toLocaleString("he-IL")}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-1.5 border-b border-charcoal/5">
-                    <span className="text-sm text-charcoal/60">הוצאות שנרשמו היום</span>
-                    <span className="text-sm font-semibold tabular-nums">₪{Math.round(todayExpensesTotal).toLocaleString("he-IL")}</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-1">
-                    <span className="text-sm font-bold">סה&quot;כ</span>
-                    <span className="text-base font-bold text-accent tabular-nums">
-                      ₪{Math.round(laborEstimate + todayExpensesTotal).toLocaleString("he-IL")}
-                    </span>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {/* Foreman: project costs */}
-            {isForeman && activeProjects.length > 0 && (
-              <Card title="📊 עלויות לפי פרויקט">
-                <div className="divide-y divide-charcoal/5">
-                  {activeProjects.map(p => {
-                    const expTotal = budget.find(b => b.project_id === p.id)?.total ?? 0;
-                    const taskCount = tasks.filter(t => t.project_id === p.id && t.status !== "completed").length;
-                    return (
-                      <div key={p.id} className="flex items-center justify-between py-2.5 gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">{p.name}</p>
-                          <p className="text-[0.75rem] text-charcoal/40">{taskCount} משימות פעילות</p>
-                        </div>
-                        <span className="text-sm font-bold text-accent tabular-nums shrink-0">
-                          {expTotal > 0 ? `₪${expTotal.toLocaleString("he-IL")}` : "—"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-            )}
-
-            {/* Admin: profitability */}
-            {isAdmin && activeProjects.length > 0 && Object.keys(incomeTotals).length > 0 && (
-              <Card title="📈 רווחיות לפי פרויקט">
-                <div className="divide-y divide-charcoal/5">
-                  {activeProjects.map(p => {
-                    const exp    = budget.find(b => b.project_id === p.id)?.total ?? 0;
-                    const inc    = incomeTotals[p.id] ?? 0;
-                    const profit = inc - exp;
-                    return (
-                      <div key={p.id} className="py-2.5 space-y-1">
-                        <p className="text-sm font-semibold">{p.name}</p>
-                        <div className="grid grid-cols-3 gap-2 text-xs">
-                          <div className="text-center">
-                            <p className="text-[0.75rem] text-charcoal/40">הכנסות</p>
-                            <p className="font-bold text-green-600 tabular-nums">₪{inc.toLocaleString("he-IL")}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-[0.75rem] text-charcoal/40">הוצאות</p>
-                            <p className="font-bold text-red-500 tabular-nums">₪{exp.toLocaleString("he-IL")}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-[0.75rem] text-charcoal/40">רווח נקי</p>
-                            <p className={`font-bold tabular-nums ${profit >= 0 ? "text-green-600" : "text-red-500"}`}>
-                              {profit >= 0 ? "+" : ""}₪{profit.toLocaleString("he-IL")}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-            )}
-
-            {/* Today's tasks */}
-            <Card title="📋 משימות היום">
-              {todayTasks.length === 0 ? (
-                <p className="text-sm text-charcoal/30 text-center py-2">אין משימות פעילות להיום</p>
-              ) : (
-                <div className="divide-y divide-charcoal/5">
-                  {todayTasks.map(t => {
-                    const proj = projects.find(p => p.id === t.project_id);
-                    return (
-                      <div key={t.id} className="flex items-center justify-between py-2.5 gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">{t.task_name}</p>
-                          <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/40 mt-0.5">
-                            {proj && <><Building2 size={9} strokeWidth={1.5} /><span>{proj.name}</span></>}
-                            {t.contractor && <span className="ms-1">· {t.contractor}</span>}
-                          </div>
-                        </div>
-                        <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${STATUS_CLS[t.status]}`}>{STATUS_HE[t.status]}</span>
-                        {t.status !== "in_progress" && (
-                          <button onClick={() => setTaskStatus(t.id, "in_progress")} className="text-[0.75rem] border border-amber-300 px-2 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">הפעל</button>
-                        )}
-                        {t.status !== "completed" && (
-                          <button onClick={() => setTaskStatus(t.id, "completed")} className="text-[0.75rem] border border-green-300 px-2 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">סיים</button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </Card>
-
-            {/* Role breakdown (admin) */}
-            {isAdmin && Object.keys(roleMap).length > 0 && (
-              <Card title="נוכחות לפי תפקיד">
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(roleMap).map(([role, count]) => (
-                    <div key={role} className="flex items-center gap-2 bg-bone px-3 py-1.5 border border-charcoal/10">
-                      <span className="text-sm font-bold text-accent">{count}</span>
-                      <span className="text-xs text-charcoal/60">{role}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-          </div>
+          <DashboardTab
+            isAdmin={isAdmin} isForeman={isForeman}
+            onSite={onSite} laborEstimate={laborEstimate}
+            todayExpensesTotal={todayExpensesTotal}
+            todayTasks={todayTasks} roleMap={roleMap}
+            activeProjects={activeProjects}
+            staff={staff} todayLogs={todayLogs}
+            projects={projects} tasks={tasks}
+            budget={budget} incomeTotals={incomeTotals}
+            refreshing={refreshing} dataLoading={dataLoading}
+            lastRefreshed={lastRefreshed} onTabRefresh={handleTabRefresh}
+            attentionItems={attentionItems}
+            onSetTaskStatus={setTaskStatus}
+          />
         )}
-
         {/* ── ATTENDANCE (admin only) ────────────────────────────────────────── */}
         {tab === "attendance" && isAdmin && (
           <AttendanceTab
@@ -1993,132 +1757,16 @@ export default function AdminPortal() {
 
         {/* ── PAYROLL (admin only) ───────────────────────────────────────────── */}
         {tab === "payroll" && isAdmin && (
-          <div className="space-y-3">
-            <Card>
-              <div className="flex items-center gap-2 mb-3">
-                <DollarSign size={16} strokeWidth={1.5} className="text-accent" />
-                <h2 className="font-heading text-base font-bold">דוח שכר חודשי</h2>
-              </div>
-              <p className="text-xs text-charcoal/50 mb-4 leading-relaxed">
-                בחר חודש ולחץ "טען" לראות סיכום ימי עבודה, שעות, חופשה ושכר ברוטו לכל עובד פעיל.
-                ייצוא ל-XLSX מוכן לשליחה לרוא"ח.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <Field label="חודש">
-                  <input
-                    type="month"
-                    value={payrollMonth}
-                    onChange={e => setPayrollMonth(e.target.value)}
-                    className={`${INPUT} text-end`}
-                    dir="ltr"
-                  />
-                </Field>
-                <Field label="עובד (אופציונלי)">
-                  <select value={payrollStaffId} onChange={e => setPayrollStaffId(e.target.value)} className={INPUT}>
-                    <option value="">כל העובדים</option>
-                    {staff
-                      .filter(s => s.active && (s.role === "עובד" || s.role === "ממונה"))
-                      .map(s => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                  </select>
-                </Field>
-                <div className="flex items-end">
-                  <button
-                    onClick={loadPayroll}
-                    disabled={payrollLoading}
-                    className="w-full bg-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    {payrollLoading ? <><Loader2 size={13} className="animate-spin" /> טוען…</> : "טען נתונים"}
-                  </button>
-                </div>
-              </div>
-
-              {/* Separate export row — one button per accountant report,
-                  spelled out so it's obvious which one downloads which. */}
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  onClick={() => exportPayroll("employees")}
-                  disabled={payrollExporting !== null || payrollLoading}
-                  className="border border-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-accent hover:bg-accent/[0.08] disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
-                  title='ייצוא XLSX של שכירים בלבד (כולל פנסיה וזכאות לחגים)'
-                >
-                  {payrollExporting === "employees"
-                    ? <><Loader2 size={13} className="animate-spin" /> מייצא…</>
-                    : <>📥 דוח שכירים להנה&quot;ח</>}
-                </button>
-                <button
-                  onClick={() => exportPayroll("freelancers")}
-                  disabled={payrollExporting !== null || payrollLoading}
-                  className="border border-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-accent hover:bg-accent/[0.08] disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
-                  title='ייצוא XLSX של עצמאים בלבד (ללא עמודות פנסיה/חגים)'
-                >
-                  {payrollExporting === "freelancers"
-                    ? <><Loader2 size={13} className="animate-spin" /> מייצא…</>
-                    : <>📥 דוח עצמאים להנה&quot;ח</>}
-                </button>
-              </div>
-            </Card>
-
-            {payrollRows.length > 0 && (
-              <Card>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-heading text-sm font-bold">{payrollRows.length} עובדים</h3>
-                  <span className="text-sm font-bold text-accent tabular-nums">
-                    סה"כ ברוטו: ₪{payrollRows.reduce((s, r) => s + r.gross_salary, 0).toLocaleString("he-IL", { maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div className="overflow-x-auto -mx-5 px-5">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-warm-gray-light">
-                        <th className="text-start py-2 font-semibold text-charcoal/60">שם</th>
-                        <th className="text-start py-2 font-semibold text-charcoal/60">סוג</th>
-                        <th className="text-center py-2 font-semibold text-charcoal/60">ימים</th>
-                        <th className="text-center py-2 font-semibold text-charcoal/60">שעות</th>
-                        <th className="text-center py-2 font-semibold text-charcoal/60">חופשה</th>
-                        <th className="text-center py-2 font-semibold text-charcoal/60">חגים</th>
-                        <th className="text-center py-2 font-semibold text-charcoal/60">נסיעות</th>
-                        <th className="text-start py-2 font-semibold text-charcoal/60">פנסיה</th>
-                        <th className="text-end py-2 font-semibold text-charcoal/60">ברוטו</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payrollRows.map(r => (
-                        <tr key={r.staff_id} className="border-b border-charcoal/5">
-                          <td className="py-2 font-semibold">
-                            {r.name}
-                            {r.is_freelancer && (
-                              <span className="ms-2 inline-flex items-center text-[0.65rem] font-semibold tracking-wide px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 align-middle">
-                                עצמאי
-                              </span>
-                            )}
-                            {r.deleted_at && <span className="ms-2 text-[0.75rem] font-normal text-charcoal/40">🗑️ (מחוק)</span>}
-                          </td>
-                          <td className="py-2 text-charcoal/60">
-                            {r.employment_type === "hourly" ? "שעתי" : r.employment_type === "daily" ? "יומי" : "גלובלי"}
-                          </td>
-                          <td className="py-2 text-center tabular-nums">{r.employment_type === "global" && r.days_worked === 0 ? "—" : r.days_worked}</td>
-                          <td className="py-2 text-center tabular-nums">{r.employment_type === "global" && r.hours_worked === 0 ? "—" : r.hours_worked.toFixed(1)}</td>
-                          <td className="py-2 text-center tabular-nums">{r.vacation_days}</td>
-                          <td className="py-2 text-center">{r.holiday_eligible ? "✓" : "—"}</td>
-                          <td className="py-2 text-center">{r.travel_allowance ? "✓" : "—"}</td>
-                          <td className="py-2 text-charcoal/60 truncate max-w-[120px]">{r.pension_status ?? "—"}</td>
-                          <td className="py-2 text-end font-bold text-accent tabular-nums">₪{r.gross_salary.toLocaleString("he-IL", { maximumFractionDigits: 2 })}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
-            )}
-
-            {!payrollLoading && payrollRows.length === 0 && (
-              <Card>
-                <p className="text-sm text-charcoal/30 text-center py-6">לחץ "טען נתונים" לראות דוח לחודש שנבחר.</p>
-              </Card>
-            )}
-          </div>
+          <PayrollTab
+            staff={staff}
+            payrollMonth={payrollMonth}     setPayrollMonth={setPayrollMonth}
+            payrollStaffId={payrollStaffId} setPayrollStaffId={setPayrollStaffId}
+            payrollRows={payrollRows}
+            payrollLoading={payrollLoading}
+            payrollExporting={payrollExporting}
+            onLoadPayroll={loadPayroll}
+            onExportPayroll={exportPayroll}
+          />
         )}
 
         {/* ── ACCOUNT (admin only) ───────────────────────────────────────────── */}
