@@ -18,6 +18,7 @@ export interface ScreenStrings {
   home: string; footer: string;
   myHistory: string; historyTitle: string; noHistory: string; loadingHistory: string; backToForm: string;
   manualBtn: string; manualTitle: string; manualSentTitle: string; manualSentBody: string; pendingBadge: string;
+  manualDateLabel: string; manualTimeIn: string; manualTimeOut: string; manualProjectLabel: string;
   identify: string; identifying: string; tooManyAttempts: string; sessionExpired: string;
   menuPrompt: string; startClock: string; switchUser: string;
 }
@@ -66,6 +67,10 @@ export const T: Record<Lang, ScreenStrings> = {
     manualSentTitle: "הדיווח נשלח ✓",
     manualSentBody: "המנהל יאשר את הדיווח בקרוב",
     pendingBadge: "ממתין לאישור",
+    manualDateLabel: "תאריך",
+    manualTimeIn: "שעת כניסה",
+    manualTimeOut: "שעת יציאה",
+    manualProjectLabel: "אתר (אופציונלי)",
     identify: "המשך",
     identifying: "מאמת...",
     tooManyAttempts: "יותר מדי ניסיונות. נסה שוב בעוד כמה דקות.",
@@ -117,6 +122,10 @@ export const T: Record<Lang, ScreenStrings> = {
     manualSentTitle: "Отметка отправлена ✓",
     manualSentBody: "Менеджер скоро подтвердит её",
     pendingBadge: "Ожидает подтверждения",
+    manualDateLabel: "Дата",
+    manualTimeIn: "Время прихода",
+    manualTimeOut: "Время ухода",
+    manualProjectLabel: "Объект (необязательно)",
     identify: "Продолжить",
     identifying: "Проверка...",
     tooManyAttempts: "Слишком много попыток. Попробуйте через несколько минут.",

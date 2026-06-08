@@ -50,16 +50,23 @@ export default function ManualScreen(p: Props) {
         </button>
       </div>
 
-      {/* Date + Time */}
-      <div className="w-full grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <p className="font-body text-[0.75rem] text-charcoal/50 font-semibold tracking-wide uppercase">תאריך</p>
+      {/* Date + Time — date takes 2/3 of the row, time takes 1/3.
+          Even-split grid-cols-2 leaves the time input visually overweight
+          because <input type="time"> renders its own clock-icon padding;
+          a 2:1 ratio is closer to the natural information density (date
+          is "DD/MM/YYYY" while time is just "HH:MM"). */}
+      <div className="w-full grid grid-cols-3 gap-3">
+        <div className="col-span-2 space-y-1">
+          <p className="font-body text-[0.75rem] text-charcoal/50 font-semibold tracking-wide uppercase">{p.t.manualDateLabel}</p>
           <input type="date" value={p.manualDate} max={todayIso} onChange={e => p.setManualDate(e.target.value)}
             className="w-full border border-charcoal/20 bg-white px-3 py-3 font-body text-sm text-charcoal focus:border-accent focus:outline-none transition-colors" dir="ltr" />
         </div>
-        <div className="space-y-1">
-          <p className="font-body text-[0.75rem] text-charcoal/50 font-semibold tracking-wide uppercase">שעה</p>
+        <div className="col-span-1 space-y-1">
+          <p className="font-body text-[0.75rem] text-charcoal/50 font-semibold tracking-wide uppercase">
+            {p.manualAction === "in" ? p.t.manualTimeIn : p.t.manualTimeOut}
+          </p>
           <input type="time" value={p.manualTime} onChange={e => p.setManualTime(e.target.value)}
+            placeholder="HH:MM"
             className="w-full border border-charcoal/20 bg-white px-3 py-3 font-body text-sm text-charcoal focus:border-accent focus:outline-none transition-colors" dir="ltr" />
         </div>
       </div>
@@ -67,7 +74,7 @@ export default function ManualScreen(p: Props) {
       {/* Project (optional) */}
       {p.projects.length > 0 && (
         <div className="w-full space-y-1">
-          <p className="font-body text-[0.75rem] text-charcoal/50 font-semibold tracking-wide uppercase">אתר (אופציונלי)</p>
+          <p className="font-body text-[0.75rem] text-charcoal/50 font-semibold tracking-wide uppercase">{p.t.manualProjectLabel}</p>
           <select value={p.manualProject} onChange={e => p.setManualProject(e.target.value)}
             className="w-full border border-charcoal/20 bg-white px-3 py-3 font-body text-sm text-charcoal focus:border-accent focus:outline-none transition-colors">
             <option value="">— ללא אתר —</option>
