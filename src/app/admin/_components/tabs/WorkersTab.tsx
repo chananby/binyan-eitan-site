@@ -7,6 +7,7 @@ import { Field } from "../shared/Field";
 import { Btn } from "../shared/Btn";
 import { TabRefreshBar } from "../shared/TabRefreshBar";
 import { INPUT } from "../shared/constants";
+import RateManager from "../shared/RateManager";
 import { AutoGrowTextarea } from "../../../components/AutoGrowTextarea";
 
 type EmploymentType = "hourly" | "daily" | "global";
@@ -31,6 +32,9 @@ interface StaffMember {
   start_date?: string | null;
   notes?: string | null;
   has_pin?: boolean;
+  /** Whether the worker has a usable rate (staff_rates) for the current
+   *  month. Set by /api/admin/staff GET. Drives the ⚠️ marker. */
+  has_rate?: boolean;
 }
 
 type Props = {
@@ -408,6 +412,15 @@ function renderStaffRow(
           <button type="submit" disabled={p.editLoading} className="flex-1 bg-accent py-2 text-xs font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">{p.editLoading ? "שומר..." : "שמור"}</button>
           <button type="button" onClick={() => p.setEditingId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/50 hover:border-accent transition-colors">ביטול</button>
         </div>
+        {/* Per-month rate history + "add new rate" — inserted as a sibling
+            block so its own fetch state is isolated from the edit form's
+            submit cycle. onRateChanged → parent reloads the worker list so
+            the ⚠️ flag on this row disappears. */}
+        <RateManager
+          staffId={s.id}
+          employmentType={p.editEmploymentType}
+          onRateChanged={p.onReload}
+        />
       </form>
     );
   }
@@ -415,7 +428,16 @@ function renderStaffRow(
   return (
     <div key={s.id} className={`flex items-center justify-between py-3 gap-2 ${isInactive ? "opacity-60" : ""}`}>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold truncate">{s.name}</p>
+        <p className="text-sm font-semibold truncate flex items-center gap-1.5">
+          {/* ⚠️ flag: this active worker has no usable rate for the current
+              month, so payroll would compute against fallback / NULL.
+              Skipped for role='מנהל' — managers aren't on payroll, so a
+              missing rate there is expected, not a bug. */}
+          {!isInactive && s.has_rate === false && s.role !== "מנהל" && (
+            <span title="חסר תעריף לחודש הנוכחי — דרוש עדכון" className="text-amber-600">⚠️</span>
+          )}
+          {s.name}
+        </p>
         <p className="text-[0.7rem] text-charcoal/40 tabular-nums" dir="ltr">{s.phone}</p>
         {(s.hourly_rate || s.daily_rate) && (
           <p className="text-[0.75rem] text-accent/70">

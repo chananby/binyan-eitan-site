@@ -31,6 +31,7 @@ import {
   type AttendanceRec,
   type VacationRec,
 } from "../../../../lib/payroll-aggregate";
+import { getRatesForMonth } from "../../../../lib/staff-rates";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -124,10 +125,23 @@ export async function GET(req: NextRequest) {
   const attStats = aggregateAttendance((attData ?? []) as AttendanceRow[], month);
   const vacStats = aggregateVacation((vacData ?? []) as VacationRow[]);
 
+  // Rates for the report month from staff_rates (per-month history). Each
+  // worker's row in the response reports which source it used so the UI can
+  // ⚠️-flag fallback cases.
+  const ratesMap = await getRatesForMonth(supabase, staff.map((s) => s.id), month);
+
   const rows = staff.map((s) => {
     const stats = attStats.get(s.id) ?? { days: 0, hours: 0 };
     const vacation_days = vacStats.get(s.id) ?? 0;
-    const gross_salary = computeGross(s, stats);
+    const rateRow  = ratesMap.get(s.id) ?? null;
+    // Fallback: when no staff_rates row applies, fall back to the legacy
+    // staff columns. UI marks the row "needs rate setup".
+    const effectiveRates = rateRow ?? {
+      hourly_rate: s.hourly_rate,
+      daily_rate: s.daily_rate,
+      monthly_global_salary: s.monthly_global_salary,
+    };
+    const gross_salary = computeGross(s, effectiveRates, stats);
     return {
       staff_id: s.id,
       name: s.name,
@@ -136,9 +150,11 @@ export async function GET(req: NextRequest) {
       employment_type: s.employment_type,
       days_worked: stats.days,
       hours_worked: stats.hours,
-      hourly_rate: s.hourly_rate,
-      daily_rate: s.daily_rate,
-      monthly_global_salary: s.monthly_global_salary,
+      hourly_rate: effectiveRates.hourly_rate,
+      daily_rate:  effectiveRates.daily_rate,
+      monthly_global_salary: effectiveRates.monthly_global_salary,
+      rate_source: rateRow ? "staff_rates" : "staff_legacy",
+      rate_missing: !rateRow,
       vacation_days,
       holiday_eligible: s.holiday_eligible,
       travel_allowance: s.travel_allowance,

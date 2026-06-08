@@ -21,6 +21,7 @@ import {
   aggregateAttendance,
   type AttendanceRec,
 } from "../../../../../lib/payroll-aggregate";
+import { getRatesForMonth } from "../../../../../lib/staff-rates";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -202,11 +203,22 @@ export async function GET(req: NextRequest) {
   headerRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE8E7E3" } };
   headerRow.height = 22;
 
+  // Rates for the *current* month — same source-of-truth as payroll.
+  // Workers without a staff_rates row fall back to legacy staff columns
+  // and get a "⚠️" prefix on their name cell.
+  const currentMonth = todayYmd.slice(0, 7); // YYYY-MM
+  const ratesMap = await getRatesForMonth(supabase, staff.map((s) => s.id), currentMonth);
+
   for (const s of staff) {
     const stats = combined.get(s.id) ?? { days: 0, hours: 0 };
     const last  = lastSeenMap.get(s.id) ?? null;
+    const rateRow = ratesMap.get(s.id) ?? null;
+    const rates = rateRow ?? {
+      hourly_rate: s.hourly_rate,
+      daily_rate:  s.daily_rate,
+    };
     sheet.addRow({
-      name:            s.name,
+      name:            (rateRow ? "" : "⚠️ ") + s.name,
       national_id:     s.national_id ?? "",
       phone:           s.phone ?? "",
       role:            s.role,
@@ -214,8 +226,8 @@ export async function GET(req: NextRequest) {
       start_date:      s.start_date ? ymdToDDMMYYYY(s.start_date) : "",
       tenure:          tenureLabel(s.start_date),
       employment_type: EMPLOYMENT_LABELS[s.employment_type] ?? s.employment_type,
-      hourly_rate:     s.employment_type === "hourly" ? (s.hourly_rate ?? 0) : "",
-      daily_rate:      s.employment_type === "daily"  ? (s.daily_rate  ?? 0) : "",
+      hourly_rate:     s.employment_type === "hourly" ? (rates.hourly_rate ?? 0) : "",
+      daily_rate:      s.employment_type === "daily"  ? (rates.daily_rate  ?? 0) : "",
       travel:          s.travel_allowance ? "כן" : "לא",
       pension:         s.pension_status ?? "",
       holiday:         s.holiday_eligible ? "כן" : "לא",

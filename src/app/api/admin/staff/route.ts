@@ -3,6 +3,7 @@ import { createServerClient } from "../../../../lib/supabase";
 import {
   isAuthedFromRequest,
   isAdminAuthedFromRequest,
+  getAdminIdFromRequest,
   getAdminRoleFromRequest,
   getForemanStaffIdFromRequest,
 } from "../../../../lib/admin-auth";
@@ -71,7 +72,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const staff = (data ?? []).map(({ pin, ...rest }) => ({ ...rest, has_pin: !!pin }));
+  // Per-worker "do they have a usable rate for the current month?" flag —
+  // drives the ⚠️ marker the WorkersTab paints next to workers who'd
+  // produce a wrong payroll number until the admin sets a rate.
+  const staffIds = (data ?? []).map((s) => s.id);
+  const { getRatesForMonth, hasValidRate } = await import("../../../../lib/staff-rates");
+  const currentYM = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" }).slice(0, 7);
+  const ratesMap = await getRatesForMonth(supabase, staffIds, currentYM);
+
+  const staff = (data ?? []).map(({ pin, ...rest }) => {
+    const r = ratesMap.get(rest.id) ?? null;
+    return {
+      ...rest,
+      has_pin: !!pin,
+      has_rate: hasValidRate(r, rest.employment_type),
+    };
+  });
   return NextResponse.json({ staff });
 }
 
@@ -126,6 +142,24 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Required-rate enforcement: a new worker must have a rate for the
+  // employment_type the admin picked. The legacy staff columns are still
+  // written (so old report code keeps working) but the real source of
+  // truth is the staff_rates row we'll insert just below.
+  const effectiveEmpType = employment_type ?? "hourly";
+  const ratesForEmpType: Record<string, number | null | undefined> = {
+    hourly: hourly_rate,
+    daily:  daily_rate,
+    global: monthly_global_salary,
+  };
+  const initialRate = ratesForEmpType[effectiveEmpType];
+  if (!initialRate || initialRate <= 0) {
+    return NextResponse.json(
+      { error: `חובה להזין תעריף (${effectiveEmpType === "hourly" ? "שעתי" : effectiveEmpType === "daily" ? "יומי" : "גלובלי"}) לפני שמירה` },
+      { status: 400 },
+    );
+  }
+
   const normalizedPhone = normalizePhone(phone);
   if (normalizedPhone.length < 9) {
     return NextResponse.json({ error: "מספר טלפון לא תקין" }, { status: 400 });
@@ -173,6 +207,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "מספר טלפון זה כבר קיים במערכת" }, { status: 409 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Seed the worker's first staff_rates row for the current Israel-local
+  // month — the per-month rate history starts from "now". We log but
+  // don't fail the request on a rate-insert error; the worker exists and
+  // the UI will flag them ⚠️ until the admin reopens and saves a rate.
+  try {
+    const todayYmd = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
+    const effective_month = todayYmd.slice(0, 7) + "-01"; // YYYY-MM-01
+    const adminId = getAdminIdFromRequest(req);
+    let created_by = "admin:unknown";
+    if (adminId) {
+      const { data: adminRow } = await supabase
+        .from("admins").select("name").eq("id", adminId).maybeSingle();
+      created_by = adminRow?.name ? `admin:${adminRow.name}` : `admin:${adminId.slice(0, 8)}`;
+    }
+    await supabase.from("staff_rates").upsert({
+      staff_id: data.id,
+      effective_month,
+      hourly_rate: hourly_rate ?? null,
+      daily_rate: daily_rate ?? null,
+      monthly_global_salary: monthly_global_salary ?? null,
+      created_by,
+    }, { onConflict: "staff_id,effective_month" });
+  } catch (e) {
+    console.warn("[admin/staff POST] staff_rates seed failed:", e instanceof Error ? e.message : String(e));
   }
 
   const { pin: _pin, ...rest } = data;

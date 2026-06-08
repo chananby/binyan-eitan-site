@@ -17,6 +17,15 @@ export interface PayrollStaff {
   monthly_global_salary: number | null;
 }
 
+/** Just the three rate numbers — supplied to computeGross from either the
+ *  per-month staff_rates row (preferred) or the legacy staff columns
+ *  (fallback). Kept narrow so call sites can pass either source uniformly. */
+export interface PayRates {
+  hourly_rate: number | null;
+  daily_rate: number | null;
+  monthly_global_salary: number | null;
+}
+
 export interface AttendanceRec {
   staff_id: string;
   action: string;
@@ -96,10 +105,19 @@ export function aggregateVacation(records: VacationRec[]): Map<string, number> {
   return out;
 }
 
-/** Gross salary by employment type. */
-export function computeGross(s: PayrollStaff, stats: AttendanceStats): number {
-  if (s.employment_type === "global") return s.monthly_global_salary ?? 0;
-  if (s.employment_type === "daily")  return (s.daily_rate ?? 0) * stats.days;
+/** Gross salary by employment type.
+ *
+ *  Note the signature change: the rate values now arrive as a separate
+ *  `rates` argument instead of being read off the staff row. This forces
+ *  every caller to be explicit about *which* rate set they're using —
+ *  the per-month staff_rates row for the period being computed, or the
+ *  legacy staff columns as fallback. The old single-argument signature
+ *  silently used the current staff columns regardless of the report
+ *  month, which got the wrong number any time a rate had changed since.
+ */
+export function computeGross(s: { employment_type: string }, rates: PayRates | null, stats: AttendanceStats): number {
+  if (s.employment_type === "global") return (rates?.monthly_global_salary ?? 0);
+  if (s.employment_type === "daily")  return ((rates?.daily_rate ?? 0)) * stats.days;
   // hourly (default)
-  return Math.round((s.hourly_rate ?? 0) * stats.hours * 100) / 100;
+  return Math.round((rates?.hourly_rate ?? 0) * stats.hours * 100) / 100;
 }

@@ -23,6 +23,7 @@ import {
   type AttendanceRec,
   type VacationRec,
 } from "../../../../../lib/payroll-aggregate";
+import { getRatesForMonth } from "../../../../../lib/staff-rates";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -160,25 +161,36 @@ export async function GET(req: NextRequest) {
   headerRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE8E7E3" } };
   headerRow.height = 22;
 
+  // Rates for the report month — source-of-truth for the gross math.
+  // Workers with no staff_rates row fall back to staff legacy columns and
+  // get a "⚠️" prefix on their name cell so the accountant sees them.
+  const ratesMap = await getRatesForMonth(supabase, staff.map((s) => s.id), month);
+
   // Data rows
   let grandTotal = 0;
   for (const s of staff) {
     const att = attMap.get(s.id) ?? { days: 0, hours: 0 };
     const vac = vacMap.get(s.id) ?? 0;
-    const gross = computeGross(s, att);
+    const rateRow  = ratesMap.get(s.id) ?? null;
+    const rates    = rateRow ?? {
+      hourly_rate: s.hourly_rate,
+      daily_rate: s.daily_rate,
+      monthly_global_salary: s.monthly_global_salary,
+    };
+    const gross = computeGross(s, rates, att);
     grandTotal += gross;
 
     sheet.addRow({
-      name:            s.name,
+      name:            (rateRow ? "" : "⚠️ ") + s.name,
       national_id:     s.national_id ?? "",
       // Display as DD/MM/YYYY for the accountant; empty if not set.
       start_date:      s.start_date ? s.start_date.split("-").reverse().join("/") : "",
       employment_type: EMPLOYMENT_LABELS[s.employment_type] ?? s.employment_type,
       days_worked:     att.days,
       hours_worked:    att.hours,
-      hourly_rate:     s.employment_type === "hourly" ? (s.hourly_rate ?? 0) : "",
-      daily_rate:      s.employment_type === "daily"  ? (s.daily_rate  ?? 0) : "",
-      monthly_global:  s.employment_type === "global" ? (s.monthly_global_salary ?? 0) : "",
+      hourly_rate:     s.employment_type === "hourly" ? (rates.hourly_rate ?? 0) : "",
+      daily_rate:      s.employment_type === "daily"  ? (rates.daily_rate  ?? 0) : "",
+      monthly_global:  s.employment_type === "global" ? (rates.monthly_global_salary ?? 0) : "",
       vacation_days:   vac,
       holiday:         s.holiday_eligible ? "כן" : "לא",
       travel:          s.travel_allowance ? "כן" : "לא",
