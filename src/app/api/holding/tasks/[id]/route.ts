@@ -5,20 +5,9 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getExecAuthorFromRequest } from "../../../../../lib/exec-auth";
 
 export const runtime = "nodejs";
-
-// ── Inline auth ────────────────────────────────────────────────────────────────
-function resolveAuthor(req: NextRequest): "Hanan" | "Moti" | null {
-  try {
-    const cookie = req.cookies.get("be_exec_token")?.value ?? "";
-    if (cookie === "AUTHORIZED_HANAN") return "Hanan";
-    if (cookie === "AUTHORIZED_MOTI")  return "Moti";
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 // ── PATCH ─────────────────────────────────────────────────────────────────────
 export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
@@ -27,7 +16,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   try {
 
     // 1. Auth
-    const author = resolveAuthor(req);
+    const author = getExecAuthorFromRequest(req);
     if (!author) {
       return NextResponse.json(
         { error: "Unauthorized", debug: { cookie_present: !!req.cookies.get("be_exec_token") } },
@@ -118,7 +107,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
 export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   try {
-    const author = resolveAuthor(req);
+    const author = getExecAuthorFromRequest(req);
     if (!author) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

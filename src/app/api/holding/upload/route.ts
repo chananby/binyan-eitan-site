@@ -8,19 +8,13 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getExecAuthorFromRequest } from "../../../../lib/exec-auth";
 
 export const runtime = "nodejs";
 
-function resolveAuthor(req: NextRequest): "Hanan" | "Moti" | null {
-  const cookie = req.cookies.get("be_exec_token")?.value ?? "";
-  if (cookie === "AUTHORIZED_HANAN") return "Hanan";
-  if (cookie === "AUTHORIZED_MOTI")  return "Moti";
-  return null;
-}
-
 export async function POST(req: NextRequest) {
   try {
-    if (!resolveAuthor(req)) {
+    if (!getExecAuthorFromRequest(req)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

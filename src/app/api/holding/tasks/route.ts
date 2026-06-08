@@ -1,9 +1,12 @@
 /**
  * Bunker build — fully self-contained, no helper imports that can fail silently.
+ * (Exception: getExecAuthorFromRequest is a same-repo lib helper carrying the
+ *  signed-cookie verification; it can't fail silently — it just returns null.)
  * Returns JSON on every code path.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getExecAuthorFromRequest } from "../../../../lib/exec-auth";
 
 export const runtime = "nodejs";
 
@@ -17,17 +20,10 @@ function getSupabase() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
-function resolveAuthor(req: NextRequest): "Hanan" | "Moti" | null {
-  const cookie = req.cookies.get("be_exec_token")?.value ?? "";
-  if (cookie === "AUTHORIZED_HANAN") return "Hanan";
-  if (cookie === "AUTHORIZED_MOTI")  return "Moti";
-  return null;
-}
-
 // ── GET ───────────────────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
   try {
-    if (!resolveAuthor(req)) {
+    if (!getExecAuthorFromRequest(req)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -64,7 +60,7 @@ export async function GET(req: NextRequest) {
 // ── POST ──────────────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
-    const author = resolveAuthor(req);
+    const author = getExecAuthorFromRequest(req);
     if (!author) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
