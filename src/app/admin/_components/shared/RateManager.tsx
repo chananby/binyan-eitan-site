@@ -49,6 +49,10 @@ function nextMonthYM(): string {
   return `${ny}-${String(nm).padStart(2, "0")}`;
 }
 
+function currentMonthYM(): string {
+  return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" }).slice(0, 7);
+}
+
 export default function RateManager(p: Props) {
   const [rates, setRates]   = useState<RateRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,6 +87,28 @@ export default function RateManager(p: Props) {
     if (p.employmentType === "global") return r.monthly_global_salary;
     if (p.employmentType === "daily")  return r.daily_rate;
     return r.hourly_rate;
+  }
+
+  // "Does this worker have a row whose rate carries the current month?" —
+  // mirrors the server-side getRatesForMonth lookup for currentMonthYM():
+  // the relevant row is the most recent with effective_month <= "YYYY-MM-01",
+  // and "valid" means the field for this employment_type is > 0.
+  // Drives the smart default below.
+  function hasValidCurrentMonthRate(): boolean {
+    const targetFirst = currentMonthYM() + "-01";
+    // `rates` arrives newest-first from the API, so the first row with
+    // effective_month <= target is the one that would apply.
+    const applicable = rates.find(r => r.effective_month <= targetFirst);
+    if (!applicable) return false;
+    const v = rateValue(applicable);
+    return (Number(v) || 0) > 0;
+  }
+
+  // Default month when opening the add-rate form:
+  //  - no usable current-month rate → current month (one-click fix for ⚠️)
+  //  - already has a valid rate     → next month (planned future change)
+  function defaultMonthForOpen(): string {
+    return hasValidCurrentMonthRate() ? nextMonthYM() : currentMonthYM();
   }
 
   async function submit(e: React.FormEvent) {
@@ -120,7 +146,7 @@ export default function RateManager(p: Props) {
         {!open && (
           <button
             type="button"
-            onClick={() => { setOpen(true); setMonth(nextMonthYM()); setAmount(""); setFormErr(null); }}
+            onClick={() => { setOpen(true); setMonth(defaultMonthForOpen()); setAmount(""); setFormErr(null); }}
             className="text-[0.7rem] inline-flex items-center gap-1 border border-accent/40 text-accent px-2 py-1 hover:bg-accent hover:text-bone transition-colors"
           >
             <Plus size={11} strokeWidth={2} /> עדכן תעריף

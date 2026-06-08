@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
-import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
+import { isAdminAuthedFromRequest, getAdminIdFromRequest } from "../../../../../lib/admin-auth";
 import { normalizePhone } from "../../../../../lib/phone";
 
 export const runtime = "nodejs";
@@ -117,6 +117,46 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     console.error("[admin/staff PATCH]", JSON.stringify(error));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Mirror rate changes into the per-month rate history. Until now the
+  // edit-worker form's "שכר שעתי/יומי/גלובלי" inputs wrote *only* to the
+  // legacy staff.{hourly_rate,daily_rate,monthly_global_salary} columns —
+  // staff_rates stayed untouched, so payroll's has_rate check (which reads
+  // only staff_rates) kept flagging ⚠️ even after a save. We now upsert a
+  // staff_rates row for the current Israel-calendar month whenever any
+  // rate column was sent in the body, mirroring the POST flow's seed step.
+  // Legacy columns are still written above as a defensive fallback so old
+  // code paths that read staff.*_rate keep working.
+  const rateTouched = body.hourly_rate !== undefined
+                   || body.daily_rate  !== undefined
+                   || body.monthly_global_salary !== undefined;
+  if (rateTouched) {
+    try {
+      const todayYmd = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
+      const effective_month = todayYmd.slice(0, 7) + "-01"; // YYYY-MM-01
+      const adminId = getAdminIdFromRequest(req);
+      let created_by = "admin:unknown";
+      if (adminId) {
+        const { data: adminRow } = await supabase
+          .from("admins").select("name").eq("id", adminId).maybeSingle();
+        created_by = adminRow?.name ? `admin:${adminRow.name}` : `admin:${adminId.slice(0, 8)}`;
+      }
+      // Use the resulting staff row's values (not the request body) so any
+      // field the body omitted gets the current persisted value rather than
+      // a null override that would wipe an existing rate channel.
+      await supabase.from("staff_rates").upsert({
+        staff_id: params.id,
+        effective_month,
+        hourly_rate: data.hourly_rate ?? null,
+        daily_rate:  data.daily_rate  ?? null,
+        monthly_global_salary: data.monthly_global_salary ?? null,
+        created_by,
+      }, { onConflict: "staff_id,effective_month" });
+    } catch (e) {
+      console.warn("[admin/staff PATCH] staff_rates mirror failed:", e instanceof Error ? e.message : String(e));
+    }
+  }
+
   const { pin: _pin, ...rest } = data;
   return NextResponse.json({ staff: { ...rest, has_pin: !!_pin } });
 }
