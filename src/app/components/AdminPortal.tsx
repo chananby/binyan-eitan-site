@@ -29,6 +29,11 @@ import ProjectsTab from "../admin/_components/tabs/ProjectsTab";
 import ExpensesTab from "../admin/_components/tabs/ExpensesTab";
 import PlanningTab from "../admin/_components/tabs/PlanningTab";
 import AttendanceTab, { type ManualType, type AttendanceSubTab } from "../admin/_components/tabs/AttendanceTab";
+import type {
+  StaffMember, VacationRecord, PayrollRow, AttendanceRecord,
+  Project, Task, Milestone, Material, BudgetLine, IncomeRecord,
+  AttReportRow, AttSummaryRow, AttReportData,
+} from "../admin/_components/types";
 import type { WorkerHistoryDay } from "../../lib/worker-history-aggregate";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -52,89 +57,7 @@ const HASH_TO_TAB: Record<string, AdminTab> = {
   account:    "account",
 };
 
-interface StaffMember {
-  id: string; name: string; phone: string; role: string; active: boolean;
-  national_id?: string | null; hourly_rate?: number | null; daily_rate?: number | null;
-  employment_type?: "hourly" | "daily" | "global";
-  monthly_global_salary?: number | null;
-  travel_allowance?: boolean;
-  pension_status?: string | null;
-  holiday_eligible?: boolean;
-  is_freelancer?: boolean;
-  attendance_exempt?: boolean;
-  start_date?: string | null;
-  notes?: string | null;
-  has_pin?: boolean;
-}
-interface VacationRecord {
-  id: string;
-  staff_id: string;
-  date: string;
-  half_day: boolean;
-  notes: string | null;
-}
-interface PayrollRow {
-  staff_id: string;
-  name: string;
-  national_id: string | null;
-  is_freelancer?: boolean;
-  employment_type: string;
-  days_worked: number;
-  hours_worked: number;
-  hourly_rate: number | null;
-  daily_rate: number | null;
-  monthly_global_salary: number | null;
-  vacation_days: number;
-  holiday_eligible: boolean;
-  travel_allowance: boolean;
-  pension_status: string | null;
-  gross_salary: number;
-  deleted_at?: string | null;
-}
-interface AttendanceRecord {
-  id: string; action: string; timestamp_label: string; recorded_at: string;
-  clock_at?: string | null; created_at?: string; is_manual?: boolean; status?: string;
-  lat?: string | null; lng?: string | null;
-  distance_from_project_m?: number | null;
-  source?: string | null;
-  staff: { id: string; name: string; phone: string; role?: string } | null;
-  project: { id: string; name: string } | null;
-}
-interface Project {
-  id: string;
-  name: string;
-  status?: string;
-  address?: string | null;
-  lat?: number | null;
-  lng?: number | null;
-  foreman_id?: string | null;
-}
-interface Task {
-  id: string; project_id: string; milestone_id: string | null; task_name: string;
-  start_date: string | null; end_date: string | null; contractor: string | null;
-  status: "planned" | "in_progress" | "completed" | "delayed";
-  notes: string | null; project?: { id: string; name: string } | null;
-  material_ready: boolean; sub_confirmed: boolean; equipment_on_site: boolean;
-  delay_reason: string | null;
-}
-interface Milestone {
-  id: string; project_id: string; name: string; description: string | null;
-  target_date: string | null; status: "pending" | "in_progress" | "completed";
-  created_at: string; project?: { id: string; name: string } | null;
-}
-interface Material {
-  id: string; project_id: string; material_name: string; quantity: number;
-  unit: string; supplier: string | null; cost: number | null; category?: string; received_at: string | null;
-}
-interface BudgetLine { project_id: string; project_name: string; total: number; }
-interface IncomeRecord {
-  id: string; project_id: string; amount: number; description: string | null;
-  received_date: string; created_at: string; project?: { id: string; name: string } | null;
-}
-// Attendance report types (shared between in-app view and print/PDF export)
-interface AttReportRow    { staff_name: string; staff_phone: string; date: string; entry: string; exit: string; hours: number | null; project: string; }
-interface AttSummaryRow   { name: string; phone: string; days: number; hours: number; }
-interface AttReportData   { rows: AttReportRow[]; summary: AttSummaryRow[]; from: string; to: string; }
+// Entity types are exported from ../admin/_components/types — imported above.
 
 const MILESTONE_STATUS_HE: Record<string, string>  = { pending: "ממתין", in_progress: "בביצוע", completed: "הושלם" };
 const MILESTONE_STATUS_CLS: Record<string, string> = {
