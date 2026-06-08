@@ -8,6 +8,7 @@ import { Btn } from "../shared/Btn";
 import { TabRefreshBar } from "../shared/TabRefreshBar";
 import { INPUT } from "../shared/constants";
 import RateManager from "../shared/RateManager";
+import EmploymentSection from "../shared/EmploymentSection";
 import { AutoGrowTextarea } from "../../../components/AutoGrowTextarea";
 
 type EmploymentType = "hourly" | "daily" | "global";
@@ -29,6 +30,7 @@ interface StaffMember {
   pension_status?: string | null;
   holiday_eligible?: boolean;
   is_freelancer?: boolean;
+  attendance_exempt?: boolean;
   start_date?: string | null;
   notes?: string | null;
   has_pin?: boolean;
@@ -53,6 +55,7 @@ type Props = {
   newHolidayEligible: boolean; setNewHolidayEligible: (v: boolean) => void;
   newPensionStatus: string;   setNewPensionStatus:   (v: string) => void;
   newIsFreelancer: boolean;   setNewIsFreelancer:    (v: boolean) => void;
+  newAttendanceExempt: boolean; setNewAttendanceExempt: (v: boolean) => void;
   newStartDate: string;       setNewStartDate:       (v: string) => void;
   newNotes: string;           setNewNotes:           (v: string) => void;
   newPin: string;             setNewPin:             (v: string) => void;
@@ -74,6 +77,7 @@ type Props = {
   editHolidayEligible: boolean; setEditHolidayEligible: (v: boolean) => void;
   editPensionStatus: string;  setEditPensionStatus:   (v: string) => void;
   editIsFreelancer: boolean;  setEditIsFreelancer:    (v: boolean) => void;
+  editAttendanceExempt: boolean; setEditAttendanceExempt: (v: boolean) => void;
   editStartDate: string;      setEditStartDate:       (v: string) => void;
   editNotes: string;          setEditNotes:           (v: string) => void;
   editPin: string;            setEditPin:             (v: string) => void;
@@ -230,24 +234,16 @@ export default function WorkersTab(p: Props) {
               <input type="date" value={p.newStartDate} onChange={e => p.setNewStartDate(e.target.value)} className={INPUT} dir="ltr" />
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="סוג העסקה">
-              <select value={p.newEmploymentType} onChange={e => p.setNewEmploymentType(e.target.value as EmploymentType)} className={INPUT}>
-                <option value="hourly">שעתי</option>
-                <option value="daily">יומי</option>
-                <option value="global">גלובלי</option>
-              </select>
-            </Field>
-            {p.newEmploymentType === "hourly" && (
-              <Field label="שכר שעתי (₪)"><input value={p.newHourlyRate} onChange={e => p.setNewHourlyRate(e.target.value)} type="number" min="0" step="0.5" placeholder="45.00" dir="ltr" className={INPUT} /></Field>
-            )}
-            {p.newEmploymentType === "daily" && (
-              <Field label="שכר יומי (₪)"><input value={p.newDailyRate}  onChange={e => p.setNewDailyRate(e.target.value)}  type="number" min="0" step="1" placeholder="350" dir="ltr" className={INPUT} /></Field>
-            )}
-            {p.newEmploymentType === "global" && (
-              <Field label="שכר חודשי גלובלי (₪)"><input value={p.newGlobalSalary} onChange={e => p.setNewGlobalSalary(e.target.value)} type="number" min="0" step="1" placeholder="8000" dir="ltr" className={INPUT} /></Field>
-            )}
-          </div>
+          <EmploymentSection
+            mode="new"
+            employmentType={p.newEmploymentType}
+            setEmploymentType={p.setNewEmploymentType}
+            hourlyRate={p.newHourlyRate}     setHourlyRate={p.setNewHourlyRate}
+            dailyRate={p.newDailyRate}       setDailyRate={p.setNewDailyRate}
+            globalSalary={p.newGlobalSalary} setGlobalSalary={p.setNewGlobalSalary}
+            attendanceExempt={p.newAttendanceExempt}
+            setAttendanceExempt={p.setNewAttendanceExempt}
+          />
           <div className="grid grid-cols-2 gap-3">
             <Field label="דמי נסיעות">
               <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
@@ -349,23 +345,17 @@ function renderStaffRow(
             </select>
           </Field>
           <Field label='ת"ז'><input value={p.editNationalId} onChange={e => p.setEditNationalId(e.target.value.replace(/\D/g, ""))} inputMode="numeric" maxLength={9} dir="ltr" className={INPUT} /></Field>
-          <Field label="סוג העסקה">
-            <select value={p.editEmploymentType} onChange={e => p.setEditEmploymentType(e.target.value as EmploymentType)} className={INPUT}>
-              <option value="hourly">שעתי</option>
-              <option value="daily">יומי</option>
-              <option value="global">גלובלי</option>
-            </select>
-          </Field>
-          {p.editEmploymentType === "hourly" && (
-            <Field label="שכר שעתי (₪)"><input value={p.editHourlyRate} onChange={e => p.setEditHourlyRate(e.target.value)} type="number" min="0" step="0.5" dir="ltr" className={INPUT} /></Field>
-          )}
-          {p.editEmploymentType === "daily" && (
-            <Field label="שכר יומי (₪)"><input value={p.editDailyRate}  onChange={e => p.setEditDailyRate(e.target.value)}  type="number" min="0" step="1" dir="ltr" className={INPUT} /></Field>
-          )}
-          {p.editEmploymentType === "global" && (
-            <Field label="שכר חודשי גלובלי (₪)"><input value={p.editGlobalSalary} onChange={e => p.setEditGlobalSalary(e.target.value)} type="number" min="0" step="1" dir="ltr" className={INPUT} /></Field>
-          )}
         </div>
+        <EmploymentSection
+          mode="edit"
+          employmentType={p.editEmploymentType}
+          setEmploymentType={p.setEditEmploymentType}
+          hourlyRate={p.editHourlyRate}     setHourlyRate={p.setEditHourlyRate}
+          dailyRate={p.editDailyRate}       setDailyRate={p.setEditDailyRate}
+          globalSalary={p.editGlobalSalary} setGlobalSalary={p.setEditGlobalSalary}
+          attendanceExempt={p.editAttendanceExempt}
+          setAttendanceExempt={p.setEditAttendanceExempt}
+        />
         <div className="grid grid-cols-2 gap-2">
           <Field label="דמי נסיעות">
             <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">

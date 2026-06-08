@@ -61,6 +61,7 @@ interface StaffMember {
   pension_status?: string | null;
   holiday_eligible?: boolean;
   is_freelancer?: boolean;
+  attendance_exempt?: boolean;
   start_date?: string | null;
   notes?: string | null;
   has_pin?: boolean;
@@ -272,6 +273,7 @@ export default function AdminPortal() {
   const [newPensionStatus,    setNewPensionStatus]    = useState("");
   const [newHolidayEligible,  setNewHolidayEligible]  = useState(true);
   const [newIsFreelancer,     setNewIsFreelancer]     = useState(false);
+  const [newAttendanceExempt, setNewAttendanceExempt] = useState(false);
   const [newStartDate,        setNewStartDate]        = useState("");
   const [newNotes,            setNewNotes]            = useState("");
   const [addLoading, setAddLoading] = useState(false);
@@ -290,6 +292,7 @@ export default function AdminPortal() {
   const [editPensionStatus,   setEditPensionStatus]   = useState("");
   const [editHolidayEligible, setEditHolidayEligible] = useState(true);
   const [editIsFreelancer,    setEditIsFreelancer]    = useState(false);
+  const [editAttendanceExempt,setEditAttendanceExempt]= useState(false);
   const [editStartDate,       setEditStartDate]       = useState("");
   const [editNotes,           setEditNotes]           = useState("");
   const [editLoading, setEditLoading] = useState(false);
@@ -907,6 +910,7 @@ export default function AdminPortal() {
           pension_status:        newPensionStatus,
           holiday_eligible:      newHolidayEligible,
           is_freelancer:         newIsFreelancer,
+          attendance_exempt:     newAttendanceExempt,
           start_date:            newStartDate || undefined,
           notes:                 newNotes || undefined,
           pin: newPin || undefined,
@@ -919,7 +923,8 @@ export default function AdminPortal() {
         setNewEmploymentType("hourly"); setNewGlobalSalary("");
         // Reset to "employee + travel=true" — the default for a fresh add.
         setNewTravelAllowance(true); setNewPensionStatus(""); setNewHolidayEligible(true);
-        setNewIsFreelancer(false); setNewStartDate(""); setNewNotes("");
+        setNewIsFreelancer(false); setNewAttendanceExempt(false);
+        setNewStartDate(""); setNewNotes("");
         reload();
       } else {
         setAddMsg("שגיאה: " + (data.error ?? res.status));
@@ -939,6 +944,7 @@ export default function AdminPortal() {
     setEditPensionStatus(s.pension_status ?? "");
     setEditHolidayEligible(s.holiday_eligible !== false); // default true
     setEditIsFreelancer(!!s.is_freelancer);
+    setEditAttendanceExempt(!!s.attendance_exempt);
     setEditStartDate(s.start_date ?? "");
     setEditNotes(s.notes ?? "");
     setEditPin(""); // always blank — admin sets a new PIN explicitly
@@ -959,6 +965,7 @@ export default function AdminPortal() {
         pension_status:        editPensionStatus,
         holiday_eligible:      editHolidayEligible,
         is_freelancer:         editIsFreelancer,
+        attendance_exempt:     editAttendanceExempt,
         start_date:            editStartDate || null,
         notes:                 editNotes || null,
       };
@@ -1884,6 +1891,7 @@ export default function AdminPortal() {
             newHolidayEligible={newHolidayEligible} setNewHolidayEligible={setNewHolidayEligible}
             newPensionStatus={newPensionStatus}     setNewPensionStatus={setNewPensionStatus}
             newIsFreelancer={newIsFreelancer}       setNewIsFreelancer={setNewIsFreelancer}
+            newAttendanceExempt={newAttendanceExempt} setNewAttendanceExempt={setNewAttendanceExempt}
             newStartDate={newStartDate}             setNewStartDate={setNewStartDate}
             newNotes={newNotes}                     setNewNotes={setNewNotes}
             newPin={newPin}                         setNewPin={setNewPin}
@@ -1902,6 +1910,7 @@ export default function AdminPortal() {
             editHolidayEligible={editHolidayEligible} setEditHolidayEligible={setEditHolidayEligible}
             editPensionStatus={editPensionStatus}   setEditPensionStatus={setEditPensionStatus}
             editIsFreelancer={editIsFreelancer}     setEditIsFreelancer={setEditIsFreelancer}
+            editAttendanceExempt={editAttendanceExempt} setEditAttendanceExempt={setEditAttendanceExempt}
             editStartDate={editStartDate}           setEditStartDate={setEditStartDate}
             editNotes={editNotes}                   setEditNotes={setEditNotes}
             editPin={editPin}                       setEditPin={setEditPin}
@@ -2151,8 +2160,8 @@ export default function AdminPortal() {
                           <td className="py-2 text-charcoal/60">
                             {r.employment_type === "hourly" ? "שעתי" : r.employment_type === "daily" ? "יומי" : "גלובלי"}
                           </td>
-                          <td className="py-2 text-center tabular-nums">{r.days_worked}</td>
-                          <td className="py-2 text-center tabular-nums">{r.hours_worked.toFixed(1)}</td>
+                          <td className="py-2 text-center tabular-nums">{r.employment_type === "global" && r.days_worked === 0 ? "—" : r.days_worked}</td>
+                          <td className="py-2 text-center tabular-nums">{r.employment_type === "global" && r.hours_worked === 0 ? "—" : r.hours_worked.toFixed(1)}</td>
                           <td className="py-2 text-center tabular-nums">{r.vacation_days}</td>
                           <td className="py-2 text-center">{r.holiday_eligible ? "✓" : "—"}</td>
                           <td className="py-2 text-center">{r.travel_allowance ? "✓" : "—"}</td>

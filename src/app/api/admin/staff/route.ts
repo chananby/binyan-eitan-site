@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
   // Admin path — all staff (soft-deleted workers are hidden everywhere)
   const { data, error } = await supabase
     .from("staff")
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, notes, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, notes, attendance_exempt, pin")
     .is("deleted_at", null)
     .order("active", { ascending: false })
     .order("name",   { ascending: true });
@@ -107,6 +107,7 @@ export async function POST(req: NextRequest) {
     pension_status?: string;
     holiday_eligible?: boolean;
     is_freelancer?: boolean;
+    attendance_exempt?: boolean;
     start_date?: string;
     notes?: string;
     pin?: string;
@@ -120,7 +121,7 @@ export async function POST(req: NextRequest) {
   const {
     name, phone, role, national_id, hourly_rate, daily_rate,
     employment_type, monthly_global_salary, travel_allowance,
-    pension_status, holiday_eligible, is_freelancer, start_date, notes, pin,
+    pension_status, holiday_eligible, is_freelancer, attendance_exempt, start_date, notes, pin,
   } = body;
   if (!name?.trim() || !phone?.trim()) {
     return NextResponse.json({ error: "שם וטלפון הם שדות חובה" }, { status: 400 });
@@ -194,11 +195,12 @@ export async function POST(req: NextRequest) {
       pension_status: pension_status?.trim() || null,
       holiday_eligible: holiday_eligible ?? true,
       is_freelancer: is_freelancer ?? false,
+      attendance_exempt: attendance_exempt ?? false,
       start_date: start_date && start_date.trim() ? start_date : null,
       notes: notes?.trim() || null,
       pin: pin?.trim() || null,
     })
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, notes, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, notes, attendance_exempt, pin")
     .single();
 
   if (error) {

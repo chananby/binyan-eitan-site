@@ -37,7 +37,7 @@ export interface AttendanceRecord {
    *  Phone-call rows are surfaced with a chip so admins can see at a glance
    *  that no GPS verification backs the timestamp. */
   source?: string | null;
-  staff: { id: string; name: string; phone: string; role?: string } | null;
+  staff: { id: string; name: string; phone: string; role?: string; attendance_exempt?: boolean } | null;
   project: { id: string; name: string } | null;
 }
 
@@ -751,43 +751,79 @@ function TodayLog({
         </div>
       )}
       {!dataLoading && !attLoadErr && todayLogs.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין דיווחים היום — לחץ &quot;רענן עכשיו&quot; אם עובדים כבר דיווחו</p>}
-      {!dataLoading && todayLogs.length > 0 && (
-        <div className="divide-y divide-charcoal/5">
-          {todayLogs.map(r => (
-            <React.Fragment key={r.id}>
-              {edit.id === r.id ? (
-                <EditAttRow edit={edit} projects={projects} withApproveButton={false} />
-              ) : (
-                <div className="py-2.5 space-y-0.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">{r.staff?.name ?? "—"}</p>
-                      <p className="text-[0.75rem] text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
-                    </div>
-                    <span className={`text-xs font-semibold shrink-0 ${r.action === "כניסה" || r.action === "in" ? "text-green-600" : "text-red-400"}`}>
-                      {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
-                    </span>
-                    <span className="text-[0.7rem] text-charcoal/35 tabular-nums shrink-0" dir="ltr">
-                      {attendanceTimeHHMM(r)}
-                    </span>
-                    <DistanceFlag r={r} threshold={farThresholdM} />
-                    <PhoneCallChip source={r.source} />
-                    <button onClick={() => onStartEditAtt(r)} className="text-charcoal/30 hover:text-accent transition-colors shrink-0 p-0.5">
-                      <Pencil size={11} strokeWidth={1.5} />
-                    </button>
-                  </div>
-                  {r.project && (
-                    <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/40">
-                      <Building2 size={10} strokeWidth={1.5} /><span>{r.project.name}</span>
-                    </div>
-                  )}
+      {!dataLoading && todayLogs.length > 0 && (() => {
+        // Regular workers first; "exempt-from-attendance" staff (managers,
+        // global-salary roles) get a separate dimmed group at the bottom
+        // so they don't clutter the operational view — they still appear
+        // if they did clock in, just visually de-emphasized.
+        const regular = todayLogs.filter(r => !r.staff?.attendance_exempt);
+        const exempt  = todayLogs.filter(r =>  r.staff?.attendance_exempt);
+        return (
+          <>
+            {regular.length > 0 && (
+              <div className="divide-y divide-charcoal/5">
+                {regular.map(r => (
+                  <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
+                    onStartEditAtt={onStartEditAtt} farThresholdM={farThresholdM} dim={false} />
+                ))}
+              </div>
+            )}
+            {exempt.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-charcoal/10">
+                <p className="text-[0.7rem] text-charcoal/40 font-semibold mb-1">פטורים מנוכחות</p>
+                <div className="divide-y divide-charcoal/5">
+                  {exempt.map(r => (
+                    <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
+                      onStartEditAtt={onStartEditAtt} farThresholdM={farThresholdM} dim />
+                  ))}
                 </div>
-              )}
-            </React.Fragment>
-          ))}
+              </div>
+            )}
+          </>
+        );
+      })()}
+    </Card>
+  );
+}
+
+function TodayLogRow({
+  r, edit, projects, onStartEditAtt, farThresholdM, dim,
+}: {
+  r: AttendanceRecord;
+  edit: EditAttSlice;
+  projects: ProjectLite[];
+  onStartEditAtt: (r: AttendanceRecord, isPending?: boolean) => void;
+  farThresholdM: number;
+  dim: boolean;
+}) {
+  if (edit.id === r.id) {
+    return <EditAttRow edit={edit} projects={projects} withApproveButton={false} />;
+  }
+  return (
+    <div className={`py-2.5 space-y-0.5 ${dim ? "opacity-50" : ""}`}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold truncate">{r.staff?.name ?? "—"}</p>
+          <p className="text-[0.75rem] text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
+        </div>
+        <span className={`text-xs font-semibold shrink-0 ${r.action === "כניסה" || r.action === "in" ? "text-green-600" : "text-red-400"}`}>
+          {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
+        </span>
+        <span className="text-[0.7rem] text-charcoal/35 tabular-nums shrink-0" dir="ltr">
+          {attendanceTimeHHMM(r)}
+        </span>
+        <DistanceFlag r={r} threshold={farThresholdM} />
+        <PhoneCallChip source={r.source} />
+        <button onClick={() => onStartEditAtt(r)} className="text-charcoal/30 hover:text-accent transition-colors shrink-0 p-0.5">
+          <Pencil size={11} strokeWidth={1.5} />
+        </button>
+      </div>
+      {r.project && (
+        <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/40">
+          <Building2 size={10} strokeWidth={1.5} /><span>{r.project.name}</span>
         </div>
       )}
-    </Card>
+    </div>
   );
 }
 
@@ -835,45 +871,77 @@ function RecentLogs({
           {!recentLogsLoading && !recentLogsErr && recentLogs.length === 0 && (
             <p className="text-sm text-charcoal/30 text-center py-4">אין רשומות ב-7 הימים האחרונים</p>
           )}
-          {!recentLogsLoading && recentLogs.length > 0 && (
-            <div className="divide-y divide-charcoal/5">
-              {recentLogs.map(r => (
-                <React.Fragment key={r.id}>
-                  {edit.id === r.id ? (
-                    <EditAttRow edit={edit} projects={projects} withApproveButton={false} />
-                  ) : (
-                    <div className="py-2.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="text-sm font-semibold truncate">{r.staff?.name ?? "—"}</p>
-                            <span className={`text-[0.75rem] font-semibold px-1.5 py-0.5 ${r.action === "כניסה" || r.action === "in" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-                              {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
-                            </span>
-                          </div>
-                          <p className="text-[0.75rem] text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          {r.project && <span className="text-[0.62rem] text-charcoal/40 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
-                          <span className="text-[0.7rem] text-charcoal/35 tabular-nums" dir="ltr">
-                            {attendanceDayTimeShort(r) || "—"}
-                          </span>
-                          <DistanceFlag r={r} threshold={farThresholdM} />
-                          <PhoneCallChip source={r.source} />
-                          <button onClick={() => onStartEditAtt(r)} className="text-charcoal/30 hover:text-accent transition-colors p-0.5">
-                            <Pencil size={11} strokeWidth={1.5} />
-                          </button>
-                        </div>
-                      </div>
+          {!recentLogsLoading && recentLogs.length > 0 && (() => {
+            const regular = recentLogs.filter(r => !r.staff?.attendance_exempt);
+            const exempt  = recentLogs.filter(r =>  r.staff?.attendance_exempt);
+            return (
+              <>
+                {regular.length > 0 && (
+                  <div className="divide-y divide-charcoal/5">
+                    {regular.map(r => (
+                      <RecentLogRow key={r.id} r={r} edit={edit} projects={projects}
+                        onStartEditAtt={onStartEditAtt} farThresholdM={farThresholdM} dim={false} />
+                    ))}
+                  </div>
+                )}
+                {exempt.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-charcoal/10">
+                    <p className="text-[0.7rem] text-charcoal/40 font-semibold mb-1">פטורים מנוכחות</p>
+                    <div className="divide-y divide-charcoal/5">
+                      {exempt.map(r => (
+                        <RecentLogRow key={r.id} r={r} edit={edit} projects={projects}
+                          onStartEditAtt={onStartEditAtt} farThresholdM={farThresholdM} dim />
+                      ))}
                     </div>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          )}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </>
       )}
     </Card>
+  );
+}
+
+function RecentLogRow({
+  r, edit, projects, onStartEditAtt, farThresholdM, dim,
+}: {
+  r: AttendanceRecord;
+  edit: EditAttSlice;
+  projects: ProjectLite[];
+  onStartEditAtt: (r: AttendanceRecord, isPending?: boolean) => void;
+  farThresholdM: number;
+  dim: boolean;
+}) {
+  if (edit.id === r.id) {
+    return <EditAttRow edit={edit} projects={projects} withApproveButton={false} />;
+  }
+  return (
+    <div className={`py-2.5 ${dim ? "opacity-50" : ""}`}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-sm font-semibold truncate">{r.staff?.name ?? "—"}</p>
+            <span className={`text-[0.75rem] font-semibold px-1.5 py-0.5 ${r.action === "כניסה" || r.action === "in" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+              {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
+            </span>
+          </div>
+          <p className="text-[0.75rem] text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {r.project && <span className="text-[0.62rem] text-charcoal/40 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
+          <span className="text-[0.7rem] text-charcoal/35 tabular-nums" dir="ltr">
+            {attendanceDayTimeShort(r) || "—"}
+          </span>
+          <DistanceFlag r={r} threshold={farThresholdM} />
+          <PhoneCallChip source={r.source} />
+          <button onClick={() => onStartEditAtt(r)} className="text-charcoal/30 hover:text-accent transition-colors p-0.5">
+            <Pencil size={11} strokeWidth={1.5} />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

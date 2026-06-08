@@ -22,6 +22,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     pension_status?: string | null;
     holiday_eligible?: boolean;
     is_freelancer?: boolean;
+    attendance_exempt?: boolean;
     start_date?: string | null;
     notes?: string | null;
     pin?: string | null;
@@ -81,6 +82,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   }
   if (body.holiday_eligible !== undefined) update.holiday_eligible = !!body.holiday_eligible;
   if (body.is_freelancer !== undefined) update.is_freelancer = !!body.is_freelancer;
+  if (body.attendance_exempt !== undefined) update.attendance_exempt = !!body.attendance_exempt;
   if (body.start_date !== undefined) {
     const sd = body.start_date;
     if (sd && sd !== "" && !/^\d{4}-\d{2}-\d{2}$/.test(sd)) {
@@ -108,7 +110,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     .from("staff")
     .update(update)
     .eq("id", params.id)
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, notes, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, notes, attendance_exempt, pin")
     .single();
 
   if (error) {

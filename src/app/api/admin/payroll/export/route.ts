@@ -186,8 +186,11 @@ export async function GET(req: NextRequest) {
       // Display as DD/MM/YYYY for the accountant; empty if not set.
       start_date:      s.start_date ? s.start_date.split("-").reverse().join("/") : "",
       employment_type: EMPLOYMENT_LABELS[s.employment_type] ?? s.employment_type,
-      days_worked:     att.days,
-      hours_worked:    att.hours,
+      // Global workers earn their monthly salary independent of hours/days.
+      // Print "—" when the underlying value is 0 so accountants don't read
+      // it as "worked zero hours this month" — the gross is fixed regardless.
+      days_worked:     s.employment_type === "global" && att.days  === 0 ? "—" : att.days,
+      hours_worked:    s.employment_type === "global" && att.hours === 0 ? "—" : att.hours,
       hourly_rate:     s.employment_type === "hourly" ? (rates.hourly_rate ?? 0) : "",
       daily_rate:      s.employment_type === "daily"  ? (rates.daily_rate  ?? 0) : "",
       monthly_global:  s.employment_type === "global" ? (rates.monthly_global_salary ?? 0) : "",
