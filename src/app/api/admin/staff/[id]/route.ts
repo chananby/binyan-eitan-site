@@ -24,8 +24,14 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     is_freelancer?: boolean;
     attendance_exempt?: boolean;
     start_date?: string | null;
+    employment_end_date?: string | null;
     notes?: string | null;
     pin?: string | null;
+    bank_name?: string | null;
+    bank_branch?: string | null;
+    bank_account?: string | null;
+    bank_account_owner?: string | null;
+    bank_iban?: string | null;
   };
   try {
     body = await req.json();
@@ -90,6 +96,20 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     }
     update.start_date = sd && sd !== "" ? sd : null;
   }
+  if (body.employment_end_date !== undefined) {
+    const ed = body.employment_end_date;
+    if (ed && ed !== "" && !/^\d{4}-\d{2}-\d{2}$/.test(ed)) {
+      return NextResponse.json({ error: "תאריך סיום העסקה לא תקין (פורמט: YYYY-MM-DD)" }, { status: 400 });
+    }
+    update.employment_end_date = ed && ed !== "" ? ed : null;
+  }
+  // Bank details — admin-only by virtue of this route being admin-gated.
+  // Empty strings are normalised to NULL so DB rows stay clean.
+  if (body.bank_name          !== undefined) update.bank_name          = body.bank_name?.trim()          || null;
+  if (body.bank_branch        !== undefined) update.bank_branch        = body.bank_branch?.trim()        || null;
+  if (body.bank_account       !== undefined) update.bank_account       = body.bank_account?.trim()       || null;
+  if (body.bank_account_owner !== undefined) update.bank_account_owner = body.bank_account_owner?.trim() || null;
+  if (body.bank_iban          !== undefined) update.bank_iban          = body.bank_iban?.trim()          || null;
   if (body.notes !== undefined) {
     update.notes = body.notes?.trim() || null;
   }
@@ -110,7 +130,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     .from("staff")
     .update(update)
     .eq("id", params.id)
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, notes, attendance_exempt, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, employment_end_date, notes, attendance_exempt, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
     .single();
 
   if (error) {

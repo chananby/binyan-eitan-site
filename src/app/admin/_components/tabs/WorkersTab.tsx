@@ -9,6 +9,7 @@ import { TabRefreshBar } from "../shared/TabRefreshBar";
 import { INPUT } from "../shared/constants";
 import RateManager from "../shared/RateManager";
 import EmploymentSection from "../shared/EmploymentSection";
+import BankDetailsSection from "../shared/BankDetailsSection";
 import { AutoGrowTextarea } from "../../../components/AutoGrowTextarea";
 
 type EmploymentType = "hourly" | "daily" | "global";
@@ -57,7 +58,13 @@ type Props = {
   newIsFreelancer: boolean;   setNewIsFreelancer:    (v: boolean) => void;
   newAttendanceExempt: boolean; setNewAttendanceExempt: (v: boolean) => void;
   newStartDate: string;       setNewStartDate:       (v: string) => void;
+  newEmploymentEndDate: string; setNewEmploymentEndDate: (v: string) => void;
   newNotes: string;           setNewNotes:           (v: string) => void;
+  newBankName: string;         setNewBankName:         (v: string) => void;
+  newBankBranch: string;       setNewBankBranch:       (v: string) => void;
+  newBankAccount: string;      setNewBankAccount:      (v: string) => void;
+  newBankAccountOwner: string; setNewBankAccountOwner: (v: string) => void;
+  newBankIban: string;         setNewBankIban:         (v: string) => void;
   newPin: string;             setNewPin:             (v: string) => void;
   addLoading: boolean;
   addMsg: string;
@@ -79,7 +86,13 @@ type Props = {
   editIsFreelancer: boolean;  setEditIsFreelancer:    (v: boolean) => void;
   editAttendanceExempt: boolean; setEditAttendanceExempt: (v: boolean) => void;
   editStartDate: string;      setEditStartDate:       (v: string) => void;
+  editEmploymentEndDate: string; setEditEmploymentEndDate: (v: string) => void;
   editNotes: string;          setEditNotes:           (v: string) => void;
+  editBankName: string;         setEditBankName:         (v: string) => void;
+  editBankBranch: string;       setEditBankBranch:       (v: string) => void;
+  editBankAccount: string;      setEditBankAccount:      (v: string) => void;
+  editBankAccountOwner: string; setEditBankAccountOwner: (v: string) => void;
+  editBankIban: string;         setEditBankIban:         (v: string) => void;
   editPin: string;            setEditPin:             (v: string) => void;
   editLoading: boolean;
   editMsg: string;
@@ -234,6 +247,12 @@ export default function WorkersTab(p: Props) {
               <input type="date" value={p.newStartDate} onChange={e => p.setNewStartDate(e.target.value)} className={INPUT} dir="ltr" />
             </Field>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="תאריך סיום העסקה (אופציונלי)">
+              <input type="date" value={p.newEmploymentEndDate} onChange={e => p.setNewEmploymentEndDate(e.target.value)} className={INPUT} dir="ltr" />
+            </Field>
+            <div /> {/* keeps grid balanced when only one field shown */}
+          </div>
           <EmploymentSection
             mode="new"
             employmentType={p.newEmploymentType}
@@ -243,6 +262,13 @@ export default function WorkersTab(p: Props) {
             globalSalary={p.newGlobalSalary} setGlobalSalary={p.setNewGlobalSalary}
             attendanceExempt={p.newAttendanceExempt}
             setAttendanceExempt={p.setNewAttendanceExempt}
+          />
+          <BankDetailsSection
+            bankName={p.newBankName}               setBankName={p.setNewBankName}
+            bankBranch={p.newBankBranch}           setBankBranch={p.setNewBankBranch}
+            bankAccount={p.newBankAccount}         setBankAccount={p.setNewBankAccount}
+            bankAccountOwner={p.newBankAccountOwner} setBankAccountOwner={p.setNewBankAccountOwner}
+            bankIban={p.newBankIban}               setBankIban={p.setNewBankIban}
           />
           <div className="grid grid-cols-2 gap-3">
             <Field label="דמי נסיעות">
@@ -386,6 +412,19 @@ function renderStaffRow(
             <input type="date" value={p.editStartDate} onChange={e => p.setEditStartDate(e.target.value)} className={INPUT} dir="ltr" />
           </Field>
         </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="תאריך סיום העסקה (אופציונלי)">
+            <input type="date" value={p.editEmploymentEndDate} onChange={e => p.setEditEmploymentEndDate(e.target.value)} className={INPUT} dir="ltr" />
+          </Field>
+          <div />
+        </div>
+        <BankDetailsSection
+          bankName={p.editBankName}               setBankName={p.setEditBankName}
+          bankBranch={p.editBankBranch}           setBankBranch={p.setEditBankBranch}
+          bankAccount={p.editBankAccount}         setBankAccount={p.setEditBankAccount}
+          bankAccountOwner={p.editBankAccountOwner} setBankAccountOwner={p.setEditBankAccountOwner}
+          bankIban={p.editBankIban}               setBankIban={p.setEditBankIban}
+        />
         <Field label="סטטוס פנסיה">
           <AutoGrowTextarea value={p.editPensionStatus} onChange={e => p.setEditPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
         </Field>

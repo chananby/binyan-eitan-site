@@ -1,10 +1,20 @@
 "use client";
 
-import { DollarSign, Loader2 } from "lucide-react";
+import { DollarSign, Loader2, AlertTriangle } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { INPUT } from "../shared/constants";
 import type { StaffMember, PayrollRow } from "../types";
+
+// "Does this row carry a usable rate for its employment type?" Mirrors
+// hasValidRate() on the server. If false, the worker will appear in the
+// report with 0 in their pay column — that's what the notice warns about.
+function rowHasNoRate(r: PayrollRow): boolean {
+  if (r.employment_type === "hourly") return !(r.hourly_rate ?? 0);
+  if (r.employment_type === "daily")  return !(r.daily_rate  ?? 0);
+  if (r.employment_type === "global") return !(r.monthly_global_salary ?? 0);
+  return false;
+}
 
 // Payroll tab content — pure move from AdminPortal.tsx. The parent owns
 // payrollMonth / payrollStaffId / payrollRows / payrollLoading /
@@ -96,6 +106,25 @@ export default function PayrollTab(p: Props) {
           </button>
         </div>
       </Card>
+
+      {/* Missing-rate notice — only when at least one row in the *currently
+          loaded* month is missing its rate. The list itself is computed
+          server-side so this matches what gross_salary used. */}
+      {(() => {
+        const missing = p.payrollRows.filter(rowHasNoRate);
+        if (missing.length === 0) return null;
+        return (
+          <Card>
+            <div className="flex items-start gap-2 text-amber-800 bg-amber-50 border border-amber-200 px-3 py-2.5">
+              <AlertTriangle size={15} strokeWidth={1.5} className="text-amber-600 mt-0.5 shrink-0" />
+              <div className="text-xs leading-relaxed">
+                שים לב: ל-<span className="font-bold tabular-nums">{missing.length}</span> עובדים חסר תעריף לחודש זה
+                — הם יופיעו בדוח עם 0. ניתן להשלים תעריף בטאב עובדים.
+              </div>
+            </div>
+          </Card>
+        );
+      })()}
 
       {p.payrollRows.length > 0 && (
         <Card>

@@ -34,6 +34,7 @@ interface StaffRow {
   role: string;
   is_freelancer: boolean;
   start_date: string | null;
+  employment_end_date: string | null;
   employment_type: string;
   hourly_rate: number | null;
   daily_rate: number | null;
@@ -41,6 +42,11 @@ interface StaffRow {
   pension_status: string | null;
   holiday_eligible: boolean;
   notes: string | null;
+  bank_name: string | null;
+  bank_branch: string | null;
+  bank_account: string | null;
+  bank_account_owner: string | null;
+  bank_iban: string | null;
 }
 
 const EMPLOYMENT_LABELS: Record<string, string> = {
@@ -111,7 +117,7 @@ export async function GET(req: NextRequest) {
 
   const { data: staffData, error: staffErr } = await supabase
     .from("staff")
-    .select("id, name, national_id, phone, role, is_freelancer, start_date, employment_type, hourly_rate, daily_rate, travel_allowance, pension_status, holiday_eligible, notes")
+    .select("id, name, national_id, phone, role, is_freelancer, start_date, employment_end_date, employment_type, hourly_rate, daily_rate, travel_allowance, pension_status, holiday_eligible, notes, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban")
     .eq("active", true)
     .is("deleted_at", null)
     .in("role", ["עובד", "ממונה"])
@@ -192,7 +198,13 @@ export async function GET(req: NextRequest) {
     { header: "ימי עבודה (3 ח')",  key: "days_worked",     width: 14 },
     { header: 'שעות (3 ח")',        key: "hours_worked",    width: 12 },
     { header: "החתמה אחרונה",      key: "last_seen",       width: 20 },
-    { header: "הערות",             key: "notes",           width: 30 },
+    { header: "תאריך סיום העסקה",  key: "employment_end",  width: 14 },
+    { header: "בנק",               key: "bank_name",         width: 14 },
+    { header: "סניף",              key: "bank_branch",       width: 8  },
+    { header: "מספר חשבון",        key: "bank_account",      width: 16 },
+    { header: "על שם",             key: "bank_account_owner",width: 18 },
+    { header: "IBAN",              key: "bank_iban",         width: 28 },
+    { header: "הערות",             key: "notes",             width: 30 },
   ];
 
   // Style header — same recipe as payroll export so the accountant gets a
@@ -234,6 +246,12 @@ export async function GET(req: NextRequest) {
       days_worked:     stats.days,
       hours_worked:    stats.hours,
       last_seen:       lastSeenLabel(last),
+      employment_end:    s.employment_end_date ? ymdToDDMMYYYY(s.employment_end_date) : "",
+      bank_name:         s.bank_name          ?? "",
+      bank_branch:       s.bank_branch        ?? "",
+      bank_account:      s.bank_account       ?? "",
+      bank_account_owner:s.bank_account_owner ?? "",
+      bank_iban:         s.bank_iban          ?? "",
       notes:           s.notes ?? "",
     });
   }

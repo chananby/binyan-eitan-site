@@ -29,7 +29,13 @@ export function useWorkerForms(reload: () => void) {
   const [newIsFreelancer,     setNewIsFreelancer]     = useState(false);
   const [newAttendanceExempt, setNewAttendanceExempt] = useState(false);
   const [newStartDate,        setNewStartDate]        = useState("");
+  const [newEmploymentEndDate, setNewEmploymentEndDate] = useState("");
   const [newNotes,            setNewNotes]            = useState("");
+  const [newBankName,         setNewBankName]         = useState("");
+  const [newBankBranch,       setNewBankBranch]       = useState("");
+  const [newBankAccount,      setNewBankAccount]      = useState("");
+  const [newBankAccountOwner, setNewBankAccountOwner] = useState("");
+  const [newBankIban,         setNewBankIban]         = useState("");
   const [addLoading, setAddLoading] = useState(false);
   const [addMsg,     setAddMsg]     = useState("");
 
@@ -50,7 +56,13 @@ export function useWorkerForms(reload: () => void) {
   const [editIsFreelancer,    setEditIsFreelancer]    = useState(false);
   const [editAttendanceExempt,setEditAttendanceExempt]= useState(false);
   const [editStartDate,       setEditStartDate]       = useState("");
+  const [editEmploymentEndDate, setEditEmploymentEndDate] = useState("");
   const [editNotes,           setEditNotes]           = useState("");
+  const [editBankName,         setEditBankName]         = useState("");
+  const [editBankBranch,       setEditBankBranch]       = useState("");
+  const [editBankAccount,      setEditBankAccount]      = useState("");
+  const [editBankAccountOwner, setEditBankAccountOwner] = useState("");
+  const [editBankIban,         setEditBankIban]         = useState("");
   const [editLoading, setEditLoading] = useState(false);
   const [editMsg,     setEditMsg]     = useState("");
 
@@ -70,8 +82,14 @@ export function useWorkerForms(reload: () => void) {
           is_freelancer:         newIsFreelancer,
           attendance_exempt:     newAttendanceExempt,
           start_date:            newStartDate || undefined,
+          employment_end_date:   newEmploymentEndDate || undefined,
           notes:                 newNotes || undefined,
           pin: newPin || undefined,
+          bank_name:             newBankName          || undefined,
+          bank_branch:           newBankBranch        || undefined,
+          bank_account:          newBankAccount       || undefined,
+          bank_account_owner:    newBankAccountOwner  || undefined,
+          bank_iban:             newBankIban          || undefined,
         }) });
       const data = await res.json();
       if (res.ok) {
@@ -82,14 +100,16 @@ export function useWorkerForms(reload: () => void) {
         // Reset to "employee + travel=true" — the default for a fresh add.
         setNewTravelAllowance(true); setNewPensionStatus(""); setNewHolidayEligible(true);
         setNewIsFreelancer(false); setNewAttendanceExempt(false);
-        setNewStartDate(""); setNewNotes("");
+        setNewStartDate(""); setNewEmploymentEndDate(""); setNewNotes("");
+        setNewBankName(""); setNewBankBranch(""); setNewBankAccount("");
+        setNewBankAccountOwner(""); setNewBankIban("");
         reload();
       } else {
         setAddMsg("שגיאה: " + (data.error ?? res.status));
       }
     } catch (err) { setAddMsg("שגיאת רשת: " + String(err)); }
     finally { setAddLoading(false); }
-  }, [newName, newPhone, newRole, newNationalId, newHourlyRate, newDailyRate, newEmploymentType, newGlobalSalary, newTravelAllowance, newPensionStatus, newHolidayEligible, newIsFreelancer, newAttendanceExempt, newStartDate, newNotes, newPin, reload]);
+  }, [newName, newPhone, newRole, newNationalId, newHourlyRate, newDailyRate, newEmploymentType, newGlobalSalary, newTravelAllowance, newPensionStatus, newHolidayEligible, newIsFreelancer, newAttendanceExempt, newStartDate, newEmploymentEndDate, newNotes, newPin, newBankName, newBankBranch, newBankAccount, newBankAccountOwner, newBankIban, reload]);
 
   const startEdit = useCallback((s: StaffMember) => {
     setEditingId(s.id); setEditName(s.name); setEditPhone(s.phone); setEditRole(s.role);
@@ -104,7 +124,13 @@ export function useWorkerForms(reload: () => void) {
     setEditIsFreelancer(!!s.is_freelancer);
     setEditAttendanceExempt(!!s.attendance_exempt);
     setEditStartDate(s.start_date ?? "");
+    setEditEmploymentEndDate(s.employment_end_date ?? "");
     setEditNotes(s.notes ?? "");
+    setEditBankName(s.bank_name                 ?? "");
+    setEditBankBranch(s.bank_branch             ?? "");
+    setEditBankAccount(s.bank_account           ?? "");
+    setEditBankAccountOwner(s.bank_account_owner ?? "");
+    setEditBankIban(s.bank_iban                 ?? "");
     setEditPin(""); // always blank — admin sets a new PIN explicitly
     setEditMsg("");
   }, []);
@@ -125,7 +151,13 @@ export function useWorkerForms(reload: () => void) {
         is_freelancer:         editIsFreelancer,
         attendance_exempt:     editAttendanceExempt,
         start_date:            editStartDate || null,
+        employment_end_date:   editEmploymentEndDate || null,
         notes:                 editNotes || null,
+        bank_name:             editBankName          || null,
+        bank_branch:           editBankBranch        || null,
+        bank_account:          editBankAccount       || null,
+        bank_account_owner:    editBankAccountOwner  || null,
+        bank_iban:             editBankIban          || null,
       };
       if (editPin) body.pin = editPin; // only send if a new PIN was entered
       const res  = await fetch(`/api/admin/staff/${editingId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -134,7 +166,7 @@ export function useWorkerForms(reload: () => void) {
       else        { setEditMsg("שגיאה: " + (data.error ?? res.status)); }
     } catch (err) { setEditMsg("שגיאת רשת: " + String(err)); }
     finally { setEditLoading(false); }
-  }, [editingId, editName, editPhone, editRole, editNationalId, editHourlyRate, editDailyRate, editEmploymentType, editGlobalSalary, editTravelAllowance, editPensionStatus, editHolidayEligible, editIsFreelancer, editAttendanceExempt, editStartDate, editNotes, editPin, reload]);
+  }, [editingId, editName, editPhone, editRole, editNationalId, editHourlyRate, editDailyRate, editEmploymentType, editGlobalSalary, editTravelAllowance, editPensionStatus, editHolidayEligible, editIsFreelancer, editAttendanceExempt, editStartDate, editEmploymentEndDate, editNotes, editPin, editBankName, editBankBranch, editBankAccount, editBankAccountOwner, editBankIban, reload]);
 
   const toggleActive = useCallback(async (id: string, current: boolean) => {
     await fetch(`/api/admin/staff/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active: !current }) });
@@ -167,7 +199,13 @@ export function useWorkerForms(reload: () => void) {
     newIsFreelancer,     setNewIsFreelancer,
     newAttendanceExempt, setNewAttendanceExempt,
     newStartDate,        setNewStartDate,
+    newEmploymentEndDate, setNewEmploymentEndDate,
     newNotes,            setNewNotes,
+    newBankName,         setNewBankName,
+    newBankBranch,       setNewBankBranch,
+    newBankAccount,      setNewBankAccount,
+    newBankAccountOwner, setNewBankAccountOwner,
+    newBankIban,         setNewBankIban,
     addLoading, addMsg,
 
     editingId,       setEditingId,
@@ -186,7 +224,13 @@ export function useWorkerForms(reload: () => void) {
     editIsFreelancer,    setEditIsFreelancer,
     editAttendanceExempt,setEditAttendanceExempt,
     editStartDate,       setEditStartDate,
+    editEmploymentEndDate, setEditEmploymentEndDate,
     editNotes,           setEditNotes,
+    editBankName,         setEditBankName,
+    editBankBranch,       setEditBankBranch,
+    editBankAccount,      setEditBankAccount,
+    editBankAccountOwner, setEditBankAccountOwner,
+    editBankIban,         setEditBankIban,
     editLoading, editMsg,
 
     handleAddWorker,

@@ -16,8 +16,17 @@ export interface StaffMember {
   is_freelancer?: boolean;
   attendance_exempt?: boolean;
   start_date?: string | null;
+  employment_end_date?: string | null;
   notes?: string | null;
   has_pin?: boolean;
+  // Bank details — surfaced ONLY by admin-authed routes (admin/staff GET
+  // admin path, POST, PATCH, export). Foreman and worker portals never
+  // see these because their server SELECTs use narrow column lists.
+  bank_name?: string | null;
+  bank_branch?: string | null;
+  bank_account?: string | null;
+  bank_account_owner?: string | null;
+  bank_iban?: string | null;
 }
 
 export interface VacationRecord {

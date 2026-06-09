@@ -59,10 +59,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ staff });
   }
 
-  // Admin path — all staff (soft-deleted workers are hidden everywhere)
+  // Admin path — all staff (soft-deleted workers are hidden everywhere).
+  // bank_* columns appear ONLY in this admin-authed select; the foreman
+  // path above uses a narrow select that excludes them by construction.
   const { data, error } = await supabase
     .from("staff")
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, notes, attendance_exempt, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, employment_end_date, notes, attendance_exempt, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
     .is("deleted_at", null)
     .order("active", { ascending: false })
     .order("name",   { ascending: true });
@@ -109,8 +111,14 @@ export async function POST(req: NextRequest) {
     is_freelancer?: boolean;
     attendance_exempt?: boolean;
     start_date?: string;
+    employment_end_date?: string;
     notes?: string;
     pin?: string;
+    bank_name?: string;
+    bank_branch?: string;
+    bank_account?: string;
+    bank_account_owner?: string;
+    bank_iban?: string;
   };
   try {
     body = await req.json();
@@ -121,7 +129,9 @@ export async function POST(req: NextRequest) {
   const {
     name, phone, role, national_id, hourly_rate, daily_rate,
     employment_type, monthly_global_salary, travel_allowance,
-    pension_status, holiday_eligible, is_freelancer, attendance_exempt, start_date, notes, pin,
+    pension_status, holiday_eligible, is_freelancer, attendance_exempt,
+    start_date, employment_end_date, notes, pin,
+    bank_name, bank_branch, bank_account, bank_account_owner, bank_iban,
   } = body;
   if (!name?.trim() || !phone?.trim()) {
     return NextResponse.json({ error: "שם וטלפון הם שדות חובה" }, { status: 400 });
@@ -178,6 +188,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "תאריך התחלה לא תקין (פורמט: YYYY-MM-DD)" }, { status: 400 });
   }
 
+  if (employment_end_date !== undefined && employment_end_date !== null && employment_end_date !== "" && !/^\d{4}-\d{2}-\d{2}$/.test(employment_end_date)) {
+    return NextResponse.json({ error: "תאריך סיום העסקה לא תקין (פורמט: YYYY-MM-DD)" }, { status: 400 });
+  }
+
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("staff")
@@ -197,10 +211,17 @@ export async function POST(req: NextRequest) {
       is_freelancer: is_freelancer ?? false,
       attendance_exempt: attendance_exempt ?? false,
       start_date: start_date && start_date.trim() ? start_date : null,
+      employment_end_date: employment_end_date && employment_end_date.trim() ? employment_end_date : null,
       notes: notes?.trim() || null,
       pin: pin?.trim() || null,
+      // Bank details — admin-only by virtue of POST being admin-gated.
+      bank_name:          bank_name?.trim()          || null,
+      bank_branch:        bank_branch?.trim()        || null,
+      bank_account:       bank_account?.trim()       || null,
+      bank_account_owner: bank_account_owner?.trim() || null,
+      bank_iban:          bank_iban?.trim()          || null,
     })
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, notes, attendance_exempt, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, start_date, employment_end_date, notes, attendance_exempt, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
     .single();
 
   if (error) {

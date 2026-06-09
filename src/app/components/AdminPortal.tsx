@@ -234,7 +234,13 @@ export default function AdminPortal() {
     newIsFreelancer,     setNewIsFreelancer,
     newAttendanceExempt, setNewAttendanceExempt,
     newStartDate,        setNewStartDate,
+    newEmploymentEndDate, setNewEmploymentEndDate,
     newNotes,            setNewNotes,
+    newBankName,         setNewBankName,
+    newBankBranch,       setNewBankBranch,
+    newBankAccount,      setNewBankAccount,
+    newBankAccountOwner, setNewBankAccountOwner,
+    newBankIban,         setNewBankIban,
     addLoading, addMsg,
     editingId,       setEditingId,
     editName,        setEditName,
@@ -252,7 +258,13 @@ export default function AdminPortal() {
     editIsFreelancer,    setEditIsFreelancer,
     editAttendanceExempt,setEditAttendanceExempt,
     editStartDate,       setEditStartDate,
+    editEmploymentEndDate, setEditEmploymentEndDate,
     editNotes,           setEditNotes,
+    editBankName,         setEditBankName,
+    editBankBranch,       setEditBankBranch,
+    editBankAccount,      setEditBankAccount,
+    editBankAccountOwner, setEditBankAccountOwner,
+    editBankIban,         setEditBankIban,
     editLoading, editMsg,
     handleAddWorker,
     handleEditWorker,
@@ -1215,7 +1227,13 @@ export default function AdminPortal() {
             newIsFreelancer={newIsFreelancer}       setNewIsFreelancer={setNewIsFreelancer}
             newAttendanceExempt={newAttendanceExempt} setNewAttendanceExempt={setNewAttendanceExempt}
             newStartDate={newStartDate}             setNewStartDate={setNewStartDate}
+            newEmploymentEndDate={newEmploymentEndDate} setNewEmploymentEndDate={setNewEmploymentEndDate}
             newNotes={newNotes}                     setNewNotes={setNewNotes}
+            newBankName={newBankName}                 setNewBankName={setNewBankName}
+            newBankBranch={newBankBranch}             setNewBankBranch={setNewBankBranch}
+            newBankAccount={newBankAccount}           setNewBankAccount={setNewBankAccount}
+            newBankAccountOwner={newBankAccountOwner} setNewBankAccountOwner={setNewBankAccountOwner}
+            newBankIban={newBankIban}                 setNewBankIban={setNewBankIban}
             newPin={newPin}                         setNewPin={setNewPin}
             addLoading={addLoading} addMsg={addMsg}
             onAddWorker={handleAddWorker}
@@ -1234,7 +1252,13 @@ export default function AdminPortal() {
             editIsFreelancer={editIsFreelancer}     setEditIsFreelancer={setEditIsFreelancer}
             editAttendanceExempt={editAttendanceExempt} setEditAttendanceExempt={setEditAttendanceExempt}
             editStartDate={editStartDate}           setEditStartDate={setEditStartDate}
+            editEmploymentEndDate={editEmploymentEndDate} setEditEmploymentEndDate={setEditEmploymentEndDate}
             editNotes={editNotes}                   setEditNotes={setEditNotes}
+            editBankName={editBankName}                 setEditBankName={setEditBankName}
+            editBankBranch={editBankBranch}             setEditBankBranch={setEditBankBranch}
+            editBankAccount={editBankAccount}           setEditBankAccount={setEditBankAccount}
+            editBankAccountOwner={editBankAccountOwner} setEditBankAccountOwner={setEditBankAccountOwner}
+            editBankIban={editBankIban}                 setEditBankIban={setEditBankIban}
             editPin={editPin}                       setEditPin={setEditPin}
             editLoading={editLoading} editMsg={editMsg}
             onEditWorker={handleEditWorker}
