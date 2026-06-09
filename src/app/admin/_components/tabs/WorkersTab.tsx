@@ -10,6 +10,7 @@ import { INPUT } from "../shared/constants";
 import RateManager from "../shared/RateManager";
 import EmploymentSection from "../shared/EmploymentSection";
 import BankDetailsSection from "../shared/BankDetailsSection";
+import StaffDocumentsSection from "../shared/StaffDocumentsSection";
 import { AutoGrowTextarea } from "../../../components/AutoGrowTextarea";
 
 type EmploymentType = "hourly" | "daily" | "global";
@@ -439,6 +440,7 @@ function renderStaffRow(
           bankAccountOwner={p.editBankAccountOwner} setBankAccountOwner={p.setEditBankAccountOwner}
           bankIban={p.editBankIban}               setBankIban={p.setEditBankIban}
         />
+        <StaffDocumentsSection staffId={s.id} />
         <Field label="סטטוס פנסיה">
           <AutoGrowTextarea value={p.editPensionStatus} onChange={e => p.setEditPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
         </Field>
