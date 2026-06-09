@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { UserPlus, RefreshCw, ChevronDown, ChevronUp, Trash2, AlertTriangle, History, Download, Loader2 } from "lucide-react";
+import { UserPlus, RefreshCw, ChevronDown, ChevronUp, Trash2, AlertTriangle, History, Download, Loader2, Pencil } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { Btn } from "../shared/Btn";
@@ -205,11 +205,14 @@ export default function WorkersTab(p: Props) {
       </div>
 
       <Card>
-        <div className="flex items-center gap-2 mb-3">
-          <UserPlus size={16} strokeWidth={1.5} className="text-accent" />
-          <h2 className="font-heading text-base font-bold">הוספת עובד</h2>
-        </div>
         <form onSubmit={p.onAddWorker} className="space-y-3">
+          {/* Sticky header — stays in view while admin scrolls the long
+              add form so they always remember they're adding a new worker
+              (and not editing an existing one). */}
+          <div className="sticky top-0 z-10 -mt-3 -mx-5 px-5 py-2.5 bg-bone/95 backdrop-blur-sm border-b border-warm-gray-light flex items-center gap-2">
+            <UserPlus size={16} strokeWidth={1.5} className="text-accent" />
+            <h2 className="font-heading text-sm font-bold text-charcoal">הוספת עובד חדש</h2>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="שם מלא"><AutoGrowTextarea value={p.newName} onChange={e => p.setNewName(e.target.value)} required placeholder="ישראל ישראלי" className={INPUT} /></Field>
             <Field label="טלפון"><input value={p.newPhone} onChange={e => p.setNewPhone(e.target.value)} required placeholder="05X-XXXXXXX" type="tel" dir="ltr" className={INPUT} /></Field>
@@ -362,6 +365,17 @@ function renderStaffRow(
   if (p.editingId === s.id) {
     return (
       <form key={s.id} onSubmit={p.onEditWorker} className="py-4 space-y-3">
+        {/* Sticky header — the edit form is long enough (rate + bank
+            details + dates + pension + notes) that without an anchored
+            label the admin can lose track of which worker they're filling
+            in. Critical for the bank-details block where a misfile would
+            send wages to the wrong account. */}
+        <div className="sticky top-0 z-10 -mt-4 -mx-5 px-5 py-2.5 bg-bone/95 backdrop-blur-sm border-b border-warm-gray-light flex items-center gap-2">
+          <Pencil size={14} strokeWidth={1.5} className="text-accent shrink-0" />
+          <h2 className="font-heading text-sm font-bold text-charcoal truncate">
+            עריכת עובד: <span className="text-accent">{s.name}</span>
+          </h2>
+        </div>
         <div className="grid grid-cols-2 gap-2">
           <Field label="שם"><AutoGrowTextarea value={p.editName} onChange={e => p.setEditName(e.target.value)} required className={INPUT} /></Field>
           <Field label="טלפון"><input value={p.editPhone} onChange={e => p.setEditPhone(e.target.value)} required type="tel" dir="ltr" className={INPUT} /></Field>
