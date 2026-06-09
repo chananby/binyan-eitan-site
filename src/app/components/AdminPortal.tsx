@@ -32,6 +32,15 @@ import AttendanceTab, { type ManualType, type AttendanceSubTab } from "../admin/
 import LoginScreen from "../admin/_components/tabs/LoginScreen";
 import DashboardTab from "../admin/_components/tabs/DashboardTab";
 import PayrollTab from "../admin/_components/tabs/PayrollTab";
+import { useVacationDrawer } from "../admin/_components/hooks/useVacationDrawer";
+import { useChangePassword } from "../admin/_components/hooks/useChangePassword";
+import { useIncomeForm } from "../admin/_components/hooks/useIncomeForm";
+import { useExpensesForm } from "../admin/_components/hooks/useExpensesForm";
+import { useAttendanceReport } from "../admin/_components/hooks/useAttendanceReport";
+import { usePayroll } from "../admin/_components/hooks/usePayroll";
+import { useMilestonesAndTasks } from "../admin/_components/hooks/useMilestonesAndTasks";
+import { useWorkerForms } from "../admin/_components/hooks/useWorkerForms";
+import { useAdminAttendance } from "../admin/_components/hooks/useAdminAttendance";
 import type {
   StaffMember, VacationRecord, PayrollRow, AttendanceRecord,
   Project, Task, Milestone, Material, BudgetLine, IncomeRecord,
@@ -148,14 +157,21 @@ export default function AdminPortal() {
   const [adminName,  setAdminName]  = useState<string | null>(null);
 
   // Change password form
-  const [pwCurrent, setPwCurrent] = useState("");
-  const [pwNew,     setPwNew]     = useState("");
-  const [pwConfirm, setPwConfirm] = useState("");
-  const [pwSaving,  setPwSaving]  = useState(false);
-  const [pwMsg,     setPwMsg]     = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  // Password change form — state + handler in useChangePassword
 
   // Tactile / audio feedback
   const feedback  = useFeedback();
+
+  // Password-change form — state + handler in useChangePassword
+  const changePw = useChangePassword(feedback);
+  const {
+    pwCurrent, setPwCurrent,
+    pwNew,     setPwNew,
+    pwConfirm, setPwConfirm,
+    pwSaving,
+    pwMsg, setPwMsg,
+    handleChangePassword,
+  } = changePw;
   const [showFlash, setShowFlash] = useState(false);
 
   // Core data
@@ -172,77 +188,105 @@ export default function AdminPortal() {
   const [attLoadErr,    setAttLoadErr]    = useState<string | null>(null);
 
   // Milestone UI
-  const [expandedMs,      setExpandedMs]      = useState<Set<string>>(new Set());
-  const [newMsProjectId,  setNewMsProjectId]  = useState("");
-  const [newMsName,       setNewMsName]       = useState("");
-  const [newMsTargetDate, setNewMsTargetDate] = useState("");
-  const [msAddLoading,    setMsAddLoading]    = useState(false);
-  const [msAddMsg,        setMsAddMsg]        = useState("");
+  // Milestones + tasks add forms + per-row mutations — useMilestonesAndTasks
+  const msTasks = useMilestonesAndTasks(() => reload());
+  const {
+    expandedMs,        setExpandedMs,
+    newMsProjectId,    setNewMsProjectId,
+    newMsName,         setNewMsName,
+    newMsTargetDate,   setNewMsTargetDate,
+    msAddLoading,
+    msAddMsg,
+    newTaskMilestoneId, setNewTaskMilestoneId,
+    taskFilter,         setTaskFilter,
+    newTaskProjectId,   setNewTaskProjectId,
+    newTaskName,        setNewTaskName,
+    newTaskStart,       setNewTaskStart,
+    newTaskEnd,         setNewTaskEnd,
+    newTaskContractor,  setNewTaskContractor,
+    taskAddLoading,
+    taskAddMsg,
+    handleAddTask,
+    handleAddMilestone,
+    setTaskStatus,
+    setMilestoneStatus,
+    toggleMs,
+    assignTaskDay,
+  } = msTasks;
 
-  // Task milestone assignment
-  const [newTaskMilestoneId, setNewTaskMilestoneId] = useState("");
+  // (task milestone assignment now lives in useMilestonesAndTasks above)
 
-  // Workers UI
-  const [newName, setNewName]   = useState("");
-  const [newPhone, setNewPhone] = useState("");
-  const [newRole, setNewRole]   = useState("עובד");
-  const [newNationalId, setNewNationalId] = useState("");
-  const [newHourlyRate, setNewHourlyRate] = useState("");
-  const [newDailyRate,  setNewDailyRate]  = useState("");
-  const [newPin,        setNewPin]        = useState("");
-  const [newEmploymentType,   setNewEmploymentType]   = useState<"hourly" | "daily" | "global">("hourly");
-  const [newGlobalSalary,     setNewGlobalSalary]     = useState("");
-  // New workers default to "employee" (is_freelancer=false), and the add form
-  // mirrors that with travel_allowance=true. Toggling "freelancer" in the form
-  // flips travel_allowance off (and vice versa) — see WorkersTab.
-  const [newTravelAllowance,  setNewTravelAllowance]  = useState(true);
-  const [newPensionStatus,    setNewPensionStatus]    = useState("");
-  const [newHolidayEligible,  setNewHolidayEligible]  = useState(true);
-  const [newIsFreelancer,     setNewIsFreelancer]     = useState(false);
-  const [newAttendanceExempt, setNewAttendanceExempt] = useState(false);
-  const [newStartDate,        setNewStartDate]        = useState("");
-  const [newNotes,            setNewNotes]            = useState("");
-  const [addLoading, setAddLoading] = useState(false);
-  const [addMsg,     setAddMsg]     = useState("");
-  const [editingId,       setEditingId]       = useState<string | null>(null);
-  const [editName,        setEditName]        = useState("");
-  const [editPhone,       setEditPhone]       = useState("");
-  const [editRole,        setEditRole]        = useState("עובד");
-  const [editNationalId,  setEditNationalId]  = useState("");
-  const [editHourlyRate,  setEditHourlyRate]  = useState("");
-  const [editDailyRate,   setEditDailyRate]   = useState("");
-  const [editPin,         setEditPin]         = useState("");
-  const [editEmploymentType,  setEditEmploymentType]  = useState<"hourly" | "daily" | "global">("hourly");
-  const [editGlobalSalary,    setEditGlobalSalary]    = useState("");
-  const [editTravelAllowance, setEditTravelAllowance] = useState(false);
-  const [editPensionStatus,   setEditPensionStatus]   = useState("");
-  const [editHolidayEligible, setEditHolidayEligible] = useState(true);
-  const [editIsFreelancer,    setEditIsFreelancer]    = useState(false);
-  const [editAttendanceExempt,setEditAttendanceExempt]= useState(false);
-  const [editStartDate,       setEditStartDate]       = useState("");
-  const [editNotes,           setEditNotes]           = useState("");
-  const [editLoading, setEditLoading] = useState(false);
-  const [editMsg,     setEditMsg]     = useState("");
+  // Workers add+edit forms — state + CRUD handlers in useWorkerForms
+  const workers = useWorkerForms(() => reload());
+  const {
+    newName, setNewName,
+    newPhone, setNewPhone,
+    newRole, setNewRole,
+    newNationalId, setNewNationalId,
+    newHourlyRate, setNewHourlyRate,
+    newDailyRate,  setNewDailyRate,
+    newPin,        setNewPin,
+    newEmploymentType,   setNewEmploymentType,
+    newGlobalSalary,     setNewGlobalSalary,
+    newTravelAllowance,  setNewTravelAllowance,
+    newPensionStatus,    setNewPensionStatus,
+    newHolidayEligible,  setNewHolidayEligible,
+    newIsFreelancer,     setNewIsFreelancer,
+    newAttendanceExempt, setNewAttendanceExempt,
+    newStartDate,        setNewStartDate,
+    newNotes,            setNewNotes,
+    addLoading, addMsg,
+    editingId,       setEditingId,
+    editName,        setEditName,
+    editPhone,       setEditPhone,
+    editRole,        setEditRole,
+    editNationalId,  setEditNationalId,
+    editHourlyRate,  setEditHourlyRate,
+    editDailyRate,   setEditDailyRate,
+    editPin,         setEditPin,
+    editEmploymentType,  setEditEmploymentType,
+    editGlobalSalary,    setEditGlobalSalary,
+    editTravelAllowance, setEditTravelAllowance,
+    editPensionStatus,   setEditPensionStatus,
+    editHolidayEligible, setEditHolidayEligible,
+    editIsFreelancer,    setEditIsFreelancer,
+    editAttendanceExempt,setEditAttendanceExempt,
+    editStartDate,       setEditStartDate,
+    editNotes,           setEditNotes,
+    editLoading, editMsg,
+    handleAddWorker,
+    handleEditWorker,
+    startEdit,
+    toggleActive,
+    deleteWorker,
+  } = workers;
 
-  // Vacation editor (per-staff drawer)
-  const [vacationFor,    setVacationFor]    = useState<string | null>(null);
-  const [vacationRows,   setVacationRows]   = useState<VacationRecord[]>([]);
-  const [vacationDate,   setVacationDate]   = useState("");
-  const [vacationHalf,   setVacationHalf]   = useState(false);
-  const [vacationLoading, setVacationLoading] = useState(false);
-  const [vacationMsg,    setVacationMsg]    = useState("");
+  // Vacation editor (per-staff drawer) — state + handlers in useVacationDrawer
+  const vacation = useVacationDrawer();
+  const {
+    vacationFor,    setVacationFor,
+    vacationRows,
+    vacationDate,   setVacationDate,
+    vacationHalf,   setVacationHalf,
+    vacationLoading,
+    vacationMsg,
+    openVacationDrawer,
+    handleAddVacation,
+    handleDeleteVacation,
+  } = vacation;
 
   // Payroll tab
-  const [payrollMonth, setPayrollMonth] = useState(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-  });
-  const [payrollStaffId,    setPayrollStaffId]    = useState<string>("");
-  const [payrollRows,       setPayrollRows]       = useState<PayrollRow[]>([]);
-  const [payrollLoading,    setPayrollLoading]    = useState(false);
-  // Tracks which split-report is currently being downloaded so the buttons
-  // can show their own spinner without one blocking the other.
-  const [payrollExporting,  setPayrollExporting]  = useState<null | "employees" | "freelancers">(null);
+  // Payroll — state + loader + export in usePayroll
+  const payroll = usePayroll();
+  const {
+    payrollMonth,     setPayrollMonth,
+    payrollStaffId,   setPayrollStaffId,
+    payrollRows,
+    payrollLoading,
+    payrollExporting,
+    loadPayroll,
+    exportPayroll,
+  } = payroll;
 
   // Projects UI
   const [newProjectName,    setNewProjectName]    = useState("");
@@ -261,87 +305,101 @@ export default function AdminPortal() {
   const [farThresholdMsg,      setFarThresholdMsg]      = useState("");
 
   // Expenses UI
-  const [matProjectId, setMatProjectId] = useState("");
-  const [matCategory,  setMatCategory]  = useState("חומרים");
-  const [matName,      setMatName]      = useState("");
-  const [matQty,       setMatQty]       = useState("1");
-  const [matUnit,      setMatUnit]      = useState("יחידות");
-  const [matSupplier,  setMatSupplier]  = useState("");
-  const [matCost,      setMatCost]      = useState("");
-  const [matLoading,   setMatLoading]   = useState(false);
-  const [matMsg,       setMatMsg]       = useState("");
+  // Expenses add form — state + handler in useExpensesForm. matFilter
+  // stays here because loadMaterials() depends on it (and re-fires from
+  // useEffect when it changes).
+  const expensesForm = useExpensesForm(() => loadMaterials(), feedback);
+  const {
+    matProjectId, setMatProjectId,
+    matCategory,  setMatCategory,
+    matName,      setMatName,
+    matQty,       setMatQty,
+    matUnit,      setMatUnit,
+    matSupplier,  setMatSupplier,
+    matCost,      setMatCost,
+    matLoading,
+    matMsg,
+    handleAddMaterial,
+  } = expensesForm;
   const [matFilter,    setMatFilter]    = useState("");
 
   // Planning UI
-  const [taskFilter,        setTaskFilter]        = useState("");
-  const [newTaskProjectId,  setNewTaskProjectId]  = useState("");
-  const [newTaskName,       setNewTaskName]        = useState("");
-  const [newTaskStart,      setNewTaskStart]       = useState("");
-  const [newTaskEnd,        setNewTaskEnd]         = useState("");
-  const [newTaskContractor, setNewTaskContractor]  = useState("");
-  const [taskAddLoading,    setTaskAddLoading]     = useState(false);
-  const [taskAddMsg,        setTaskAddMsg]         = useState("");
+  // (task add-form state now lives in useMilestonesAndTasks above)
 
-  // Attendance report download UI
-  const attTodayStr   = new Date().toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" });
-  const attWeekAgoStr = new Date(Date.now() - 6 * 86_400_000).toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" });
-  const [attReportFrom,    setAttReportFrom]    = useState(attWeekAgoStr);
-  const [attReportTo,      setAttReportTo]      = useState(attTodayStr);
-  const [attReportLoading, setAttReportLoading] = useState(false);
-  const [attReportErr,     setAttReportErr]     = useState<string | null>(null);
-  const [attReportData,    setAttReportData]    = useState<AttReportData | null>(null);
+  // Attendance report + per-worker history — state + loader in useAttendanceReport
+  const attReport = useAttendanceReport();
+  const {
+    attReportFrom,    setAttReportFrom,
+    attReportTo,      setAttReportTo,
+    attReportLoading, setAttReportLoading,
+    attReportErr,     setAttReportErr,
+    attReportData,    setAttReportData,
+    historyStaffId,   setHistoryStaffId,
+    historyFrom,      setHistoryFrom,
+    historyTo,        setHistoryTo,
+    historyDays,
+    historyLoading,
+    historyError,
+    loadHistory,
+  } = attReport;
 
-  // Attendance edit UI
-  const [editAttId,        setEditAttId]        = useState<string | null>(null);
-  const [editAttAction,    setEditAttAction]    = useState("כניסה");
-  const [editAttProject,   setEditAttProject]   = useState("");
-  const [editAttTimestamp, setEditAttTimestamp] = useState("");
-  const [editAttLoading,   setEditAttLoading]   = useState(false);
-  const [editAttMsg,       setEditAttMsg]        = useState("");
-  const [editAttIsPending, setEditAttIsPending] = useState(false);
-
-  // Manual attendance entry (admin creates on behalf of worker)
-  const [manualOpen,      setManualOpen]      = useState(false);
-  const [manualStaffId,   setManualStaffId]   = useState("");
-  const [manualDate,      setManualDate]      = useState("");
-  const [manualType,      setManualType]      = useState<ManualType>("regular");
-  const [manualEntryTime, setManualEntryTime] = useState("");
-  const [manualExitTime,  setManualExitTime]  = useState("");
-  const [manualProject,   setManualProject]   = useState("");
-  const [manualNotes,     setManualNotes]     = useState("");
-  const [manualLoading,   setManualLoading]   = useState(false);
-  const [manualMsg,       setManualMsg]       = useState<string | null>(null);
-  const [manualErr,       setManualErr]       = useState<string | null>(null);
-
-  // Pending approvals
+  // Pending approvals — list stays here because the dashboard's
+  // AttentionPanel reads it; the per-row mutation handlers live in
+  // useAdminAttendance below.
   const [pendingRecords,   setPendingRecords]   = useState<AttendanceRecord[]>([]);
   const [pendingLoading,   setPendingLoading]   = useState(false);
   const [pendingErr,       setPendingErr]       = useState<string | null>(null);
-  const [pendingActionId,  setPendingActionId]  = useState<string | null>(null);
+
+  // Admin attendance — edit + manual + approve/reject + recent log
+  const adminAtt = useAdminAttendance({
+    reload: () => reload(),
+    loadPending: () => loadPending(),
+    setPendingRecords,
+    setPendingErr,
+  });
+  const {
+    editAttId,        setEditAttId,
+    editAttAction,    setEditAttAction,
+    editAttProject,   setEditAttProject,
+    editAttTimestamp, setEditAttTimestamp,
+    editAttLoading,
+    editAttMsg,
+    editAttIsPending: _editAttIsPending,
+    manualOpen,      setManualOpen,
+    manualStaffId,   setManualStaffId,
+    manualDate,      setManualDate,
+    manualType,      setManualType,
+    manualEntryTime, setManualEntryTime,
+    manualExitTime,  setManualExitTime,
+    manualProject,   setManualProject,
+    manualNotes,     setManualNotes,
+    manualLoading,
+    manualMsg,       setManualMsg,
+    manualErr,       setManualErr,
+    pendingActionId,
+    recentLogs,
+    recentLogsLoading,
+    recentLogsErr,
+    recentLogsVisible, setRecentLogsVisible,
+    loadRecentLogs,
+    approveAttRecord,
+    rejectAttRecord,
+    startEditAtt,
+    handleEditAtt,
+    handleEditAndApproveAtt,
+    handleManualEntry,
+  } = adminAtt;
+  void _editAttIsPending;
 
   // Worker correction requests (the "report a mistake" workflow)
   const [correctionRequests, setCorrectionRequests] = useState<import("../admin/_components/shared/CorrectionRequestsPanel").CorrectionRequest[]>([]);
   const [correctionsLoading, setCorrectionsLoading] = useState(false);
   const [correctionsErr,     setCorrectionsErr]     = useState<string | null>(null);
 
-  // Attendance sub-tab + Worker-history panel
+  // Attendance sub-tab (history slice lives in useAttendanceReport above)
   const [attendanceSubTab, setAttendanceSubTab] = useState<AttendanceSubTab>("live");
-  const [historyStaffId,   setHistoryStaffId]   = useState("");
-  const [historyFrom, setHistoryFrom] = useState(() =>
-    new Date(Date.now() - 29 * 86_400_000).toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" })
-  );
-  const [historyTo, setHistoryTo] = useState(() =>
-    new Date().toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" })
-  );
-  const [historyDays,    setHistoryDays]    = useState<WorkerHistoryDay[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyError,   setHistoryError]   = useState<string | null>(null);
 
-  // Recent records (last 7 days) for retroactive editing
-  const [recentLogs,        setRecentLogs]        = useState<AttendanceRecord[]>([]);
-  const [recentLogsLoading, setRecentLogsLoading] = useState(false);
-  const [recentLogsErr,     setRecentLogsErr]     = useState<string | null>(null);
-  const [recentLogsVisible, setRecentLogsVisible] = useState(false);
+  // (recent log + edit/manual/approve handlers now live in useAdminAttendance above)
 
   // Refresh bar
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
@@ -354,12 +412,17 @@ export default function AdminPortal() {
   useEffect(() => { lastRefreshedRef.current = lastRefreshed; });
 
   // Income UI
-  const [incProjectId, setIncProjectId] = useState("");
-  const [incAmount,    setIncAmount]    = useState("");
-  const [incDesc,      setIncDesc]      = useState("");
-  const [incDate,      setIncDate]      = useState(new Date().toISOString().slice(0, 10));
-  const [incLoading,   setIncLoading]   = useState(false);
-  const [incMsg,       setIncMsg]       = useState("");
+  // Income add form — state + handler in useIncomeForm
+  const incomeForm = useIncomeForm(loadIncome);
+  const {
+    incProjectId, setIncProjectId,
+    incAmount,    setIncAmount,
+    incDesc,      setIncDesc,
+    incDate,      setIncDate,
+    incLoading,
+    incMsg,
+    handleAddIncome,
+  } = incomeForm;
 
   // ── Derived values ─────────────────────────────────────────────────────────
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -631,37 +694,6 @@ export default function AdminPortal() {
     }
   }
 
-  async function loadRecentLogs() {
-    setRecentLogsLoading(true); setRecentLogsErr(null);
-    try {
-      const res = await fetch("/api/admin/attendance/recent?days=7");
-      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error ?? `שגיאה ${res.status}`); }
-      const d = await res.json(); setRecentLogs(d.records ?? []);
-    } catch (e) { setRecentLogsErr(String(e)); }
-    finally { setRecentLogsLoading(false); }
-  }
-
-  // Per-worker history (sub-tab inside Attendance). Cleared when staffId
-  // is empty — that's the "pick a worker" idle state.
-  const loadHistory = useCallback(async () => {
-    if (!historyStaffId) {
-      setHistoryDays([]); setHistoryError(null); return;
-    }
-    setHistoryLoading(true); setHistoryError(null);
-    try {
-      const q = new URLSearchParams({ from: historyFrom, to: historyTo });
-      const res = await fetch(`/api/admin/staff/${historyStaffId}/history?${q.toString()}`);
-      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error ?? `שגיאה ${res.status}`); }
-      const d = await res.json();
-      setHistoryDays(d.days ?? []);
-    } catch (e) {
-      setHistoryError(e instanceof Error ? e.message : String(e));
-      setHistoryDays([]);
-    } finally {
-      setHistoryLoading(false);
-    }
-  }, [historyStaffId, historyFrom, historyTo]);
-
   function reload() { if (authState === "admin" || authState === "foreman") loadData(authState); }
 
   async function handleTabRefresh() {
@@ -676,28 +708,6 @@ export default function AdminPortal() {
         await loadData(authState as "admin" | "foreman");
       // loadData's finally sets lastRefreshed for the branches above that call it
     } finally { setRefreshing(false); }
-  }
-
-  async function approveAttRecord(id: string) {
-    if (pendingActionId) return;
-    setPendingActionId(id); setPendingErr(null);
-    try {
-      const res = await fetch(`/api/admin/attendance/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "approved" }) });
-      if (res.ok) setPendingRecords(p => p.filter(r => r.id !== id));
-      else { const d = await res.json().catch(() => ({})); setPendingErr("שגיאה באישור: " + (d.error ?? res.status)); }
-    } catch { setPendingErr("שגיאת רשת — לא ניתן לאשר. נסה שוב."); }
-    finally { setPendingActionId(null); }
-  }
-
-  async function rejectAttRecord(id: string) {
-    if (pendingActionId) return;
-    setPendingActionId(id); setPendingErr(null);
-    try {
-      const res = await fetch(`/api/admin/attendance/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "rejected" }) });
-      if (res.ok) setPendingRecords(p => p.filter(r => r.id !== id));
-      else { const d = await res.json().catch(() => ({})); setPendingErr("שגיאה בדחייה: " + (d.error ?? res.status)); }
-    } catch { setPendingErr("שגיאת רשת — לא ניתן לדחות. נסה שוב."); }
-    finally { setPendingActionId(null); }
   }
 
   // ── Login handlers ─────────────────────────────────────────────────────────
@@ -759,55 +769,6 @@ export default function AdminPortal() {
     setMaterials([]); setBudget([]); setIncome([]);
   }
 
-  async function handleChangePassword(e: React.FormEvent) {
-    e.preventDefault();
-    setPwMsg(null);
-    if (!pwCurrent || !pwNew || !pwConfirm) return;
-    if (pwNew.length < 8) {
-      setPwMsg({ kind: "err", text: "סיסמה חדשה חייבת להיות באורך 8 תווים לפחות." });
-      return;
-    }
-    if (pwNew !== pwConfirm) {
-      setPwMsg({ kind: "err", text: "אישור הסיסמה לא תואם לסיסמה החדשה." });
-      return;
-    }
-    if (pwNew === pwCurrent) {
-      setPwMsg({ kind: "err", text: "הסיסמה החדשה זהה לנוכחית. בחר/י סיסמה אחרת." });
-      return;
-    }
-    setPwSaving(true);
-    try {
-      const res = await fetch("/api/admin/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword: pwCurrent, newPassword: pwNew }),
-      });
-      const data = await res.json();
-      if (data.ok) {
-        feedback.success();
-        setPwCurrent(""); setPwNew(""); setPwConfirm("");
-        setPwMsg({ kind: "ok", text: "הסיסמה הוחלפה בהצלחה." });
-      } else if (res.status === 401 && data.error === "wrong_current_password") {
-        feedback.error();
-        setPwMsg({ kind: "err", text: "הסיסמה הנוכחית שגויה." });
-      } else if (res.status === 401) {
-        feedback.error();
-        setPwMsg({ kind: "err", text: "ההתחברות פגה. חזור/חזרי להתחבר." });
-      } else if (res.status === 400 && data.error === "password_too_short") {
-        feedback.error();
-        setPwMsg({ kind: "err", text: "סיסמה חדשה חייבת להיות באורך 8 תווים לפחות." });
-      } else {
-        feedback.error();
-        setPwMsg({ kind: "err", text: "שגיאה בשינוי סיסמה. נסה/י שוב." });
-      }
-    } catch {
-      feedback.error();
-      setPwMsg({ kind: "err", text: "שגיאת רשת. נסה/י שוב." });
-    } finally {
-      setPwSaving(false);
-    }
-  }
-
   // ── PIN digit entry ────────────────────────────────────────────────────────
   function handlePinKey(digit: string) {
     if (loginLoading) return;
@@ -822,185 +783,6 @@ export default function AdminPortal() {
   }
 
   // ── Worker CRUD ────────────────────────────────────────────────────────────
-  async function handleAddWorker(e: React.FormEvent) {
-    e.preventDefault(); setAddLoading(true); setAddMsg("");
-    try {
-      const res  = await fetch("/api/admin/staff", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newName, phone: newPhone, role: newRole, national_id: newNationalId,
-          hourly_rate: parseMoney(newHourlyRate),
-          daily_rate:  parseMoney(newDailyRate),
-          employment_type:       newEmploymentType,
-          monthly_global_salary: parseMoney(newGlobalSalary),
-          travel_allowance:      newTravelAllowance,
-          pension_status:        newPensionStatus,
-          holiday_eligible:      newHolidayEligible,
-          is_freelancer:         newIsFreelancer,
-          attendance_exempt:     newAttendanceExempt,
-          start_date:            newStartDate || undefined,
-          notes:                 newNotes || undefined,
-          pin: newPin || undefined,
-        }) });
-      const data = await res.json();
-      if (res.ok) {
-        setAddMsg("✓ " + newName + " נוסף");
-        setNewName(""); setNewPhone(""); setNewNationalId("");
-        setNewHourlyRate(""); setNewDailyRate(""); setNewPin("");
-        setNewEmploymentType("hourly"); setNewGlobalSalary("");
-        // Reset to "employee + travel=true" — the default for a fresh add.
-        setNewTravelAllowance(true); setNewPensionStatus(""); setNewHolidayEligible(true);
-        setNewIsFreelancer(false); setNewAttendanceExempt(false);
-        setNewStartDate(""); setNewNotes("");
-        reload();
-      } else {
-        setAddMsg("שגיאה: " + (data.error ?? res.status));
-      }
-    } catch (err) { setAddMsg("שגיאת רשת: " + String(err)); }
-    finally { setAddLoading(false); }
-  }
-
-  function startEdit(s: StaffMember) {
-    setEditingId(s.id); setEditName(s.name); setEditPhone(s.phone); setEditRole(s.role);
-    setEditNationalId(s.national_id ?? "");
-    setEditHourlyRate(s.hourly_rate != null ? String(s.hourly_rate) : "");
-    setEditDailyRate(s.daily_rate   != null ? String(s.daily_rate)  : "");
-    setEditEmploymentType(s.employment_type ?? "hourly");
-    setEditGlobalSalary(s.monthly_global_salary != null ? String(s.monthly_global_salary) : "");
-    setEditTravelAllowance(!!s.travel_allowance);
-    setEditPensionStatus(s.pension_status ?? "");
-    setEditHolidayEligible(s.holiday_eligible !== false); // default true
-    setEditIsFreelancer(!!s.is_freelancer);
-    setEditAttendanceExempt(!!s.attendance_exempt);
-    setEditStartDate(s.start_date ?? "");
-    setEditNotes(s.notes ?? "");
-    setEditPin(""); // always blank — admin sets a new PIN explicitly
-    setEditMsg("");
-  }
-
-  async function handleEditWorker(e: React.FormEvent) {
-    e.preventDefault(); if (!editingId) return;
-    setEditLoading(true); setEditMsg("");
-    try {
-      const body: Record<string, unknown> = {
-        name: editName, phone: editPhone, role: editRole, national_id: editNationalId,
-        hourly_rate: parseMoney(editHourlyRate),
-        daily_rate:  parseMoney(editDailyRate),
-        employment_type:       editEmploymentType,
-        monthly_global_salary: parseMoney(editGlobalSalary),
-        travel_allowance:      editTravelAllowance,
-        pension_status:        editPensionStatus,
-        holiday_eligible:      editHolidayEligible,
-        is_freelancer:         editIsFreelancer,
-        attendance_exempt:     editAttendanceExempt,
-        start_date:            editStartDate || null,
-        notes:                 editNotes || null,
-      };
-      if (editPin) body.pin = editPin; // only send if a new PIN was entered
-      const res  = await fetch(`/api/admin/staff/${editingId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      const data = await res.json();
-      if (res.ok) { setEditingId(null); reload(); }
-      else        { setEditMsg("שגיאה: " + (data.error ?? res.status)); }
-    } catch (err) { setEditMsg("שגיאת רשת: " + String(err)); }
-    finally { setEditLoading(false); }
-  }
-
-  // ── Vacation drawer ────────────────────────────────────────────────────────
-  async function openVacationDrawer(staffId: string) {
-    setVacationFor(staffId);
-    setVacationDate(""); setVacationHalf(false); setVacationMsg("");
-    await loadVacationRows(staffId);
-  }
-  async function loadVacationRows(staffId: string) {
-    try {
-      const res = await fetch(`/api/admin/vacation?staff_id=${staffId}`);
-      const data = await res.json();
-      if (res.ok) setVacationRows(data.records ?? []);
-    } catch { /* keep current rows */ }
-  }
-  async function handleAddVacation(e: React.FormEvent) {
-    e.preventDefault();
-    if (!vacationFor || !vacationDate) return;
-    setVacationLoading(true); setVacationMsg("");
-    try {
-      const res = await fetch("/api/admin/vacation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ staff_id: vacationFor, date: vacationDate, half_day: vacationHalf }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setVacationDate(""); setVacationHalf(false);
-        await loadVacationRows(vacationFor);
-      } else {
-        setVacationMsg("שגיאה: " + (data.error ?? res.status));
-      }
-    } catch (err) {
-      setVacationMsg("שגיאת רשת: " + String(err));
-    } finally {
-      setVacationLoading(false);
-    }
-  }
-  async function handleDeleteVacation(id: string) {
-    if (!vacationFor) return;
-    await fetch(`/api/admin/vacation/${id}`, { method: "DELETE" });
-    await loadVacationRows(vacationFor);
-  }
-
-  // ── Payroll ────────────────────────────────────────────────────────────────
-  async function loadPayroll() {
-    setPayrollLoading(true);
-    try {
-      const q = new URLSearchParams({ month: payrollMonth });
-      if (payrollStaffId) q.set("staff_id", payrollStaffId);
-      const res = await fetch(`/api/admin/payroll?${q.toString()}`);
-      const data = await res.json();
-      if (res.ok) setPayrollRows(data.rows ?? []);
-      else setPayrollRows([]);
-    } catch {
-      setPayrollRows([]);
-    } finally {
-      setPayrollLoading(false);
-    }
-  }
-  async function exportPayroll(type: "employees" | "freelancers") {
-    setPayrollExporting(type);
-    try {
-      const q = new URLSearchParams({ month: payrollMonth, type });
-      if (payrollStaffId) q.set("staff_id", payrollStaffId);
-      const res = await fetch(`/api/admin/payroll/export?${q.toString()}`);
-      if (!res.ok) {
-        alert("שגיאה בייצוא: " + res.status);
-        return;
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `payroll-${type}-${payrollMonth}${payrollStaffId ? "-worker" : ""}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } finally {
-      setPayrollExporting(null);
-    }
-  }
-
-  async function toggleActive(id: string, current: boolean) {
-    await fetch(`/api/admin/staff/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active: !current }) });
-    reload();
-  }
-
-  async function deleteWorker(id: string) {
-    const res = await fetch(`/api/admin/staff/${id}`, { method: "DELETE" });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({ error: "שגיאה במחיקה" }));
-      alert(data.error ?? "שגיאה במחיקה");
-      return;
-    }
-    reload();
-  }
-
   // Called from WorkersTab — jump to the history sub-tab pre-selected with
   // this worker, regardless of which tab the admin is currently on.
   function viewWorkerHistory(staffId: string) {
@@ -1098,167 +880,7 @@ export default function AdminPortal() {
     finally { setFarThresholdSaving(false); }
   }
 
-  // ── Expense CRUD ───────────────────────────────────────────────────────────
-  async function handleAddMaterial(e: React.FormEvent) {
-    e.preventDefault(); setMatLoading(true); setMatMsg("");
-    const qty = parsePositive(matQty);
-    if (qty === null) { setMatMsg("שגיאה: כמות חייבת להיות מספר חיובי"); setMatLoading(false); return; }
-    const cost = parseMoney(matCost); // null if empty/invalid; valid 0 stays 0
-    if (matCost.trim() && cost === null) { setMatMsg("שגיאה: עלות לא תקינה"); setMatLoading(false); return; }
-    try {
-      const res  = await fetch("/api/admin/materials", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project_id: matProjectId, material_name: matName, quantity: qty, unit: matUnit, supplier: matSupplier, cost, category: matCategory }) });
-      const data = await res.json();
-      if (res.ok) { feedback.success(); setMatMsg("✓ " + matName + " נרשם"); setMatName(""); setMatQty("1"); setMatSupplier(""); setMatCost(""); loadMaterials(); }
-      else        { feedback.error(); setMatMsg("שגיאה: " + (data.error ?? res.status)); }
-    } catch (err) { setMatMsg("שגיאת רשת: " + String(err)); }
-    finally { setMatLoading(false); }
-  }
-
-  // ── Task CRUD ──────────────────────────────────────────────────────────────
-  async function handleAddTask(e: React.FormEvent) {
-    e.preventDefault(); setTaskAddLoading(true); setTaskAddMsg("");
-    try {
-      const res  = await fetch("/api/admin/tasks", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project_id: newTaskProjectId, milestone_id: newTaskMilestoneId || null, task_name: newTaskName, start_date: newTaskStart || null, end_date: newTaskEnd || null, contractor: newTaskContractor }) });
-      const data = await res.json();
-      if (res.ok) {
-        setTaskAddMsg("✓ " + newTaskName + " נוסף");
-        setNewTaskName(""); setNewTaskStart(""); setNewTaskEnd(""); setNewTaskContractor(""); setNewTaskMilestoneId("");
-        if (newTaskMilestoneId) setExpandedMs(prev => new Set([...prev, newTaskMilestoneId]));
-        reload();
-      }
-      else        { setTaskAddMsg("שגיאה: " + (data.error ?? res.status)); }
-    } catch (err) { setTaskAddMsg("שגיאת רשת: " + String(err)); }
-    finally { setTaskAddLoading(false); }
-  }
-
-  const setTaskStatus = useCallback(async (id: string, status: string) => {
-    await fetch(`/api/admin/tasks/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
-    reload();
-  }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Milestone CRUD ─────────────────────────────────────────────────────────
-  async function handleAddMilestone(e: React.FormEvent) {
-    e.preventDefault(); setMsAddLoading(true); setMsAddMsg("");
-    try {
-      const res  = await fetch("/api/admin/milestones", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project_id: newMsProjectId, name: newMsName, target_date: newMsTargetDate || null }) });
-      const data = await res.json();
-      if (res.ok) {
-        setMsAddMsg("✓ " + newMsName + " נוספה");
-        setNewMsName(""); setNewMsTargetDate("");
-        setExpandedMs(prev => new Set([...prev, data.milestone.id]));
-        reload();
-      } else { setMsAddMsg("שגיאה: " + (data.error ?? res.status)); }
-    } catch (err) { setMsAddMsg("שגיאת רשת: " + String(err)); }
-    finally { setMsAddLoading(false); }
-  }
-
-  const setMilestoneStatus = useCallback(async (id: string, status: string) => {
-    await fetch(`/api/admin/milestones/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
-    reload();
-  }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  function toggleMs(id: string) {
-    setExpandedMs(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
-
-  const assignTaskDay = useCallback(async (id: string, date: string | null) => {
-    await fetch(`/api/admin/tasks/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ start_date: date ?? "" }) });
-    reload();
-  }, [authState]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Attendance retroactive edit ────────────────────────────────────────────
-  function startEditAtt(r: AttendanceRecord, isPending = false) {
-    setEditAttId(r.id);
-    setEditAttIsPending(isPending);
-    setEditAttAction(r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action);
-    setEditAttProject(r.project?.id ?? "");
-    setEditAttTimestamp(r.timestamp_label ?? "");
-    setEditAttMsg("");
-  }
-
-  async function handleEditAtt(e: React.FormEvent) {
-    e.preventDefault(); if (!editAttId) return;
-    setEditAttLoading(true); setEditAttMsg("");
-    try {
-      const res  = await fetch(`/api/admin/attendance/${editAttId}`, { method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: editAttAction, project_id: editAttProject || null, timestamp_label: editAttTimestamp }) });
-      const data = await res.json();
-      if (res.ok) {
-        const wasPending = editAttIsPending;
-        setEditAttId(null); setEditAttIsPending(false);
-        if (wasPending) loadPending();
-        else if (recentLogsVisible) loadRecentLogs();
-        reload();
-      } else { setEditAttMsg("שגיאה: " + (data.error ?? res.status)); }
-    } catch (err) { setEditAttMsg("שגיאת רשת: " + String(err)); }
-    finally { setEditAttLoading(false); }
-  }
-
-  async function handleEditAndApproveAtt() {
-    if (!editAttId) return;
-    setEditAttLoading(true); setEditAttMsg("");
-    try {
-      const res  = await fetch(`/api/admin/attendance/${editAttId}`, { method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: editAttAction, project_id: editAttProject || null, timestamp_label: editAttTimestamp, status: "approved" }) });
-      const data = await res.json();
-      if (res.ok) { setEditAttId(null); setEditAttIsPending(false); loadPending(); reload(); }
-      else        { setEditAttMsg("שגיאה: " + (data.error ?? res.status)); }
-    } catch (err) { setEditAttMsg("שגיאת רשת: " + String(err)); }
-    finally { setEditAttLoading(false); }
-  }
-
-  // ── Admin manual attendance entry ──────────────────────────────────────────
-  async function handleManualEntry(e: React.FormEvent) {
-    e.preventDefault(); setManualLoading(true); setManualErr(null); setManualMsg(null);
-    try {
-      const res = await fetch("/api/admin/attendance/manual", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          staff_id:   manualStaffId,
-          date:       manualDate,
-          type:       manualType,
-          entry_time: manualEntryTime || undefined,
-          exit_time:  manualExitTime  || undefined,
-          project_id: manualProject   || undefined,
-          notes:      manualNotes     || undefined,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        const count = data.created === 2 ? "2 רשומות (כניסה + יציאה)" : "רשומה אחת";
-        setManualMsg(`נוסף בהצלחה ✓ — ${count}`);
-        setManualOpen(false);
-        setManualStaffId(""); setManualDate(""); setManualType("regular");
-        setManualEntryTime(""); setManualExitTime(""); setManualProject(""); setManualNotes("");
-        reload();
-      } else { setManualErr("שגיאה: " + (data.error ?? res.status)); }
-    } catch (err) { setManualErr("שגיאת רשת: " + String(err)); }
-    finally { setManualLoading(false); }
-  }
-
   // ── Income CRUD ────────────────────────────────────────────────────────────
-  async function handleAddIncome(e: React.FormEvent) {
-    e.preventDefault(); setIncLoading(true); setIncMsg("");
-    const amount = parsePositive(incAmount);
-    if (amount === null) { setIncMsg("שגיאה: סכום חייב להיות מספר חיובי"); setIncLoading(false); return; }
-    try {
-      const res  = await fetch("/api/admin/income", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project_id: incProjectId, amount, description: incDesc, received_date: incDate }) });
-      const data = await res.json();
-      if (res.ok) { setIncMsg("✓ תשלום נרשם"); setIncAmount(""); setIncDesc(""); loadIncome(); }
-      else        { setIncMsg("שגיאה: " + (data.error ?? res.status)); }
-    } catch (err) { setIncMsg("שגיאת רשת: " + String(err)); }
-    finally { setIncLoading(false); }
-  }
-
   // ── Daily report ───────────────────────────────────────────────────────────
 
   // ── Render: loading ────────────────────────────────────────────────────────
