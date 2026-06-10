@@ -105,17 +105,12 @@ export default function HistoryScreen(p: Props) {
     }).reverse();
   })();
 
-  // Per-cell control next to a time: ⏳ chip when a correction is already
-  // pending, a discreet pencil button to open the report-mistake form
-  // otherwise (a soft "edit" affordance, not an alarming warning).
-  function reportControl(recordId: string | undefined) {
-    if (!recordId) return null;
-    const corr = p.corrections[recordId];
-    if (corr?.status === "pending") {
-      return (
-        <span className="ms-1 text-[0.55rem] text-amber-600" title="בקשת תיקון בהמתנה">⏳</span>
-      );
-    }
+  // Discreet pencil next to a time → opens the report-mistake form. Hidden
+  // only while a request is pending (the server rejects a second one with a
+  // 409). After approved/rejected the pencil returns so the worker can file a
+  // fresh request — a rejected fix can simply be corrected and resubmitted.
+  function reportPencil(recordId: string | undefined) {
+    if (!recordId || p.corrections[recordId]?.status === "pending") return null;
     return (
       <button
         type="button"
@@ -123,6 +118,26 @@ export default function HistoryScreen(p: Props) {
         className="ms-1 text-charcoal/40 hover:text-accent transition-colors"
         title="דווח על טעות"
       ><Pencil size={11} strokeWidth={1.75} /></button>
+    );
+  }
+
+  // Status chip for a record that has a correction request. Pending is a soft
+  // amber; approved/rejected stay neutral charcoal (a correct/rejected time is
+  // not an error to alarm about). The side label tells which time it refers to.
+  function statusChip(sideLabel: string, recordId: string | undefined) {
+    if (!recordId) return null;
+    const corr = p.corrections[recordId];
+    if (!corr) return null;
+    const text = corr.status === "approved" ? p.t.corrApproved
+               : corr.status === "rejected" ? p.t.corrRejected
+               : p.t.corrPending;
+    const tone = corr.status === "pending"
+      ? "bg-amber-50 text-amber-700 border-amber-200"
+      : "bg-charcoal/5 text-charcoal/70 border-charcoal/15";
+    return (
+      <span className={`inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[0.55rem] font-semibold leading-none ${tone}`}>
+        <span className="text-charcoal/40">{sideLabel}</span>{text}
+      </span>
     );
   }
 
@@ -167,15 +182,21 @@ export default function HistoryScreen(p: Props) {
                         {row.project !== "—" && <p className="font-body text-[0.58rem] text-charcoal/35 truncate" title={row.project}>{row.project}</p>}
                       </div>
                       <span className="font-body text-xs font-semibold text-charcoal/80 text-center tabular-nums inline-flex items-center justify-center">
-                        {row.entry || "—"}{reportControl(row.entryId)}
+                        {row.entry || "—"}{reportPencil(row.entryId)}
                       </span>
                       <span className="font-body text-xs font-semibold text-charcoal/80 text-center tabular-nums inline-flex items-center justify-center">
-                        {row.exit || "—"}{reportControl(row.exitId)}
+                        {row.exit || "—"}{reportPencil(row.exitId)}
                       </span>
                       <span className="font-body text-sm font-bold text-charcoal text-end tabular-nums">
                         {row.hours !== null ? row.hours.toFixed(1) : "—"}
                       </span>
                     </div>
+                    {(p.corrections[row.entryId ?? ""] || p.corrections[row.exitId ?? ""]) && (
+                      <div className="flex flex-wrap justify-end gap-1.5">
+                        {statusChip(p.t.clockIn, row.entryId)}
+                        {statusChip(p.t.clockOut, row.exitId)}
+                      </div>
+                    )}
                     {reportTarget && (
                       <AttendanceReportMistake
                         attendanceId={reportTarget}
