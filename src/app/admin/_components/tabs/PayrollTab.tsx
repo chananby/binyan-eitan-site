@@ -159,7 +159,7 @@ export default function PayrollTab(p: Props) {
                           עצמאי
                         </span>
                       )}
-                      {r.deleted_at && <span className="ms-2 text-[0.75rem] font-normal text-charcoal/40">🗑️ (מחוק)</span>}
+                      {r.deleted_at && <span className="ms-2 text-[0.75rem] font-normal text-charcoal/55">🗑️ (מחוק)</span>}
                     </td>
                     <td className="py-2 text-charcoal/60">
                       {r.employment_type === "hourly" ? "שעתי" : r.employment_type === "daily" ? "יומי" : "גלובלי"}
@@ -181,7 +181,7 @@ export default function PayrollTab(p: Props) {
 
       {!p.payrollLoading && p.payrollRows.length === 0 && (
         <Card>
-          <p className="text-sm text-charcoal/30 text-center py-6">לחץ &quot;טען נתונים&quot; לראות דוח לחודש שנבחר.</p>
+          <p className="text-sm text-charcoal/55 text-center py-6">לחץ &quot;טען נתונים&quot; לראות דוח לחודש שנבחר.</p>
         </Card>
       )}
     </div>

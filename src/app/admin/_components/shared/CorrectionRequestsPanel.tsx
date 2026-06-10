@@ -93,19 +93,19 @@ export default function CorrectionRequestsPanel(p: {
           )}
         </div>
         <button onClick={p.onReload}
-          className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors">
+          className="flex items-center gap-1 text-xs text-charcoal/55 hover:text-accent transition-colors">
           <RefreshCw size={12} strokeWidth={1.5} /> רענן
         </button>
       </div>
 
-      {p.loading && <p className="text-sm text-charcoal/40 text-center py-4">טוען...</p>}
+      {p.loading && <p className="text-sm text-charcoal/55 text-center py-4">טוען...</p>}
       {p.error && (
         <p className="text-xs text-red-500 flex items-center gap-1.5">
           <AlertCircle size={12} /> {p.error}
         </p>
       )}
       {!p.loading && !p.error && p.requests.length === 0 && (
-        <p className="text-sm text-charcoal/30 text-center py-4">אין בקשות תיקון פתוחות</p>
+        <p className="text-sm text-charcoal/55 text-center py-4">אין בקשות תיקון פתוחות</p>
       )}
 
       {!p.loading && p.requests.length > 0 && (
@@ -131,9 +131,9 @@ export default function CorrectionRequestsPanel(p: {
                     </p>
                   )}
                   <p className="text-[0.75rem] text-charcoal/70 leading-snug pt-0.5">
-                    <span className="text-charcoal/40">סיבה: </span>{r.reason}
+                    <span className="text-charcoal/55">סיבה: </span>{r.reason}
                   </p>
-                  <p className="text-[0.65rem] text-charcoal/30">
+                  <p className="text-[0.65rem] text-charcoal/55">
                     הוגש: {new Date(r.created_at).toLocaleString("he-IL", {
                       timeZone: "Asia/Jerusalem",
                       day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",

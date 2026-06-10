@@ -190,7 +190,7 @@ export default function PlanningTab(p: Props) {
             <Calendar size={14} strokeWidth={1.5} className="text-accent" />
             <h2 className="font-heading text-sm font-bold">לוח שבועי — שבוע נוכחי</h2>
           </div>
-          <button onClick={p.onReload} className="text-charcoal/40 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /></button>
+          <button onClick={p.onReload} className="text-charcoal/55 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /></button>
         </div>
 
         {/* Unscheduled this week */}
@@ -200,7 +200,7 @@ export default function PlanningTab(p: Props) {
           if (!unscheduled.length) return null;
           return (
             <div className="mb-4 space-y-2">
-              <p className="text-[0.75rem] font-bold tracking-widest uppercase text-charcoal/30">ללא לו&quot;ז לשבוע זה</p>
+              <p className="text-[0.75rem] font-bold tracking-widest uppercase text-charcoal/55">ללא לו&quot;ז לשבוע זה</p>
               {unscheduled.map(t => (
                 <div key={t.id} className="bg-bone border border-charcoal/10 p-2.5 space-y-2">
                   <div className="flex items-center gap-2">
@@ -231,7 +231,7 @@ export default function PlanningTab(p: Props) {
               <div key={day.date} className={`border ${isToday ? "border-accent/40" : "border-charcoal/10"}`}>
                 <div className={`flex items-center justify-between px-3 py-2 ${isToday ? "bg-accent/[0.05]" : "bg-charcoal/[0.02]"}`}>
                   <span className={`text-xs font-bold ${isToday ? "text-accent" : "text-charcoal/60"}`}>{day.label}</span>
-                  <span className="text-[0.75rem] text-charcoal/30 tabular-nums" dir="ltr">{day.short}</span>
+                  <span className="text-[0.75rem] text-charcoal/55 tabular-nums" dir="ltr">{day.short}</span>
                 </div>
                 {dayTasks.length === 0 ? (
                   <p className="text-[0.75rem] text-charcoal/20 text-center py-1.5">ריק</p>
@@ -242,7 +242,7 @@ export default function PlanningTab(p: Props) {
                         <CheckSquare2 size={11} strokeWidth={1.5} className={`shrink-0 ${t.status === "in_progress" ? "text-amber-500" : "text-charcoal/20"}`} />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold truncate">{t.task_name}</p>
-                          {t.contractor && <p className="text-[0.75rem] text-charcoal/40">{t.contractor}</p>}
+                          {t.contractor && <p className="text-[0.75rem] text-charcoal/55">{t.contractor}</p>}
                         </div>
                         {t.status === "planned" && (
                           <button onClick={() => p.onSetTaskStatus(t.id, "in_progress")} className="text-[0.75rem] border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">▶</button>
@@ -281,7 +281,7 @@ export default function PlanningTab(p: Props) {
                     <span className="text-[0.75rem] px-1.5 py-0.5 bg-red-100 text-red-700 font-semibold shrink-0">עיכוב</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold truncate">{t.task_name}</p>
-                      <p className="text-[0.75rem] text-charcoal/40">{proj?.name}{t.delay_reason ? ` · ${DELAY_REASON_HE[t.delay_reason] ?? t.delay_reason}` : ""}</p>
+                      <p className="text-[0.75rem] text-charcoal/55">{proj?.name}{t.delay_reason ? ` · ${DELAY_REASON_HE[t.delay_reason] ?? t.delay_reason}` : ""}</p>
                     </div>
                   </div>
                 );
@@ -298,7 +298,7 @@ export default function PlanningTab(p: Props) {
                     <span className="text-[0.75rem] px-1.5 py-0.5 bg-amber-100 text-amber-700 font-semibold shrink-0">לא מוכן</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold truncate">{t.task_name}</p>
-                      <p className="text-[0.75rem] text-charcoal/40">{proj?.name}{missing ? ` · חסר: ${missing}` : ""}</p>
+                      <p className="text-[0.75rem] text-charcoal/55">{proj?.name}{missing ? ` · חסר: ${missing}` : ""}</p>
                     </div>
                   </div>
                 );
@@ -320,12 +320,12 @@ export default function PlanningTab(p: Props) {
               <option value="">כל הפרויקטים</option>
               {p.projects.map(proj => <option key={proj.id} value={proj.id}>{proj.name}</option>)}
             </select>
-            <button onClick={p.onReload} className="text-charcoal/40 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /></button>
+            <button onClick={p.onReload} className="text-charcoal/55 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /></button>
           </div>
         </div>
 
         {p.milestones.filter(m => !p.taskFilter || m.project_id === p.taskFilter).length === 0 && (
-          <p className="text-sm text-charcoal/30 text-center py-6">אין אבני דרך — הוסף אחת למעלה</p>
+          <p className="text-sm text-charcoal/55 text-center py-6">אין אבני דרך — הוסף אחת למעלה</p>
         )}
 
         {p.milestones
@@ -360,8 +360,8 @@ export default function PlanningTab(p: Props) {
                   </div>
                   {delayCount > 0 && <span className="text-[0.75rem] px-1.5 py-0.5 bg-red-50 text-red-600 shrink-0">{delayCount} עיכוב</span>}
                   <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${MILESTONE_STATUS_CLS[ms.status]}`}>{MILESTONE_STATUS_HE[ms.status]}</span>
-                  <span className="text-[0.75rem] text-charcoal/30 shrink-0 tabular-nums">{doneCount}/{msTasks.length}</span>
-                  {isExpanded ? <ChevronUp size={13} strokeWidth={1.5} className="shrink-0 text-charcoal/30" /> : <ChevronDown size={13} strokeWidth={1.5} className="shrink-0 text-charcoal/30" />}
+                  <span className="text-[0.75rem] text-charcoal/55 shrink-0 tabular-nums">{doneCount}/{msTasks.length}</span>
+                  {isExpanded ? <ChevronUp size={13} strokeWidth={1.5} className="shrink-0 text-charcoal/55" /> : <ChevronDown size={13} strokeWidth={1.5} className="shrink-0 text-charcoal/55" />}
                 </button>
 
                 {/* Expanded body */}
@@ -394,7 +394,7 @@ export default function PlanningTab(p: Props) {
                                   <button onClick={() => p.onSetTaskStatus(t.id, "in_progress")} className="text-[0.75rem] border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">▶</button>
                                 )}
                                 {t.status === "in_progress" && (
-                                  <button onClick={() => p.onSetTaskStatus(t.id, "planned")} className="text-[0.75rem] border border-charcoal/20 px-1.5 py-0.5 text-charcoal/40 hover:border-accent transition-colors shrink-0">⏸</button>
+                                  <button onClick={() => p.onSetTaskStatus(t.id, "planned")} className="text-[0.75rem] border border-charcoal/20 px-1.5 py-0.5 text-charcoal/55 hover:border-accent transition-colors shrink-0">⏸</button>
                                 )}
                                 <button onClick={() => p.onSetTaskStatus(t.id, "completed")} className="text-[0.75rem] border border-green-300 px-1.5 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">✓</button>
                               </>
@@ -429,7 +429,7 @@ export default function PlanningTab(p: Props) {
           return (
             <div className="border border-charcoal/10 bg-white">
               <div className="flex items-center gap-2 px-4 py-2.5 bg-charcoal/[0.02] border-b border-charcoal/8">
-                <Hammer size={12} strokeWidth={1.5} className="text-charcoal/30" />
+                <Hammer size={12} strokeWidth={1.5} className="text-charcoal/55" />
                 <p className="text-xs font-semibold text-charcoal/50">משימות ללא אבן דרך</p>
               </div>
               <div className="divide-y divide-charcoal/5">

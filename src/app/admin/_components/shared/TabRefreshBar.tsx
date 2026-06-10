@@ -22,12 +22,12 @@ export function TabRefreshBar({ loading, onRefresh, lastRefreshed }: {
   return (
     <div className="flex items-center justify-end gap-2.5">
       {timeStr && !loading && (
-        <span className="text-[0.62rem] text-charcoal/30 tabular-nums">עודכן {timeStr}</span>
+        <span className="text-[0.62rem] text-charcoal/55 tabular-nums">עודכן {timeStr}</span>
       )}
       <button
         onClick={onRefresh}
         disabled={loading}
-        className="flex items-center gap-1.5 border border-charcoal/12 hover:border-accent px-2.5 py-1 text-[0.72rem] text-charcoal/40 hover:text-accent disabled:opacity-40 transition-colors duration-150"
+        className="flex items-center gap-1.5 border border-charcoal/12 hover:border-accent px-2.5 py-1 text-[0.72rem] text-charcoal/55 hover:text-accent disabled:opacity-40 transition-colors duration-150"
       >
         {loading
           ? <><Loader2 size={10} className="animate-spin" /> מרענן...</>

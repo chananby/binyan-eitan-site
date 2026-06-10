@@ -325,7 +325,7 @@ ${detailHtml}
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-[0.68rem] text-charcoal/40 font-body">
+              <p className="text-[0.68rem] text-charcoal/55 font-body">
                 דוח נוכחות — {from} עד {to}
               </p>
               <span className="text-[0.62rem] text-accent font-semibold border border-accent/30 px-2 py-0.5">
@@ -337,16 +337,16 @@ ${detailHtml}
               {summary.map(s => (
                 <div key={s.phone} className="bg-bone border border-warm-gray-light p-3">
                   <p className="font-heading font-bold text-sm text-charcoal truncate">{s.name}</p>
-                  <p className="text-[0.62rem] text-charcoal/40 mt-0.5">{s.phone}</p>
+                  <p className="text-[0.62rem] text-charcoal/55 mt-0.5">{s.phone}</p>
                   <div className="flex gap-3 mt-2">
                     <div>
                       <p className="text-lg font-heading font-bold text-accent leading-none">{s.days}</p>
-                      <p className="text-[0.58rem] text-charcoal/40 leading-none mt-0.5">ימים</p>
+                      <p className="text-[0.58rem] text-charcoal/55 leading-none mt-0.5">ימים</p>
                     </div>
                     <div className="w-px bg-warm-gray-light" />
                     <div>
                       <p className="text-lg font-heading font-bold text-charcoal leading-none">{s.hours.toFixed(1)}</p>
-                      <p className="text-[0.58rem] text-charcoal/40 leading-none mt-0.5">שעות</p>
+                      <p className="text-[0.58rem] text-charcoal/55 leading-none mt-0.5">שעות</p>
                     </div>
                   </div>
                 </div>
@@ -411,7 +411,7 @@ ${detailHtml}
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-5 bg-accent" />
                       <p className="font-heading font-bold text-sm">{name}</p>
-                      <span className="text-[0.75rem] text-charcoal/40">{ws?.phone}</span>
+                      <span className="text-[0.75rem] text-charcoal/55">{ws?.phone}</span>
                     </div>
                     <div className="flex gap-3 text-[0.68rem] text-charcoal/50">
                       <span><strong className="text-charcoal">{ws?.days ?? 0}</strong> ימים</span>
@@ -460,7 +460,7 @@ ${detailHtml}
             })}
 
             {rows.length === 0 && (
-              <div className="text-center py-10 text-charcoal/30 text-sm">
+              <div className="text-center py-10 text-charcoal/55 text-sm">
                 לא נמצאו רשומות נוכחות לתקופה זו
               </div>
             )}
@@ -639,14 +639,14 @@ function PendingApprovals({
             </span>
           )}
         </div>
-        <button onClick={onLoadPending} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors">
+        <button onClick={onLoadPending} className="flex items-center gap-1 text-xs text-charcoal/55 hover:text-accent transition-colors">
           <RefreshCw size={12} strokeWidth={1.5} /> רענן
         </button>
       </div>
-      {pendingLoading && <p className="text-sm text-charcoal/40 text-center py-4">טוען...</p>}
+      {pendingLoading && <p className="text-sm text-charcoal/55 text-center py-4">טוען...</p>}
       {pendingErr && <p className="text-xs text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {pendingErr}</p>}
       {!pendingLoading && !pendingErr && pendingRecords.length === 0 && (
-        <p className="text-sm text-charcoal/30 text-center py-4">אין בקשות ממתינות לאישור</p>
+        <p className="text-sm text-charcoal/55 text-center py-4">אין בקשות ממתינות לאישור</p>
       )}
       {!pendingLoading && pendingRecords.length > 0 && (
         <div className="divide-y divide-charcoal/5">
@@ -670,25 +670,25 @@ function PendingApprovals({
                           // column whose format varies row by row.
                           const t = attendanceDayTimeShort(r);
                           return t ? (
-                            <span className="text-[0.75rem] text-charcoal/40 tabular-nums" dir="ltr">{t}</span>
+                            <span className="text-[0.75rem] text-charcoal/55 tabular-nums" dir="ltr">{t}</span>
                           ) : null;
                         })()}
                         <DistanceFlag r={r} threshold={farThresholdM} />
                         <PhoneCallChip source={r.source} />
                       </div>
                       {r.project && (
-                        <div className="flex items-center gap-1 mt-0.5 text-[0.75rem] text-charcoal/40">
+                        <div className="flex items-center gap-1 mt-0.5 text-[0.75rem] text-charcoal/55">
                           <Building2 size={10} strokeWidth={1.5} /><span>{r.project.name}</span>
                         </div>
                       )}
                       {r.created_at && (
-                        <p className="text-[0.75rem] text-charcoal/30 mt-0.5">
+                        <p className="text-[0.75rem] text-charcoal/55 mt-0.5">
                           הוגש: {new Date(r.created_at).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                         </p>
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-                      <button onClick={() => onStartEditAtt(r, true)} className="text-charcoal/30 hover:text-accent transition-colors p-1">
+                      <button onClick={() => onStartEditAtt(r, true)} className="text-charcoal/55 hover:text-accent transition-colors p-1">
                         <Pencil size={12} strokeWidth={1.5} />
                       </button>
                       <button onClick={() => onApproveAtt(r.id)}
@@ -766,13 +766,13 @@ function TodayLog({
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="font-heading text-base font-bold">יומן היום</h2>
-          <p className="text-[0.75rem] text-charcoal/30 font-body mt-0.5">מתעדכן אוטומטית כל דקה</p>
+          <p className="text-[0.75rem] text-charcoal/55 font-body mt-0.5">מתעדכן אוטומטית כל דקה</p>
         </div>
         <button onClick={onReload} className="flex items-center gap-1.5 text-xs border border-accent/30 text-accent hover:bg-accent hover:text-bone px-3 py-1.5 transition-colors duration-150">
           <RefreshCw size={12} strokeWidth={1.5} /> רענן עכשיו
         </button>
       </div>
-      {dataLoading && <p className="text-sm text-charcoal/40 text-center py-4">טוען...</p>}
+      {dataLoading && <p className="text-sm text-charcoal/55 text-center py-4">טוען...</p>}
       {!dataLoading && attLoadErr && (
         <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded px-3 py-2.5 text-sm text-red-700 mb-3">
           <AlertCircle size={15} className="shrink-0 mt-0.5" />
@@ -783,7 +783,7 @@ function TodayLog({
           </div>
         </div>
       )}
-      {!dataLoading && !attLoadErr && todayLogs.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין דיווחים היום — לחץ &quot;רענן עכשיו&quot; אם עובדים כבר דיווחו</p>}
+      {!dataLoading && !attLoadErr && todayLogs.length === 0 && <p className="text-sm text-charcoal/55 text-center py-4">אין דיווחים היום — לחץ &quot;רענן עכשיו&quot; אם עובדים כבר דיווחו</p>}
       {!dataLoading && todayLogs.length > 0 && (() => {
         // Regular workers first; "exempt-from-attendance" staff (managers,
         // global-salary roles) get a separate dimmed group at the bottom
@@ -803,7 +803,7 @@ function TodayLog({
             )}
             {exempt.length > 0 && (
               <div className="mt-4 pt-3 border-t border-charcoal/10">
-                <p className="text-[0.7rem] text-charcoal/40 font-semibold mb-1">פטורים מנוכחות</p>
+                <p className="text-[0.7rem] text-charcoal/55 font-semibold mb-1">פטורים מנוכחות</p>
                 <div className="divide-y divide-charcoal/5">
                   {exempt.map(r => (
                     <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
@@ -847,12 +847,12 @@ function TodayLogRow({
         </span>
         <DistanceFlag r={r} threshold={farThresholdM} />
         <PhoneCallChip source={r.source} />
-        <button onClick={() => onStartEditAtt(r)} className="text-charcoal/30 hover:text-accent transition-colors shrink-0 p-0.5">
+        <button onClick={() => onStartEditAtt(r)} className="text-charcoal/55 hover:text-accent transition-colors shrink-0 p-0.5">
           <Pencil size={11} strokeWidth={1.5} />
         </button>
       </div>
       {r.project && (
-        <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/40">
+        <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/55">
           <Building2 size={10} strokeWidth={1.5} /><span>{r.project.name}</span>
         </div>
       )}
@@ -884,10 +884,10 @@ function RecentLogs({
         <div className="flex items-center gap-2">
           <Calendar size={15} strokeWidth={1.5} className="text-accent" />
           <h2 className="font-heading text-base font-bold">עריכת רשומות אחרונות</h2>
-          <span className="text-[0.75rem] text-charcoal/30 font-body">7 ימים אחרונים</span>
+          <span className="text-[0.75rem] text-charcoal/55 font-body">7 ימים אחרונים</span>
         </div>
         {recentLogsVisible && (
-          <button onClick={onLoadRecentLogs} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors">
+          <button onClick={onLoadRecentLogs} className="flex items-center gap-1 text-xs text-charcoal/55 hover:text-accent transition-colors">
             <RefreshCw size={12} strokeWidth={1.5} /> רענן
           </button>
         )}
@@ -899,10 +899,10 @@ function RecentLogs({
         </button>
       ) : (
         <>
-          {recentLogsLoading && <p className="text-sm text-charcoal/40 text-center py-4">טוען...</p>}
+          {recentLogsLoading && <p className="text-sm text-charcoal/55 text-center py-4">טוען...</p>}
           {recentLogsErr && <p className="text-xs text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {recentLogsErr}</p>}
           {!recentLogsLoading && !recentLogsErr && recentLogs.length === 0 && (
-            <p className="text-sm text-charcoal/30 text-center py-4">אין רשומות ב-7 הימים האחרונים</p>
+            <p className="text-sm text-charcoal/55 text-center py-4">אין רשומות ב-7 הימים האחרונים</p>
           )}
           {!recentLogsLoading && recentLogs.length > 0 && (() => {
             const regular = recentLogs.filter(r => !r.staff?.attendance_exempt);
@@ -919,7 +919,7 @@ function RecentLogs({
                 )}
                 {exempt.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-charcoal/10">
-                    <p className="text-[0.7rem] text-charcoal/40 font-semibold mb-1">פטורים מנוכחות</p>
+                    <p className="text-[0.7rem] text-charcoal/55 font-semibold mb-1">פטורים מנוכחות</p>
                     <div className="divide-y divide-charcoal/5">
                       {exempt.map(r => (
                         <RecentLogRow key={r.id} r={r} edit={edit} projects={projects}
@@ -963,13 +963,13 @@ function RecentLogRow({
           <p className="text-[0.75rem] text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {r.project && <span className="text-[0.62rem] text-charcoal/40 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
+          {r.project && <span className="text-[0.62rem] text-charcoal/55 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
           <span className="text-[0.7rem] text-charcoal/35 tabular-nums" dir="ltr">
             {attendanceDayTimeShort(r) || "—"}
           </span>
           <DistanceFlag r={r} threshold={farThresholdM} />
           <PhoneCallChip source={r.source} />
-          <button onClick={() => onStartEditAtt(r)} className="text-charcoal/30 hover:text-accent transition-colors p-0.5">
+          <button onClick={() => onStartEditAtt(r)} className="text-charcoal/55 hover:text-accent transition-colors p-0.5">
             <Pencil size={11} strokeWidth={1.5} />
           </button>
         </div>
@@ -1160,7 +1160,7 @@ export default function AttendanceTab(p: Props) {
 
       {p.subTab === "live" && (
         <>
-          <p className="text-[0.75rem] text-charcoal/30 text-center -mt-3">מתעדכן אוטומטית כל 2 דקות</p>
+          <p className="text-[0.75rem] text-charcoal/55 text-center -mt-3">מתעדכן אוטומטית כל 2 דקות</p>
 
           {hasPending && pendingPanel}
           {correctionsPanel}
@@ -1237,7 +1237,7 @@ function SubTabButton({
     <button
       onClick={onClick}
       className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-semibold tracking-wide border-b-2 transition-colors duration-150 ${
-        active ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/70"
+        active ? "border-accent text-accent" : "border-transparent text-charcoal/55 hover:text-charcoal/70"
       }`}
     >
       {icon}

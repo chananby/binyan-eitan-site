@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="relative min-h-screen bg-bone flex flex-col items-center justify-center px-6 gap-8" dir="rtl">
       <div className="absolute top-5 start-5">
-        <Link href="/admin" className="flex items-center gap-1 font-body text-xs text-charcoal/30 hover:text-accent transition-colors duration-200">
+        <Link href="/admin" className="flex items-center gap-1 font-body text-xs text-charcoal/55 hover:text-accent transition-colors duration-200">
           <ChevronLeft size={14} strokeWidth={1.5} />
           <span>חזרה להתחברות</span>
         </Link>

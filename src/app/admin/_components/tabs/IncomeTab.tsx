@@ -113,8 +113,8 @@ export default function IncomeTab({
                     <p className="text-sm font-semibold truncate">
                       {(r.project as { name?: string } | null)?.name ?? projects.find(p => p.id === r.project_id)?.name ?? "—"}
                     </p>
-                    {r.description && <p className="text-[0.7rem] text-charcoal/40">{r.description}</p>}
-                    <p className="text-[0.75rem] text-charcoal/30 tabular-nums" dir="ltr">{r.received_date}</p>
+                    {r.description && <p className="text-[0.7rem] text-charcoal/55">{r.description}</p>}
+                    <p className="text-[0.75rem] text-charcoal/55 tabular-nums" dir="ltr">{r.received_date}</p>
                   </div>
                   <span className="text-sm font-bold text-green-600 tabular-nums shrink-0">+₪{r.amount.toLocaleString("he-IL")}</span>
                 </div>

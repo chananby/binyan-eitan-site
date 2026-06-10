@@ -73,7 +73,7 @@ export default function AccountTab({
               {farThresholdSaving ? "שומר..." : "שמור"}
             </button>
           </div>
-          <p className="text-[0.62rem] text-charcoal/40 mt-1.5 leading-relaxed">
+          <p className="text-[0.62rem] text-charcoal/55 mt-1.5 leading-relaxed">
             החתמה שמתבצעת מעל המרחק הזה מהאתר תקבל דגל אדום באזור הנוכחות.
             ההחתמה עדיין תקפה — זו רק התראה שמאפשרת לך לבדוק.
             ברירת מחדל מומלצת: 500 מטר (כדי לכסות חניה + סטיות ב-GPS).

@@ -204,7 +204,7 @@ export default function RateManager(p: Props) {
         </form>
       )}
 
-      {loading && <p className="text-[0.7rem] text-charcoal/40">טוען…</p>}
+      {loading && <p className="text-[0.7rem] text-charcoal/55">טוען…</p>}
       {error && <p className="flex items-center gap-1 text-[0.7rem] text-red-600"><AlertCircle size={10}/> {error}</p>}
       {!loading && !error && rates.length === 0 && (
         <p className="text-[0.7rem] text-amber-700">⚠️ אין שורות תעריף — לחץ "עדכן תעריף" כדי להוסיף.</p>
@@ -225,7 +225,7 @@ export default function RateManager(p: Props) {
                 <tr key={r.id} className="border-t border-warm-gray-light/40">
                   <td className="py-1 tabular-nums text-charcoal/70" dir="ltr">{formatMonth(r.effective_month)}</td>
                   <td className="py-1 text-end tabular-nums font-semibold">{v != null ? `₪${v.toLocaleString("he-IL", { maximumFractionDigits: 2 })}` : "—"}</td>
-                  <td className="py-1 text-end text-charcoal/40 hidden sm:table-cell">{r.created_by ?? "—"}</td>
+                  <td className="py-1 text-end text-charcoal/55 hidden sm:table-cell">{r.created_by ?? "—"}</td>
                 </tr>
               );
             })}

@@ -133,16 +133,16 @@ export default function ExpensesTab(p: Props) {
               <option value="">כל הפרויקטים</option>
               {p.projects.map(proj => <option key={proj.id} value={proj.id}>{proj.name}</option>)}
             </select>
-            <button onClick={p.onReloadMaterials} className="text-charcoal/40 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /></button>
+            <button onClick={p.onReloadMaterials} className="text-charcoal/55 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /></button>
           </div>
         </div>
-        {p.materials.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין הוצאות רשומות</p>}
+        {p.materials.length === 0 && <p className="text-sm text-charcoal/55 text-center py-4">אין הוצאות רשומות</p>}
         <div className="divide-y divide-charcoal/5">
           {p.materials.map(m => (
             <div key={m.id} className="py-2.5 flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{m.material_name}</p>
-                <p className="text-[0.7rem] text-charcoal/40">
+                <p className="text-[0.7rem] text-charcoal/55">
                   {m.category && <span className="bg-charcoal/5 px-1.5 py-0.5 me-1.5">{m.category}</span>}
                   {m.quantity} {m.unit}{m.supplier ? ` · ${m.supplier}` : ""}
                 </p>

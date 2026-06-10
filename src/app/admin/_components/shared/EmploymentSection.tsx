@@ -103,7 +103,7 @@ export default function EmploymentSection(p: Props) {
           />
           <span className="text-charcoal/70">
             פטור מנוכחות
-            <span className="block text-[0.7rem] text-charcoal/40 mt-0.5">
+            <span className="block text-[0.7rem] text-charcoal/55 mt-0.5">
               עובד שאינו מתחייב להחתים — לא יסומן כיום חסר ויוצג מופרד במסך הנוכחות.
             </span>
           </span>

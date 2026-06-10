@@ -152,7 +152,7 @@ export default function StaffDocumentsSection({ staffId }: Props) {
       <div className="mt-3 space-y-3">
         {/* List */}
         {loading ? (
-          <div className="flex items-center justify-center gap-2 py-3 text-charcoal/40">
+          <div className="flex items-center justify-center gap-2 py-3 text-charcoal/55">
             <Loader2 size={14} className="animate-spin" />
             <span className="text-xs">טוען…</span>
           </div>
@@ -161,15 +161,15 @@ export default function StaffDocumentsSection({ staffId }: Props) {
             <AlertCircle size={12} /> {err}
           </p>
         ) : docs.length === 0 ? (
-          <p className="text-xs text-charcoal/40 text-center py-2">אין עדיין מסמכים מצורפים</p>
+          <p className="text-xs text-charcoal/55 text-center py-2">אין עדיין מסמכים מצורפים</p>
         ) : (
           <div className="divide-y divide-charcoal/8 border border-charcoal/10 bg-white">
             {docs.map(d => (
               <div key={d.id} className="flex items-center gap-2 px-2.5 py-2">
-                <FileText size={13} strokeWidth={1.5} className="text-charcoal/40 shrink-0" />
+                <FileText size={13} strokeWidth={1.5} className="text-charcoal/55 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold truncate" title={d.file_name}>{d.file_name}</p>
-                  <p className="text-[0.62rem] text-charcoal/40">
+                  <p className="text-[0.62rem] text-charcoal/55">
                     {formatDate(d.uploaded_at)} · {formatSize(d.file_size)}
                   </p>
                 </div>

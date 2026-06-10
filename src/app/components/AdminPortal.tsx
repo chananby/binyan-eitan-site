@@ -1102,7 +1102,7 @@ export default function AdminPortal() {
   return (
     <>
     <SuccessFlash show={showFlash} onDone={() => setShowFlash(false)} />
-    <div dir="rtl" className="min-h-screen bg-bone px-4 py-8 font-body text-charcoal">
+    <div dir="rtl" className="min-h-screen bg-bone-dark px-4 py-8 font-body text-charcoal">
       <div className="mx-auto max-w-2xl space-y-5">
 
         {/* Header */}
@@ -1118,7 +1118,7 @@ export default function AdminPortal() {
           <div className="flex items-center gap-2">
             {isAdmin && (
               <Link href="/admin/health"
-                className="flex items-center gap-1.5 border border-charcoal/15 px-3 py-1.5 text-xs text-charcoal/40 hover:border-accent hover:text-accent transition-colors duration-200">
+                className="flex items-center gap-1.5 border border-charcoal/15 px-3 py-1.5 text-xs text-charcoal/55 hover:border-accent hover:text-accent transition-colors duration-200">
                 <Activity size={12} strokeWidth={1.5} />
                 סטטוס מערכת
               </Link>
@@ -1135,10 +1135,14 @@ export default function AdminPortal() {
           {isAdmin && (
             <>
               {[
-                { label: "עובדים פעילים", value: staff.filter(s => s.active).length, color: "text-green-600" },
+                // Unified neutral colour for stat numbers. "באתר כרגע"
+                // keeps the accent because it's the one number that
+                // changes minute-to-minute and reflects "right now"; the
+                // others are cumulative facts that don't need a hue.
+                { label: "עובדים פעילים", value: staff.filter(s => s.active).length, color: "text-charcoal" },
                 { label: "באתר כרגע",     value: onSite.length,                       color: "text-accent" },
-                { label: "כניסות היום",   value: todayLogs.filter(r => r.action === "כניסה" || r.action === "in").length, color: "text-charcoal/60" },
-                { label: "פרויקטים",      value: activeProjects.length,               color: "text-charcoal/50" },
+                { label: "כניסות היום",   value: todayLogs.filter(r => r.action === "כניסה" || r.action === "in").length, color: "text-charcoal" },
+                { label: "פרויקטים",      value: activeProjects.length,               color: "text-charcoal" },
               ].map(s => (
                 <div key={s.label} className="bg-white border border-warm-gray-light p-3 text-center">
                   <div className={`font-heading text-2xl font-bold ${s.color}`}>{s.value}</div>
@@ -1151,8 +1155,8 @@ export default function AdminPortal() {
             <>
               {[
                 { label: "באתר כרגע",    value: onSite.length,                        color: "text-accent" },
-                { label: "משימות פעילות", value: tasks.filter(t => t.status === "in_progress").length, color: "text-amber-600" },
-                { label: "פרויקטים",     value: activeProjects.length,                color: "text-charcoal/60" },
+                { label: "משימות פעילות", value: tasks.filter(t => t.status === "in_progress").length, color: "text-charcoal" },
+                { label: "פרויקטים",     value: activeProjects.length,                color: "text-charcoal" },
               ].map(s => (
                 <div key={s.label} className="bg-white border border-warm-gray-light p-3 text-center">
                   <div className={`font-heading text-2xl font-bold ${s.color}`}>{s.value}</div>
@@ -1173,7 +1177,7 @@ export default function AdminPortal() {
               <button
                 key={t.key}
                 onClick={() => goToTab(t.key)}
-                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/40 hover:text-charcoal/70"}`}
+                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/55 hover:text-charcoal/70"}`}
               >
                 {t.icon} {t.label}
                 {badgeCount > 0 && (
@@ -1513,10 +1517,10 @@ export default function AdminPortal() {
             <div className="bg-bone max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
               <div className="bg-white border-b border-warm-gray-light px-5 py-4 flex items-center justify-between">
                 <div>
-                  <p className="text-[0.75rem] text-charcoal/40 uppercase tracking-widest">ימי חופשה</p>
+                  <p className="text-[0.75rem] text-charcoal/55 uppercase tracking-widest">ימי חופשה</p>
                   <h3 className="font-heading text-base font-bold">{worker?.name ?? "—"}</h3>
                 </div>
-                <button onClick={() => setVacationFor(null)} className="text-charcoal/40 hover:text-charcoal transition-colors p-1">
+                <button onClick={() => setVacationFor(null)} className="text-charcoal/55 hover:text-charcoal transition-colors p-1">
                   <ChevronLeft size={18} />
                 </button>
               </div>
@@ -1539,7 +1543,7 @@ export default function AdminPortal() {
                 <div className="border-t border-warm-gray-light pt-4">
                   <p className="text-[0.7rem] text-charcoal/50 mb-2">היסטוריה ({vacationRows.length})</p>
                   {vacationRows.length === 0 ? (
-                    <p className="text-xs text-charcoal/30 text-center py-4">אין ימי חופשה רשומים</p>
+                    <p className="text-xs text-charcoal/55 text-center py-4">אין ימי חופשה רשומים</p>
                   ) : (
                     <div className="divide-y divide-charcoal/5">
                       {vacationRows.map(v => (
@@ -1551,7 +1555,7 @@ export default function AdminPortal() {
                             {v.half_day && <p className="text-[0.75rem] text-amber-600">חצי יום</p>}
                             {v.notes && <p className="text-[0.75rem] text-charcoal/50">{v.notes}</p>}
                           </div>
-                          <button onClick={() => handleDeleteVacation(v.id)} className="text-charcoal/30 hover:text-red-500 transition-colors text-xs border border-charcoal/15 px-2 py-1">מחק</button>
+                          <button onClick={() => handleDeleteVacation(v.id)} className="text-charcoal/55 hover:text-red-500 transition-colors text-xs border border-charcoal/15 px-2 py-1">מחק</button>
                         </div>
                       ))}
                     </div>

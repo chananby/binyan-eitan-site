@@ -124,7 +124,7 @@ export default function WorkerHistoryPanel(p: Props) {
         {p.selectedStaffId && (
           <button
             onClick={p.onReload}
-            className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors"
+            className="flex items-center gap-1 text-xs text-charcoal/55 hover:text-accent transition-colors"
           >
             <RefreshCw size={12} strokeWidth={1.5} /> רענן
           </button>
@@ -166,7 +166,7 @@ export default function WorkerHistoryPanel(p: Props) {
       </div>
 
       {!p.selectedStaffId && (
-        <p className="text-sm text-charcoal/40 text-center py-6">
+        <p className="text-sm text-charcoal/55 text-center py-6">
           בחר עובד כדי לראות היסטוריה
         </p>
       )}
@@ -189,7 +189,7 @@ export default function WorkerHistoryPanel(p: Props) {
         <div className="text-center py-6">
           <p className="text-sm text-charcoal/50">אין פעילות בטווח זה</p>
           {selectedName && (
-            <p className="text-[0.75rem] text-charcoal/30 mt-1" dir="ltr">
+            <p className="text-[0.75rem] text-charcoal/55 mt-1" dir="ltr">
               {selectedName} · {p.from} → {p.to}
             </p>
           )}
@@ -202,7 +202,7 @@ export default function WorkerHistoryPanel(p: Props) {
           <div className="grid grid-cols-3 gap-2 mb-3">
             <SummaryTile label="ימי נוכחות"   value={String(presentDays)} accent="text-charcoal" />
             <SummaryTile label="שעות סה״כ"   value={totalHours.toFixed(1)} accent="text-accent" />
-            <SummaryTile label="ימים חסרים" value={String(missingDays)}    accent={missingDays > 0 ? "text-red-500" : "text-charcoal/30"} />
+            <SummaryTile label="ימים חסרים" value={String(missingDays)}    accent={missingDays > 0 ? "text-red-500" : "text-charcoal/55"} />
           </div>
 
           {/* Day table */}
@@ -311,7 +311,7 @@ function DayActions(props: {
   const { day, editable, disabledTitle, isDeleting } = props;
 
   if (day.status === "vacation") {
-    return <span className="text-[0.65rem] text-charcoal/30">—</span>;
+    return <span className="text-[0.65rem] text-charcoal/55">—</span>;
   }
 
   const disabledProps = editable

@@ -307,11 +307,11 @@ export default function WorkersTab(p: Props) {
       <Card>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-heading text-base font-bold">עובדים פעילים ({activeStaff.length})</h2>
-          <button onClick={p.onReload} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent transition-colors">
+          <button onClick={p.onReload} className="flex items-center gap-1 text-xs text-charcoal/55 hover:text-accent transition-colors">
             <RefreshCw size={12} strokeWidth={1.5} /> רענן
           </button>
         </div>
-        {activeStaff.length === 0 && <p className="text-sm text-charcoal/30 text-center py-4">אין עובדים פעילים</p>}
+        {activeStaff.length === 0 && <p className="text-sm text-charcoal/55 text-center py-4">אין עובדים פעילים</p>}
         <div className="divide-y divide-charcoal/5">
           {activeStaff.map(s => renderStaffRow(p, s, false, askDelete))}
         </div>
@@ -329,8 +329,8 @@ export default function WorkersTab(p: Props) {
               מושבתים ({inactiveStaff.length})
             </h2>
             {inactiveOpen
-              ? <ChevronUp size={16} strokeWidth={1.5} className="text-charcoal/40" />
-              : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/40" />}
+              ? <ChevronUp size={16} strokeWidth={1.5} className="text-charcoal/55" />
+              : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/55" />}
           </button>
           {inactiveOpen && (
             <div className="divide-y divide-charcoal/5 mt-3">
@@ -483,7 +483,7 @@ function renderStaffRow(
           )}
           {s.name}
         </p>
-        <p className="text-[0.7rem] text-charcoal/40 tabular-nums" dir="ltr">{s.phone}</p>
+        <p className="text-[0.7rem] text-charcoal/55 tabular-nums" dir="ltr">{s.phone}</p>
         {(s.hourly_rate || s.daily_rate) && (
           <p className="text-[0.75rem] text-accent/70">
             {s.hourly_rate ? `₪${s.hourly_rate}/ש׳` : ""}{s.hourly_rate && s.daily_rate ? " · " : ""}{s.daily_rate ? `₪${s.daily_rate}/יום` : ""}
@@ -491,14 +491,14 @@ function renderStaffRow(
         )}
       </div>
       <div className="flex flex-col items-end gap-1 shrink-0">
-        <span className="text-[0.75rem] text-charcoal/40">{s.role}</span>
+        <span className="text-[0.75rem] text-charcoal/55">{s.role}</span>
         {s.role === "ממונה" && (
           <span className={`text-[0.7rem] px-1.5 py-0.5 ${s.has_pin ? "bg-accent/10 text-accent" : "bg-red-50 text-red-400"}`}>
             {s.has_pin ? "PIN מוגדר" : "ללא PIN"}
           </span>
         )}
       </div>
-      <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/40"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
+      <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/55"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
       <button onClick={() => p.onStartEdit(s)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">ערוך</button>
       {!isInactive && (
         <button

@@ -127,7 +127,7 @@ export default function ReportsTab({
               <div key={r.id} className="py-3 space-y-1">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-semibold">{(r.project as { name?: string } | null)?.name ?? r.project_id}</p>
-                  <span className="text-[0.7rem] text-charcoal/40 tabular-nums">{r.date}</span>
+                  <span className="text-[0.7rem] text-charcoal/55 tabular-nums">{r.date}</span>
                 </div>
                 {r.weather        && <p className="text-xs text-charcoal/50">{r.weather}</p>}
                 {r.summary        && <p className="text-xs text-charcoal/70 line-clamp-2">{r.summary}</p>}
