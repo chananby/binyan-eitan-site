@@ -69,7 +69,13 @@ function verifyIdentityToken(
 
 // ── Admin token helpers ───────────────────────────────────────────────────────
 
-const ADMIN_MAX_AGE = 60 * 60 * 8; // 8 h
+// Admin sessions use a sliding 90-minute idle timeout. Each admin API
+// request through proxy.ts re-signs the cookie with a fresh `iat`, so an
+// active admin keeps their session as long as they're working. Combined
+// with the client-side activity tracker in AdminPortal (which stops the
+// 2-minute polling once the user has been idle past 90 min), this gives
+// a true idle timeout — not an absolute one.
+const ADMIN_MAX_AGE = 60 * 90; // 90 min
 
 // Single shared HMAC secret for signing both admin and foreman cookies.
 // ADMIN_PASSWORD is no longer used for cryptography — auth is now bcrypt
@@ -168,6 +174,28 @@ export function buildAuthCookie(adminId: string) {
   const secret = getTokenSecret();
   if (!secret) throw new Error("AUTH_TOKEN_SECRET env var is required");
   return { name: ADMIN_COOKIE, value: signIdentityToken(secret, adminId), options: COOKIE_OPTS };
+}
+
+/** Sliding-refresh helper for the middleware proxy.
+ *  If `cookieValue` parses, verifies, and is within the 90-min window,
+ *  returns a freshly-signed cookie value + options to set on the response.
+ *  Returns null when the existing token is missing, malformed, or expired —
+ *  in which case the middleware passes through and the handler will 401.
+ */
+export function refreshAdminCookieIfValid(cookieValue: string | undefined):
+  | { name: string; value: string; options: typeof COOKIE_OPTS }
+  | null
+{
+  if (!cookieValue) return null;
+  const secret = getTokenSecret();
+  if (!secret) return null;
+  const verified = verifyIdentityToken(cookieValue, secret, ADMIN_MAX_AGE);
+  if (!verified) return null;
+  return {
+    name:  ADMIN_COOKIE,
+    value: signIdentityToken(secret, verified.id),
+    options: COOKIE_OPTS,
+  };
 }
 
 export function buildClearCookie() {

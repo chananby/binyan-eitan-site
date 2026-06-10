@@ -39,6 +39,12 @@ interface Props {
   onPinBackspace: () => void;
   onPinLogin: (pin: string) => void | Promise<void>;
   onPasswordLogin: (e: React.FormEvent) => void | Promise<void>;
+
+  // Friendly banner shown above the form when the parent kicked the
+  // admin to login due to session expiry. Cleared on first interaction
+  // so it doesn't linger after the admin starts typing.
+  sessionExpiredMsg?: string | null;
+  onClearSessionExpiredMsg?: () => void;
 }
 
 export default function LoginScreen(p: Props) {
@@ -65,6 +71,13 @@ export default function LoginScreen(p: Props) {
         ))}
       </div>
 
+      {p.sessionExpiredMsg && (
+        <div className="w-full max-w-xs flex items-start gap-2 border border-amber-200 bg-amber-50 px-4 py-3">
+          <AlertCircle size={14} strokeWidth={1.5} className="mt-0.5 shrink-0 text-amber-600" />
+          <p className="font-body text-xs text-amber-800 leading-snug">{p.sessionExpiredMsg}</p>
+        </div>
+      )}
+
       <div className="w-full max-w-xs space-y-6">
         {p.loginMode === "pin" ? (
           <>
@@ -82,7 +95,7 @@ export default function LoginScreen(p: Props) {
             <div className="grid grid-cols-3 gap-2" dir="ltr">
               {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((k, i) => (
                 <button key={i} disabled={p.loginLoading || !k}
-                  onClick={() => k === "⌫" ? p.onPinBackspace() : k && p.onPinKey(k)}
+                  onClick={() => { p.onClearSessionExpiredMsg?.(); k === "⌫" ? p.onPinBackspace() : k && p.onPinKey(k); }}
                   className={`h-14 text-xl font-semibold border transition-all active:scale-95 ${
                     !k ? "invisible" :
                     k === "⌫" ? "border-charcoal/10 text-charcoal/40 hover:border-accent hover:text-accent" :
@@ -104,22 +117,28 @@ export default function LoginScreen(p: Props) {
             </button>
           </>
         ) : (
-          <form onSubmit={p.onPasswordLogin} className="space-y-3" dir="rtl">
+          <form id="admin-login" onSubmit={p.onPasswordLogin} className="space-y-3" dir="rtl" autoComplete="on">
+            {/* Explicit name="email"/"password" so Chrome's password
+                manager treats this as one form and offers autofill
+                exactly once (without name="" it triggers re-detection
+                heuristics on every remount). */}
             <input
               type="email"
+              name="email"
               autoFocus
               autoComplete="email"
               value={p.email}
-              onChange={e => p.setEmail(e.target.value)}
+              onChange={e => { p.setEmail(e.target.value); p.onClearSessionExpiredMsg?.(); }}
               placeholder="אימייל"
               dir="ltr"
               className="w-full border border-charcoal/20 bg-white px-5 py-4 text-center font-body text-base text-charcoal placeholder-charcoal/25 focus:border-accent focus:outline-none transition-colors"
             />
             <input
               type="password"
+              name="password"
               autoComplete="current-password"
               value={p.password}
-              onChange={e => p.setPassword(e.target.value)}
+              onChange={e => { p.setPassword(e.target.value); p.onClearSessionExpiredMsg?.(); }}
               placeholder="סיסמה"
               className="w-full border border-charcoal/20 bg-white px-5 py-4 text-center font-body text-base text-charcoal placeholder-charcoal/25 focus:border-accent focus:outline-none transition-colors"
             />

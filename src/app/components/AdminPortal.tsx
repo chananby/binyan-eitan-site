@@ -174,6 +174,19 @@ export default function AdminPortal() {
   } = changePw;
   const [showFlash, setShowFlash] = useState(false);
 
+  // Friendly session-expiry banner — populated when a polled admin
+  // fetch comes back 401, OR when the client's own idle tracker passes
+  // the 90-minute threshold. Surfaced to LoginScreen and cleared on the
+  // first user interaction there.
+  const [sessionExpiredMsg, setSessionExpiredMsg] = useState<string | null>(null);
+
+  // Idle activity tracker. lastActivityRef holds the wall-clock time of
+  // the most recent user input event. The polling effect checks this
+  // before each loadData call; passing IDLE_TIMEOUT_MS triggers a
+  // local logout + the friendly banner above.
+  const lastActivityRef = useRef<number>(Date.now());
+  const IDLE_TIMEOUT_MS = 90 * 60 * 1000;
+
   // Core data
   const [staff,         setStaff]         = useState<StaffMember[]>([]);
   const [todayLogs,     setTodayLogs]     = useState<AttendanceRecord[]>([]);
@@ -490,6 +503,32 @@ export default function AdminPortal() {
     return map;
   }, [todayLogs]);
 
+  // ── Idle tracker (admin only) ──────────────────────────────────────────────
+  // Stamp lastActivityRef on any real input event. The polling effect
+  // reads this ref before each tick — once the gap passes 90 minutes
+  // we kick the admin to login with the friendly banner. mousemove is
+  // throttled implicitly by the ref-only update (no re-render).
+  useEffect(() => {
+    if (authState !== "admin") return;
+    const stamp = () => { lastActivityRef.current = Date.now(); };
+    const events: (keyof WindowEventMap)[] = ["mousemove", "keydown", "scroll", "click", "touchstart"];
+    for (const e of events) window.addEventListener(e, stamp, { passive: true });
+    return () => {
+      for (const e of events) window.removeEventListener(e, stamp);
+    };
+  }, [authState]);
+
+  // ── 401 + idle-timeout handler (shared) ────────────────────────────────────
+  // Called by the polling loops below whenever something looks expired.
+  // Triggers a clean local logout + the friendly banner in LoginScreen.
+  const expireSession = useCallback(async () => {
+    setSessionExpiredMsg("ההתחברות פגה עקב חוסר פעילות. אנא התחבר מחדש.");
+    setAuthState("unauthenticated");
+    try { await fetch("/api/admin-auth", { method: "DELETE" }); } catch { /* best effort */ }
+    setStaff([]); setTodayLogs([]); setProjects([]); setTasks([]);
+    setMaterials([]); setBudget([]); setIncome([]);
+  }, []);
+
   // ── Auth check on mount ────────────────────────────────────────────────────
   useEffect(() => {
     fetch("/api/admin/whoami")
@@ -617,6 +656,14 @@ export default function AdminPortal() {
 
   // ── Data loaders ───────────────────────────────────────────────────────────
   async function loadData(role: "admin" | "foreman") {
+    // Idle short-circuit (admin only): if the admin tab is open but the
+    // user hasn't moved/typed/clicked for 90 min, don't keep refreshing
+    // the cookie via the polling round-trip — log out and surface the
+    // friendly banner instead.
+    if (role === "admin" && Date.now() - lastActivityRef.current > IDLE_TIMEOUT_MS) {
+      await expireSession();
+      return;
+    }
     setDataLoading(true); setAttLoadErr(null);
     try {
       const results = await Promise.allSettled([
@@ -626,6 +673,18 @@ export default function AdminPortal() {
         fetch("/api/admin/milestones"),
       ]);
       const [logsR, projR, tasksR, msR] = results;
+
+      // Any 401 from the polled endpoints means the cookie expired
+      // server-side — kick to login with the friendly banner. We bail
+      // before touching the response bodies so partial state doesn't
+      // appear post-expiry.
+      if (role === "admin") {
+        const got401 = results.some(r => r.status === "fulfilled" && r.value.status === 401);
+        if (got401) {
+          await expireSession();
+          return;
+        }
+      }
 
       if (logsR.status === "fulfilled") {
         if (logsR.value.ok) {
@@ -644,6 +703,7 @@ export default function AdminPortal() {
 
       if (role === "admin") {
         const staffRes = await fetch("/api/admin/staff");
+        if (staffRes.status === 401) { await expireSession(); return; }
         if (staffRes.ok) { const d = await staffRes.json(); setStaff(d.staff ?? []); }
       }
     } finally { setDataLoading(false); setLastRefreshed(new Date()); }
@@ -766,7 +826,10 @@ export default function AdminPortal() {
         setAuthState("admin");
       }
       else if (res.status === 429) { feedback.error(); setLoginErr("יותר מדי נסיונות. נסה שוב בעוד כמה דקות."); }
-      else { feedback.error(); setLoginErr("אימייל או סיסמה שגויים"); setPassword(""); }
+      // Keep the typed password in place on failure — clearing it makes
+      // Chrome's password manager re-prompt autofill (the form mounts
+      // fresh-looking), which the user reported as a double-prompt UX bug.
+      else { feedback.error(); setLoginErr("אימייל או סיסמה שגויים"); }
     } catch { setLoginErr("שגיאת רשת"); }
     finally { setLoginLoading(false); }
   }
@@ -919,6 +982,8 @@ export default function AdminPortal() {
         onPinBackspace={handlePinBackspace}
         onPinLogin={handlePinLogin}
         onPasswordLogin={handlePasswordLogin}
+        sessionExpiredMsg={sessionExpiredMsg}
+        onClearSessionExpiredMsg={() => setSessionExpiredMsg(null)}
       />
     );
   }

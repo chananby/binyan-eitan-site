@@ -1,8 +1,22 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { refreshAdminCookieIfValid } from "./lib/admin-auth";
 
 export async function proxy(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
+
+  // ── Admin sliding session refresh ─────────────────────────────────────────
+  // Every authenticated admin API hit re-signs the cookie with a fresh
+  // `iat`, giving us a true 90-minute *idle* timeout (not absolute). If the
+  // cookie is missing, invalid, or expired we pass through and let the
+  // handler return 401 normally. The /api/admin-auth endpoints (login +
+  // logout) handle their own cookie set/clear and don't need this layer.
+  if (pathname.startsWith("/api/admin") && !pathname.startsWith("/api/admin-auth")) {
+    const res = NextResponse.next();
+    const refreshed = refreshAdminCookieIfValid(req.cookies.get("be_admin_token")?.value);
+    if (refreshed) res.cookies.set(refreshed.name, refreshed.value, refreshed.options);
+    return res;
+  }
 
   // Never apply middleware to API routes or internal routes
   if (pathname.startsWith("/api") || pathname.startsWith("/internal")) {
