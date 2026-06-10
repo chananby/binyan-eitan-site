@@ -165,6 +165,35 @@
     position: sticky;
     top: 80px;
   }
+  /* Sticky context label at the top of the form-panel — survives scroll
+     so the admin always knows which quote they're editing. Spans
+     edge-to-edge by negating the panel's padding via negative margin. */
+  .quote-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    margin: -20px -20px 14px -20px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--brand);
+    font-weight: 600;
+  }
+  .quote-sticky-header .quote-sticky-icon { opacity: 0.7; }
+  .quote-sticky-header .quote-sticky-num { color: var(--brand); font-weight: 700; }
+  .quote-sticky-header .quote-sticky-sep { color: var(--text-muted, #9ca3af); margin: 0 4px; }
+  .quote-sticky-header .quote-sticky-customer {
+    color: var(--text-default, #1f2937); font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    flex: 1; min-width: 0;
+  }
+
   .form-section {
     margin-bottom: 24px;
     padding-bottom: 20px;
@@ -1421,6 +1450,13 @@
 <div class="layout">
   <!-- ===== FORM PANEL ===== -->
   <aside class="form-panel">
+    <!-- Sticky context label — updated live by updateDocumentTitle(). -->
+    <div class="quote-sticky-header" id="quote-sticky-header">
+      <span class="quote-sticky-icon">📄</span>
+      <span class="quote-sticky-num" id="quote-sticky-num">טיוטה חדשה</span>
+      <span class="quote-sticky-sep" id="quote-sticky-sep" hidden>—</span>
+      <span class="quote-sticky-customer" id="quote-sticky-customer"></span>
+    </div>
     <div class="form-section">
       <h2>פרטי הצעה</h2>
       <div class="form-row three">
@@ -1809,6 +1845,27 @@
       title = 'הצעת מחיר חדשה';
     }
     document.title = title;
+
+    // Mirror into the sticky context label at the top of the form-panel.
+    // Format:
+    //   no num, no customer  → "טיוטה חדשה"
+    //   num only             → "הצעה #N"
+    //   customer only        → "טיוטה — CUSTOMER"
+    //   num + customer       → "הצעה #N — CUSTOMER"
+    const stickyNum = document.getElementById('quote-sticky-num');
+    const stickySep = document.getElementById('quote-sticky-sep');
+    const stickyCustomer = document.getElementById('quote-sticky-customer');
+    if (stickyNum && stickySep && stickyCustomer) {
+      let label;
+      if (num) label = 'הצעה ' + num;
+      else if (customer) label = 'טיוטה';
+      else label = 'טיוטה חדשה';
+      stickyNum.textContent = label;
+      const showCustomer = !!customer;
+      stickySep.hidden = !showCustomer;
+      stickyCustomer.textContent = showCustomer ? customer : '';
+    }
+
     try {
       if (window.parent && window.parent !== window) {
         window.parent.postMessage({ type: 'quote-title', title }, '*');
