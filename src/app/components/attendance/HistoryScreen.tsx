@@ -5,7 +5,7 @@
 // that opens AttendanceReportMistake inline. Pending manual entries
 // surface in a separate amber block at the bottom.
 
-import { Loader2 } from "lucide-react";
+import { Loader2, Pencil } from "lucide-react";
 import Screen from "./Screen";
 import AttendanceReportMistake from "./AttendanceReportMistake";
 import type { Lang, ScreenStrings } from "./i18n";
@@ -106,7 +106,8 @@ export default function HistoryScreen(p: Props) {
   })();
 
   // Per-cell control next to a time: ⏳ chip when a correction is already
-  // pending, an inline ⚠️ button to open the report-mistake form otherwise.
+  // pending, a discreet pencil button to open the report-mistake form
+  // otherwise (a soft "edit" affordance, not an alarming warning).
   function reportControl(recordId: string | undefined) {
     if (!recordId) return null;
     const corr = p.corrections[recordId];
@@ -119,9 +120,9 @@ export default function HistoryScreen(p: Props) {
       <button
         type="button"
         onClick={() => p.setReportingId(recordId)}
-        className="ms-1 text-[0.55rem] text-charcoal/30 hover:text-amber-600 transition-colors"
+        className="ms-1 text-charcoal/40 hover:text-accent transition-colors"
         title="דווח על טעות"
-      >⚠️</button>
+      ><Pencil size={11} strokeWidth={1.75} /></button>
     );
   }
 
@@ -158,17 +159,17 @@ export default function HistoryScreen(p: Props) {
                                     : p.reportingId === row.exitId  ? row.exitId
                                     : null);
                 return (
-                  <div key={i} className="px-2 py-3 space-y-2">
+                  <div key={i} className="px-2 py-4 space-y-2">
                     <div className="grid grid-cols-4 gap-1 items-center">
-                      <div>
+                      <div className="min-w-0">
                         {row.dayName && <p className="font-body text-[0.58rem] font-semibold text-accent/70">{row.dayName}</p>}
                         <p className="font-body text-xs text-charcoal/70 tabular-nums" dir="ltr">{row.date}</p>
-                        {row.project !== "—" && <p className="font-body text-[0.58rem] text-charcoal/35 truncate">{row.project}</p>}
+                        {row.project !== "—" && <p className="font-body text-[0.58rem] text-charcoal/35 truncate" title={row.project}>{row.project}</p>}
                       </div>
-                      <span className="font-body text-xs font-semibold text-green-700 text-center tabular-nums inline-flex items-center justify-center">
+                      <span className="font-body text-xs font-semibold text-charcoal/80 text-center tabular-nums inline-flex items-center justify-center">
                         {row.entry || "—"}{reportControl(row.entryId)}
                       </span>
-                      <span className="font-body text-xs font-semibold text-red-500 text-center tabular-nums inline-flex items-center justify-center">
+                      <span className="font-body text-xs font-semibold text-charcoal/80 text-center tabular-nums inline-flex items-center justify-center">
                         {row.exit || "—"}{reportControl(row.exitId)}
                       </span>
                       <span className="font-body text-sm font-bold text-charcoal text-end tabular-nums">
@@ -188,9 +189,9 @@ export default function HistoryScreen(p: Props) {
               })}
             </div>
             {/* Total */}
-            <div className="flex items-center justify-between bg-charcoal px-3 py-2.5 mt-1">
-              <span className="font-body text-xs font-semibold text-white/60">סה&quot;כ</span>
-              <span className="font-heading text-base font-bold text-accent tabular-nums">{totalHours.toFixed(1)} שעות</span>
+            <div className="flex items-center justify-between bg-white border border-charcoal/10 shadow-sm px-3 py-2.5 mt-1">
+              <span className="font-body text-xs font-semibold text-charcoal/60">סה&quot;כ</span>
+              <span className="font-heading text-base font-bold text-charcoal tabular-nums">{totalHours.toFixed(1)} שעות</span>
             </div>
           </div>
         )}
@@ -202,7 +203,7 @@ export default function HistoryScreen(p: Props) {
           <div className="border border-amber-200 bg-amber-50 divide-y divide-amber-100">
             {pendingEntries.map(r => (
               <div key={r.id} className="flex items-center justify-between px-3 py-2 gap-3">
-                <span className={`text-xs font-semibold ${r.action === "in" ? "text-green-700" : "text-red-500"}`}>
+                <span className="text-xs font-semibold text-charcoal/80">
                   {r.action === "in" ? "כניסה" : "יציאה"}
                 </span>
                 <span className="font-body text-xs text-charcoal/60 flex-1" dir="rtl">{labelWithDayHe(r.timestamp_label) ?? "—"}</span>
@@ -222,6 +223,9 @@ export default function HistoryScreen(p: Props) {
         className="w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
         {p.t.backToForm}
       </button>
+      {/* Clearance so the totals bar / actions never hide behind the
+          fixed FloatingWhatsApp button (bottom-6 left-6, size-14). */}
+      <div aria-hidden className="h-12 w-full shrink-0" />
     </Screen>
   );
 }
