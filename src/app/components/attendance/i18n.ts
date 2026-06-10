@@ -22,6 +22,7 @@ export interface ScreenStrings {
   manualDateLabel: string; manualTimeIn: string; manualTimeOut: string; manualProjectLabel: string;
   identify: string; identifying: string; tooManyAttempts: string; sessionExpired: string;
   menuPrompt: string; startClock: string; switchUser: string;
+  missingExitOne: string; missingExitMany: string; missingExitCta: string;
 }
 
 export const T: Record<Lang, ScreenStrings> = {
@@ -82,6 +83,9 @@ export const T: Record<Lang, ScreenStrings> = {
     menuPrompt: "מה תרצה לעשות?",
     startClock: "החתמת נוכחות",
     switchUser: "החלף משתמש",
+    missingExitOne: "שכחת להחתים יציאה ביום אחד. ניתן להשלים במסך ההיסטוריה.",
+    missingExitMany: "שכחת להחתים יציאה ב-{n} ימים. ניתן להשלים במסך ההיסטוריה.",
+    missingExitCta: "מעבר להיסטוריה",
   },
   ru: {
     clockTitle: "Отметка о явке",
@@ -140,5 +144,8 @@ export const T: Record<Lang, ScreenStrings> = {
     menuPrompt: "Что вы хотите сделать?",
     startClock: "Отметить явку",
     switchUser: "Сменить пользователя",
+    missingExitOne: "Вы забыли отметить уход за 1 день. Завершить можно в истории.",
+    missingExitMany: "Вы забыли отметить уход за {n} дн. Завершить можно в истории.",
+    missingExitCta: "Перейти к истории",
   },
 };

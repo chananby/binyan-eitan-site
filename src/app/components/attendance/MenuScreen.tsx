@@ -5,7 +5,7 @@
 // is visually separated by a top border so it doesn't read as a fourth
 // peer action.
 
-import { MapPin, AlertCircle, UserRound } from "lucide-react";
+import { MapPin, AlertCircle, UserRound, Clock, ChevronLeft } from "lucide-react";
 import Screen from "./Screen";
 import type { Lang, ScreenStrings } from "./i18n";
 
@@ -17,6 +17,8 @@ interface Props {
   backLabel: string;
   workerName: string | null;
   geoError: string | null;
+  /** Past days with a clock-in but no clock-out (still correctable). 0 = no banner. */
+  missingExitCount: number;
   onStartClock: () => void;
   onShowHistory: () => void;
   onShowManual: () => void;
@@ -24,8 +26,24 @@ interface Props {
 }
 
 export default function MenuScreen(p: Props) {
+  const missingExitText = p.missingExitCount === 1
+    ? p.t.missingExitOne
+    : p.t.missingExitMany.replace("{n}", String(p.missingExitCount));
   return (
     <Screen backHref={p.backHref} backLabel={p.backLabel} lang={p.lang} onLangChange={p.onLangChange}>
+      {p.missingExitCount > 0 && (
+        <button onClick={p.onShowHistory}
+          className="w-full flex items-start gap-2.5 border border-amber-200 bg-amber-50 px-4 py-3 text-start hover:bg-amber-100/60 transition-colors duration-200">
+          <Clock size={16} strokeWidth={1.75} className="mt-0.5 shrink-0 text-amber-600" />
+          <span className="flex-1 font-body text-xs text-amber-800 leading-snug">
+            {missingExitText}
+            <span className="mt-1 flex items-center gap-0.5 font-semibold text-amber-700">
+              {p.t.missingExitCta}
+              <ChevronLeft size={13} strokeWidth={2} />
+            </span>
+          </span>
+        </button>
+      )}
       <div className="text-center space-y-1">
         <p className="font-heading text-xl font-bold text-charcoal">{p.t.hello} {p.workerName}</p>
         <p className="font-body text-xs text-charcoal/40">{p.t.menuPrompt}</p>

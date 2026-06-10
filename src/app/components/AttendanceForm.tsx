@@ -10,9 +10,10 @@
 // have no network side-effects. The translations and the shared Screen
 // wrapper are likewise extracted under ./attendance/.
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useFeedback } from "../hooks/useFeedback";
 import { T, type Lang } from "./attendance/i18n";
+import { countMissingExitDays } from "../../lib/worker-missing-exits";
 import type { Step, GeoCoords, Project, HistoryRecord, CorrectionSummary } from "./attendance/types";
 import PhoneScreen from "./attendance/PhoneScreen";
 import MenuScreen from "./attendance/MenuScreen";
@@ -82,6 +83,33 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   // Which record is currently being reported (inline form open). Null = no
   // form open. Only one row in form mode at a time.
   const [reportingId, setReportingId]       = useState<string | null>(null);
+
+  // Past days with a clock-in but no clock-out, inside the correctable retro
+  // window — drives the "you forgot to clock out" banner on the menu. Derived
+  // purely from the already-fetched history records; no extra endpoint.
+  const missingExitCount = useMemo(() => countMissingExitDays(historyRecords), [historyRecords]);
+
+  // Silently pull history when the worker lands on the menu so the missing
+  // clock-out banner can appear without them opening the history screen.
+  // Errors are swallowed — on failure the banner simply stays hidden.
+  useEffect(() => {
+    if (step !== "menu" || !identifiedStaffId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/worker/history", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
+        });
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (cancelled) return;
+        setHistoryRecords(data.records ?? []);
+        setCorrections(data.corrections ?? {});
+        if (data.name) setHistoryName(data.name);
+      } catch { /* offline / transient — banner stays hidden */ }
+    })();
+    return () => { cancelled = true; };
+  }, [step, identifiedStaffId]);
 
   // ── Manual entry state (worker) ───────────────────────────────────────────
   const [manualAction, setManualAction]   = useState<"in" | "out">("in");
@@ -368,6 +396,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       <MenuScreen {...common}
         workerName={workerName}
         geoError={geoError}
+        missingExitCount={missingExitCount}
         onStartClock={requestLocation}
         onShowHistory={fetchHistory}
         onShowManual={() => setStep("manual")}
