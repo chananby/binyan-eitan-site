@@ -7,10 +7,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, ChevronRight, Inbox, AlertCircle } from "lucide-react";
+import { Loader2, ChevronRight, Inbox, AlertCircle, Package } from "lucide-react";
 import DocumentUploader from "./_components/DocumentUploader";
 import DocumentFilters, { EMPTY_FILTERS, type DocFilters } from "./_components/DocumentFilters";
 import DocumentCard from "./_components/DocumentCard";
+import DocumentExportModal from "./_components/DocumentExportModal";
 import { fmtCurrency, type DocRow } from "./_components/labels";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
@@ -49,6 +50,7 @@ export default function DocumentsInboxClient() {
 
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [monthApproved, setMonthApproved] = useState<number | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
 
   // ── Auth probe ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -164,6 +166,13 @@ export default function DocumentsInboxClient() {
           </div>
         </div>
 
+        <button
+          onClick={() => setExportOpen(true)}
+          className="w-full flex items-center justify-center gap-2 border border-[#8D775F]/40 text-[#8D775F] py-2.5 rounded-md text-sm font-semibold hover:bg-[#8D775F]/5"
+        >
+          <Package size={16} /> {'חבילה לרו"ח'}
+        </button>
+
         <DocumentFilters filters={filters} setFilters={setFilters} vendors={vendors} projects={projects} />
 
         {error && (
@@ -192,6 +201,8 @@ export default function DocumentsInboxClient() {
           </div>
         )}
       </main>
+
+      <DocumentExportModal open={exportOpen} onClose={() => setExportOpen(false)} />
     </div>
   );
 }
