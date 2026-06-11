@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useFeedback } from "../hooks/useFeedback";
 import { AutoGrowTextarea } from "./AutoGrowTextarea";
+import ForemanDocUpload from "./ForemanDocUpload";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type View      = "loading" | "no_projects" | "select" | "dashboard";
@@ -779,6 +780,9 @@ export default function ForemanPortal({
                 <p className="text-[0.75rem] text-bone/50">חומרים, קבלן, הזמנות</p>
               </button>
             </div>
+
+            {/* Drop-box upload — fire-and-forget, no financial data shown */}
+            <ForemanDocUpload />
           </div>
         )}
 

@@ -7,13 +7,17 @@
 // The whole card links to the detail screen.
 
 import Link from "next/link";
-import { AlertTriangle, Building2 } from "lucide-react";
+import { AlertTriangle, Building2, Camera } from "lucide-react";
 import {
   DOC_TYPE_LABELS, statusChip, fmtCurrency, fmtDate, displayVendor, type DocRow,
 } from "./labels";
 
 export default function DocumentCard({ doc }: { doc: DocRow }) {
   const chip = statusChip(doc);
+  // Field upload (foreman drop-box) → small camera chip with the foreman name.
+  const fieldUpload = doc.uploaded_by?.startsWith("foreman:")
+    ? doc.uploaded_by.slice("foreman:".length)
+    : null;
   return (
     <Link
       href={`/admin/documents/${doc.id}`}
@@ -40,11 +44,16 @@ export default function DocumentCard({ doc }: { doc: DocRow }) {
           </div>
         </div>
       </div>
-      <div className="mt-2">
+      <div className="mt-2 flex items-center gap-1.5 flex-wrap">
         <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold ${chip.className}`}>
           {chip.warn && <AlertTriangle size={11} />}
           {chip.label}
         </span>
+        {fieldUpload && (
+          <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-[#8D775F]/10 text-[#8D775F]">
+            <Camera size={11} />{fieldUpload}
+          </span>
+        )}
       </div>
     </Link>
   );

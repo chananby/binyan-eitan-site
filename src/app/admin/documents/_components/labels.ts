@@ -24,6 +24,7 @@ export interface DocRow {
   notes: string | null;
   reviewed_at?: string | null;
   reviewed_by?: string | null;
+  uploaded_by?: string | null;
   created_at: string;
   vendor: { name: string } | null;
   project: { name: string } | null;
