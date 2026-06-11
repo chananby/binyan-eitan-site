@@ -45,6 +45,27 @@ const RETURN_COLUMNS =
   "project_id, description, notes, reviewed_at, reviewed_by, uploaded_by, " +
   "created_at, vendor:vendor_id(name), project:project_id(name)";
 
+// ── GET — one document (for the review screen) ──────────────────────────────
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  if (!isAdminAuthedFromRequest(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const { id } = await props.params;
+  const supabase = createServerClient();
+  const { data, error } = await supabase
+    .from("financial_documents")
+    .select(RETURN_COLUMNS)
+    .eq("id", id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) {
+    console.error("[admin/documents GET one]", JSON.stringify(error));
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  if (!data) return NextResponse.json({ error: "מסמך לא נמצא" }, { status: 404 });
+  return NextResponse.json({ document: data });
+}
+
 // ── PATCH — update metadata ─────────────────────────────────────────────────
 export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   if (!isAdminAuthedFromRequest(req)) {
