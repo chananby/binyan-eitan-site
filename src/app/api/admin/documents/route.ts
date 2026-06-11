@@ -21,9 +21,13 @@ import {
   isAdminAuthedFromRequest,
   getAdminIdFromRequest,
 } from "../../../../lib/admin-auth";
+import { extractAndPersist } from "../../../../lib/document-extraction";
 import { randomUUID } from "crypto";
 
 export const runtime = "nodejs";
+// Upload runs AI extraction inline (await) before responding, which can take
+// well over the default serverless budget — give it room.
+export const maxDuration = 60;
 
 const BUCKET = "financial-documents";
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -195,5 +199,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: insertErr.message }, { status: 500 });
   }
 
-  return NextResponse.json({ document: row }, { status: 201 });
+  // Run AI extraction inline. A failure here does NOT fail the upload — the row
+  // is already saved (with extraction_status='failed') and can be retried via
+  // POST /api/admin/documents/[id]/extract.
+  const extraction = await extractAndPersist(supabase, (row as unknown as { id: string }).id);
+
+  return NextResponse.json(
+    {
+      document: extraction.document ?? row,
+      extraction: { status: extraction.status, error: extraction.error ?? null },
+    },
+    { status: 201 },
+  );
 }

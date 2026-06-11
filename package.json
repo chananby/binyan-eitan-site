@@ -12,6 +12,7 @@
     "generate-manifest": "tsx scripts/generate-routes-manifest.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
     "@sentry/nextjs": "^10.51.0",
     "@supabase/supabase-js": "^2.99.2",
     "@types/bcryptjs": "^2.4.6",
