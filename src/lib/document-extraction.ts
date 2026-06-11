@@ -17,8 +17,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { matchVendor, type VendorListItem } from "./vendor-matching";
 
-// User-pinned model for this module (do not silently upgrade).
-const MODEL = "claude-sonnet-4-20250514";
+// Extraction model — single source of truth, update here. The previous
+// "claude-sonnet-4-20250514" returned 404 not_found_error in production.
+const EXTRACTION_MODEL = "claude-sonnet-4-6";
 const BUCKET = "financial-documents";
 
 // Columns returned to the caller after an update (mirrors the documents routes,
@@ -178,7 +179,7 @@ export async function extractDocumentData(
 
     const client = getClient();
     const msg = await client.messages.create({
-      model: MODEL,
+      model: EXTRACTION_MODEL,
       max_tokens: 1500,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: [docBlock, { type: "text", text: userText }] }],
