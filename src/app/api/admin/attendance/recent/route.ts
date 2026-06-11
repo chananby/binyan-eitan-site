@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 import { israelDayStartISO } from "../../../../../lib/israel-time";
+import { workDate, israelYMD } from "../../../../../lib/attendance-time";
 
 export const runtime = "nodejs";
+
+// Shift a "YYYY-MM-DD" by N days (UTC-noon anchored to dodge DST seams).
+function shiftYMD(ymd: string, days: number): string {
+  const d = new Date(`${ymd}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
 
 // GET — returns raw attendance records from the last N days (default 7, max 30)
 // Admin only; used by the retroactive-edit panel in AdminPortal
@@ -15,15 +23,19 @@ export async function GET(req: NextRequest) {
   const days = Math.min(Math.max(parseInt(searchParams.get("days") ?? "7", 10) || 7, 1), 30);
 
   const supabase = createServerClient();
+  const todayYMD = new Date().toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" });
   const sinceYMD = new Date(Date.now() - (days - 1) * 86_400_000)
     .toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" });
-  const fromISO = israelDayStartISO(sinceYMD);
+  // Widen the DB window 3 days back so a row whose *work* day is in range but
+  // was inserted earlier isn't missed; the authoritative filter is by work
+  // time in code below, mirroring /api/admin/attendance/report.
+  const windowStart = israelDayStartISO(shiftYMD(sinceYMD, -3));
 
   const { data, error } = await supabase
     .from("attendance")
     .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, source, staff:staff_id(id, name, phone, role, attendance_exempt), project:project_id(id, name)")
     .is("deleted_at", null)
-    .gte("created_at", fromISO)
+    .gte("created_at", windowStart)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -31,5 +43,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ records: data ?? [] });
+  // Authoritative filter: keep rows whose WORK day (clock_at, falling back to
+  // created_at) falls in the last N days in Israel time — so "7 ימים אחרונים"
+  // means 7 calendar work-days, not "inserted in the last 7 days". A manual
+  // backfill for an old date inserted today carries an old clock_at and is
+  // excluded; it stays editable via the 30-day worker-history panel.
+  const records = (data ?? []).filter((r) => {
+    const wd = israelYMD(workDate(r));
+    return wd >= sinceYMD && wd <= todayYMD;
+  });
+
+  return NextResponse.json({ records });
 }

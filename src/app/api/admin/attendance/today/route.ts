@@ -6,8 +6,16 @@ import {
   getForemanStaffIdFromRequest,
 } from "../../../../../lib/admin-auth";
 import { israelDayStartISO } from "../../../../../lib/israel-time";
+import { workDate, israelYMD } from "../../../../../lib/attendance-time";
 
 export const runtime = "nodejs";
+
+// Shift a "YYYY-MM-DD" by N days (UTC-noon anchored to dodge DST seams).
+function shiftYMD(ymd: string, days: number): string {
+  const d = new Date(`${ymd}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
 
 export async function GET(req: NextRequest) {
   if (!isAuthedFromRequest(req))
@@ -16,10 +24,13 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   const isAdmin = getAdminRoleFromRequest(req) === "admin";
 
-  // Use Israel timezone to determine start of today (DST-aware)
+  // Use Israel timezone to determine "today" (DST-aware).
   const nowIsrael  = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Jerusalem" });
   const todayStr   = nowIsrael.split(" ")[0]; // "YYYY-MM-DD"
-  const todayStart = israelDayStartISO(todayStr);
+  // Widen the DB window 3 days back so a row whose *work* day is today but
+  // was inserted earlier isn't missed; the authoritative filter is by work
+  // time in code below, mirroring /api/admin/attendance/report.
+  const windowStart = israelDayStartISO(shiftYMD(todayStr, -3));
 
   // Foreman: restrict to their assigned projects only
   let projectIds: string[] | null = null;
@@ -40,7 +51,7 @@ export async function GET(req: NextRequest) {
     .from("attendance")
     .select("id, action, lat, lng, distance_from_project_m, timestamp_label, clock_at, project_id, created_at, source, staff:staff_id(id, name, phone, role, attendance_exempt), project:project_id(id, name)")
     .is("deleted_at", null)
-    .gte("created_at", todayStart)
+    .gte("created_at", windowStart)
     .order("created_at", { ascending: false });
 
   if (projectIds !== null) {
@@ -54,5 +65,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ records: data ?? [] });
+  // Authoritative filter: keep only rows whose WORK day (clock_at, falling
+  // back to created_at) is today in Israel time. This is what makes "יומן
+  // היום" show today's actual activity rather than every row *inserted*
+  // today — manual backfills for other dates carry an old clock_at and are
+  // dropped here. Order (created_at desc) is preserved for today's rows.
+  const records = (data ?? []).filter((r) => israelYMD(workDate(r)) === todayStr);
+
+  return NextResponse.json({ records });
 }
