@@ -13,7 +13,7 @@ import {
   ClipboardList, UserPlus, Loader2, Activity,
   AlertCircle, DollarSign, Target,
   ChevronLeft, Grid3x3, Download, Plus,
-  UserCog, Clock, MapPin, UserX,
+  UserCog, Clock, MapPin, UserX, FileText,
 } from "lucide-react";
 import { Card } from "../admin/_components/shared/Card";
 import AttentionPanel, { type AttentionItem } from "../admin/_components/shared/AttentionPanel";
@@ -32,6 +32,7 @@ import AttendanceTab, { type ManualType, type AttendanceSubTab } from "../admin/
 import LoginScreen from "../admin/_components/tabs/LoginScreen";
 import DashboardTab from "../admin/_components/tabs/DashboardTab";
 import PayrollTab from "../admin/_components/tabs/PayrollTab";
+import QuotesTab from "../admin/_components/tabs/QuotesTab";
 import { useVacationDrawer } from "../admin/_components/hooks/useVacationDrawer";
 import { useChangePassword } from "../admin/_components/hooks/useChangePassword";
 import { useIncomeForm } from "../admin/_components/hooks/useIncomeForm";
@@ -50,7 +51,7 @@ import type { WorkerHistoryDay } from "../../lib/worker-history-aggregate";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
-type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "matrix" | "income" | "reports" | "payroll" | "account";
+type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "matrix" | "income" | "reports" | "payroll" | "quotes" | "account";
 type LoginMode = "pin" | "password";
 
 const HASH_TO_TAB: Record<string, AdminTab> = {
@@ -66,6 +67,7 @@ const HASH_TO_TAB: Record<string, AdminTab> = {
   reports:    "reports",
   payroll:    "payroll",
   salary:     "payroll",
+  quotes:     "quotes",
   account:    "account",
 };
 
@@ -1015,6 +1017,7 @@ export default function AdminPortal() {
     { key: "income",     label: "הכנסות",        icon: <DollarSign size={13} />, adminOnly: true },
     { key: "reports",    label: "דוחות",      icon: <BarChart2 size={13} />,      adminOnly: true },
     { key: "payroll",    label: "שכר",         icon: <DollarSign size={13} />,    adminOnly: true },
+    { key: "quotes",     label: "הצעות מחיר",  icon: <FileText  size={13} />,      adminOnly: true },
     { key: "account",    label: "חשבון",      icon: <UserCog   size={13} />,      adminOnly: true },
   ].filter(t => !t.adminOnly || isAdmin) as TabDef[];
 
@@ -1483,6 +1486,9 @@ export default function AdminPortal() {
             onExportPayroll={exportPayroll}
           />
         )}
+
+        {/* ── QUOTES (admin only) ────────────────────────────────────────────── */}
+        {tab === "quotes" && isAdmin && <QuotesTab />}
 
         {/* ── ACCOUNT (admin only) ───────────────────────────────────────────── */}
         {tab === "account" && isAdmin && (
