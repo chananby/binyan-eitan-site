@@ -4,6 +4,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 
 const ADMIN_COOKIE   = "be_admin_token";
 const FOREMAN_COOKIE = "be_foreman_token";
+const VIEW_COOKIE    = "be_view_token";   // admin "view-as-foreman" (read-only)
 
 export type AdminRole = "admin" | "foreman" | null;
 
@@ -76,6 +77,7 @@ function verifyIdentityToken(
 // 2-minute polling once the user has been idle past 90 min), this gives
 // a true idle timeout — not an absolute one.
 const ADMIN_MAX_AGE = 60 * 90; // 90 min
+const VIEW_MAX_AGE  = 60 * 30; // 30 min — admin view-as-foreman window
 
 // Single shared HMAC secret for signing both admin and foreman cookies.
 // ADMIN_PASSWORD is no longer used for cryptography — auth is now bcrypt
@@ -109,12 +111,65 @@ export function verifyForemanToken(cookieValue: string): string | null {
   } catch { return null; }
 }
 
+// ── View token (admin "view-as-foreman", read-only) ──────────────────────────
+// Lets an admin open the foreman portal exactly as a given foreman sees it,
+// for support/training. The HMAC binds the acting admin_id together with the
+// viewed foreman staff_id, so the actor behind a view is always recoverable.
+// The token grants NOTHING on its own: getViewContext only honors it while a
+// live admin session with the matching admin_id is present, and there is no
+// reverse path (foreman can never become admin).
+
+function viewSig(secret: string, adminId: string, staffId: string, iat: number): string {
+  return hmacHex(secret, `view:foreman:${adminId}:${staffId}:${iat}`);
+}
+
+export function buildViewToken(adminId: string, staffId: string): string {
+  const secret = getTokenSecret();
+  if (!secret) throw new Error("AUTH_TOKEN_SECRET env var is required");
+  const iat = Math.floor(Date.now() / 1000);
+  return `${adminId}:${staffId}:${iat}:${viewSig(secret, adminId, staffId, iat)}`;
+}
+
+function verifyViewToken(token: string): { adminId: string; staffId: string } | null {
+  const secret = getTokenSecret();
+  if (!secret) return null;
+  const parts = token.split(":");
+  if (parts.length !== 4) return null;
+  const [adminId, staffId, iatStr, provided] = parts;
+  if (!adminId || !staffId) return null;
+  const iat = parseInt(iatStr, 10);
+  if (isNaN(iat)) return null;
+  const now = Math.floor(Date.now() / 1000);
+  if (now - iat > VIEW_MAX_AGE || now < iat) return null;
+  if (!safeEqual(provided, viewSig(secret, adminId, staffId, iat))) return null;
+  return { adminId, staffId };
+}
+
+/** Active view context, or null. Requires BOTH a valid view token AND a live
+ *  admin session whose id matches the token's admin_id — a view token alone
+ *  grants nothing, and it dies the moment the admin session does. */
+export function getViewContext(req: NextRequest): { adminId: string; staffId: string } | null {
+  const vt = req.cookies.get(VIEW_COOKIE)?.value;
+  if (!vt) return null;
+  const view = verifyViewToken(vt);
+  if (!view) return null;
+  // Real admin identity — read RAW (getAdminIdFromRequest is NOT view-suppressed).
+  if (getAdminIdFromRequest(req) !== view.adminId) return null;
+  return view;
+}
+
 // ── Role detection ────────────────────────────────────────────────────────────
 
 export function getAdminRoleFromRequest(req: NextRequest): "admin" | null {
+  // While viewing-as-foreman, the request is intentionally NOT treated as
+  // admin on the data plane, so shared endpoints scope to the viewed foreman
+  // (and admin-only write endpoints reject — view mode is read-only).
+  if (getViewContext(req)) return null;
   return getAdminIdFromRequest(req) ? "admin" : null;
 }
 
+// RAW admin id — unaffected by view mode. Used by getViewContext, whoami, the
+// proxy cookie-refresh, and the impersonate endpoint to find the real admin.
 export function getAdminIdFromRequest(req: NextRequest): string | null {
   const secret = getTokenSecret();
   if (!secret) return null;
@@ -124,9 +179,15 @@ export function getAdminIdFromRequest(req: NextRequest): string | null {
 }
 
 export function getForemanStaffIdFromRequest(req: NextRequest): string | null {
+  // Real foreman cookie wins and is checked first — when present and valid the
+  // view branch is never reached, so a normal foreman is 100% unaffected.
   const ft = req.cookies.get(FOREMAN_COOKIE)?.value;
-  if (!ft) return null;
-  return verifyForemanToken(ft);
+  if (ft) {
+    const real = verifyForemanToken(ft);
+    if (real) return real;
+  }
+  // No valid foreman cookie → honor an active admin view-as-foreman, if any.
+  return getViewContext(req)?.staffId ?? null;
 }
 
 export function getRoleFromRequest(req: NextRequest): AdminRole {
@@ -208,6 +269,15 @@ export function buildForemanAuthCookie(staffId: string) {
 
 export function buildForemanClearCookie() {
   return { name: FOREMAN_COOKIE, value: "", options: { httpOnly: true, path: "/", maxAge: 0 } };
+}
+
+// View-as-foreman cookie (read-only, 30-min window).
+export function buildViewAuthCookie(adminId: string, staffId: string) {
+  return { name: VIEW_COOKIE, value: buildViewToken(adminId, staffId), options: { ...COOKIE_OPTS, maxAge: VIEW_MAX_AGE } };
+}
+
+export function buildViewClearCookie() {
+  return { name: VIEW_COOKIE, value: "", options: { httpOnly: true, path: "/", maxAge: 0 } };
 }
 
 // ── Worker session token ────────────────────────────────────────────────────

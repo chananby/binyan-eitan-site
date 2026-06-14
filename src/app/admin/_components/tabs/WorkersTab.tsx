@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { UserPlus, RefreshCw, ChevronDown, ChevronUp, Trash2, AlertTriangle, History, Download, Loader2, Pencil } from "lucide-react";
+import { UserPlus, RefreshCw, ChevronDown, ChevronUp, Trash2, AlertTriangle, History, Download, Loader2, Pencil, Eye } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { Btn } from "../shared/Btn";
@@ -102,6 +102,7 @@ type Props = {
   onToggleActive: (id: string, active: boolean) => void | Promise<void>;
   onDeleteWorker: (id: string) => void | Promise<void>;
   onViewHistory:  (id: string) => void;
+  onViewAs:       (id: string) => void;
   onOpenVacation: (staffId: string) => void | Promise<void>;
   onReload: () => void | Promise<void>;
 
@@ -507,6 +508,16 @@ function renderStaffRow(
           aria-label={`היסטוריית ${s.name}`}
         >
           <History size={11} strokeWidth={1.5} /> היסטוריה
+        </button>
+      )}
+      {/* Admin-only "view-as-foreman" (read-only). Only for active foremen. */}
+      {!isInactive && s.role === "ממונה" && (
+        <button
+          onClick={() => p.onViewAs(s.id)}
+          className="text-[0.7rem] border border-accent/30 text-accent px-2.5 py-1 hover:bg-accent hover:text-bone transition-colors shrink-0 flex items-center gap-1"
+          aria-label={`צפה בתור ${s.name}`}
+        >
+          <Eye size={11} strokeWidth={1.5} /> צפה בתור
         </button>
       )}
       <button onClick={() => p.onOpenVacation(s.id)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">חופשה</button>

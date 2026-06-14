@@ -1,10 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
-import { getAdminIdFromRequest, getForemanStaffIdFromRequest } from "../../../../lib/admin-auth";
+import { getAdminIdFromRequest, getForemanStaffIdFromRequest, getViewContext } from "../../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
+  // View-as-foreman takes precedence: an admin viewing a foreman should see the
+  // portal exactly as that foreman does, so report the VIEWED identity plus a
+  // viewAs marker that drives the yellow banner. Falls through to normal admin
+  // if the viewed foreman was deactivated/removed mid-view.
+  const view = getViewContext(req);
+  if (view) {
+    const supabase = createServerClient();
+    const [{ data: admin }, { data: foreman }] = await Promise.all([
+      supabase.from("admins").select("name").eq("id", view.adminId).maybeSingle(),
+      supabase.from("staff").select("id, name").eq("id", view.staffId)
+        .eq("role", "ממונה").eq("active", true).is("deleted_at", null).maybeSingle(),
+    ]);
+    if (foreman) {
+      return NextResponse.json({
+        role: "foreman",
+        staffId: foreman.id,
+        name: foreman.name,
+        viewAs: { adminName: admin?.name ?? null, viewedName: foreman.name },
+      });
+    }
+  }
+
   // Admin — look up identity from DB so the client can render
   // "logged in as <name>" and rehydrate after a page refresh
   const adminId = getAdminIdFromRequest(req);

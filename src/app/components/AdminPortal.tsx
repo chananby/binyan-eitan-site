@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useFeedback } from "../hooks/useFeedback";
 import SuccessFlash from "./SuccessFlash";
 import ForemanPortal from "./ForemanPortal";
+import ViewAsBanner from "./ViewAsBanner";
 import { AutoGrowTextarea } from "./AutoGrowTextarea";
 import { parseMoney, parsePositive } from "../../lib/money";
 import Image from "next/image";
@@ -148,6 +149,8 @@ export default function AdminPortal() {
   const [tab,            setTab]            = useState<AdminTab>("dashboard");
   const [foremanName,    setForemanName]    = useState<string | null>(null);
   const [foremanStaffId, setForemanStaffId] = useState<string | null>(null);
+  // Set when this "foreman" session is actually an admin viewing-as-foreman.
+  const [viewAs,         setViewAs]         = useState<{ adminName: string | null; viewedName: string | null } | null>(null);
 
   // Login state
   const [pin,      setPin]      = useState("");
@@ -554,6 +557,9 @@ export default function AdminPortal() {
         } else if (role === "foreman") {
           if (d.name)    setForemanName(d.name);
           if (d.staffId) setForemanStaffId(d.staffId);
+          // d.viewAs present → this is an admin viewing-as-foreman, not a real
+          // foreman login. Drives the persistent yellow banner.
+          setViewAs(d.viewAs ?? null);
         }
       })
       .catch(() => setAuthState("unauthenticated"));
@@ -848,6 +854,26 @@ export default function AdminPortal() {
     setMaterials([]); setBudget([]); setIncome([]);
   }
 
+  // ── View-as-foreman (admin only, read-only) ────────────────────────────────
+  // Starts a read-only view of the given foreman's portal, then reloads /admin
+  // so whoami re-resolves identity to that foreman (with the yellow banner).
+  async function handleViewAs(staffId: string) {
+    try {
+      const res = await fetch("/api/admin/impersonate", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ staff_id: staffId }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        alert("מעבר למצב צפייה נכשל: " + (d.error ?? res.status));
+        return;
+      }
+      window.location.assign("/admin");
+    } catch {
+      alert("שגיאת רשת — נסה שוב");
+    }
+  }
+
   // ── PIN digit entry ────────────────────────────────────────────────────────
   function handlePinKey(digit: string) {
     if (loginLoading) return;
@@ -995,11 +1021,14 @@ export default function AdminPortal() {
   // ── Render: foreman portal (dedicated mobile UX) ───────────────────────────
   if (authState === "foreman") {
     return (
-      <ForemanPortal
-        staffId={foremanStaffId ?? ""}
-        foremanName={foremanName ?? "ממונה"}
-        onLogout={handleLogout}
-      />
+      <>
+        {viewAs && <ViewAsBanner viewedName={viewAs.viewedName} />}
+        <ForemanPortal
+          staffId={foremanStaffId ?? ""}
+          foremanName={foremanName ?? "ממונה"}
+          onLogout={handleLogout}
+        />
+      </>
     );
   }
 
@@ -1311,6 +1340,7 @@ export default function AdminPortal() {
             newBankIban={newBankIban}                 setNewBankIban={setNewBankIban}
             newPin={newPin}                         setNewPin={setNewPin}
             addLoading={addLoading} addMsg={addMsg}
+            onViewAs={handleViewAs}
             onAddWorker={handleAddWorker}
             editingId={editingId}                   setEditingId={setEditingId}
             editName={editName}                     setEditName={setEditName}

@@ -1,9 +1,30 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { refreshAdminCookieIfValid } from "./lib/admin-auth";
+import { refreshAdminCookieIfValid, getViewContext } from "./lib/admin-auth";
 
 export async function proxy(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
+
+  // ── View-as-foreman read-only guard ───────────────────────────────────────
+  // While an admin is viewing-as-foreman (valid view token + matching live
+  // admin session), block every mutating API call so the session is strictly
+  // read-only. The impersonate endpoint itself is exempt (the admin must be
+  // able to exit / re-target). This guard is INERT when no view is active —
+  // getViewContext returns null, so legitimate admin/foreman/worker writes are
+  // never touched.
+  if (
+    pathname.startsWith("/api/") &&
+    !pathname.startsWith("/api/admin/impersonate") &&
+    req.method !== "GET" &&
+    req.method !== "HEAD" &&
+    req.method !== "OPTIONS" &&
+    getViewContext(req)
+  ) {
+    return NextResponse.json(
+      { error: "מצב צפייה בלבד — פעולה חסומה. צא ממצב הצפייה כדי לבצע שינויים." },
+      { status: 403 },
+    );
+  }
 
   // ── Admin sliding session refresh ─────────────────────────────────────────
   // Every authenticated admin API hit re-signs the cookie with a fresh
@@ -56,7 +77,7 @@ export async function proxy(req: NextRequest) {
   const previewCookie = req.cookies.get("preview_mode")?.value === "true" ||
     req.cookies.get("__prerender_bypass") != null;
   
-  let response = NextResponse.next();
+  const response = NextResponse.next();
 
   // Expose pathname to server components (used by root layout for lang/dir)
   response.headers.set("x-pathname", pathname);
