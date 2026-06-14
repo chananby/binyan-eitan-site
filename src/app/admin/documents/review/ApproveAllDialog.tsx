@@ -33,14 +33,14 @@ export default function ApproveAllDialog({ candidates, onConfirm, onClose, busy 
           <h2 className="font-heading text-base font-bold flex items-center gap-2">
             <CheckCircle2 size={18} className="text-emerald-600" /> אישור גורף
           </h2>
-          <button onClick={onClose} className="text-[#2D2926]/40 active:scale-90"><X size={20} /></button>
+          <button onClick={onClose} className="text-[#2D2926]/60 hover:text-[#2D2926] active:scale-90"><X size={20} /></button>
         </div>
 
         <div className="px-5 py-3 bg-emerald-50/60 border-b border-emerald-100">
           <p className="text-sm text-[#2D2926]">
             <span className="font-bold">{selected.length}</span> מסמכים · סה&quot;כ <span className="font-bold">{fmtCurrency(total)}</span>
           </p>
-          <p className="text-xs text-[#2D2926]/55 mt-0.5">ביטחון גבוה, כל שדות החובה מלאים, ללא דגלים. הסר סימון כדי לדלג על פריט.</p>
+          <p className="text-xs text-[#2D2926]/70 mt-0.5">ביטחון גבוה, כל שדות החובה מלאים, ללא דגלים. הסר סימון כדי לדלג על פריט.</p>
         </div>
 
         <div className="overflow-y-auto flex-1 divide-y divide-[#2D2926]/5">
@@ -49,7 +49,7 @@ export default function ApproveAllDialog({ candidates, onConfirm, onClose, busy 
               <input type="checkbox" checked={checked.has(c.id)} onChange={() => toggle(c.id)} className="accent-emerald-600 shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-[#2D2926] truncate">{displayVendor(c)}</p>
-                <p className="text-xs text-[#2D2926]/55 tabular-nums">{fmtCurrency(c.total_amount, c.currency ?? "ILS")} · {fmtDate(c.doc_date)}</p>
+                <p className="text-xs text-[#2D2926]/70 tabular-nums">{fmtCurrency(c.total_amount, c.currency ?? "ILS")} · {fmtDate(c.doc_date)}</p>
               </div>
             </label>
           ))}

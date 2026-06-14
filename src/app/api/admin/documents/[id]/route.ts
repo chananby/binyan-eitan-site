@@ -37,6 +37,7 @@ const EDITABLE_FIELDS = [
   "description",
   "notes",
   "status",
+  "possible_duplicate_of",  // settable to null to clear a "not a duplicate" flag
 ] as const;
 
 const RETURN_COLUMNS = DOCUMENT_COLUMNS;

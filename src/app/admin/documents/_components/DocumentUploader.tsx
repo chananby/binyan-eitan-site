@@ -15,7 +15,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { Camera, Loader2, RefreshCw, AlertTriangle, Check } from "lucide-react";
 import { DOC_TYPE_LABELS, fmtCurrency, displayVendor, type DocRow } from "./labels";
-import DuplicateCompareDialog from "./DuplicateCompareDialog";
+import DuplicateCompareDialog, { paneFromDoc, paneFromFile } from "./DuplicateCompareDialog";
 
 interface ResultCard {
   doc: DocRow;
@@ -183,9 +183,16 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
 
       {dupPrompt && (
         <DuplicateCompareDialog
-          existing={dupPrompt.existing}
-          incoming={{ file: dupPrompt.file, previewUrl: dupPrompt.previewUrl }}
-          onDecide={(d) => decideRef.current?.(d)}
+          title="הקובץ כבר קיים במערכת"
+          subtitle="קובץ זהה (אותו תוכן בדיוק) כבר הועלה. השווה והכרע:"
+          left={paneFromDoc(dupPrompt.existing, "קיים במערכת")}
+          right={paneFromFile(dupPrompt.file, dupPrompt.previewUrl, "הקובץ שאתה מעלה")}
+          actions={[
+            { key: "skip", label: "דלג", variant: "neutral" },
+            { key: "upload", label: "העלה בכל זאת", variant: "outline" },
+            { key: "replace", label: "החלף", variant: "primary" },
+          ]}
+          onAction={(k) => decideRef.current?.(k as Decision)}
         />
       )}
     </div>

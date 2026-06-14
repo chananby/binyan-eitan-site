@@ -154,13 +154,13 @@ export default function DocumentReviewForm({
               {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
             </select>
             <button type="button" onClick={() => setNewVendorOpen(true)}
-              className="shrink-0 flex items-center gap-1 text-xs font-semibold text-[#8D775F] border border-[#8D775F]/40 rounded px-2 hover:bg-[#8D775F]/10">
-              <Plus size={13} /> חדש
+              className="shrink-0 flex items-center gap-1 text-xs font-semibold text-[#8D775F] border border-[#8D775F]/40 rounded px-2 hover:bg-[#8D775F]/10 whitespace-nowrap">
+              <Plus size={13} /> ספק חדש
             </button>
           </div>
         ) : (
           <div className="flex gap-2">
-            <input value={newVendorName} onChange={e => setNewVendorName(e.target.value)} placeholder="שם ספק חדש" className={FIELD} />
+            <input value={newVendorName} onChange={e => setNewVendorName(e.target.value)} placeholder="שם הספק החדש" className={FIELD} />
             <button type="button" onClick={createVendor} disabled={creatingVendor}
               className="shrink-0 flex items-center gap-1 text-xs font-semibold text-white bg-[#8D775F] rounded px-3 disabled:opacity-50">
               {creatingVendor ? <Loader2 size={13} className="animate-spin" /> : "צור"}

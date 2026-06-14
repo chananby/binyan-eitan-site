@@ -14,6 +14,7 @@ import { documentFlags, isCleanHighConfidence, type DocRow } from "../_component
 import DocumentFlagsBanner from "./DocumentFlagsBanner";
 import ApproveAllDialog from "./ApproveAllDialog";
 import UndoToast from "./UndoToast";
+import DuplicateCompareDialog, { paneFromDoc } from "../_components/DuplicateCompareDialog";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
 interface Opt { id: string; name: string }
@@ -43,6 +44,10 @@ export default function ReviewQueueClient() {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [undo, setUndo] = useState<UndoState | null>(null);
   const [undoSeq, setUndoSeq] = useState(0);
+
+  // In-place duplicate comparison (current doc vs its suspected original).
+  const [compare, setCompare] = useState<{ current: DocRow; suspected: DocRow } | null>(null);
+  const [compareBusy, setCompareBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -130,6 +135,44 @@ export default function ReviewQueueClient() {
     finally { setBulkBusy(false); }
   }
 
+  // ── In-place duplicate compare ──────────────────────────────────────────────
+  async function openCompare() {
+    const cur = docs[0];
+    if (!cur?.possible_duplicate_of) return;
+    try {
+      const d = await fetch(`/api/admin/documents/${cur.possible_duplicate_of}`, { cache: "no-store" }).then(r => r.json());
+      if (d?.document) setCompare({ current: cur, suspected: d.document });
+      else setError("המסמך החשוד לא נמצא (ייתכן שנמחק)");
+    } catch (e) { setError(String(e)); }
+  }
+
+  async function deleteAsDuplicate() {
+    if (!compare) return;
+    setCompareBusy(true);
+    try {
+      const res = await fetch(`/api/admin/documents/${compare.current.id}`, { method: "DELETE" });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? "מחיקה נכשלה"); return; }
+      setDocs(prev => prev.slice(1)); // drop current, advance
+      setCompare(null);
+    } catch (e) { setError(String(e)); }
+    finally { setCompareBusy(false); }
+  }
+
+  async function clearDuplicateFlag() {
+    if (!compare) return;
+    setCompareBusy(true);
+    try {
+      const res = await fetch(`/api/admin/documents/${compare.current.id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ possible_duplicate_of: null }),
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? "ניקוי הדגל נכשל"); return; }
+      // Clear the flag on the in-memory current doc — stays in place.
+      setDocs(prev => prev.length ? [{ ...prev[0], possible_duplicate_of: null }, ...prev.slice(1)] : prev);
+      setCompare(null);
+    } catch (e) { setError(String(e)); }
+    finally { setCompareBusy(false); }
+  }
+
   // ── Gates ──────────────────────────────────────────────────────────────────
   if (auth === "loading" || (auth === "admin" && loading)) {
     return <div className="min-h-screen flex items-center justify-center bg-[#F5F4F0]"><Loader2 className="animate-spin text-[#8D775F]" size={32} /></div>;
@@ -156,9 +199,9 @@ export default function ReviewQueueClient() {
       <header className="bg-white border-b border-[#2D2926]/10 px-4 py-2.5 flex items-center justify-between gap-3 shadow-sm">
         <div className="flex items-center gap-2 text-sm min-w-0">
           <Link href="/admin/documents" className="text-[#8D775F] flex items-center gap-1 hover:underline shrink-0"><ChevronRight size={14} />אסמכתאות</Link>
-          <span className="text-[#2D2926]/40 shrink-0">/</span>
+          <span className="text-[#2D2926]/55 shrink-0">/</span>
           <span className="text-[#2D2926] font-semibold shrink-0">סקירה רצופה</span>
-          {docs.length > 0 && <span className="text-[#2D2926]/50 text-xs tabular-nums shrink-0">· {Math.min(position, total)} מתוך {total}</span>}
+          {docs.length > 0 && <span className="text-[#2D2926] font-bold text-sm tabular-nums shrink-0">· {Math.min(position, total)} מתוך {total}</span>}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {candidates.length > 0 && (
@@ -183,15 +226,15 @@ export default function ReviewQueueClient() {
         {!current ? (
           <div className="bg-white border border-[#2D2926]/10 rounded-md p-12 text-center">
             <CheckCircle2 size={36} strokeWidth={1.5} className="text-emerald-500 mx-auto mb-3" />
-            <p className="text-[#2D2926] font-semibold mb-1">כל הממתינים נסקרו</p>
-            <p className="text-[#2D2926]/55 text-sm mb-4">אין מסמכים נוספים בתור.</p>
+            <p className="text-[#2D2926] font-bold text-lg mb-1">כל הממתינים נסקרו</p>
+            <p className="text-[#2D2926]/70 text-sm mb-4">אין מסמכים נוספים בתור.</p>
             <Link href="/admin/documents" className="inline-flex items-center gap-1.5 text-[#8D775F] text-sm font-semibold hover:underline">
               <ChevronRight size={14} /> חזרה לתיבה
             </Link>
           </div>
         ) : (
           <div className="space-y-3">
-            <DocumentFlagsBanner doc={current} />
+            <DocumentFlagsBanner doc={current} onCompareDuplicate={openCompare} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="bg-white border border-[#2D2926]/10 rounded-md shadow-sm overflow-hidden">
                 {isPdf
@@ -229,6 +272,26 @@ export default function ReviewQueueClient() {
           message={undo.kind === "bulk" ? `אושרו ${undo.docs.length} מסמכים` : "המסמך אושר"}
           onUndo={handleUndo}
           onDismiss={() => setUndo(null)}
+        />
+      )}
+
+      {compare && (
+        <DuplicateCompareDialog
+          title="השוואת כפילות אפשרית"
+          subtitle="המסמך הנוכחי מול מסמך קיים שזוהה כדומה. הכרע:"
+          left={paneFromDoc(compare.suspected, "מסמך קיים")}
+          right={paneFromDoc(compare.current, "המסמך הנוכחי")}
+          busy={compareBusy}
+          actions={[
+            { key: "close", label: "סגור", variant: "neutral" },
+            { key: "clear", label: "לא כפול — נקה דגל", variant: "outline" },
+            { key: "delete", label: "מחק את הנוכחי ככפול", variant: "danger" },
+          ]}
+          onAction={(k) => {
+            if (k === "close") setCompare(null);
+            else if (k === "clear") clearDuplicateFlag();
+            else if (k === "delete") deleteAsDuplicate();
+          }}
         />
       )}
     </div>
