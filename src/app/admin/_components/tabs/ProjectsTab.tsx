@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Building2, RefreshCw } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
@@ -8,6 +8,7 @@ import { Btn } from "../shared/Btn";
 import { TabRefreshBar } from "../shared/TabRefreshBar";
 import { INPUT } from "../shared/constants";
 import { AutoGrowTextarea } from "../../../components/AutoGrowTextarea";
+import ProjectBudgetSection, { type ProjectBudgetRow } from "../shared/ProjectBudgetSection";
 
 interface Project {
   id: string;
@@ -58,6 +59,21 @@ type Props = {
 };
 
 export default function ProjectsTab(p: Props) {
+  // Per-project budget-vs-actual, fetched once and refreshed after a budget
+  // edit. Keyed by project_id for O(1) lookup per card.
+  const [budgetMap, setBudgetMap] = useState<Map<string, ProjectBudgetRow>>(new Map());
+  const fetchBudget = useCallback(() => {
+    fetch("/api/admin/projects/budget-actual", { cache: "no-store" })
+      .then(r => r.json())
+      .then(d => {
+        const m = new Map<string, ProjectBudgetRow>();
+        for (const row of (d.rows ?? []) as ProjectBudgetRow[]) m.set(row.project_id, row);
+        setBudgetMap(m);
+      })
+      .catch(() => {});
+  }, []);
+  useEffect(() => { fetchBudget(); }, [fetchBudget, p.projects.length]);
+
   return (
     <div className="space-y-5">
       <TabRefreshBar loading={p.refreshing || p.dataLoading} onRefresh={p.onTabRefresh} lastRefreshed={p.lastRefreshed} />
@@ -181,6 +197,9 @@ export default function ProjectsTab(p: Props) {
                   <span className="text-[0.75rem] bg-accent/10 text-accent px-1.5 py-0.5 shrink-0">{assignedForeman.name}</span>
                 )}
               </div>
+
+              {/* Budget vs. actual (financial_documents-based) */}
+              <ProjectBudgetSection projectId={proj.id} data={budgetMap.get(proj.id)} onSaved={fetchBudget} />
             </div>
             );
           })}

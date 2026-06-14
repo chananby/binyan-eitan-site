@@ -14,6 +14,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     status?: string; name?: string; foreman_id?: string | null;
     address?: string | null;
     lat?: number | null; lng?: number | null;
+    budget?: number | null;
     geocode?: boolean; // if true, re-geocode the (possibly updated) address
   };
   try { body = await req.json(); } catch {
@@ -28,6 +29,8 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   if (body.address    !== undefined) update.address    = body.address?.trim() || null;
   if (body.lat        !== undefined) update.lat        = body.lat;
   if (body.lng        !== undefined) update.lng        = body.lng;
+  // budget: a number sets it, null clears it ("no budget defined").
+  if (body.budget     !== undefined) update.budget     = (typeof body.budget === "number" && Number.isFinite(body.budget)) ? body.budget : null;
 
   // Optional: trigger fresh geocoding. Useful when the admin updates the
   // address and wants coords refreshed. Done before the DB write so we
@@ -52,7 +55,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     .from("projects")
     .update(update)
     .eq("id", params.id)
-    .select("id, name, status, foreman_id, address, lat, lng")
+    .select("id, name, status, foreman_id, address, lat, lng, budget")
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

@@ -131,62 +131,9 @@ export default function DashboardTab(p: Props) {
         </Card>
       )}
 
-      {/* Foreman: project costs */}
-      {p.isForeman && p.activeProjects.length > 0 && (
-        <Card title="📊 עלויות לפי פרויקט">
-          <div className="divide-y divide-charcoal/5">
-            {p.activeProjects.map(pr => {
-              const expTotal = p.budget.find(b => b.project_id === pr.id)?.total ?? 0;
-              const taskCount = p.tasks.filter(t => t.project_id === pr.id && t.status !== "completed").length;
-              return (
-                <div key={pr.id} className="flex items-center justify-between py-2.5 gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{pr.name}</p>
-                    <p className="text-[0.75rem] text-charcoal/55">{taskCount} משימות פעילות</p>
-                  </div>
-                  <span className="text-sm font-bold text-accent tabular-nums shrink-0">
-                    {expTotal > 0 ? `₪${expTotal.toLocaleString("he-IL")}` : "—"}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      )}
-
-      {/* Admin: profitability */}
-      {p.isAdmin && p.activeProjects.length > 0 && Object.keys(p.incomeTotals).length > 0 && (
-        <Card title="📈 רווחיות לפי פרויקט">
-          <div className="divide-y divide-charcoal/5">
-            {p.activeProjects.map(pr => {
-              const exp    = p.budget.find(b => b.project_id === pr.id)?.total ?? 0;
-              const inc    = p.incomeTotals[pr.id] ?? 0;
-              const profit = inc - exp;
-              return (
-                <div key={pr.id} className="py-2.5 space-y-1">
-                  <p className="text-sm font-semibold">{pr.name}</p>
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="text-center">
-                      <p className="text-[0.75rem] text-charcoal/55">הכנסות</p>
-                      <p className="font-bold text-green-600 tabular-nums">₪{inc.toLocaleString("he-IL")}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[0.75rem] text-charcoal/55">הוצאות</p>
-                      <p className="font-bold text-red-500 tabular-nums">₪{exp.toLocaleString("he-IL")}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[0.75rem] text-charcoal/55">רווח נקי</p>
-                      <p className={`font-bold tabular-nums ${profit >= 0 ? "text-green-600" : "text-red-500"}`}>
-                        {profit >= 0 ? "+" : ""}₪{profit.toLocaleString("he-IL")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      )}
+      {/* Per-project cost cards were removed here: they summed `materials.cost`,
+          which conflicts with the new financial_documents-based "תקציב מול ביצוע"
+          (single source of truth, shown per project in the Projects tab). */}
 
       {/* Today's tasks */}
       <Card title="📋 משימות היום">
