@@ -61,7 +61,9 @@ export default function AttendanceRowEditor(p: Props) {
     setBusy(true);
     try {
       if (p.mode === "add") {
-        if (!startTime || !endTime) { setErr("נא למלא שעת כניסה ושעת יציאה"); return; }
+        // Exit is optional — entry-only creates an open record, closed later
+        // via the "complete" (השלמת יציאה) flow.
+        if (!startTime) { setErr("נא למלא שעת כניסה"); return; }
         const res = await fetch("/api/admin/attendance/manual", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -70,7 +72,7 @@ export default function AttendanceRowEditor(p: Props) {
             date:     p.day.date,
             type:     "regular",
             entry_time: startTime,
-            exit_time:  endTime,
+            ...(endTime ? { exit_time: endTime } : {}),
           }),
         });
         if (!res.ok) {
@@ -161,7 +163,7 @@ export default function AttendanceRowEditor(p: Props) {
             )}
             {showEnd && (
               <label className="flex flex-col gap-1">
-                <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/50">שעת יציאה</span>
+                <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/50">{p.mode === "add" ? "שעת יציאה (אופציונלי)" : "שעת יציאה"}</span>
                 <input
                   type="time"
                   value={endTime}

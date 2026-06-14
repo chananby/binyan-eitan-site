@@ -33,8 +33,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "type לא תקין" }, { status: 400 });
 
   const isWork = type === "regular" || type === "overtime";
+  // Entry is required for a work record. Exit is OPTIONAL: an entry-only save
+  // creates a legitimate OPEN record (mid-day clock-in) that gets its exit
+  // added later — the same shape the live web/IVR flow produces.
   if (isWork && !entry_time) return NextResponse.json({ error: "זמן כניסה נדרש" }, { status: 400 });
-  if (isWork && !exit_time)  return NextResponse.json({ error: "זמן יציאה נדרש" }, { status: 400 });
 
   // Format matching parseLabelDateTime: "D.M.YYYY, HH:MM"
   const [y, m, d] = date.split("-");
@@ -56,7 +58,11 @@ export async function POST(req: NextRequest) {
   const records: Record<string, unknown>[] = isWork
     ? [
         base("כניסה", `${dp}, ${entry_time}`, israelWallClockToISO(date, entry_time!)),
-        base("יציאה", `${dp}, ${exit_time}`,  israelWallClockToISO(date, exit_time!)),
+        // Exit row only when an exit time was supplied; otherwise the record
+        // stays open (entry-only) until a clock-out / "השלמת יציאה" closes it.
+        ...(exit_time
+          ? [base("יציאה", `${dp}, ${exit_time}`, israelWallClockToISO(date, exit_time!))]
+          : []),
       ]
     : [
         base(

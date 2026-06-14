@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../lib/supabase";
 import { israelDayStartISO } from "../../../lib/israel-time";
+import { isEntry, isExit } from "../../../lib/attendance-time";
 import { getWorkerStaffIdFromRequest } from "../../../lib/admin-auth";
 import { checkRateLimit } from "../../../lib/rate-limit";
 
@@ -132,18 +133,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
   }
 
+  // Block a new clock-in only when an OPEN record exists (an entry not yet
+  // closed by an exit) — NOT merely because the worker clocked in earlier
+  // today. This lets a worker who already clocked out start a fresh shift
+  // (e.g. moved to another site), while still blocking a double open entry.
+  // Open = today's entries > today's exits. Day scoping is by clock_at (never
+  // created_at). Both action vocabularies ("in"/"out" from the live flow and
+  // "כניסה"/"יציאה" from manual entry) are counted via isEntry/isExit.
   if (normalizedAction === "in") {
     const todayStr   = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
     const todayStart = israelDayStartISO(todayStr);
-    const { data: existing } = await supabase
+    const { data: todays } = await supabase
       .from("attendance")
-      .select("id")
+      .select("action")
       .is("deleted_at", null)
       .eq("staff_id", staff.id)
-      .eq("action", "in")
-      .gte("created_at", todayStart)
-      .limit(1);
-    if (existing && existing.length > 0) {
+      .in("action", ["in", "כניסה", "out", "יציאה"])
+      .gte("clock_at", todayStart);
+    const ins  = (todays ?? []).filter(r => isEntry(r.action)).length;
+    const outs = (todays ?? []).filter(r => isExit(r.action)).length;
+    if (ins > outs) {
       return NextResponse.json({ success: false, error: "already_clocked_in" }, { status: 409 });
     }
   }

@@ -144,7 +144,10 @@ export function useAdminAttendance({ reload, loadPending, setPendingRecords, set
       });
       const data = await res.json();
       if (res.ok) {
-        const count = data.created === 2 ? "2 רשומות (כניסה + יציאה)" : "רשומה אחת";
+        const isWorkType = manualType === "regular" || manualType === "overtime";
+        const count = data.created === 2
+          ? "2 רשומות (כניסה + יציאה)"
+          : isWorkType ? "רשומה פתוחה (כניסה בלבד)" : "רשומה אחת";
         setManualMsg(`נוסף בהצלחה ✓ — ${count}`);
         setManualOpen(false);
         setManualStaffId(""); setManualDate(""); setManualType("regular");
