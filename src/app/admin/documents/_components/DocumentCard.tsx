@@ -7,12 +7,14 @@
 // The whole card links to the detail screen.
 
 import Link from "next/link";
-import { AlertTriangle, Building2, Camera } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AlertTriangle, Building2, Camera, Copy } from "lucide-react";
 import {
   DOC_TYPE_LABELS, statusChip, fmtCurrency, fmtDate, displayVendor, type DocRow,
 } from "./labels";
 
 export default function DocumentCard({ doc }: { doc: DocRow }) {
+  const router = useRouter();
   const chip = statusChip(doc);
   // Field upload (foreman drop-box) → small camera chip with the foreman name.
   const fieldUpload = doc.uploaded_by?.startsWith("foreman:")
@@ -52,6 +54,20 @@ export default function DocumentCard({ doc }: { doc: DocRow }) {
         {fieldUpload && (
           <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-[#8D775F]/10 text-[#8D775F]">
             <Camera size={11} />{fieldUpload}
+          </span>
+        )}
+        {doc.possible_duplicate_of && (
+          // Soft layer-2 flag → jumps to the suspected original. It's nested
+          // inside the card Link, so prevent the card navigation and route to
+          // the source instead.
+          <span
+            role="link"
+            tabIndex={0}
+            title="ייתכן כפילות של מסמך קיים — לחץ למקור"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/admin/documents/${doc.possible_duplicate_of}`); }}
+            className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 cursor-pointer"
+          >
+            <Copy size={11} /> ייתכן כפול
           </span>
         )}
       </div>

@@ -16,20 +16,15 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { matchVendor, type VendorListItem } from "./vendor-matching";
+import { DOCUMENT_COLUMNS } from "./document-columns";
 
 // Extraction model — single source of truth, update here. The previous
 // "claude-sonnet-4-20250514" returned 404 not_found_error in production.
 const EXTRACTION_MODEL = "claude-sonnet-4-6";
 const BUCKET = "financial-documents";
 
-// Columns returned to the caller after an update (mirrors the documents routes,
-// including the vendor/project name joins).
-const RETURN_COLUMNS =
-  "id, original_filename, mime_type, file_size, status, extraction_status, " +
-  "doc_type, direction, vendor_id, vendor_name_raw, doc_number, doc_date, " +
-  "amount_before_vat, vat_amount, total_amount, currency, category, " +
-  "project_id, description, notes, reviewed_at, reviewed_by, uploaded_by, " +
-  "created_at, vendor:vendor_id(name), project:project_id(name)";
+// Shared column selection — returned to callers after an update.
+const RETURN_COLUMNS = DOCUMENT_COLUMNS;
 
 // API media types accepted as `image` blocks (HEIC/HEIF are NOT supported by
 // the API directly — handled as a clear failure below).
@@ -276,6 +271,24 @@ export async function extractAndPersist(
   const f = result.fields;
   const vendor_id = await matchVendor(supabase, f, vendorList);
 
+  // Layer 2 — soft content-duplicate flag (non-blocking). If another LIVE
+  // document shares the same vendor + total + doc_date, point at it. Runs for
+  // admin and foreman uploads alike (this is the only place foreman uploads are
+  // dedup-checked, since they get no compare dialog).
+  let possible_duplicate_of: string | null = null;
+  if (vendor_id && f.total_amount != null && f.doc_date) {
+    const { data: dup } = await supabase
+      .from("financial_documents")
+      .select("id")
+      .is("deleted_at", null)
+      .eq("vendor_id", vendor_id)
+      .eq("total_amount", f.total_amount)
+      .eq("doc_date", f.doc_date)
+      .neq("id", documentId)
+      .limit(1);
+    if (dup && dup.length > 0) possible_duplicate_of = dup[0].id;
+  }
+
   const { data: updated, error: updErr } = await supabase
     .from("financial_documents")
     .update({
@@ -291,6 +304,7 @@ export async function extractAndPersist(
       currency:          f.currency,
       category:          f.category,
       description:       f.description,
+      possible_duplicate_of,
       extraction_raw:    result.raw,
       extraction_status: "done",
     })

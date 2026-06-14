@@ -21,6 +21,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
 import { getForemanStaffIdFromRequest } from "../../../../lib/admin-auth";
 import { resolveActorLabel } from "../../../../lib/audit-actor";
+import { sha256Hex } from "../../../../lib/file-hash";
 import { extractAndPersist } from "../../../../lib/document-extraction";
 import { randomUUID } from "crypto";
 
@@ -110,6 +111,10 @@ export async function POST(req: NextRequest) {
       original_filename: file.name.slice(0, 200),
       mime_type:         declaredType,
       file_size:         file.size,
+      // Store the hash so a later admin upload of the same file is caught by
+      // layer 1. Foreman uploads themselves get no compare dialog (no financial
+      // exposure) — duplicates just enter and are flagged by layer 2.
+      file_hash:         sha256Hex(bytes),
       uploaded_by,
       extraction_status: "pending",
       status:            "pending",

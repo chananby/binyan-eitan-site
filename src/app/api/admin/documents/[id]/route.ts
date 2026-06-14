@@ -16,6 +16,7 @@ import {
   isAdminAuthedFromRequest,
   getAdminIdFromRequest,
 } from "../../../../../lib/admin-auth";
+import { DOCUMENT_COLUMNS } from "../../../../../lib/document-columns";
 
 export const runtime = "nodejs";
 
@@ -38,12 +39,7 @@ const EDITABLE_FIELDS = [
   "status",
 ] as const;
 
-const RETURN_COLUMNS =
-  "id, original_filename, mime_type, file_size, status, extraction_status, " +
-  "doc_type, direction, vendor_id, vendor_name_raw, doc_number, doc_date, " +
-  "amount_before_vat, vat_amount, total_amount, currency, category, " +
-  "project_id, description, notes, reviewed_at, reviewed_by, uploaded_by, " +
-  "created_at, vendor:vendor_id(name), project:project_id(name)";
+const RETURN_COLUMNS = DOCUMENT_COLUMNS;
 
 // ── GET — one document (for the review screen) ──────────────────────────────
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {

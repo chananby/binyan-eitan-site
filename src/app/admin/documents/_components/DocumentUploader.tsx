@@ -3,14 +3,19 @@
 // Upload area for the inbox. Mobile-first: one big "add document" button that
 // opens the camera / file picker (accept image + PDF, capture=environment,
 // multiple). Files upload SERIALLY — the API extracts inline, so parallel
-// uploads would just queue on the model anyway — with a "X of N" progress
-// line. Each finished upload shows a result card (vendor / amount / type) with
-// a retry button when extraction failed.
+// uploads would just queue on the model anyway — with a "X of N" progress line.
+//
+// Duplicate handling (per-file): before each upload the client computes the
+// file's SHA-256 and probes /check. If a live document with that hash exists,
+// the serial loop PAUSES on a compare dialog (skip / upload-anyway / replace)
+// and only continues once the user decides. The server 409 is the real safety
+// net if this client check is ever bypassed.
 
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { Camera, Loader2, RefreshCw, AlertTriangle, Check } from "lucide-react";
 import { DOC_TYPE_LABELS, fmtCurrency, displayVendor, type DocRow } from "./labels";
+import DuplicateCompareDialog from "./DuplicateCompareDialog";
 
 interface ResultCard {
   doc: DocRow;
@@ -19,12 +24,53 @@ interface ResultCard {
   retrying?: boolean;
 }
 
+type Decision = "skip" | "upload" | "replace";
+
+async function sha256Hex(file: File): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 export default function DocumentUploader({ onUploaded }: { onUploaded: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ i: number; n: number } | null>(null);
   const [results, setResults] = useState<ResultCard[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  // Mid-series duplicate prompt. The serial loop awaits decideRef's resolver.
+  const [dupPrompt, setDupPrompt] = useState<{ file: File; existing: DocRow; previewUrl: string | null } | null>(null);
+  const decideRef = useRef<((d: Decision) => void) | null>(null);
+
+  function askDuplicate(file: File, existing: DocRow): Promise<Decision> {
+    const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
+    return new Promise<Decision>(resolve => {
+      decideRef.current = (d) => {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        setDupPrompt(null);
+        decideRef.current = null;
+        resolve(d);
+      };
+      setDupPrompt({ file, existing, previewUrl });
+    });
+  }
+
+  async function uploadOne(file: File, extra: Record<string, string>): Promise<ResultCard | "error"> {
+    const fd = new FormData();
+    fd.append("file", file);
+    for (const [k, v] of Object.entries(extra)) fd.append(k, v);
+    const res = await fetch("/api/admin/documents", { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) {
+      // 409 = the server safety net caught a duplicate the client check missed
+      // (e.g. a concurrent upload). Surface it; don't silently drop.
+      setError(res.status === 409
+        ? `"${file.name}" כבר קיים במערכת — דולג.`
+        : `העלאת "${file.name}" נכשלה: ${data.error ?? res.status}`);
+      return "error";
+    }
+    return { doc: data.document, status: data.extraction?.status ?? "failed", error: data.extraction?.error };
+  }
 
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -35,20 +81,30 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
     const collected: ResultCard[] = [];
 
     for (let i = 0; i < list.length; i++) {
+      const file = list[i];
       setProgress({ i: i + 1, n: list.length });
-      const fd = new FormData();
-      fd.append("file", list[i]);
+
+      const extra: Record<string, string> = {};
       try {
-        const res = await fetch("/api/admin/documents", { method: "POST", body: fd });
-        const data = await res.json();
-        if (!res.ok) {
-          setError(`העלאת "${list[i].name}" נכשלה: ${data.error ?? res.status}`);
-          continue;
+        // Pre-check by hash. Failures here fall through to a normal upload —
+        // the server 409 still protects against duplicates.
+        const hash = await sha256Hex(file);
+        const chk = await fetch(`/api/admin/documents/check?hash=${encodeURIComponent(hash)}`, { cache: "no-store" })
+          .then(r => r.json()).catch(() => ({ duplicate: false }));
+        if (chk.duplicate && chk.document) {
+          const decision = await askDuplicate(file, chk.document);
+          if (decision === "skip") continue;
+          if (decision === "upload") extra.allow_duplicate = "true";
+          if (decision === "replace") extra.replace_id = chk.document.id;
         }
-        collected.push({ doc: data.document, status: data.extraction?.status ?? "failed", error: data.extraction?.error });
-        setResults([...collected]);
+
+        const result = await uploadOne(file, extra);
+        if (result !== "error") {
+          collected.push(result);
+          setResults([...collected]);
+        }
       } catch (e) {
-        setError(`שגיאת רשת בהעלאת "${list[i].name}": ${String(e)}`);
+        setError(`שגיאת רשת בהעלאת "${file.name}": ${String(e)}`);
       }
     }
 
@@ -123,6 +179,14 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
             </div>
           ))}
         </div>
+      )}
+
+      {dupPrompt && (
+        <DuplicateCompareDialog
+          existing={dupPrompt.existing}
+          incoming={{ file: dupPrompt.file, previewUrl: dupPrompt.previewUrl }}
+          onDecide={(d) => decideRef.current?.(d)}
+        />
       )}
     </div>
   );

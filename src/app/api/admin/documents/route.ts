@@ -22,6 +22,8 @@ import {
   getAdminIdFromRequest,
 } from "../../../../lib/admin-auth";
 import { extractAndPersist } from "../../../../lib/document-extraction";
+import { DOCUMENT_COLUMNS } from "../../../../lib/document-columns";
+import { sha256Hex } from "../../../../lib/file-hash";
 import { randomUUID } from "crypto";
 
 export const runtime = "nodejs";
@@ -52,14 +54,9 @@ const EXT_FROM_MIME: Record<string, string> = {
   "image/heif":      "heif",
 };
 
-// List columns. storage_path is intentionally OMITTED (same as the staff-
-// documents list) — clients reach bytes only via the /file proxy by id.
-const LIST_COLUMNS =
-  "id, original_filename, mime_type, file_size, status, extraction_status, " +
-  "doc_type, direction, vendor_id, vendor_name_raw, doc_number, doc_date, " +
-  "amount_before_vat, vat_amount, total_amount, currency, category, " +
-  "project_id, description, notes, reviewed_at, reviewed_by, uploaded_by, " +
-  "created_at, vendor:vendor_id(name), project:project_id(name)";
+// Column selection (storage_path intentionally omitted — clients reach bytes
+// only via the /file proxy by id). Shared so list/detail/extraction/check agree.
+const LIST_COLUMNS = DOCUMENT_COLUMNS;
 
 async function resolveAdminLabel(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -154,12 +151,42 @@ export async function POST(req: NextRequest) {
 
   const supabase = createServerClient();
 
+  const bytes = await file.arrayBuffer();
+  // Authoritative SHA-256 (server-computed — never trust a client hash for
+  // storage or the dedup decision).
+  const fileHash = sha256Hex(bytes);
+
+  // Override flags: "החלף" sends replace_id (the live doc it supersedes),
+  // "העלה בכל זאת" sends allow_duplicate=true. Either bypasses the block.
+  const replaceId = (formData.get("replace_id") as string | null)?.trim() || null;
+  const allowDuplicate = formData.get("allow_duplicate") === "true" || !!replaceId;
+
+  // ── Hard duplicate block (the real safety net) ─────────────────────────────
+  // Enforced server-side even if the client pre-check was bypassed: a live
+  // document with the same file_hash blocks the upload (no bucket write, no
+  // insert) and returns the existing row so the client can show the compare
+  // dialog. Skipped only on an explicit override.
+  if (!allowDuplicate) {
+    const { data: existing } = await supabase
+      .from("financial_documents")
+      .select(LIST_COLUMNS)
+      .eq("file_hash", fileHash)
+      .is("deleted_at", null)
+      .limit(1)
+      .maybeSingle();
+    if (existing) {
+      return NextResponse.json(
+        { error: "duplicate", duplicate: true, document: existing },
+        { status: 409 },
+      );
+    }
+  }
+
   // Path: inbox/<random-uuid>.<ext>. Extension is derived from the declared
   // MIME (not the user filename) — prevents extension spoofing.
   const ext  = EXT_FROM_MIME[declaredType] ?? "bin";
   const path = `inbox/${randomUUID()}.${ext}`;
 
-  const bytes = await file.arrayBuffer();
   const { error: uploadErr } = await supabase.storage
     .from(BUCKET)
     .upload(path, bytes, {
@@ -185,6 +212,7 @@ export async function POST(req: NextRequest) {
       original_filename: originalFilename,
       mime_type:         declaredType,
       file_size:         file.size,
+      file_hash:         fileHash,
       uploaded_by,
       extraction_status: "pending",
       status:            "pending",
@@ -197,6 +225,17 @@ export async function POST(req: NextRequest) {
     console.error("[admin/documents POST] DB insert failed, rolling back upload:", insertErr);
     try { await supabase.storage.from(BUCKET).remove([path]); } catch { /* best effort */ }
     return NextResponse.json({ error: insertErr.message }, { status: 500 });
+  }
+
+  // "החלף": now that the replacement is safely stored, soft-delete the old doc.
+  // Done after the insert so a failed upload never loses the original.
+  if (replaceId) {
+    const { error: replaceErr } = await supabase
+      .from("financial_documents")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", replaceId)
+      .is("deleted_at", null);
+    if (replaceErr) console.error("[admin/documents POST] replace soft-delete failed:", replaceErr);
   }
 
   // Run AI extraction inline. A failure here does NOT fail the upload — the row
