@@ -10,7 +10,8 @@
  * Same bucket, validation, and inline AI extraction as the admin upload
  * (/api/admin/documents POST); differences:
  *   - guarded by getForemanStaffIdFromRequest (not admin)
- *   - uploaded_by = "foreman:<name>"
+ *   - uploaded_by = "foreman:<name>" (or "admin:<name> (בתור <foreman>)" when
+ *     an admin is acting through this foreman via view-as)
  *   - project_id auto-set to the foreman's assigned project when they own
  *     exactly one (same lookup as the today/report routes); else null
  *   - the extraction result is intentionally NOT returned
@@ -19,6 +20,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
 import { getForemanStaffIdFromRequest } from "../../../../lib/admin-auth";
+import { resolveActorLabel } from "../../../../lib/audit-actor";
 import { extractAndPersist } from "../../../../lib/document-extraction";
 import { randomUUID } from "crypto";
 
@@ -77,14 +79,9 @@ export async function POST(req: NextRequest) {
 
   const supabase = createServerClient();
 
-  // Foreman name → "foreman:<name>" label.
-  const { data: foreman } = await supabase
-    .from("staff")
-    .select("name")
-    .eq("id", staffId)
-    .is("deleted_at", null)
-    .maybeSingle();
-  const uploaded_by = `foreman:${foreman?.name ?? staffId.slice(0, 8)}`;
+  // Actor label: "foreman:<name>" normally, or "admin:<name> (בתור <foreman>)"
+  // when an admin is acting through this foreman via view-as.
+  const uploaded_by = await resolveActorLabel(supabase, req);
 
   // Assigned project: tag the document only when the foreman owns exactly one
   // project (unambiguous). 0 or >1 → leave null for the admin to set.

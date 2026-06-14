@@ -5,9 +5,9 @@ import {
   isAdminAuthedFromRequest,
   isAuthedFromRequest,
   getRoleFromRequest,
-  getAdminIdFromRequest,
   getForemanStaffIdFromRequest,
 } from "../../../../../lib/admin-auth";
+import { resolveActorLabel } from "../../../../../lib/audit-actor";
 
 export const runtime = "nodejs";
 
@@ -38,27 +38,6 @@ function retroWindowBlocked() {
   );
 }
 
-// Resolve a human-readable label for the editor — "admin:<name>" / "foreman:<name>".
-// One extra round-trip per write; attendance edits are infrequent so the cost
-// is invisible. Returns null if the lookup fails — caller still proceeds, just
-// without the audit name (better than refusing the edit over an audit gap).
-async function resolveEditorLabel(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
-  role: "admin" | "foreman",
-  id: string,
-): Promise<string> {
-  try {
-    if (role === "admin") {
-      const { data } = await supabase.from("admins").select("name").eq("id", id).maybeSingle();
-      return data?.name ? `admin:${data.name}` : `admin:${id.slice(0, 8)}`;
-    }
-    const { data } = await supabase.from("staff").select("name").eq("id", id).maybeSingle();
-    return data?.name ? `foreman:${data.name}` : `foreman:${id.slice(0, 8)}`;
-  } catch {
-    return `${role}:${id.slice(0, 8)}`;
-  }
-}
 
 interface AttendanceSnapshot {
   id: string;
@@ -170,10 +149,9 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   if (clockAtChanging && snap.original_clock_at === null && snap.clock_at !== null) {
     update.original_clock_at = snap.clock_at;
   }
-  const editorId = role === "admin"
-    ? getAdminIdFromRequest(req)!
-    : getForemanStaffIdFromRequest(req)!;
-  update.edited_by = await resolveEditorLabel(supabase, role as "admin" | "foreman", editorId);
+  // View-aware: tags "admin:<name> (בתור <foreman>)" when an admin edits while
+  // acting as this foreman, instead of a clean foreman record.
+  update.edited_by = await resolveActorLabel(supabase, req);
   update.edited_at = new Date().toISOString();
   if (body.edit_note !== undefined) {
     const note = body.edit_note?.trim() || null;
@@ -229,8 +207,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
     return retroWindowBlocked();
   }
 
-  const adminId = getAdminIdFromRequest(req)!;
-  const editor = await resolveEditorLabel(supabase, "admin", adminId);
+  const editor = await resolveActorLabel(supabase, req);
 
   const { error } = await supabase
     .from("attendance")
