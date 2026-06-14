@@ -11,7 +11,7 @@
 // and only continues once the user decides. The server 409 is the real safety
 // net if this client check is ever bypassed.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 import Link from "next/link";
 import { Camera, Loader2, RefreshCw, AlertTriangle, Check, ClipboardPaste } from "lucide-react";
 import { DOC_TYPE_LABELS, fmtCurrency, displayVendor, type DocRow } from "./labels";
@@ -27,6 +27,9 @@ function failureText(error?: string | null): string {
   if (error && /HEIC|HEIF/i.test(error)) return error;
   return MULTI_DOC_MSG;
 }
+
+// Same set the file picker accepts (image/* + PDF) — applied to dropped files.
+const isAllowedFile = (f: File) => f.type.startsWith("image/") || f.type === "application/pdf";
 
 interface ResultCard {
   doc: DocRow;
@@ -53,7 +56,15 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
   const [dupPrompt, setDupPrompt] = useState<{ file: File; existing: DocRow; previewUrl: string | null } | null>(null);
   const decideRef = useRef<((d: Decision) => void) | null>(null);
 
-  const [focused, setFocused] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+
+  function onDrop(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setDragOver(false);
+    if (busy) return;
+    const files = Array.from(e.dataTransfer.files).filter(isAllowedFile);
+    if (files.length > 0) handleFiles(files);
+  }
 
   // Paste-to-upload: a pasted image (Ctrl/Cmd+V) goes through the exact same
   // flow as a picked file. Latest busy/handleFiles read via a ref so the
@@ -159,12 +170,7 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
   }
 
   return (
-    <div
-      tabIndex={0}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-      className="bg-white border border-[#2D2926]/10 rounded-md shadow-sm p-4 focus:outline-none focus:border-[#8D775F]/50"
-    >
+    <div className="bg-white border border-[#2D2926]/10 rounded-md shadow-sm p-4">
       <input
         ref={inputRef}
         type="file"
@@ -174,21 +180,33 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
         className="hidden"
         onChange={e => handleFiles(Array.from(e.target.files ?? []))}
       />
-      <button
-        onClick={() => inputRef.current?.click()}
-        disabled={busy}
-        className="w-full flex items-center justify-center gap-2 bg-[#8D775F] text-white py-4 rounded-md text-base font-semibold hover:bg-[#7a6651] disabled:opacity-50 transition-colors"
-      >
-        {busy
-          ? <><Loader2 size={20} className="animate-spin" /> {progress ? `מעלה ${progress.i} מתוך ${progress.n}...` : "מעלה..."}</>
-          : <><Camera size={20} /> הוסף מסמך</>}
-      </button>
 
-      {focused && !busy && (
-        <p className="mt-2 text-xs text-[#2D2926]/55 flex items-center justify-center gap-1.5">
-          <ClipboardPaste size={13} /> אפשר גם להדביק תמונה (Ctrl+V)
-        </p>
-      )}
+      {/* Dropzone — picker button + the three intake routes (click / paste / drag). */}
+      <div
+        onDragOver={e => { e.preventDefault(); if (!busy) setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+        className={`rounded-md border-2 border-dashed p-4 transition-colors ${dragOver ? "border-[#8D775F] bg-[#8D775F]/5" : "border-[#2D2926]/20"}`}
+      >
+        <button
+          onClick={() => inputRef.current?.click()}
+          disabled={busy}
+          className="w-full flex items-center justify-center gap-2 bg-[#8D775F] text-white py-4 rounded-md text-base font-semibold hover:bg-[#7a6651] disabled:opacity-50 transition-colors"
+        >
+          {busy
+            ? <><Loader2 size={20} className="animate-spin" /> {progress ? `מעלה ${progress.i} מתוך ${progress.n}...` : "מעלה..."}</>
+            : <><Camera size={20} /> הוסף מסמך</>}
+        </button>
+
+        {dragOver ? (
+          <p className="mt-2.5 text-sm font-bold text-[#8D775F] text-center">שחררו כאן להעלאה ↓</p>
+        ) : (
+          <p className="mt-2.5 text-xs text-[#2D2926]/80 text-center flex items-center justify-center gap-1.5 flex-wrap">
+            <ClipboardPaste size={13} className="text-[#2D2926]/60 shrink-0" />
+            <span>או הדביקו תמונה (Ctrl+V) · או גררו קובץ לכאן</span>
+          </p>
+        )}
+      </div>
 
       {error && (
         <p className="mt-3 text-sm text-red-600 flex items-center gap-1.5">
