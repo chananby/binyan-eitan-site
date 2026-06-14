@@ -7,13 +7,15 @@ import { useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import ProjectSelect from "./ProjectSelect";
 import {
-  DOC_TYPE_LABELS, DIRECTION_LABELS, DOC_TYPE_OPTIONS, DIRECTION_OPTIONS,
+  DOC_TYPE_LABELS, DIRECTION_LABELS, CATEGORY_LABELS,
+  DOC_TYPE_OPTIONS, DIRECTION_OPTIONS, CATEGORY_OPTIONS,
 } from "./labels";
 
 export interface DocFilters {
   status: string;
   doc_type: string;
   direction: string;
+  category: string;
   vendor_id: string;
   project_id: string;
   date_from: string;
@@ -22,7 +24,7 @@ export interface DocFilters {
 }
 
 export const EMPTY_FILTERS: DocFilters = {
-  status: "", doc_type: "", direction: "", vendor_id: "", project_id: "",
+  status: "", doc_type: "", direction: "", category: "", vendor_id: "", project_id: "",
   date_from: "", date_to: "", q: "",
 };
 
@@ -82,6 +84,12 @@ export default function DocumentFilters({
             <select value={filters.direction} onChange={e => set("direction", e.target.value)} className={SELECT}>
               <option value="">הכל</option>
               {DIRECTION_OPTIONS.map(d => <option key={d} value={d}>{DIRECTION_LABELS[d]}</option>)}
+            </select>
+          </label>
+          <label className="text-xs text-[#2D2926]/60">קטגוריה
+            <select value={filters.category} onChange={e => set("category", e.target.value)} className={SELECT}>
+              <option value="">הכל</option>
+              {CATEGORY_OPTIONS.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
             </select>
           </label>
           <label className="text-xs text-[#2D2926]/60">ספק

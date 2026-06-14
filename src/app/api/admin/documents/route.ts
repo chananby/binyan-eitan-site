@@ -6,7 +6,7 @@
  *          inserts a metadata row into financial_documents with
  *          extraction_status='pending', status='pending'.
  *   GET  — list documents with optional filters (status, doc_type,
- *          direction, vendor_id, project_id, date_from/date_to on doc_date,
+ *          direction, category, vendor_id, project_id, date_from/date_to on doc_date,
  *          q on vendor_name_raw/doc_number/description). deleted_at IS NULL
  *          always. The bucket path is NOT exposed.
  *
@@ -82,6 +82,7 @@ export async function GET(req: NextRequest) {
   const status     = searchParams.get("status")?.trim()     || null;
   const docType    = searchParams.get("doc_type")?.trim()   || null;
   const direction  = searchParams.get("direction")?.trim()  || null;
+  const category   = searchParams.get("category")?.trim()   || null;
   const vendorId   = searchParams.get("vendor_id")?.trim()  || null;
   const projectId  = searchParams.get("project_id")?.trim() || null;
   const dateFrom   = searchParams.get("date_from")?.trim()  || null;
@@ -101,6 +102,7 @@ export async function GET(req: NextRequest) {
   if (status)    query = query.eq("status", status);
   if (docType)   query = query.eq("doc_type", docType);
   if (direction) query = query.eq("direction", direction);
+  if (category)  query = query.eq("category", category);
   if (vendorId)  query = query.eq("vendor_id", vendorId);
   if (projectId) query = query.eq("project_id", projectId);
   if (dateFrom)  query = query.gte("doc_date", dateFrom);

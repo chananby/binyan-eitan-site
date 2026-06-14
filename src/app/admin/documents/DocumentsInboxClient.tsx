@@ -25,6 +25,7 @@ function buildDocQuery(f: DocFilters, offset: number, limit: number): string {
   if (f.status)     p.set("status", f.status);
   if (f.doc_type)   p.set("doc_type", f.doc_type);
   if (f.direction)  p.set("direction", f.direction);
+  if (f.category)   p.set("category", f.category);
   if (f.vendor_id)  p.set("vendor_id", f.vendor_id);
   if (f.project_id) p.set("project_id", f.project_id);
   if (f.date_from)  p.set("date_from", f.date_from);
