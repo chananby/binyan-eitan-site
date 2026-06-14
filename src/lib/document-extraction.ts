@@ -70,11 +70,12 @@ const SYSTEM_PROMPT =
   "doc_number": "...", "doc_date": "YYYY-MM-DD",
   "amount_before_vat": 0, "vat_amount": 0, "total_amount": 0,
   "currency": "ILS",
-  "category": "fuel|materials|subcontractor|equipment|office|salary|client_payment|other",
+  "category": "fuel|materials|subcontractor|equipment|office|salary|client_payment|overhead|other",
   "description": "תקציר בעברית במשפט אחד",
   "confidence": "high|medium|low"
 }
 כללי direction: מסמך שבו בניין איתן בע"מ היא המשלמת/המקבלת שירות → expense; מסמך שבניין איתן הפיקה ללקוח או אישור כסף נכנס → income.
+כללי category: שכר בעלים, שכירות, רו"ח, ביטוח, הנהלה כללית = overhead (אינה שייכת לפרויקט ספציפי).
 שדה לא ברור → null, אל תנחש סכומים.`;
 
 function getClient(): Anthropic {

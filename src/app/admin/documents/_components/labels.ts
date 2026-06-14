@@ -57,6 +57,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   equipment:      "ציוד",
   office:         "משרד",
   salary:         "שכר",
+  overhead:       "תקורה",
   client_payment: "תשלום מלקוח",
   other:          "אחר",
 };
