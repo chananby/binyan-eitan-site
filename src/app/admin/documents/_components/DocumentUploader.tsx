@@ -11,11 +11,22 @@
 // and only continues once the user decides. The server 409 is the real safety
 // net if this client check is ever bypassed.
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Camera, Loader2, RefreshCw, AlertTriangle, Check } from "lucide-react";
+import { Camera, Loader2, RefreshCw, AlertTriangle, Check, ClipboardPaste } from "lucide-react";
 import { DOC_TYPE_LABELS, fmtCurrency, displayVendor, type DocRow } from "./labels";
 import DuplicateCompareDialog, { paneFromDoc, paneFromFile } from "./DuplicateCompareDialog";
+import { extractPastedImage } from "./paste-image";
+
+// A failed extraction usually means the AI couldn't parse a clean JSON — most
+// often a PDF holding several documents. Show a friendly, actionable message
+// instead of the raw "JSON אינו תקין" (the original error is still kept in
+// extraction_raw for debugging). HEIC/HEIF keeps its specific note.
+const MULTI_DOC_MSG = "לא הצלחנו לחלץ נתונים מהקובץ. ייתכן שהוא מכיל כמה מסמכים — נסה לפצל ולהעלות כל אחד בנפרד.";
+function failureText(error?: string | null): string {
+  if (error && /HEIC|HEIF/i.test(error)) return error;
+  return MULTI_DOC_MSG;
+}
 
 interface ResultCard {
   doc: DocRow;
@@ -41,6 +52,25 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
   // Mid-series duplicate prompt. The serial loop awaits decideRef's resolver.
   const [dupPrompt, setDupPrompt] = useState<{ file: File; existing: DocRow; previewUrl: string | null } | null>(null);
   const decideRef = useRef<((d: Decision) => void) | null>(null);
+
+  const [focused, setFocused] = useState(false);
+
+  // Paste-to-upload: a pasted image (Ctrl/Cmd+V) goes through the exact same
+  // flow as a picked file. Latest busy/handleFiles read via a ref so the
+  // listener can register once. Non-image pastes are ignored silently.
+  const liveRef = useRef<{ busy: boolean; handleFiles: (f: File[]) => void }>({ busy, handleFiles: () => {} });
+  useEffect(() => { liveRef.current = { busy, handleFiles }; });
+  useEffect(() => {
+    function onPaste(e: ClipboardEvent) {
+      if (liveRef.current.busy) return;
+      const file = extractPastedImage(e);
+      if (!file) return; // not an image → leave the paste alone
+      e.preventDefault();
+      liveRef.current.handleFiles([file]);
+    }
+    document.addEventListener("paste", onPaste);
+    return () => document.removeEventListener("paste", onPaste);
+  }, []);
 
   function askDuplicate(file: File, existing: DocRow): Promise<Decision> {
     const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
@@ -72,9 +102,8 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
     return { doc: data.document, status: data.extraction?.status ?? "failed", error: data.extraction?.error };
   }
 
-  async function handleFiles(files: FileList | null) {
-    if (!files || files.length === 0) return;
-    const list = Array.from(files);
+  async function handleFiles(list: File[]) {
+    if (list.length === 0) return;
     setBusy(true);
     setError(null);
     setResults([]);
@@ -130,7 +159,12 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
   }
 
   return (
-    <div className="bg-white border border-[#2D2926]/10 rounded-md shadow-sm p-4">
+    <div
+      tabIndex={0}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      className="bg-white border border-[#2D2926]/10 rounded-md shadow-sm p-4 focus:outline-none focus:border-[#8D775F]/50"
+    >
       <input
         ref={inputRef}
         type="file"
@@ -138,7 +172,7 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
         capture="environment"
         multiple
         className="hidden"
-        onChange={e => handleFiles(e.target.files)}
+        onChange={e => handleFiles(Array.from(e.target.files ?? []))}
       />
       <button
         onClick={() => inputRef.current?.click()}
@@ -149,6 +183,12 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
           ? <><Loader2 size={20} className="animate-spin" /> {progress ? `מעלה ${progress.i} מתוך ${progress.n}...` : "מעלה..."}</>
           : <><Camera size={20} /> הוסף מסמך</>}
       </button>
+
+      {focused && !busy && (
+        <p className="mt-2 text-xs text-[#2D2926]/55 flex items-center justify-center gap-1.5">
+          <ClipboardPaste size={13} /> אפשר גם להדביק תמונה (Ctrl+V)
+        </p>
+      )}
 
       {error && (
         <p className="mt-3 text-sm text-red-600 flex items-center gap-1.5">
@@ -162,9 +202,9 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
             <div key={c.doc.id} className={`flex items-center justify-between gap-3 rounded-md border px-3 py-2 ${c.status === "failed" ? "border-gray-200 bg-gray-50" : "border-emerald-100 bg-emerald-50/60"}`}>
               <Link href={`/admin/documents/${c.doc.id}`} className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-[#2D2926] truncate">{displayVendor(c.doc)}</p>
-                <p className="text-xs text-[#2D2926]/60 truncate">
+                <p className={`text-xs text-[#2D2926]/70 ${c.status === "failed" ? "" : "truncate"}`}>
                   {c.status === "failed"
-                    ? (c.error || "החילוץ נכשל")
+                    ? failureText(c.error)
                     : `${fmtCurrency(c.doc.total_amount, c.doc.currency ?? "ILS")} · ${DOC_TYPE_LABELS[c.doc.doc_type ?? ""] ?? "—"}`}
                 </p>
               </Link>
