@@ -83,10 +83,14 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   }
 
   // A review decision stamps who/when. reviewed_by comes from the token, not
-  // the request body, so it can't be spoofed.
-  if (typeof update.status === "string" && (update.status === "approved" || update.status === "rejected")) {
+  // the request body, so it can't be spoofed. Reverting to pending (Undo)
+  // clears the stamp so the row reads as truly un-reviewed again.
+  if (update.status === "approved" || update.status === "rejected") {
     update.reviewed_at = new Date().toISOString();
     update.reviewed_by = getAdminIdFromRequest(req);
+  } else if (update.status === "pending") {
+    update.reviewed_at = null;
+    update.reviewed_by = null;
   }
 
   const supabase = createServerClient();

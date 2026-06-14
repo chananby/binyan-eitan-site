@@ -27,6 +27,7 @@ export interface DocRow {
   uploaded_by?: string | null;
   file_hash?: string | null;
   possible_duplicate_of?: string | null;
+  confidence?: string | null;   // high | medium | low
   created_at: string;
   vendor: { name: string } | null;
   project: { name: string } | null;
@@ -99,4 +100,47 @@ export function fmtDate(iso: string | null | undefined): string {
 // Best display name: matched vendor → raw extracted name → filename → fallback.
 export function displayVendor(doc: DocRow): string {
   return doc.vendor?.name || doc.vendor_name_raw || doc.original_filename || "מסמך ללא שם";
+}
+
+// ── Review flags ──────────────────────────────────────────────────────────────
+// Single source of truth for what needs a human's attention on a document.
+// Drives the review-queue banner, the queue sort order, and the
+// "approve all high-confidence" eligibility (a flagged doc is never auto-approved).
+export interface DocFlag {
+  key: "failed" | "missing" | "duplicate" | "low_confidence";
+  label: string;
+  severity: "error" | "warn";
+}
+
+// Required fields for a clean approval: vendor, total, doc_date, direction.
+export function missingRequired(doc: DocRow): string[] {
+  const missing: string[] = [];
+  if (!doc.vendor_id) missing.push("ספק");
+  if (doc.total_amount == null) missing.push("סכום");
+  if (!doc.doc_date) missing.push("תאריך");
+  if (!doc.direction) missing.push("כיוון");
+  return missing;
+}
+
+export function documentFlags(doc: DocRow): DocFlag[] {
+  const flags: DocFlag[] = [];
+  if (doc.extraction_status === "failed") {
+    flags.push({ key: "failed", label: "חילוץ נכשל", severity: "error" });
+  }
+  const missing = missingRequired(doc);
+  if (missing.length > 0) {
+    flags.push({ key: "missing", label: `חסר: ${missing.join(", ")}`, severity: "error" });
+  }
+  if (doc.possible_duplicate_of) {
+    flags.push({ key: "duplicate", label: "ייתכן כפול", severity: "warn" });
+  }
+  if (doc.confidence === "low") {
+    flags.push({ key: "low_confidence", label: "ביטחון נמוך", severity: "warn" });
+  }
+  return flags;
+}
+
+// Eligible for "approve all": high confidence AND no flags at all.
+export function isCleanHighConfidence(doc: DocRow): boolean {
+  return doc.confidence === "high" && documentFlags(doc).length === 0;
 }

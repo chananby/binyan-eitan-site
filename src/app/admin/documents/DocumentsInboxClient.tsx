@@ -7,12 +7,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, ChevronRight, Inbox, AlertCircle, Package } from "lucide-react";
+import { Loader2, ChevronRight, Inbox, AlertCircle, Package, ListChecks, CheckCircle2 } from "lucide-react";
 import DocumentUploader from "./_components/DocumentUploader";
 import DocumentFilters, { EMPTY_FILTERS, type DocFilters } from "./_components/DocumentFilters";
 import DocumentCard from "./_components/DocumentCard";
 import DocumentExportModal from "./_components/DocumentExportModal";
-import { fmtCurrency, type DocRow } from "./_components/labels";
+import ApproveAllDialog from "./review/ApproveAllDialog";
+import { fmtCurrency, isCleanHighConfidence, type DocRow } from "./_components/labels";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
 interface Opt { id: string; name: string }
@@ -51,6 +52,10 @@ export default function DocumentsInboxClient() {
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [monthApproved, setMonthApproved] = useState<number | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
+
+  // "Approve all high-confidence" — candidates fetched on demand from pending.
+  const [approveCands, setApproveCands] = useState<DocRow[] | null>(null);
+  const [approveBusy, setApproveBusy] = useState(false);
 
   // ── Auth probe ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -125,6 +130,33 @@ export default function DocumentsInboxClient() {
     setFilters(f => ({ ...f })); // re-trigger the list effect
   }, [loadStats]);
 
+  // "Approve all high-confidence": pull pending, keep only clean high-confidence
+  // docs, and open the (non-blind) confirm dialog.
+  async function openApproveAll() {
+    try {
+      const d = await fetch("/api/admin/documents?status=pending&limit=500", { cache: "no-store" }).then(r => r.json());
+      const cands = (d.documents ?? []).filter(isCleanHighConfidence);
+      if (cands.length === 0) { setError("אין מסמכים בביטחון גבוה ונקיים לאישור גורף"); return; }
+      setApproveCands(cands);
+    } catch (e) { setError(String(e)); }
+  }
+
+  async function confirmApproveAll(ids: string[]) {
+    if (ids.length === 0) return;
+    setApproveBusy(true);
+    try {
+      const res = await fetch("/api/admin/documents/bulk", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, status: "approved" }),
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? "האישור הגורף נכשל"); return; }
+      setApproveCands(null);
+      loadStats();
+      setFilters(f => ({ ...f }));
+    } catch (e) { setError(String(e)); }
+    finally { setApproveBusy(false); }
+  }
+
   // ── Gates ──────────────────────────────────────────────────────────────────
   if (auth === "loading") {
     return <div className="min-h-screen flex items-center justify-center bg-[#F5F4F0]"><Loader2 className="animate-spin text-[#8D775F]" size={32} /></div>;
@@ -166,6 +198,23 @@ export default function DocumentsInboxClient() {
           </div>
         </div>
 
+        {pendingCount != null && pendingCount > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Link
+              href="/admin/documents/review"
+              className="flex items-center justify-center gap-2 bg-[#8D775F] text-white py-2.5 rounded-md text-sm font-semibold hover:bg-[#7a6651]"
+            >
+              <ListChecks size={16} /> סקור ממתינים ({pendingCount})
+            </Link>
+            <button
+              onClick={openApproveAll}
+              className="flex items-center justify-center gap-2 border border-emerald-300 text-emerald-700 py-2.5 rounded-md text-sm font-semibold hover:bg-emerald-50"
+            >
+              <CheckCircle2 size={16} /> אשר הכל בביטחון גבוה
+            </button>
+          </div>
+        )}
+
         <button
           onClick={() => setExportOpen(true)}
           className="w-full flex items-center justify-center gap-2 border border-[#8D775F]/40 text-[#8D775F] py-2.5 rounded-md text-sm font-semibold hover:bg-[#8D775F]/5"
@@ -203,6 +252,15 @@ export default function DocumentsInboxClient() {
       </main>
 
       <DocumentExportModal open={exportOpen} onClose={() => setExportOpen(false)} />
+
+      {approveCands && (
+        <ApproveAllDialog
+          candidates={approveCands}
+          busy={approveBusy}
+          onConfirm={confirmApproveAll}
+          onClose={() => setApproveCands(null)}
+        />
+      )}
     </div>
   );
 }

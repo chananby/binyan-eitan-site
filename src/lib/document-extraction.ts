@@ -304,6 +304,7 @@ export async function extractAndPersist(
       currency:          f.currency,
       category:          f.category,
       description:       f.description,
+      confidence:        f.confidence,
       possible_duplicate_of,
       extraction_raw:    result.raw,
       extraction_status: "done",

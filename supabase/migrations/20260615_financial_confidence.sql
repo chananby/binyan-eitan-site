@@ -1,0 +1,21 @@
+-- 20260615_financial_confidence.sql
+-- ============================================================
+-- Binyan Eitan — financial-documents extraction confidence
+-- Run once in Supabase SQL Editor (Dashboard → SQL Editor).
+-- ============================================================
+-- The AI extraction already returns a "confidence" field (high | medium |
+-- low), but until now it was only buried inside extraction_raw (the full
+-- Anthropic response) and never persisted as a usable column. This column
+-- surfaces it so the review queue can:
+--   • flag low-confidence documents for attention, and
+--   • drive "approve all high-confidence" (only confidence='high' with all
+--     required fields present and no flags is eligible).
+--
+-- Populated going forward by extractAndPersist on every upload / retry.
+-- Existing rows stay NULL — treated as neither 'high' (so never auto-approved)
+-- nor 'low' (so not falsely flagged); they simply go through manual review.
+--
+-- No index: confidence is filtered client-side over the small pending set.
+-- ============================================================
+
+ALTER TABLE financial_documents ADD COLUMN confidence text;  -- high | medium | low

@@ -26,12 +26,16 @@ function numOrNull(v: string): number | null {
 }
 
 export default function DocumentReviewForm({
-  doc, vendors, projects, onVendorsChange,
+  doc, vendors, projects, onVendorsChange, onAfterAction,
 }: {
   doc: DocRow;
   vendors: Opt[];
   projects: Opt[];
   onVendorsChange: () => void;
+  // Optional override for what happens after approve/reject/delete. The detail
+  // page leaves it unset (→ navigate to the list); the review queue passes a
+  // handler that advances to the next pending document instead.
+  onAfterAction?: (action: "approve" | "reject" | "delete") => void;
 }) {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -102,7 +106,8 @@ export default function DocumentReviewForm({
       });
       const data = await res.json();
       if (!res.ok) { setErr(data.error ?? `שגיאה ${res.status}`); return; }
-      if (action === "save") setMsg("נשמר ✓");
+      if (action === "save") { setMsg("נשמר ✓"); return; }
+      if (onAfterAction) onAfterAction(action);
       else router.push("/admin/documents");
     } catch (e) { setErr(String(e)); }
     finally { setBusy(null); }
@@ -114,7 +119,8 @@ export default function DocumentReviewForm({
     try {
       const res = await fetch(`/api/admin/documents/${doc.id}`, { method: "DELETE" });
       if (!res.ok) { const d = await res.json().catch(() => ({})); setErr(d.error ?? "מחיקה נכשלה"); return; }
-      router.push("/admin/documents");
+      if (onAfterAction) onAfterAction("delete");
+      else router.push("/admin/documents");
     } catch (e) { setErr(String(e)); }
     finally { setBusy(null); }
   }
