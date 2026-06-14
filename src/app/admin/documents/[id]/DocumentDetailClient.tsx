@@ -12,7 +12,7 @@ import DocumentReviewForm from "./DocumentReviewForm";
 import { statusChip, displayVendor, type DocRow } from "../_components/labels";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
-interface Opt { id: string; name: string }
+interface Opt { id: string; name: string; status?: string | null }
 
 export default function DocumentDetailClient({ id }: { id: string }) {
   const [auth, setAuth] = useState<AuthState>("loading");
@@ -46,7 +46,9 @@ export default function DocumentDetailClient({ id }: { id: string }) {
       .catch(e => { if (!cancelled) setError(String(e)); })
       .finally(() => { if (!cancelled) setLoading(false); });
     loadVendors();
-    fetch("/api/projects", { cache: "no-store" }).then(r => r.json())
+    // /api/admin/projects (not /api/projects) so documents can be filed to
+    // ANY project, including finished ones, with status for grouping.
+    fetch("/api/admin/projects", { cache: "no-store" }).then(r => r.json())
       .then(d => setProjects(d.projects ?? [])).catch(() => {});
     return () => { cancelled = true; };
   }, [auth, id]);

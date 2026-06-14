@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
+import ProjectSelect from "./ProjectSelect";
 import {
   DOC_TYPE_LABELS, DIRECTION_LABELS, DOC_TYPE_OPTIONS, DIRECTION_OPTIONS,
 } from "./labels";
@@ -25,7 +26,7 @@ export const EMPTY_FILTERS: DocFilters = {
   date_from: "", date_to: "", q: "",
 };
 
-interface Opt { id: string; name: string }
+interface Opt { id: string; name: string; status?: string | null }
 
 const SELECT = "w-full border border-[#2D2926]/15 rounded-md bg-white px-2.5 py-2 text-sm focus:outline-none focus:border-[#8D775F]";
 
@@ -90,10 +91,7 @@ export default function DocumentFilters({
             </select>
           </label>
           <label className="text-xs text-[#2D2926]/60">פרויקט
-            <select value={filters.project_id} onChange={e => set("project_id", e.target.value)} className={SELECT}>
-              <option value="">הכל</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
+            <ProjectSelect value={filters.project_id} onChange={v => set("project_id", v)} projects={projects} emptyLabel="הכל" className={SELECT} />
           </label>
           <div className="grid grid-cols-2 gap-2">
             <label className="text-xs text-[#2D2926]/60">מתאריך

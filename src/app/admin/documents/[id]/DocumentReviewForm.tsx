@@ -12,6 +12,7 @@ import {
   DOC_TYPE_LABELS, DIRECTION_LABELS, CATEGORY_LABELS,
   DOC_TYPE_OPTIONS, DIRECTION_OPTIONS, CATEGORY_OPTIONS, type DocRow,
 } from "../_components/labels";
+import ProjectSelect, { type ProjectOption } from "../_components/ProjectSelect";
 
 interface Opt { id: string; name: string }
 
@@ -30,7 +31,7 @@ export default function DocumentReviewForm({
 }: {
   doc: DocRow;
   vendors: Opt[];
-  projects: Opt[];
+  projects: ProjectOption[];
   onVendorsChange: () => void;
   // Optional override for what happens after approve/reject/delete. The detail
   // page leaves it unset (→ navigate to the list); the review queue passes a
@@ -210,10 +211,7 @@ export default function DocumentReviewForm({
         </div>
         <div>
           <label className={LABEL}>פרויקט</label>
-          <select value={form.project_id} onChange={e => set("project_id", e.target.value)} className={FIELD}>
-            <option value="">— ללא פרויקט —</option>
-            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+          <ProjectSelect value={form.project_id} onChange={v => set("project_id", v)} projects={projects} emptyLabel="— ללא פרויקט —" className={FIELD} />
         </div>
       </div>
 

@@ -17,7 +17,7 @@ import UndoToast from "./UndoToast";
 import DuplicateCompareDialog, { paneFromDoc } from "../_components/DuplicateCompareDialog";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
-interface Opt { id: string; name: string }
+interface Opt { id: string; name: string; status?: string | null }
 type UndoState = { kind: "single" | "bulk"; docs: DocRow[] };
 
 // Flagged first (more attention), clean high-confidence last.
@@ -81,7 +81,8 @@ export default function ReviewQueueClient() {
       }
     })();
     loadVendors();
-    fetch("/api/projects", { cache: "no-store" }).then(r => r.json())
+    // All projects (incl. finished) with status — see DocumentDetailClient.
+    fetch("/api/admin/projects", { cache: "no-store" }).then(r => r.json())
       .then(d => setProjects(d.projects ?? [])).catch(() => {});
     return () => { cancelled = true; };
   }, [auth, loadVendors]);

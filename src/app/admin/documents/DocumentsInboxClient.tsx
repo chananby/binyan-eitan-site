@@ -16,7 +16,7 @@ import ApproveAllDialog from "./review/ApproveAllDialog";
 import { fmtCurrency, isCleanHighConfidence, type DocRow } from "./_components/labels";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
-interface Opt { id: string; name: string }
+interface Opt { id: string; name: string; status?: string | null }
 
 const PAGE = 20;
 
@@ -76,7 +76,8 @@ export default function DocumentsInboxClient() {
     if (auth !== "admin") return;
     fetch("/api/admin/vendors", { cache: "no-store" }).then(r => r.json())
       .then(d => setVendors(d.vendors ?? [])).catch(() => {});
-    fetch("/api/projects", { cache: "no-store" }).then(r => r.json())
+    // All projects (incl. finished) so the filter can target finished projects too.
+    fetch("/api/admin/projects", { cache: "no-store" }).then(r => r.json())
       .then(d => setProjects(d.projects ?? [])).catch(() => {});
   }, [auth]);
 
