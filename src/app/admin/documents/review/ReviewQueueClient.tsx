@@ -14,8 +14,8 @@ import { documentFlags, isCleanHighConfidence, type DocRow } from "../_component
 import DocumentFlagsBanner from "./DocumentFlagsBanner";
 import ApproveAllDialog from "./ApproveAllDialog";
 import UndoToast from "./UndoToast";
-import DuplicateCompareDialog, { paneFromDoc } from "../_components/DuplicateCompareDialog";
 import DocumentPreview from "../_components/DocumentPreview";
+import { useDuplicateCompare } from "../_components/useDuplicateCompare";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
 interface Opt { id: string; name: string; status?: string | null }
@@ -46,9 +46,14 @@ export default function ReviewQueueClient() {
   const [undo, setUndo] = useState<UndoState | null>(null);
   const [undoSeq, setUndoSeq] = useState(0);
 
-  // In-place duplicate comparison (current doc vs its suspected original).
-  const [compare, setCompare] = useState<{ current: DocRow; suspected: DocRow } | null>(null);
-  const [compareBusy, setCompareBusy] = useState(false);
+  // In-place duplicate comparison (current doc vs its suspected original) via
+  // the shared hook. Queue-specific post-actions stay here:
+  //   delete → drop current + advance (slice(1)); clear → flag off in place.
+  const { openCompare, dialog: compareDialog } = useDuplicateCompare({
+    onDeleted: () => setDocs(prev => prev.slice(1)),
+    onCleared: () => setDocs(prev => prev.length ? [{ ...prev[0], possible_duplicate_of: null }, ...prev.slice(1)] : prev),
+    onError: setError,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -137,44 +142,6 @@ export default function ReviewQueueClient() {
     finally { setBulkBusy(false); }
   }
 
-  // ── In-place duplicate compare ──────────────────────────────────────────────
-  async function openCompare() {
-    const cur = docs[0];
-    if (!cur?.possible_duplicate_of) return;
-    try {
-      const d = await fetch(`/api/admin/documents/${cur.possible_duplicate_of}`, { cache: "no-store" }).then(r => r.json());
-      if (d?.document) setCompare({ current: cur, suspected: d.document });
-      else setError("המסמך החשוד לא נמצא (ייתכן שנמחק)");
-    } catch (e) { setError(String(e)); }
-  }
-
-  async function deleteAsDuplicate() {
-    if (!compare) return;
-    setCompareBusy(true);
-    try {
-      const res = await fetch(`/api/admin/documents/${compare.current.id}`, { method: "DELETE" });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? "מחיקה נכשלה"); return; }
-      setDocs(prev => prev.slice(1)); // drop current, advance
-      setCompare(null);
-    } catch (e) { setError(String(e)); }
-    finally { setCompareBusy(false); }
-  }
-
-  async function clearDuplicateFlag() {
-    if (!compare) return;
-    setCompareBusy(true);
-    try {
-      const res = await fetch(`/api/admin/documents/${compare.current.id}`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ possible_duplicate_of: null }),
-      });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error ?? "ניקוי הדגל נכשל"); return; }
-      // Clear the flag on the in-memory current doc — stays in place.
-      setDocs(prev => prev.length ? [{ ...prev[0], possible_duplicate_of: null }, ...prev.slice(1)] : prev);
-      setCompare(null);
-    } catch (e) { setError(String(e)); }
-    finally { setCompareBusy(false); }
-  }
-
   // ── Gates ──────────────────────────────────────────────────────────────────
   if (auth === "loading" || (auth === "admin" && loading)) {
     return <div className="min-h-screen flex items-center justify-center bg-[#F5F4F0]"><Loader2 className="animate-spin text-[#8D775F]" size={32} /></div>;
@@ -236,7 +203,7 @@ export default function ReviewQueueClient() {
           </div>
         ) : (
           <div className="space-y-3">
-            <DocumentFlagsBanner doc={current} onCompareDuplicate={openCompare} />
+            <DocumentFlagsBanner doc={current} onCompareDuplicate={() => current && openCompare(current)} />
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
               <div className="lg:col-span-3 bg-white border border-[#2D2926]/10 rounded-md shadow-sm overflow-hidden">
                 <DocumentPreview fileUrl={fileUrl} isPdf={isPdf} />
@@ -274,25 +241,7 @@ export default function ReviewQueueClient() {
         />
       )}
 
-      {compare && (
-        <DuplicateCompareDialog
-          title="השוואת כפילות אפשרית"
-          subtitle="המסמך הנוכחי מול מסמך קיים שזוהה כדומה. הכרע:"
-          left={paneFromDoc(compare.suspected, "מסמך קיים")}
-          right={paneFromDoc(compare.current, "המסמך הנוכחי")}
-          busy={compareBusy}
-          actions={[
-            { key: "close", label: "סגור", variant: "neutral" },
-            { key: "clear", label: "לא כפול — נקה דגל", variant: "outline" },
-            { key: "delete", label: "מחק את הנוכחי ככפול", variant: "danger" },
-          ]}
-          onAction={(k) => {
-            if (k === "close") setCompare(null);
-            else if (k === "clear") clearDuplicateFlag();
-            else if (k === "delete") deleteAsDuplicate();
-          }}
-        />
-      )}
+      {compareDialog}
     </div>
   );
 }

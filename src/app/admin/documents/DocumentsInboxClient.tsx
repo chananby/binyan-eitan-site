@@ -243,7 +243,7 @@ export default function DocumentsInboxClient() {
 
         {!loading && docs.length > 0 && (
           <div className="space-y-2">
-            {docs.map(d => <DocumentCard key={d.id} doc={d} />)}
+            {docs.map(d => <DocumentCard key={d.id} doc={d} onChanged={refreshAfterUpload} />)}
             {hasMore && (
               <button onClick={loadMore} className="w-full py-2.5 text-sm font-semibold text-[#8D775F] border border-[#8D775F]/30 rounded-md hover:bg-[#8D775F]/5">
                 טען עוד

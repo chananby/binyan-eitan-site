@@ -6,16 +6,19 @@
 // /api/admin/whoami; the API routes enforce admin independently.
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ChevronRight, Inbox, AlertCircle, RefreshCw } from "lucide-react";
 import DocumentReviewForm from "./DocumentReviewForm";
 import DocumentPreview from "../_components/DocumentPreview";
+import DuplicateChip from "../_components/DuplicateChip";
 import { statusChip, displayVendor, type DocRow } from "../_components/labels";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
 interface Opt { id: string; name: string; status?: string | null }
 
 export default function DocumentDetailClient({ id }: { id: string }) {
+  const router = useRouter();
   const [auth, setAuth] = useState<AuthState>("loading");
   const [doc, setDoc] = useState<DocRow | null>(null);
   const [vendors, setVendors] = useState<Opt[]>([]);
@@ -95,9 +98,18 @@ export default function DocumentDetailClient({ id }: { id: string }) {
           <span className="text-[#2D2926]/40 shrink-0">/</span>
           <span className="text-[#2D2926] font-semibold truncate">{doc ? displayVendor(doc) : "מסמך"}</span>
         </div>
-        {doc && (() => { const c = statusChip(doc); return (
-          <span className={`shrink-0 rounded px-2 py-0.5 text-xs font-semibold ${c.className}`}>{c.label}</span>
-        ); })()}
+        <div className="shrink-0 flex items-center gap-2">
+          {doc && (
+            <DuplicateChip
+              doc={doc}
+              onDeleted={() => router.push("/admin/documents")}
+              onCleared={() => setDoc(d => (d ? { ...d, possible_duplicate_of: null } : d))}
+            />
+          )}
+          {doc && (() => { const c = statusChip(doc); return (
+            <span className={`rounded px-2 py-0.5 text-xs font-semibold ${c.className}`}>{c.label}</span>
+          ); })()}
+        </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-4">
