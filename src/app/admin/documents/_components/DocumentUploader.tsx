@@ -84,7 +84,9 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
   }, []);
 
   function askDuplicate(file: File, existing: DocRow): Promise<Decision> {
-    const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
+    // Object-URL for ANY file (images + PDFs) so the dialog shows a real
+    // preview of the incoming document, not just images.
+    const previewUrl = URL.createObjectURL(file);
     return new Promise<Decision>(resolve => {
       decideRef.current = (d) => {
         if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -243,6 +245,12 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
         <DuplicateCompareDialog
           title="הקובץ כבר קיים במערכת"
           subtitle="קובץ זהה (אותו תוכן בדיוק) כבר הועלה. השווה והכרע:"
+          note={
+            dupPrompt.existing.original_filename &&
+            dupPrompt.existing.original_filename !== dupPrompt.file.name
+              ? "שמות הקבצים שונים; ייתכן שאלה חלקים שונים של אותה הזמנה."
+              : undefined
+          }
           left={paneFromDoc(dupPrompt.existing, "קיים במערכת")}
           right={paneFromFile(dupPrompt.file, dupPrompt.previewUrl, "הקובץ שאתה מעלה")}
           actions={[
