@@ -23,6 +23,7 @@ import {
   getAdminIdFromRequest,
 } from "../../../../lib/admin-auth";
 import { DOCUMENT_COLUMNS } from "../../../../lib/document-columns";
+import { applyDocContentFilters, readDocContentFilters } from "../../../../lib/document-filters";
 import { sha256Hex } from "../../../../lib/file-hash";
 import { randomUUID } from "crypto";
 
@@ -81,48 +82,32 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const status     = searchParams.get("status")?.trim()     || null;
-  const docType    = searchParams.get("doc_type")?.trim()   || null;
-  const direction  = searchParams.get("direction")?.trim()  || null;
-  const category   = searchParams.get("category")?.trim()   || null;
-  const vendorId   = searchParams.get("vendor_id")?.trim()  || null;
-  const projectId  = searchParams.get("project_id")?.trim() || null;
   const dateFrom   = searchParams.get("date_from")?.trim()  || null;
   const dateTo     = searchParams.get("date_to")?.trim()    || null;
-  const q          = searchParams.get("q")?.trim()          || null;
-  const duplicatesOnly = searchParams.get("duplicates_only") === "true";
   const limit      = Math.min(parseInt(searchParams.get("limit") || "100", 10), 500);
   const offset     = Math.max(parseInt(searchParams.get("offset") || "0", 10), 0);
 
   const supabase = createServerClient();
   let query = supabase
     .from("financial_documents")
-    .select(LIST_COLUMNS)
+    .select(LIST_COLUMNS, { count: "exact" })
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (status)    query = query.eq("status", status);
-  if (docType)   query = query.eq("doc_type", docType);
-  if (direction) query = query.eq("direction", direction);
-  if (category)  query = query.eq("category", category);
-  if (vendorId)  query = query.eq("vendor_id", vendorId);
-  if (projectId) query = query.eq("project_id", projectId);
-  if (dateFrom)  query = query.gte("doc_date", dateFrom);
-  if (dateTo)    query = query.lte("doc_date", dateTo);
-  if (duplicatesOnly) query = query.not("possible_duplicate_of", "is", null);
-  if (q) {
-    const pat = `%${q}%`;
-    query = query.or(
-      `vendor_name_raw.ilike.${pat},doc_number.ilike.${pat},description.ilike.${pat}`,
-    );
-  }
+  // status + doc_date range are list-specific; the rest are the shared content
+  // filters (same chain the export ZIP uses — see lib/document-filters).
+  if (status)   query = query.eq("status", status);
+  if (dateFrom) query = query.gte("doc_date", dateFrom);
+  if (dateTo)   query = query.lte("doc_date", dateTo);
+  query = applyDocContentFilters(query, readDocContentFilters(searchParams));
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
   if (error) {
     console.error("[admin/documents GET]", JSON.stringify(error));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ documents: data ?? [] });
+  return NextResponse.json({ documents: data ?? [], count: count ?? (data?.length ?? 0) });
 }
 
 // ── POST — upload one financial document ────────────────────────────────────

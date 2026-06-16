@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 import { israelDayStartISO, israelDayEndISO } from "../../../../../lib/israel-time";
+import { applyDocContentFilters, readDocContentFilters } from "../../../../../lib/document-filters";
 import { DOC_TYPE_LABELS, DIRECTION_LABELS, CATEGORY_LABELS } from "../../../../admin/documents/_components/labels";
 import JSZip from "jszip";
 
@@ -92,24 +93,43 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const from = searchParams.get("date_from")?.trim() ?? "";
   const to   = searchParams.get("date_to")?.trim() ?? "";
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to)) {
-    return NextResponse.json({ error: "date_from ו-date_to נדרשים (YYYY-MM-DD)" }, { status: 400 });
-  }
-  const statuses = searchParams.get("status") === "all" ? ["approved", "pending"] : ["approved"];
+  // Date range is OPTIONAL now: the accountant package sends a month; the Inbox
+  // "download filtered" path may send none → export the whole filtered set.
+  const hasRange = /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to);
 
+  // status: absent → approved-only (accountant default, unchanged);
+  //   "all" → approved+pending (accountant "include pending");
+  //   "any" → every status (Inbox "all statuses" filtered download);
+  //   a specific value (approved|pending|rejected) → just that one.
+  const statusParam = searchParams.get("status");
+  const statuses: string[] | null =
+    statusParam === "any" ? null
+    : statusParam === "all" ? ["approved", "pending"]
+    : statusParam ? [statusParam]
+    : ["approved"];
+
+  const content = readDocContentFilters(searchParams);
   const supabase = createServerClient();
 
-  // A: documents whose doc_date falls in range.
-  const { data: dated } = await supabase.from("financial_documents").select(SELECT)
-    .is("deleted_at", null).in("status", statuses)
-    .not("doc_date", "is", null).gte("doc_date", from).lte("doc_date", to);
-  // B: documents with no doc_date — matched by created_at so they aren't lost.
-  const { data: undated } = await supabase.from("financial_documents").select(SELECT)
-    .is("deleted_at", null).in("status", statuses)
-    .is("doc_date", null)
-    .gte("created_at", israelDayStartISO(from)).lte("created_at", israelDayEndISO(to));
+  // Base query: status + the shared content filters (same chain as the list).
+  const base = () => {
+    let q = supabase.from("financial_documents").select(SELECT).is("deleted_at", null);
+    if (statuses) q = q.in("status", statuses);
+    return applyDocContentFilters(q, content);
+  };
 
-  const docs = [...((dated ?? []) as unknown as ExportDoc[]), ...((undated ?? []) as unknown as ExportDoc[])];
+  let docs: ExportDoc[];
+  if (hasRange) {
+    // A: doc_date in range. B: no doc_date → matched by created_at so none drop.
+    const { data: dated }   = await base().not("doc_date", "is", null).gte("doc_date", from).lte("doc_date", to);
+    const { data: undated } = await base().is("doc_date", null)
+      .gte("created_at", israelDayStartISO(from)).lte("created_at", israelDayEndISO(to));
+    docs = [...((dated ?? []) as unknown as ExportDoc[]), ...((undated ?? []) as unknown as ExportDoc[])];
+  } else {
+    const { data } = await base();
+    docs = (data ?? []) as unknown as ExportDoc[];
+  }
+
   if (docs.length === 0) {
     return NextResponse.json({ error: "לא נמצאו מסמכים בטווח שנבחר" }, { status: 404 });
   }
@@ -163,7 +183,7 @@ export async function GET(req: NextRequest) {
   return new NextResponse(zipData, {
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="binyan-eitan-docs_${from}_${to}.zip"`,
+      "Content-Disposition": `attachment; filename="binyan-eitan-docs_${hasRange ? `${from}_${to}` : "filtered"}.zip"`,
       "Content-Length": String(zipData.byteLength),
       "Cache-Control": "private, no-store",
     },

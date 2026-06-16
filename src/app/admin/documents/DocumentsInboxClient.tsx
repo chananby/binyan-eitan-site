@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, ChevronRight, Inbox, AlertCircle, Package, ListChecks, CheckCircle2 } from "lucide-react";
+import { Loader2, ChevronRight, Inbox, AlertCircle, Package, ListChecks, CheckCircle2, Download } from "lucide-react";
 import DocumentUploader from "./_components/DocumentUploader";
 import DocumentFilters, { EMPTY_FILTERS, type DocFilters } from "./_components/DocumentFilters";
 import DocumentCard from "./_components/DocumentCard";
@@ -37,6 +37,24 @@ function buildDocQuery(f: DocFilters, offset: number, limit: number): string {
   return `/api/admin/documents?${p.toString()}`;
 }
 
+// "Download filtered" → the export ZIP with the EXACT active filters. status is
+// sent explicitly: a specific value when chosen, else "any" (all statuses), so
+// the ZIP matches the on-screen list (which shows every status when unfiltered).
+function buildExportQuery(f: DocFilters): string {
+  const p = new URLSearchParams();
+  p.set("status", f.status || "any");
+  if (f.doc_type)   p.set("doc_type", f.doc_type);
+  if (f.direction)  p.set("direction", f.direction);
+  if (f.category)   p.set("category", f.category);
+  if (f.vendor_id)  p.set("vendor_id", f.vendor_id);
+  if (f.project_id) p.set("project_id", f.project_id);
+  if (f.date_from)  p.set("date_from", f.date_from);
+  if (f.date_to)    p.set("date_to", f.date_to);
+  if (f.duplicates_only) p.set("duplicates_only", "true");
+  if (f.q)          p.set("q", f.q);
+  return `/api/admin/documents/export?${p.toString()}`;
+}
+
 export default function DocumentsInboxClient() {
   const [auth, setAuth] = useState<AuthState>("loading");
   const [adminName, setAdminName] = useState("");
@@ -54,6 +72,7 @@ export default function DocumentsInboxClient() {
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [monthApproved, setMonthApproved] = useState<number | null>(null);
   const [duplicateCount, setDuplicateCount] = useState<number | null>(null);
+  const [filteredCount, setFilteredCount] = useState<number | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
 
   // "Approve all high-confidence" — candidates fetched on demand from pending.
@@ -110,10 +129,11 @@ export default function DocumentsInboxClient() {
         .then(r => r.json())
         .then(d => {
           if (cancelled) return;
-          if (d.error) { setError(d.error); setDocs([]); }
+          if (d.error) { setError(d.error); setDocs([]); setFilteredCount(0); }
           else {
             const rows: DocRow[] = d.documents ?? [];
             setDocs(rows); setOffset(rows.length); setHasMore(rows.length === PAGE);
+            setFilteredCount(typeof d.count === "number" ? d.count : rows.length);
           }
         })
         .catch(e => { if (!cancelled) setError(String(e)); })
@@ -221,12 +241,26 @@ export default function DocumentsInboxClient() {
           </div>
         )}
 
-        <button
-          onClick={() => setExportOpen(true)}
-          className="w-full flex items-center justify-center gap-2 border border-[#8D775F]/40 text-[#8D775F] py-2.5 rounded-md text-sm font-semibold hover:bg-[#8D775F]/5"
-        >
-          <Package size={16} /> {'חבילה לרו"ח'}
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setExportOpen(true)}
+            className="flex items-center justify-center gap-2 border border-[#8D775F]/40 text-[#8D775F] py-2.5 rounded-md text-sm font-semibold hover:bg-[#8D775F]/5"
+          >
+            <Package size={16} /> {'חבילה לרו"ח'}
+          </button>
+          {/* Download exactly the current filtered view (status + content
+              filters + any date range) as a ZIP, reusing the export route. */}
+          <a
+            href={(filteredCount ?? 0) > 0 ? buildExportQuery(filters) : undefined}
+            onClick={e => { if (!filteredCount) e.preventDefault(); }}
+            className={`flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-semibold transition-colors ${
+              (filteredCount ?? 0) > 0
+                ? "border border-[#8D775F]/40 text-[#8D775F] hover:bg-[#8D775F]/5"
+                : "border border-[#2D2926]/10 text-[#2D2926]/30 cursor-not-allowed"}`}
+          >
+            <Download size={16} /> הורד את המסונן{filteredCount != null ? ` (${filteredCount})` : ""}
+          </a>
+        </div>
 
         <DocumentFilters filters={filters} setFilters={setFilters} vendors={vendors} projects={projects} duplicateCount={duplicateCount} />
 
