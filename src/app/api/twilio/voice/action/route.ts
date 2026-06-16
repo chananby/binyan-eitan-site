@@ -24,7 +24,8 @@ import {
   israelHHMM, israelTodayYMD, insertPhoneAttendance,
 } from "../../../../../lib/twilio";
 import { israelDayStartISO } from "../../../../../lib/israel-time";
-import { isEntry, isExit } from "../../../../../lib/attendance-time";
+import { isEntry } from "../../../../../lib/attendance-time";
+import { hasOpenRecord } from "../../../../../lib/attendance-logic";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -96,12 +97,10 @@ export async function POST(req: NextRequest) {
       console.error("[twilio/voice/action] dup-check error:", JSON.stringify(openErr));
       return twimlResponse(say("שגיאת מערכת זמנית. נסו שוב בעוד רגע.") + "<Hangup/>");
     }
-    const entries = (todays ?? []).filter((r) => isEntry(r.action));
-    const exits   = (todays ?? []).filter((r) => isExit(r.action));
-    if (entries.length > exits.length) {
-      // entries[0] is the latest entry (todays ordered desc by clock_at).
-      const openRow = entries[0];
-      const when = openRow.clock_at ? israelHHMM(new Date(openRow.clock_at)) : "";
+    if (hasOpenRecord(todays ?? [], todayStart)) {
+      // Latest entry (todays is ordered desc by clock_at) → read its time aloud.
+      const openRow = (todays ?? []).filter((r) => isEntry(r.action))[0];
+      const when = openRow?.clock_at ? israelHHMM(new Date(openRow.clock_at)) : "";
       const msg = when
         ? `כבר רשומה כניסה פתוחה היום בשעה ${when}. להתראות.`
         : `כבר רשומה כניסה פתוחה היום. להתראות.`;

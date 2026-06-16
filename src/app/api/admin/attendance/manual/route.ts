@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 import { israelWallClockToISO } from "../../../../../lib/israel-time";
+import { planManualWorkRows } from "../../../../../lib/attendance-logic";
 
 export const runtime = "nodejs";
 
@@ -55,15 +56,12 @@ export async function POST(req: NextRequest) {
     ...(project_id?.trim() ? { project_id } : {}),
   });
 
+  // Work entry: one row per planned action (entry always; exit only when an
+  // exit time was supplied → entry-only leaves an open record). Absence: a
+  // single marker row.
   const records: Record<string, unknown>[] = isWork
-    ? [
-        base("כניסה", `${dp}, ${entry_time}`, israelWallClockToISO(date, entry_time!)),
-        // Exit row only when an exit time was supplied; otherwise the record
-        // stays open (entry-only) until a clock-out / "השלמת יציאה" closes it.
-        ...(exit_time
-          ? [base("יציאה", `${dp}, ${exit_time}`, israelWallClockToISO(date, exit_time!))]
-          : []),
-      ]
+    ? planManualWorkRows(entry_time!, exit_time).map((r) =>
+        base(r.action, `${dp}, ${r.time}`, israelWallClockToISO(date, r.time)))
     : [
         base(
           ABSENCE_ACTION[type] ?? "אחר",
