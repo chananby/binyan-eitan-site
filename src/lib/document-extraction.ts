@@ -17,6 +17,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { matchVendor, type VendorListItem } from "./vendor-matching";
 import { DOCUMENT_COLUMNS } from "./document-columns";
+import { resolveDirection } from "./document-classify";
 
 // Extraction model — single source of truth, update here. The previous
 // "claude-sonnet-4-20250514" returned 404 not_found_error in production.
@@ -60,10 +61,10 @@ export interface ExtractionResult {
 }
 
 const SYSTEM_PROMPT =
-`אתה מחלץ נתונים ממסמכים פיננסיים ישראליים (חשבוניות מס, קבלות, חשבוניות-קבלה, אישורי העברה בנקאית/זה"ב, דרישות תשלום, חשבונות עסקה, צ'קים, תעודות משלוח). החזר JSON בלבד, ללא טקסט נוסף וללא backticks, במבנה:
+`אתה מחלץ נתונים ממסמכים פיננסיים ישראליים (חשבוניות מס, קבלות, חשבוניות-קבלה, אישורי העברה בנקאית/זה"ב, דרישות תשלום, הצעות מחיר, חשבונות עסקה, צ'קים, תעודות משלוח). החזר JSON בלבד, ללא טקסט נוסף וללא backticks, במבנה:
 {
-  "doc_type": "invoice|receipt|invoice_receipt|bank_transfer|payment_request|proforma|check|delivery_note|other",
-  "direction": "income|expense",
+  "doc_type": "invoice|receipt|invoice_receipt|bank_transfer|payment_request|quote|proforma|check|delivery_note|other",
+  "direction": "income|expense|none",
   "vendor_name_raw": "השם כפי שמופיע במסמך",
   "vendor_tax_id": "ח.פ./עוסק מורשה אם מופיע, אחרת null",
   "matched_vendor_id": "id מהרשימה אם זוהתה התאמה ודאית, אחרת null",
@@ -74,7 +75,13 @@ const SYSTEM_PROMPT =
   "description": "תקציר בעברית במשפט אחד",
   "confidence": "high|medium|low"
 }
-כללי direction: מסמך שבו בניין איתן בע"מ היא המשלמת/המקבלת שירות → expense; מסמך שבניין איתן הפיקה ללקוח או אישור כסף נכנס → income.
+כללי direction (חוק מחייב, ללא יוצא מן הכלל):
+- doc_type=quote (הצעת מחיר) → direction="none" תמיד. הצעת מחיר אינה תנועת כסף בפועל גם אם היא מתארת סכום עתידי שאמור להיכנס — אל תסווג אותה income.
+- doc_type=delivery_note (תעודת משלוח) → direction="none".
+- income ו-expense שמורים אך ורק למסמכים של כסף שזז בפועל (חשבונית / קבלה / חשבונית-קבלה / העברה בנקאית / דרישת תשלום / צ'ק): בניין איתן משלמת או מקבלת שירות/מוצר → expense; בניין איתן קיבלה כסף בפועל מלקוח → income.
+- כל מסמך אחר שאינו תנועת כסף בפועל → none.
+כללי doc_type: הצעת מחיר (quote) = הצעה שטרם התקבלה/נחתמה; חשבון עסקה (proforma) = דרישת תשלום צפויה. אל תבלבל ביניהם.
+זיהוי בניין איתן: בניין איתן בע"מ היא החברה שמשתמשת במערכת. כשהיא מנפיקה את המסמך (הצעה/דרישה/חשבונית שהיא הוציאה ללקוח) — היא אינה הספק; הצד שיש לחלץ כ-vendor הוא הלקוח/מקבל המסמך, לא בניין איתן. בניין איתן מופיעה כספק רק כשהיא מקבלת שירות/מוצר (חשבונית שספק הוציא לה).
 כללי category: שכר בעלים, שכירות, רו"ח, ביטוח, הנהלה כללית = overhead (אינה שייכת לפרויקט ספציפי).
 שדה לא ברור → null, אל תנחש סכומים.`;
 
@@ -112,9 +119,12 @@ function parseFields(text: string): ExtractedFields {
   const raw = JSON.parse(body) as Record<string, unknown>;
 
   const date = strOrNull(raw.doc_date);
+  const docType = strOrNull(raw.doc_type);
   return {
-    doc_type:          strOrNull(raw.doc_type),
-    direction:         strOrNull(raw.direction),
+    doc_type:          docType,
+    // Pin non-cash doc types (quote / delivery_note) to direction="none" even
+    // if the model returned income/expense — see document-classify.ts.
+    direction:         resolveDirection(docType, strOrNull(raw.direction)),
     vendor_name_raw:   strOrNull(raw.vendor_name_raw),
     vendor_tax_id:     strOrNull(raw.vendor_tax_id),
     matched_vendor_id: strOrNull(raw.matched_vendor_id),
