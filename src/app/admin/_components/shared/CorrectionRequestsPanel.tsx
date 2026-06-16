@@ -47,16 +47,18 @@ function actionLabel(action: string): string {
        : action;
 }
 
-function formatClock(att: CorrectionRequest["attendance"]): string {
-  if (!att) return "—";
-  if (att.clock_at) {
-    return new Date(att.clock_at).toLocaleString("he-IL", {
-      timeZone: "Asia/Jerusalem",
-      day: "2-digit", month: "2-digit", year: "numeric",
-      hour: "2-digit", minute: "2-digit",
-    });
+// Split the original record into a short date ("5.5.26") and a HH:MM time, so
+// the card can render a compact "action date:  old → requested" line. Falls
+// back to timestamp_label when clock_at is missing (older rows).
+function clockParts(att: CorrectionRequest["attendance"]): { date: string; time: string } {
+  if (att?.clock_at) {
+    const d = new Date(att.clock_at);
+    return {
+      date: d.toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem", day: "numeric", month: "numeric", year: "2-digit" }),
+      time: d.toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit", hour12: false }),
+    };
   }
-  return att.timestamp_label ?? "—";
+  return { date: "", time: att?.timestamp_label ?? "—" };
 }
 
 export default function CorrectionRequestsPanel(p: {
@@ -113,26 +115,40 @@ export default function CorrectionRequestsPanel(p: {
           {p.requests.map((r) => (
             <div key={r.id} className="py-3">
               <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0 space-y-1">
+                {(() => {
+                  const { date, time } = clockParts(r.attendance);
+                  const act = actionLabel(r.attendance?.action ?? "");
+                  return (
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  {/* מי + מה (פעולה ותאריך) */}
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-semibold">{r.staff?.name ?? "—"}</p>
                     <span className={`text-[0.75rem] font-semibold px-1.5 py-0.5
-                      ${actionLabel(r.attendance?.action ?? "") === "כניסה"
-                        ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-                      {actionLabel(r.attendance?.action ?? "")}
+                      ${act === "כניסה" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+                      {act}
                     </span>
+                    {date && <span className="text-[0.75rem] text-charcoal/55 tabular-nums">{date}</span>}
                   </div>
-                  <p className="text-[0.75rem] text-charcoal/55" dir="ltr">
-                    רשומה מקורית: <span className="tabular-nums">{formatClock(r.attendance)}</span>
-                  </p>
-                  {r.proposed_time && (
-                    <p className="text-[0.75rem] text-amber-700">
-                      שעה מוצעת: <span className="tabular-nums font-semibold" dir="ltr">{r.proposed_time}</span>
+
+                  {/* השינוי: מה היה ← מה ביקש */}
+                  {r.proposed_time ? (
+                    <div className="flex items-center gap-2" dir="ltr">
+                      <span className="text-sm text-charcoal/45 tabular-nums line-through">{time}</span>
+                      <span className="text-charcoal/40 text-base leading-none">←</span>
+                      <span className="text-base font-bold text-amber-700 tabular-nums">{r.proposed_time}</span>
+                    </div>
+                  ) : (
+                    <p className="text-[0.75rem] text-charcoal/55" dir="ltr">
+                      רשומה: <span className="tabular-nums">{time}</span>
                     </p>
                   )}
-                  <p className="text-[0.75rem] text-charcoal/70 leading-snug pt-0.5">
+
+                  {/* למה */}
+                  <p className="text-[0.75rem] text-charcoal/70 leading-snug">
                     <span className="text-charcoal/55">סיבה: </span>{r.reason}
                   </p>
+
+                  {/* מתי הוגש */}
                   <p className="text-[0.65rem] text-charcoal/55">
                     הוגש: {new Date(r.created_at).toLocaleString("he-IL", {
                       timeZone: "Asia/Jerusalem",
@@ -140,6 +156,8 @@ export default function CorrectionRequestsPanel(p: {
                     })}
                   </p>
                 </div>
+                  );
+                })()}
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button onClick={() => resolve(r.id, "approved")} disabled={pending !== null}
                     className="text-[0.75rem] font-semibold border border-green-200 text-green-700 hover:bg-green-600 hover:text-white px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
