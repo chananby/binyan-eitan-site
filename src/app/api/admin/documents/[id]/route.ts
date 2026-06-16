@@ -17,6 +17,7 @@ import {
   getAdminIdFromRequest,
 } from "../../../../../lib/admin-auth";
 import { DOCUMENT_COLUMNS } from "../../../../../lib/document-columns";
+import { resolveAmountIls } from "../../../../../lib/document-classify";
 
 export const runtime = "nodejs";
 
@@ -32,6 +33,7 @@ const EDITABLE_FIELDS = [
   "vat_amount",
   "total_amount",
   "currency",
+  "amount_ils",
   "category",
   "project_id",
   "description",
@@ -81,6 +83,18 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "אין שדות לעדכון" }, { status: 400 });
+  }
+
+  // Keep amount_ils authoritative on a full amount save: an ILS doc always
+  // mirrors total_amount; a foreign doc keeps the admin-entered shekel value.
+  // Partial PATCHes (status flip, clear-flag) don't carry currency+total, so
+  // amount_ils is left untouched there.
+  if ("currency" in update && "total_amount" in update) {
+    update.amount_ils = resolveAmountIls(
+      update.currency as string | null,
+      update.total_amount as number | null,
+      ("amount_ils" in update ? update.amount_ils : null) as number | null,
+    );
   }
 
   // A review decision stamps who/when. reviewed_by comes from the token, not

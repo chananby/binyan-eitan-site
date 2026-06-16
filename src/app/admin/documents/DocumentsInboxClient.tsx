@@ -90,7 +90,7 @@ export default function DocumentsInboxClient() {
     const first = today.slice(0, 8) + "01";
     fetch(`/api/admin/documents?status=approved&date_from=${first}&date_to=${today}&limit=500`, { cache: "no-store" })
       .then(r => r.json())
-      .then(d => setMonthApproved((d.documents ?? []).reduce((s: number, x: DocRow) => s + (x.total_amount ?? 0), 0)))
+      .then(d => setMonthApproved((d.documents ?? []).reduce((s: number, x: DocRow) => s + (x.amount_ils ?? 0), 0)))
       .catch(() => {});
   }, []);
 

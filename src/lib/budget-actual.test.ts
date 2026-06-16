@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { computeProjectBudget, type BudgetDoc } from "./budget-actual";
 
-const doc = (direction: string | null, status: string | null, total_amount: number | null): BudgetDoc =>
-  ({ direction, status, total_amount });
+// The third arg is the ILS value (amount_ils) — what the rollup sums.
+const doc = (direction: string | null, status: string | null, amount_ils: number | null): BudgetDoc =>
+  ({ direction, status, amount_ils });
 
 describe("computeProjectBudget", () => {
   it("sums only approved expenses into approvedExpense", () => {
@@ -98,5 +99,19 @@ describe("computeProjectBudget", () => {
     expect(r.approvedExpense).toBe(300);
     expect(r.pendingExpense).toBe(0);
     expect(r.remaining).toBe(700);
+  });
+
+  // Foreign currency: the rollup sums amount_ils (shekel value), so a $100
+  // invoice entered as ₪370 contributes 370 — not 100. A foreign doc whose
+  // amount_ils wasn't entered yet (null) contributes 0, never its nominal.
+  it("sums the shekel value (amount_ils) of foreign-currency docs, not the nominal", () => {
+    const docs = [
+      doc("expense", "approved", 370),   // $100 invoice → admin entered ₪370
+      doc("expense", "approved", 500),   // a plain ILS doc (amount_ils = total)
+      doc("expense", "approved", null),  // foreign doc, ILS value not entered yet → 0
+    ];
+    const r = computeProjectBudget(2000, docs);
+    expect(r.approvedExpense).toBe(870);
+    expect(r.remaining).toBe(1130);
   });
 });

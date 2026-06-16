@@ -23,7 +23,7 @@ export const maxDuration = 60;
 const BUCKET = "financial-documents";
 const SELECT =
   "id, storage_path, mime_type, status, doc_type, direction, vendor_name_raw, " +
-  "doc_number, doc_date, amount_before_vat, vat_amount, total_amount, currency, " +
+  "doc_number, doc_date, amount_before_vat, vat_amount, total_amount, currency, amount_ils, " +
   "category, created_at, vendor:vendor_id(name), project:project_id(name)";
 
 interface ExportDoc {
@@ -31,7 +31,7 @@ interface ExportDoc {
   doc_type: string | null; direction: string | null; vendor_name_raw: string | null;
   doc_number: string | null; doc_date: string | null;
   amount_before_vat: number | null; vat_amount: number | null; total_amount: number | null;
-  currency: string | null; category: string | null; created_at: string;
+  currency: string | null; amount_ils: number | null; category: string | null; created_at: string;
   vendor: { name: string } | null; project: { name: string } | null;
 }
 
@@ -132,8 +132,10 @@ export async function GET(req: NextRequest) {
       storedName = name;
     }
 
-    if (d.direction === "expense") expenses += d.total_amount ?? 0;
-    if (d.direction === "income")  income   += d.total_amount ?? 0;
+    // Totals sum amount_ils (unified shekel), not the raw total_amount which
+    // may be in a foreign currency. Per-row columns still show the original.
+    if (d.direction === "expense") expenses += d.amount_ils ?? 0;
+    if (d.direction === "income")  income   += d.amount_ils ?? 0;
 
     rows.push([
       effDate(d),
@@ -152,7 +154,7 @@ export async function GET(req: NextRequest) {
   }
 
   rows.push([]);
-  rows.push(['סה"כ הוצאות', expenses, 'סה"כ הכנסות', income]);
+  rows.push(['סה"כ הוצאות (₪)', expenses, 'סה"כ הכנסות (₪)', income]);
 
   const csv = "\uFEFF" + rows.map(r => r.map(csvCell).join(",")).join("\r\n");
   zip.file("summary.csv", csv);

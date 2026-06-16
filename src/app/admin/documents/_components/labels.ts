@@ -2,6 +2,8 @@
 // the financial-documents inbox + detail screens. Kept in one place so both
 // pages render identical chips and value labels.
 
+import { isIls } from "../../../../lib/document-classify";
+
 export interface DocRow {
   id: string;
   original_filename: string | null;
@@ -19,6 +21,7 @@ export interface DocRow {
   vat_amount: number | null;
   total_amount: number | null;
   currency: string | null;
+  amount_ils?: number | null;   // value in ILS (= total_amount for ILS docs)
   category: string | null;
   project_id: string | null;
   description: string | null;
@@ -52,6 +55,10 @@ export const DIRECTION_LABELS: Record<string, string> = {
   expense: "הוצאה",
   none:    "ללא תנועת כסף",
 };
+
+// Common currencies offered in the review form; "אחר" lets the admin type any
+// other ISO code. ILS is the default and never needs a manual shekel value.
+export const CURRENCY_OPTIONS = ["ILS", "USD", "EUR"];
 
 export const CATEGORY_LABELS: Record<string, string> = {
   fuel:           "דלק",
@@ -129,6 +136,10 @@ export function missingRequired(doc: DocRow): string[] {
   if (doc.total_amount == null) missing.push("סכום");
   if (!doc.doc_date) missing.push("תאריך");
   if (!doc.direction) missing.push("כיוון");
+  // Foreign-currency doc must carry a manual shekel value, else it would
+  // contribute 0 to every money rollup. ILS docs mirror total_amount, so they
+  // never need it.
+  if (!isIls(doc.currency) && doc.amount_ils == null) missing.push("ערך בשקל");
   return missing;
 }
 

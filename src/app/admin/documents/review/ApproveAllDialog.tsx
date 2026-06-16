@@ -17,7 +17,7 @@ export default function ApproveAllDialog({ candidates, onConfirm, onClose, busy 
 }) {
   const [checked, setChecked] = useState<Set<string>>(() => new Set(candidates.map(c => c.id)));
   const selected = candidates.filter(c => checked.has(c.id));
-  const total = selected.reduce((s, c) => s + (c.total_amount ?? 0), 0);
+  const total = selected.reduce((s, c) => s + (c.amount_ils ?? 0), 0);
 
   const toggle = (id: string) =>
     setChecked(prev => {

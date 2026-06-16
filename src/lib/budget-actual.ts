@@ -5,16 +5,20 @@
 // filtered to deleted_at IS NULL), then calls computeProjectBudget().
 //
 // Definitions (locked):
-//   approvedExpense = SUM(total_amount)  direction='expense', status='approved'
-//   pendingExpense  = SUM(total_amount)  direction='expense', status='pending'
+//   approvedExpense = SUM(amount_ils)  direction='expense', status='approved'
+//   pendingExpense  = SUM(amount_ils)  direction='expense', status='pending'
 //   remaining       = budget − approvedExpense   (null when no budget)
 //   percentSpent    = approvedExpense / budget × 100   (null when no budget or budget ≤ 0)
 //   budget IS NULL  → "no budget defined": remaining/percent stay null.
+//
+// Sums use amount_ils (the unified shekel value), NEVER the raw total_amount,
+// so a foreign-currency document contributes its ILS value — not its foreign
+// nominal. A foreign doc whose amount_ils wasn't entered yet contributes 0.
 
 export interface BudgetDoc {
   direction: string | null;
   status: string | null;
-  total_amount: number | null;
+  amount_ils: number | null;
 }
 
 export interface BudgetActual {
@@ -30,7 +34,7 @@ function sumExpenses(docs: BudgetDoc[], status: string): number {
   let sum = 0;
   for (const d of docs) {
     if (d.direction === "expense" && d.status === status) {
-      sum += d.total_amount ?? 0; // a null amount counts as 0
+      sum += d.amount_ils ?? 0; // a null ILS value counts as 0
     }
   }
   return sum;

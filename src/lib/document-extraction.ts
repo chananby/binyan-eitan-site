@@ -17,7 +17,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { matchVendor, type VendorListItem } from "./vendor-matching";
 import { DOCUMENT_COLUMNS } from "./document-columns";
-import { resolveDirection } from "./document-classify";
+import { resolveDirection, resolveAmountIls } from "./document-classify";
 
 // Extraction model — single source of truth, update here. The previous
 // "claude-sonnet-4-20250514" returned 404 not_found_error in production.
@@ -83,6 +83,7 @@ const SYSTEM_PROMPT =
 כללי doc_type: הצעת מחיר (quote) = הצעה שטרם התקבלה/נחתמה; חשבון עסקה (proforma) = דרישת תשלום צפויה. אל תבלבל ביניהם.
 זיהוי בניין איתן: בניין איתן בע"מ היא החברה שמשתמשת במערכת. כשהיא מנפיקה את המסמך (הצעה/דרישה/חשבונית שהיא הוציאה ללקוח) — היא אינה הספק; הצד שיש לחלץ כ-vendor הוא הלקוח/מקבל המסמך, לא בניין איתן. בניין איתן מופיעה כספק רק כשהיא מקבלת שירות/מוצר (חשבונית שספק הוציא לה).
 כללי category: שכר בעלים, שכירות, רו"ח, ביטוח, הנהלה כללית = overhead (אינה שייכת לפרויקט ספציפי).
+כללי currency: זהה את מטבע המסמך מהסימן/הקוד — ₪ או ש"ח → ILS, $ → USD, € → EUR, וכו'. ברירת מחדל ILS אם אין ציון מטבע. אל תמיר ערכים — total_amount תמיד במטבע המקורי של המסמך.
 שדה לא ברור → null, אל תנחש סכומים.`;
 
 function getClient(): Anthropic {
@@ -313,6 +314,9 @@ export async function extractAndPersist(
       vat_amount:        f.vat_amount,
       total_amount:      f.total_amount,
       currency:          f.currency,
+      // ILS docs mirror total_amount; foreign docs stay null until the admin
+      // enters the shekel value. The AI never sets amount_ils.
+      amount_ils:        resolveAmountIls(f.currency, f.total_amount, null),
       category:          f.category,
       description:       f.description,
       confidence:        f.confidence,

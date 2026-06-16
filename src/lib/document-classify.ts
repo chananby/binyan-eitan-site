@@ -17,3 +17,28 @@ export function resolveDirection(docType: string | null, direction: string | nul
   if (docType && NON_CASH_DOC_TYPES.has(docType)) return "none";
   return direction;
 }
+
+// ── Currency / shekel value ─────────────────────────────────────────────────
+// All money rollups (budget-actual, month totals, export) sum amount_ils — the
+// document's value in a single unified currency — never the raw total_amount,
+// which is in the document's own currency.
+
+/** A document is shekel when currency is ILS or unset (the historical default). */
+export function isIls(currency: string | null | undefined): boolean {
+  return !currency || currency === "ILS";
+}
+
+/**
+ * The document's ILS value used in every money calculation:
+ *   - ILS document  → mirrors total_amount (kept in sync; the admin never
+ *     types a separate shekel value).
+ *   - foreign doc    → the admin-entered amountIlsInput (may be null until
+ *     entered — null contributes 0 to sums, never the foreign nominal).
+ */
+export function resolveAmountIls(
+  currency: string | null,
+  totalAmount: number | null,
+  amountIlsInput: number | null,
+): number | null {
+  return isIls(currency) ? totalAmount : amountIlsInput;
+}

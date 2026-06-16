@@ -9,9 +9,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Check, X, Save, Trash2, Plus } from "lucide-react";
 import {
-  DOC_TYPE_LABELS, DIRECTION_LABELS, CATEGORY_LABELS,
+  DOC_TYPE_LABELS, DIRECTION_LABELS, CATEGORY_LABELS, CURRENCY_OPTIONS,
   DOC_TYPE_OPTIONS, DIRECTION_OPTIONS, CATEGORY_OPTIONS, type DocRow,
 } from "../_components/labels";
+import { isIls } from "../../../../lib/document-classify";
 import ProjectSelect, { type ProjectOption } from "../_components/ProjectSelect";
 
 interface Opt { id: string; name: string }
@@ -49,6 +50,7 @@ export default function DocumentReviewForm({
     vat_amount:        doc.vat_amount?.toString() ?? "",
     total_amount:      doc.total_amount?.toString() ?? "",
     currency:          doc.currency ?? "ILS",
+    amount_ils:        doc.amount_ils?.toString() ?? "",
     category:          doc.category ?? "",
     project_id:        doc.project_id ?? "",
     description:       doc.description ?? "",
@@ -94,6 +96,9 @@ export default function DocumentReviewForm({
       vat_amount:        numOrNull(form.vat_amount),
       total_amount:      numOrNull(form.total_amount),
       currency:          form.currency || null,
+      // ILS docs: server mirrors amount_ils from total_amount. Foreign docs:
+      // send the admin-entered shekel value.
+      amount_ils:        isIls(form.currency) ? numOrNull(form.total_amount) : numOrNull(form.amount_ils),
       category:          form.category || null,
       project_id:        form.project_id || null,
       description:       form.description || null,
@@ -199,6 +204,36 @@ export default function DocumentReviewForm({
           <label className={LABEL}>{'סה"כ'}</label>
           <input value={form.total_amount} onChange={e => set("total_amount", e.target.value)} className={FIELD} dir="ltr" inputMode="decimal" />
         </div>
+      </div>
+
+      {/* Currency + (foreign only) the manual shekel value used in all money
+          calculations. ILS docs mirror total_amount automatically. */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={LABEL}>מטבע</label>
+          <select
+            value={CURRENCY_OPTIONS.includes(form.currency) ? form.currency : "אחר"}
+            onChange={e => set("currency", e.target.value === "אחר" ? "" : e.target.value)}
+            className={FIELD}
+          >
+            {CURRENCY_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+            <option value="אחר">אחר</option>
+          </select>
+          {!CURRENCY_OPTIONS.includes(form.currency) && (
+            <input
+              value={form.currency}
+              onChange={e => set("currency", e.target.value.toUpperCase())}
+              placeholder="קוד מטבע (למשל GBP)"
+              className={`${FIELD} mt-2`} dir="ltr"
+            />
+          )}
+        </div>
+        {!isIls(form.currency) && (
+          <div>
+            <label className={LABEL}>ערך בשקל (₪)</label>
+            <input value={form.amount_ils} onChange={e => set("amount_ils", e.target.value)} className={FIELD} dir="ltr" inputMode="decimal" placeholder="הזן ערך בשקל" />
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     supabase.from("projects").select("id, name, status, budget"),
     supabase
       .from("financial_documents")
-      .select("project_id, direction, status, total_amount")
+      .select("project_id, direction, status, amount_ils")
       .is("deleted_at", null)
       .eq("direction", "expense")
       .in("status", ["approved", "pending"])
