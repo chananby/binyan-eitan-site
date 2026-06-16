@@ -5,7 +5,7 @@
 // the same shape as the quotes generator. Admin-gated client-side via
 // /api/admin/whoami; the API routes enforce admin independently.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ChevronRight, Inbox, AlertCircle, RefreshCw } from "lucide-react";
@@ -19,6 +19,9 @@ interface Opt { id: string; name: string; status?: string | null }
 
 export default function DocumentDetailClient({ id }: { id: string }) {
   const router = useRouter();
+  // Set true the moment this doc is deleted (as a duplicate) so the load effect
+  // never re-fetches a now-deleted id and flashes a 404 instead of navigating.
+  const leavingRef = useRef(false);
   const [auth, setAuth] = useState<AuthState>("loading");
   const [doc, setDoc] = useState<DocRow | null>(null);
   const [vendors, setVendors] = useState<Opt[]>([]);
@@ -58,6 +61,7 @@ export default function DocumentDetailClient({ id }: { id: string }) {
 
   useEffect(() => {
     if (auth !== "admin") return;
+    if (leavingRef.current) return;   // doc was deleted → don't refetch a dead id
     let cancelled = false;
     setLoading(true); setError(null);
     fetch(`/api/admin/documents/${id}`, { cache: "no-store" })
@@ -102,7 +106,7 @@ export default function DocumentDetailClient({ id }: { id: string }) {
           {doc && (
             <DuplicateChip
               doc={doc}
-              onDeleted={() => router.push("/admin/documents")}
+              onDeleted={() => { leavingRef.current = true; router.push("/admin/documents"); }}
               onCleared={() => setDoc(d => (d ? { ...d, possible_duplicate_of: null } : d))}
             />
           )}
