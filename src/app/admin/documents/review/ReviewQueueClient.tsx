@@ -15,6 +15,7 @@ import DocumentFlagsBanner from "./DocumentFlagsBanner";
 import ApproveAllDialog from "./ApproveAllDialog";
 import UndoToast from "./UndoToast";
 import DuplicateCompareDialog, { paneFromDoc } from "../_components/DuplicateCompareDialog";
+import DocumentPreview from "../_components/DocumentPreview";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
 interface Opt { id: string; name: string; status?: string | null }
@@ -236,14 +237,11 @@ export default function ReviewQueueClient() {
         ) : (
           <div className="space-y-3">
             <DocumentFlagsBanner doc={current} onCompareDuplicate={openCompare} />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="bg-white border border-[#2D2926]/10 rounded-md shadow-sm overflow-hidden">
-                {isPdf
-                  ? <iframe src={fileUrl} title="מסמך" className="w-full h-[55vh] lg:h-[74vh]" />
-                  // eslint-disable-next-line @next/next/no-img-element
-                  : <img src={fileUrl} alt="מסמך" className="w-full h-auto object-contain max-h-[55vh] lg:max-h-[74vh]" />}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+              <div className="lg:col-span-3 bg-white border border-[#2D2926]/10 rounded-md shadow-sm overflow-hidden">
+                <DocumentPreview fileUrl={fileUrl} isPdf={isPdf} />
               </div>
-              <div className="bg-white border border-[#2D2926]/10 rounded-md shadow-sm p-4">
+              <div className="lg:col-span-2 bg-white border border-[#2D2926]/10 rounded-md shadow-sm p-4">
                 <DocumentReviewForm
                   key={current.id}
                   doc={current}

@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Loader2, ChevronRight, Inbox, AlertCircle } from "lucide-react";
 import DocumentReviewForm from "./DocumentReviewForm";
+import DocumentPreview from "../_components/DocumentPreview";
 import { statusChip, displayVendor, type DocRow } from "../_components/labels";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
@@ -91,19 +92,14 @@ export default function DocumentDetailClient({ id }: { id: string }) {
         )}
 
         {doc && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Preview */}
-            <div className="bg-white border border-[#2D2926]/10 rounded-md shadow-sm overflow-hidden">
-              {isPdf
-                ? <iframe src={fileUrl} title="מסמך" className="w-full h-[60vh] lg:h-[78vh]" />
-                : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={fileUrl} alt="מסמך" className="w-full h-auto object-contain max-h-[60vh] lg:max-h-[78vh]" />
-                )}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            {/* Preview — wider pane (3/5) so the document is readable */}
+            <div className="lg:col-span-3 bg-white border border-[#2D2926]/10 rounded-md shadow-sm overflow-hidden">
+              <DocumentPreview fileUrl={fileUrl} isPdf={isPdf} />
             </div>
 
             {/* Form */}
-            <div className="bg-white border border-[#2D2926]/10 rounded-md shadow-sm p-4">
+            <div className="lg:col-span-2 bg-white border border-[#2D2926]/10 rounded-md shadow-sm p-4">
               <DocumentReviewForm doc={doc} vendors={vendors} projects={projects} onVendorsChange={loadVendors} />
             </div>
           </div>
