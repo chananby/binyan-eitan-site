@@ -33,7 +33,7 @@ const isAllowedFile = (f: File) => f.type.startsWith("image/") || f.type === "ap
 
 interface ResultCard {
   doc: DocRow;
-  status: "done" | "failed";
+  status: "extracting" | "done" | "failed";
   error?: string | null;
   retrying?: boolean;
 }
@@ -98,6 +98,8 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
     });
   }
 
+  // Upload only — returns fast with the pending row. Extraction is a SEPARATE
+  // request (runExtract) so a slow multi-page PDF can't 504 the upload itself.
   async function uploadOne(file: File, extra: Record<string, string>): Promise<ResultCard | "error"> {
     const fd = new FormData();
     fd.append("file", file);
@@ -112,7 +114,21 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
         : `העלאת "${file.name}" נכשלה: ${data.error ?? res.status}`);
       return "error";
     }
-    return { doc: data.document, status: data.extraction?.status ?? "failed", error: data.extraction?.error };
+    return { doc: data.document, status: "extracting" };
+  }
+
+  // Decoupled extraction: its own request, its own maxDuration. A failure here
+  // (incl. a slow PDF) is contained to this one card — it never breaks the
+  // upload flow or returns HTML to the screen.
+  async function runExtract(doc: DocRow): Promise<ResultCard> {
+    try {
+      const res = await fetch(`/api/admin/documents/${doc.id}/extract`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) return { doc, status: "failed", error: data.error ?? `שגיאה ${res.status}` };
+      return { doc: data.document ?? doc, status: data.extraction?.status ?? "failed", error: data.extraction?.error };
+    } catch (e) {
+      return { doc, status: "failed", error: String(e) };
+    }
   }
 
   async function handleFiles(list: File[]) {
@@ -142,7 +158,13 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
 
         const result = await uploadOne(file, extra);
         if (result !== "error") {
+          // Show the card immediately as "extracting", then run extraction in
+          // its own request and update the card in place when it returns.
+          const idx = collected.length;
           collected.push(result);
+          setResults([...collected]);
+          const done = await runExtract(result.doc);
+          collected[idx] = done;
           setResults([...collected]);
         }
       } catch (e) {
@@ -158,17 +180,10 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
 
   async function retry(idx: number) {
     const card = results[idx];
-    setResults(prev => prev.map((c, k) => (k === idx ? { ...c, retrying: true } : c)));
-    try {
-      const res = await fetch(`/api/admin/documents/${card.doc.id}/extract`, { method: "POST" });
-      const data = await res.json();
-      setResults(prev => prev.map((c, k) => k === idx
-        ? { doc: data.document ?? c.doc, status: data.extraction?.status ?? "failed", error: data.extraction?.error }
-        : c));
-      onUploaded();
-    } catch (e) {
-      setResults(prev => prev.map((c, k) => (k === idx ? { ...c, retrying: false, error: String(e) } : c)));
-    }
+    setResults(prev => prev.map((c, k) => (k === idx ? { ...c, status: "extracting", retrying: true } : c)));
+    const done = await runExtract(card.doc);
+    setResults(prev => prev.map((c, k) => (k === idx ? done : c)));
+    onUploaded();
   }
 
   return (
@@ -218,26 +233,34 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
 
       {results.length > 0 && (
         <div className="mt-3 space-y-2">
-          {results.map((c, idx) => (
-            <div key={c.doc.id} className={`flex items-center justify-between gap-3 rounded-md border px-3 py-2 ${c.status === "failed" ? "border-gray-200 bg-gray-50" : "border-emerald-100 bg-emerald-50/60"}`}>
+          {results.map((c, idx) => {
+            const cardClass =
+              c.status === "failed"     ? "border-gray-200 bg-gray-50" :
+              c.status === "extracting" ? "border-[#8D775F]/20 bg-[#8D775F]/5" :
+                                          "border-emerald-100 bg-emerald-50/60";
+            return (
+            <div key={c.doc.id} className={`flex items-center justify-between gap-3 rounded-md border px-3 py-2 ${cardClass}`}>
               <Link href={`/admin/documents/${c.doc.id}`} className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-[#2D2926] truncate">{displayVendor(c.doc)}</p>
                 <p className={`text-xs text-[#2D2926]/70 ${c.status === "failed" ? "" : "truncate"}`}>
-                  {c.status === "failed"
-                    ? failureText(c.error)
-                    : `${fmtCurrency(c.doc.total_amount, c.doc.currency ?? "ILS")} · ${DOC_TYPE_LABELS[c.doc.doc_type ?? ""] ?? "—"}`}
+                  {c.status === "failed"     ? failureText(c.error)
+                   : c.status === "extracting" ? "מחלץ נתונים…"
+                   : `${fmtCurrency(c.doc.total_amount, c.doc.currency ?? "ILS")} · ${DOC_TYPE_LABELS[c.doc.doc_type ?? ""] ?? "—"}`}
                 </p>
               </Link>
-              {c.status === "failed"
-                ? (
-                  <button onClick={() => retry(idx)} disabled={c.retrying}
-                    className="shrink-0 flex items-center gap-1 text-xs font-semibold text-[#8D775F] border border-[#8D775F]/40 rounded px-2 py-1 hover:bg-[#8D775F]/10 disabled:opacity-50">
-                    {c.retrying ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />} נסה שוב
-                  </button>
-                )
-                : <Check size={18} className="shrink-0 text-emerald-600" />}
+              {c.status === "failed" ? (
+                <button onClick={() => retry(idx)} disabled={c.retrying}
+                  className="shrink-0 flex items-center gap-1 text-xs font-semibold text-[#8D775F] border border-[#8D775F]/40 rounded px-2 py-1 hover:bg-[#8D775F]/10 disabled:opacity-50">
+                  {c.retrying ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />} נסה שוב
+                </button>
+              ) : c.status === "extracting" ? (
+                <Loader2 size={18} className="shrink-0 animate-spin text-[#8D775F]" />
+              ) : (
+                <Check size={18} className="shrink-0 text-emerald-600" />
+              )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
