@@ -40,6 +40,7 @@ export const DOC_TYPE_LABELS: Record<string, string> = {
   invoice_receipt: "חשבונית-קבלה",
   bank_transfer:   "העברה בנקאית",
   payment_request: "דרישת תשלום",
+  quote:           "הצעת מחיר",
   proforma:        "חשבון עסקה",
   check:           "צ'ק",
   delivery_note:   "תעודת משלוח",
@@ -49,6 +50,7 @@ export const DOC_TYPE_LABELS: Record<string, string> = {
 export const DIRECTION_LABELS: Record<string, string> = {
   income:  "הכנסה",
   expense: "הוצאה",
+  none:    "ללא תנועת כסף",
 };
 
 export const CATEGORY_LABELS: Record<string, string> = {

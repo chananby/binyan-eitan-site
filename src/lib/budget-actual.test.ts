@@ -85,4 +85,18 @@ describe("computeProjectBudget", () => {
     expect(r.remaining).toBe(2000);
     expect(r.percentSpent).toBe(0);
   });
+
+  // Classification fix: quotes / non-money documents carry direction='none'
+  // and must never enter any money calculation — only 'expense' counts.
+  it("ignores direction='none' docs (quotes / delivery notes) entirely", () => {
+    const docs = [
+      doc("none", "approved", 9000),  // a quote Binyan Eitan issued — not a real expense
+      doc("none", "pending", 4000),
+      doc("expense", "approved", 300),
+    ];
+    const r = computeProjectBudget(1000, docs);
+    expect(r.approvedExpense).toBe(300);
+    expect(r.pendingExpense).toBe(0);
+    expect(r.remaining).toBe(700);
+  });
 });
