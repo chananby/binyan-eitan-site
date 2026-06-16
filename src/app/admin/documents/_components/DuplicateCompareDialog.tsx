@@ -8,7 +8,7 @@
 //     (both extracted); actions delete-as-duplicate / clear-flag / close.
 // Build panes with paneFromDoc / paneFromFile.
 
-import { AlertTriangle, FileText } from "lucide-react";
+import { AlertTriangle, FileText, Maximize2, Info } from "lucide-react";
 import { fmtCurrency, fmtDate, displayVendor, type DocRow } from "./labels";
 
 export interface ComparePane {
@@ -20,9 +20,24 @@ export interface ComparePane {
   currency: string;
   docDate: string | null;
   docNumber: string | null;
-  fileLabel: string;
+  fileName: string;        // original filename, shown verbatim (a differing
+                           //   name is a key "maybe not a dup" signal)
+  fileMeta: string;        // "PDF · 240 KB" / "תמונה · 1.2 MB" / type only
   uploadedLabel: string;
   pending?: boolean;   // not yet extracted → show "— (טרם חולץ)" for AI fields
+}
+
+// Human file-type label from a MIME string.
+function typeLabel(mime: string | null): string {
+  if (!mime) return "קובץ";
+  if (mime === "application/pdf") return "PDF";
+  if (mime.startsWith("image/")) return "תמונה";
+  return mime;
+}
+
+function fileMetaLine(mime: string | null, size: number | null): string {
+  const t = typeLabel(mime);
+  return size != null ? `${t} · ${fmtBytes(size)}` : t;
 }
 
 export interface CompareAction {
@@ -54,7 +69,8 @@ export function paneFromDoc(doc: DocRow, heading: string): ComparePane {
     currency: doc.currency ?? "ILS",
     docDate: doc.doc_date ?? null,
     docNumber: doc.doc_number ?? null,
-    fileLabel: doc.original_filename || "—",
+    fileName: doc.original_filename || "—",
+    fileMeta: fileMetaLine(doc.mime_type ?? null, doc.file_size ?? null),
     uploadedLabel: fmtUploadedAt(doc.created_at) + (doc.uploaded_by ? ` · ${doc.uploaded_by}` : ""),
   };
 }
@@ -65,20 +81,51 @@ export function paneFromFile(file: File, previewUrl: string | null, heading: str
     thumbUrl: previewUrl,
     isImage: file.type.startsWith("image/"),
     vendor: null, amount: null, currency: "ILS", docDate: null, docNumber: null,
-    fileLabel: `${file.name} · ${fmtBytes(file.size)}`,
+    fileName: file.name,
+    fileMeta: fileMetaLine(file.type || null, file.size),
     uploadedLabel: "עכשיו",
     pending: true,
   };
 }
 
-function Thumb({ src, isImage }: { src: string | null; isImage: boolean }) {
-  if (src && isImage) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt="" className="w-full h-28 object-contain bg-[#F5F4F0] rounded" />;
+// Real preview: image via <img>, PDF (or anything non-image) via <iframe>
+// pointing at the same source — the file route serves bytes inline with the
+// right Content-Type, and a local File's object-URL renders the same way. A
+// "פתח" overlay opens the full document in a new tab for close inspection.
+function Preview({ src, isImage, label }: { src: string | null; isImage: boolean; label: string }) {
+  if (!src) {
+    return (
+      <div className="w-full h-40 flex flex-col items-center justify-center gap-1 bg-[#F5F4F0] rounded text-[#8D775F]/70">
+        <FileText size={28} strokeWidth={1.25} />
+        <span className="text-[0.6rem]">אין תצוגה</span>
+      </div>
+    );
   }
   return (
-    <div className="w-full h-28 flex items-center justify-center bg-[#F5F4F0] rounded text-[#8D775F]">
-      <FileText size={32} strokeWidth={1.25} />
+    <div className="relative">
+      {isImage ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={label} className="w-full h-40 object-contain bg-[#F5F4F0] rounded" />
+      ) : (
+        <iframe src={src} title={label} className="w-full h-40 rounded bg-[#F5F4F0] border border-[#2D2926]/10" />
+      )}
+      <a
+        href={src}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute bottom-1 right-1 flex items-center gap-1 bg-white/90 text-[#8D775F] text-[0.6rem] font-semibold px-1.5 py-0.5 rounded shadow-sm hover:bg-white"
+      >
+        <Maximize2 size={10} /> פתח
+      </a>
+    </div>
+  );
+}
+
+function FileCell({ name, meta }: { name: string; meta: string }) {
+  return (
+    <div className="min-w-0">
+      <span className="block truncate font-medium" title={name}>{name}</span>
+      <span className="block text-[0.7rem] text-[#2D2926]/55">{meta}</span>
     </div>
   );
 }
@@ -97,10 +144,11 @@ const VARIANT: Record<CompareAction["variant"], string> = {
 };
 
 export default function DuplicateCompareDialog({
-  title, subtitle, left, right, actions, onAction, busy,
+  title, subtitle, note, left, right, actions, onAction, busy,
 }: {
   title: string;
   subtitle: string;
+  note?: string;          // optional amber hint (e.g. "names differ — maybe parts")
   left: ComparePane;
   right: ComparePane;
   actions: CompareAction[];
@@ -108,18 +156,18 @@ export default function DuplicateCompareDialog({
   busy?: boolean;
 }) {
   const rows: { label: string; l: React.ReactNode; r: React.ReactNode }[] = [
-    { label: "תצוגה",     l: <Thumb src={left.thumbUrl} isImage={left.isImage} />, r: <Thumb src={right.thumbUrl} isImage={right.isImage} /> },
+    { label: "תצוגה",     l: <Preview src={left.thumbUrl} isImage={left.isImage} label={left.heading} />, r: <Preview src={right.thumbUrl} isImage={right.isImage} label={right.heading} /> },
     { label: "ספק",        l: paneVendor(left), r: paneVendor(right) },
     { label: "סכום",       l: paneAmount(left), r: paneAmount(right) },
     { label: "תאריך מסמך", l: paneDate(left),   r: paneDate(right) },
     { label: "מס' מסמך",   l: paneNumber(left), r: paneNumber(right) },
-    { label: "קובץ",       l: <span className="truncate block">{left.fileLabel}</span>, r: <span className="truncate block">{right.fileLabel}</span> },
+    { label: "קובץ",       l: <FileCell name={left.fileName} meta={left.fileMeta} />, r: <FileCell name={right.fileName} meta={right.fileMeta} /> },
     { label: "הועלה",      l: left.uploadedLabel, r: right.uploadedLabel },
   ];
 
   return (
     <div className="fixed inset-0 z-[70] bg-[#2D2926]/55 flex items-end sm:items-center justify-center p-3" dir="rtl">
-      <div className="bg-white w-full max-w-lg rounded-md shadow-xl max-h-[92vh] overflow-y-auto">
+      <div className="bg-white w-full max-w-2xl rounded-md shadow-xl max-h-[92vh] overflow-y-auto">
         <div className="flex items-center gap-2 px-5 py-3 border-b border-[#2D2926]/10 sticky top-0 bg-white">
           <AlertTriangle size={18} className="text-amber-500 shrink-0" />
           <h2 className="font-heading text-base font-bold text-[#2D2926]">{title}</h2>
@@ -127,6 +175,11 @@ export default function DuplicateCompareDialog({
 
         <div className="p-4">
           <p className="text-xs text-[#2D2926]/70 mb-3">{subtitle}</p>
+          {note && (
+            <p className="flex items-start gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2.5 py-2 mb-3">
+              <Info size={14} className="shrink-0 mt-px" /> {note}
+            </p>
+          )}
           <div className="grid grid-cols-[5.5rem_1fr_1fr] gap-x-2 gap-y-2 text-sm">
             <div></div>
             <div className="text-xs font-bold text-[#2D2926] text-center pb-1 border-b border-[#2D2926]/15">{left.heading}</div>

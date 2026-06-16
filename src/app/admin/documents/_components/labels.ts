@@ -6,6 +6,7 @@ export interface DocRow {
   id: string;
   original_filename: string | null;
   mime_type: string | null;
+  file_size?: number | null;
   status: string;            // pending | approved | rejected
   extraction_status: string; // pending | done | failed
   doc_type: string | null;
