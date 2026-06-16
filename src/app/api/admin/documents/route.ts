@@ -21,14 +21,14 @@ import {
   isAdminAuthedFromRequest,
   getAdminIdFromRequest,
 } from "../../../../lib/admin-auth";
-import { extractAndPersist } from "../../../../lib/document-extraction";
 import { DOCUMENT_COLUMNS } from "../../../../lib/document-columns";
 import { sha256Hex } from "../../../../lib/file-hash";
 import { randomUUID } from "crypto";
 
 export const runtime = "nodejs";
-// Upload runs AI extraction inline (await) before responding, which can take
-// well over the default serverless budget — give it room.
+// Upload now does storage write + DB insert only (extraction is decoupled —
+// see the POST handler), so it's quick. Keep some headroom for large file
+// bytes over slow connections.
 export const maxDuration = 60;
 
 const BUCKET = "financial-documents";
@@ -240,15 +240,15 @@ export async function POST(req: NextRequest) {
     if (replaceErr) console.error("[admin/documents POST] replace soft-delete failed:", replaceErr);
   }
 
-  // Run AI extraction inline. A failure here does NOT fail the upload — the row
-  // is already saved (with extraction_status='failed') and can be retried via
-  // POST /api/admin/documents/[id]/extract.
-  const extraction = await extractAndPersist(supabase, (row as unknown as { id: string }).id);
-
+  // Extraction is DECOUPLED from upload: we return immediately with the row at
+  // extraction_status='pending'. The client then calls
+  // POST /api/admin/documents/[id]/extract per document — a separate request
+  // with its own maxDuration — so a slow multi-page PDF can no longer push this
+  // upload past the function timeout (the old 504 + HTML-instead-of-JSON bug).
   return NextResponse.json(
     {
-      document: extraction.document ?? row,
-      extraction: { status: extraction.status, error: extraction.error ?? null },
+      document: row,
+      extraction: { status: "pending", error: null },
     },
     { status: 201 },
   );

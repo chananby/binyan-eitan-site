@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, ChevronRight, Inbox, AlertCircle } from "lucide-react";
+import { Loader2, ChevronRight, Inbox, AlertCircle, RefreshCw } from "lucide-react";
 import DocumentReviewForm from "./DocumentReviewForm";
 import { statusChip, displayVendor, type DocRow } from "../_components/labels";
 
@@ -21,6 +21,22 @@ export default function DocumentDetailClient({ id }: { id: string }) {
   const [projects, setProjects] = useState<Opt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [extracting, setExtracting] = useState(false);
+
+  // Re-run extraction for a doc that hasn't been extracted yet (pending — incl.
+  // a zombie from an old upload timeout) or whose extraction failed. The
+  // /extract endpoint is its own request, so it never times out the page.
+  async function reExtract() {
+    if (!doc) return;
+    setExtracting(true); setError(null);
+    try {
+      const res = await fetch(`/api/admin/documents/${doc.id}/extract`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) setError(data.error ?? `שגיאה ${res.status}`);
+      else setDoc(data.document);
+    } catch (e) { setError(String(e)); }
+    finally { setExtracting(false); }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -87,6 +103,17 @@ export default function DocumentDetailClient({ id }: { id: string }) {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4 flex items-center gap-2 text-sm">
             <AlertCircle size={16} /><span>{error}</span>
+          </div>
+        )}
+
+        {doc && (doc.extraction_status === "pending" || doc.extraction_status === "failed") && (
+          <div className={`mb-4 flex items-center justify-between gap-3 rounded-md border px-4 py-3 text-sm ${doc.extraction_status === "failed" ? "border-gray-200 bg-gray-50 text-[#2D2926]/70" : "border-indigo-200 bg-indigo-50 text-indigo-800"}`}>
+            <span>{doc.extraction_status === "failed" ? "החילוץ האוטומטי נכשל. אפשר לנסות שוב או למלא ידנית." : "המסמך ממתין לחילוץ נתונים אוטומטי."}</span>
+            <button onClick={reExtract} disabled={extracting}
+              className="shrink-0 flex items-center gap-1.5 text-xs font-semibold text-[#8D775F] border border-[#8D775F]/40 rounded px-2.5 py-1.5 hover:bg-[#8D775F]/10 disabled:opacity-50">
+              {extracting ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
+              {extracting ? "מחלץ…" : doc.extraction_status === "failed" ? "נסה שוב" : "חלץ נתונים"}
+            </button>
           </div>
         )}
 

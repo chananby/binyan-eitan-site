@@ -80,6 +80,12 @@ export function statusChip(doc: Pick<DocRow, "status" | "extraction_status">): S
   if (doc.extraction_status === "failed") {
     return { label: "חילוץ נכשל", className: "bg-gray-200 text-gray-600", warn: true };
   }
+  // Not yet extracted (decoupled extraction in flight, or a zombie left over
+  // from an old upload timeout). Distinct from review-pending so the row reads
+  // as "waiting for AI" rather than "waiting for your approval".
+  if (doc.extraction_status === "pending" && doc.status !== "approved" && doc.status !== "rejected") {
+    return { label: "ממתין לחילוץ", className: "bg-indigo-100 text-indigo-700" };
+  }
   switch (doc.status) {
     case "approved": return { label: "מאושר", className: "bg-emerald-100 text-emerald-700" };
     case "rejected": return { label: "נדחה",  className: "bg-red-100 text-red-700" };
