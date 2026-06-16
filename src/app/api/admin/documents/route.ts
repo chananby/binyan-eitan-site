@@ -7,7 +7,8 @@
  *          extraction_status='pending', status='pending'.
  *   GET  — list documents with optional filters (status, doc_type,
  *          direction, category, vendor_id, project_id, date_from/date_to on doc_date,
- *          q on vendor_name_raw/doc_number/description). deleted_at IS NULL
+ *          q on vendor_name_raw/doc_number/description, duplicates_only=true →
+ *          only rows with possible_duplicate_of set). deleted_at IS NULL
  *          always. The bucket path is NOT exposed.
  *
  * Admin only. The bucket is private; download flows through
@@ -88,6 +89,7 @@ export async function GET(req: NextRequest) {
   const dateFrom   = searchParams.get("date_from")?.trim()  || null;
   const dateTo     = searchParams.get("date_to")?.trim()    || null;
   const q          = searchParams.get("q")?.trim()          || null;
+  const duplicatesOnly = searchParams.get("duplicates_only") === "true";
   const limit      = Math.min(parseInt(searchParams.get("limit") || "100", 10), 500);
   const offset     = Math.max(parseInt(searchParams.get("offset") || "0", 10), 0);
 
@@ -107,6 +109,7 @@ export async function GET(req: NextRequest) {
   if (projectId) query = query.eq("project_id", projectId);
   if (dateFrom)  query = query.gte("doc_date", dateFrom);
   if (dateTo)    query = query.lte("doc_date", dateTo);
+  if (duplicatesOnly) query = query.not("possible_duplicate_of", "is", null);
   if (q) {
     const pat = `%${q}%`;
     query = query.or(

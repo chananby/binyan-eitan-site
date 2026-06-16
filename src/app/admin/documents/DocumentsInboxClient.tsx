@@ -30,6 +30,7 @@ function buildDocQuery(f: DocFilters, offset: number, limit: number): string {
   if (f.project_id) p.set("project_id", f.project_id);
   if (f.date_from)  p.set("date_from", f.date_from);
   if (f.date_to)    p.set("date_to", f.date_to);
+  if (f.duplicates_only) p.set("duplicates_only", "true");
   if (f.q)          p.set("q", f.q);
   p.set("limit", String(limit));
   p.set("offset", String(offset));
@@ -52,6 +53,7 @@ export default function DocumentsInboxClient() {
 
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [monthApproved, setMonthApproved] = useState<number | null>(null);
+  const [duplicateCount, setDuplicateCount] = useState<number | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
 
   // "Approve all high-confidence" — candidates fetched on demand from pending.
@@ -92,6 +94,8 @@ export default function DocumentsInboxClient() {
       .then(r => r.json())
       .then(d => setMonthApproved((d.documents ?? []).reduce((s: number, x: DocRow) => s + (x.amount_ils ?? 0), 0)))
       .catch(() => {});
+    fetch("/api/admin/documents?duplicates_only=true&limit=500", { cache: "no-store" })
+      .then(r => r.json()).then(d => setDuplicateCount((d.documents ?? []).length)).catch(() => {});
   }, []);
 
   useEffect(() => { if (auth === "admin") loadStats(); }, [auth, loadStats]);
@@ -224,7 +228,7 @@ export default function DocumentsInboxClient() {
           <Package size={16} /> {'חבילה לרו"ח'}
         </button>
 
-        <DocumentFilters filters={filters} setFilters={setFilters} vendors={vendors} projects={projects} />
+        <DocumentFilters filters={filters} setFilters={setFilters} vendors={vendors} projects={projects} duplicateCount={duplicateCount} />
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md flex items-center gap-2 text-sm">

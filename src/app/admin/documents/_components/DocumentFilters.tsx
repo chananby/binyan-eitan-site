@@ -21,11 +21,12 @@ export interface DocFilters {
   date_from: string;
   date_to: string;
   q: string;
+  duplicates_only: string;   // "1" = only docs flagged possible_duplicate_of
 }
 
 export const EMPTY_FILTERS: DocFilters = {
   status: "", doc_type: "", direction: "", category: "", vendor_id: "", project_id: "",
-  date_from: "", date_to: "", q: "",
+  date_from: "", date_to: "", q: "", duplicates_only: "",
 };
 
 interface Opt { id: string; name: string; status?: string | null }
@@ -33,12 +34,13 @@ interface Opt { id: string; name: string; status?: string | null }
 const SELECT = "w-full border border-[#2D2926]/15 rounded-md bg-white px-2.5 py-2 text-sm focus:outline-none focus:border-[#8D775F]";
 
 export default function DocumentFilters({
-  filters, setFilters, vendors, projects,
+  filters, setFilters, vendors, projects, duplicateCount,
 }: {
   filters: DocFilters;
   setFilters: (f: DocFilters) => void;
   vendors: Opt[];
   projects: Opt[];
+  duplicateCount?: number | null;
 }) {
   const [open, setOpen] = useState(false);
   const set = (k: keyof DocFilters, v: string) => setFilters({ ...filters, [k]: v });
@@ -109,6 +111,15 @@ export default function DocumentFilters({
               <input type="date" value={filters.date_to} onChange={e => set("date_to", e.target.value)} className={SELECT} />
             </label>
           </div>
+          <label className="sm:col-span-2 flex items-center gap-2 text-sm text-[#2D2926]/80 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filters.duplicates_only === "1"}
+              onChange={e => set("duplicates_only", e.target.checked ? "1" : "")}
+              className="w-4 h-4 accent-[#8D775F]"
+            />
+            הצג רק חשודים ככפולים{typeof duplicateCount === "number" ? ` (${duplicateCount})` : ""}
+          </label>
           {activeCount > 0 && (
             <button
               onClick={() => setFilters({ ...EMPTY_FILTERS, q: filters.q })}
