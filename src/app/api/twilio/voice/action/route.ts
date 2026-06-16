@@ -24,6 +24,8 @@ import {
   israelHHMM, israelTodayYMD, insertPhoneAttendance,
 } from "../../../../../lib/twilio";
 import { israelDayStartISO } from "../../../../../lib/israel-time";
+import { isEntry } from "../../../../../lib/attendance-time";
+import { hasOpenRecord } from "../../../../../lib/attendance-logic";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,40 +75,65 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Duplicate-guard ──────────────────────────────────────────────────────
-  // Same-day same-action blocks recording a second time. Matches web-flow
-  // behavior for "in" and extends it to "out" since phone callers can't see
-  // their own day so far and might re-call to "make sure". Web flow allows
-  // double-out today; we don't, by user request.
+  // IN:  block only when an OPEN record exists (today's entries > exits) — a
+  //      worker who already clocked out may start a new shift. Matches the
+  //      web flow in /api/attendance.
+  // OUT: unchanged — a second same-day clock-out is still blocked, since phone
+  //      callers can't see their day so far and might re-call to "make sure".
+  // Day scoping is by clock_at (never created_at). Both action vocabularies
+  // ("in"/"out" + "כניסה"/"יציאה") are counted via isEntry/isExit.
   const todayStart = israelDayStartISO(israelTodayYMD());
-  const { data: existing, error: existingErr } = await supabase
-    .from("attendance")
-    .select("id, clock_at, timestamp_label, created_at")
-    .is("deleted_at", null)
-    .eq("staff_id", staffId)
-    .eq("action", action)
-    .gte("created_at", todayStart)
-    .order("created_at", { ascending: false })
-    .limit(1);
-  if (existingErr) {
-    console.error("[twilio/voice/action] dup-check error:", JSON.stringify(existingErr));
-    return twimlResponse(say("שגיאת מערכת זמנית. נסו שוב בעוד רגע.") + "<Hangup/>");
-  }
-  if (existing && existing.length > 0) {
-    const row = existing[0];
-    // Prefer clock_at (always set by both flows) over timestamp_label.
-    // Web check-ins sometimes store timestamp_label as a full localised
-    // datetime string ("25.05.2026, 08:47") rather than HH:MM, which is
-    // fine for table display but makes the IVR sentence wordy. Re-formatting
-    // from clock_at guarantees a clean "HH:MM" we can read aloud.
-    const when =
-      row.clock_at ? israelHHMM(new Date(row.clock_at)) :
-      row.created_at ? israelHHMM(new Date(row.created_at)) :
-      row.timestamp_label || "";
-    const verb = action === "in" ? "כניסה" : "יציאה";
-    const msg = when
-      ? `כבר רשומה ${verb} היום בשעה ${when}. להתראות.`
-      : `כבר רשומה ${verb} היום. להתראות.`;
-    return twimlResponse(say(msg) + "<Hangup/>");
+
+  if (action === "in") {
+    const { data: todays, error: openErr } = await supabase
+      .from("attendance")
+      .select("action, clock_at")
+      .is("deleted_at", null)
+      .eq("staff_id", staffId)
+      .in("action", ["in", "כניסה", "out", "יציאה"])
+      .gte("clock_at", todayStart)
+      .order("clock_at", { ascending: false });
+    if (openErr) {
+      console.error("[twilio/voice/action] dup-check error:", JSON.stringify(openErr));
+      return twimlResponse(say("שגיאת מערכת זמנית. נסו שוב בעוד רגע.") + "<Hangup/>");
+    }
+    if (hasOpenRecord(todays ?? [], todayStart)) {
+      // Latest entry (todays is ordered desc by clock_at) → read its time aloud.
+      const openRow = (todays ?? []).filter((r) => isEntry(r.action))[0];
+      const when = openRow?.clock_at ? israelHHMM(new Date(openRow.clock_at)) : "";
+      const msg = when
+        ? `כבר רשומה כניסה פתוחה היום בשעה ${when}. להתראות.`
+        : `כבר רשומה כניסה פתוחה היום. להתראות.`;
+      return twimlResponse(say(msg) + "<Hangup/>");
+    }
+  } else {
+    const { data: existing, error: existingErr } = await supabase
+      .from("attendance")
+      .select("id, clock_at, timestamp_label, created_at")
+      .is("deleted_at", null)
+      .eq("staff_id", staffId)
+      .eq("action", action)
+      .gte("clock_at", todayStart)
+      .order("clock_at", { ascending: false })
+      .limit(1);
+    if (existingErr) {
+      console.error("[twilio/voice/action] dup-check error:", JSON.stringify(existingErr));
+      return twimlResponse(say("שגיאת מערכת זמנית. נסו שוב בעוד רגע.") + "<Hangup/>");
+    }
+    if (existing && existing.length > 0) {
+      const row = existing[0];
+      // Prefer clock_at (always set by both flows) over timestamp_label, which
+      // older web check-ins stored as a full "25.05.2026, 08:47" string —
+      // wordy to read aloud. Re-formatting from clock_at gives a clean "HH:MM".
+      const when =
+        row.clock_at ? israelHHMM(new Date(row.clock_at)) :
+        row.created_at ? israelHHMM(new Date(row.created_at)) :
+        row.timestamp_label || "";
+      const msg = when
+        ? `כבר רשומה יציאה היום בשעה ${when}. להתראות.`
+        : `כבר רשומה יציאה היום. להתראות.`;
+      return twimlResponse(say(msg) + "<Hangup/>");
+    }
   }
 
   // ── Fetch active projects ───────────────────────────────────────────────

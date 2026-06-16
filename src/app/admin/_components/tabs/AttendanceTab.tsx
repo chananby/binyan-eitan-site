@@ -565,10 +565,13 @@ function ManualEntryForm({
                   <input type="time" value={manualEntryTime} onChange={e => setManualEntryTime(e.target.value)}
                     required className={INPUT} dir="ltr" />
                 </Field>
-                <Field label="שעת יציאה">
+                <Field label="שעת יציאה (אופציונלי)">
                   <input type="time" value={manualExitTime} onChange={e => setManualExitTime(e.target.value)}
-                    required className={INPUT} dir="ltr" />
+                    className={INPUT} dir="ltr" />
                 </Field>
+                <p className="col-span-2 text-[0.65rem] text-charcoal/45 -mt-1">
+                  אפשר להשאיר יציאה ריקה — תיווצר רשומה פתוחה שתיסגר אחר כך.
+                </p>
               </div>
             )}
 

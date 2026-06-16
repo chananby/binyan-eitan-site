@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 import { israelWallClockToISO } from "../../../../../lib/israel-time";
+import { planManualWorkRows } from "../../../../../lib/attendance-logic";
 
 export const runtime = "nodejs";
 
@@ -33,8 +34,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "type לא תקין" }, { status: 400 });
 
   const isWork = type === "regular" || type === "overtime";
+  // Entry is required for a work record. Exit is OPTIONAL: an entry-only save
+  // creates a legitimate OPEN record (mid-day clock-in) that gets its exit
+  // added later — the same shape the live web/IVR flow produces.
   if (isWork && !entry_time) return NextResponse.json({ error: "זמן כניסה נדרש" }, { status: 400 });
-  if (isWork && !exit_time)  return NextResponse.json({ error: "זמן יציאה נדרש" }, { status: 400 });
 
   // Format matching parseLabelDateTime: "D.M.YYYY, HH:MM"
   const [y, m, d] = date.split("-");
@@ -53,11 +56,12 @@ export async function POST(req: NextRequest) {
     ...(project_id?.trim() ? { project_id } : {}),
   });
 
+  // Work entry: one row per planned action (entry always; exit only when an
+  // exit time was supplied → entry-only leaves an open record). Absence: a
+  // single marker row.
   const records: Record<string, unknown>[] = isWork
-    ? [
-        base("כניסה", `${dp}, ${entry_time}`, israelWallClockToISO(date, entry_time!)),
-        base("יציאה", `${dp}, ${exit_time}`,  israelWallClockToISO(date, exit_time!)),
-      ]
+    ? planManualWorkRows(entry_time!, exit_time).map((r) =>
+        base(r.action, `${dp}, ${r.time}`, israelWallClockToISO(date, r.time)))
     : [
         base(
           ABSENCE_ACTION[type] ?? "אחר",
