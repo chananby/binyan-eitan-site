@@ -15,6 +15,7 @@ import { createServerClient } from "../../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 import { israelDayStartISO, israelDayEndISO } from "../../../../../lib/israel-time";
 import { applyDocContentFilters, readDocContentFilters } from "../../../../../lib/document-filters";
+import { mapWithConcurrency } from "../../../../../lib/concurrency";
 import { DOC_TYPE_LABELS, DIRECTION_LABELS, CATEGORY_LABELS } from "../../../../admin/documents/_components/labels";
 import JSZip from "jszip";
 
@@ -141,14 +142,28 @@ export async function GET(req: NextRequest) {
   const rows: (string | number | null)[][] = [header];
   let expenses = 0, income = 0;
 
-  for (const d of docs) {
+  // Phase 1 — download all file bytes in parallel (bounded), preserving order.
+  // The bottleneck was a serial round-trip per file; this overlaps them. A
+  // failed download yields null (no rejection) so one bad file never sinks the
+  // whole package — it's simply skipped from the ZIP (still listed in the CSV).
+  const blobs = await mapWithConcurrency(docs, 6, async (d) => {
+    const { data: blob, error: dlErr } = await supabase.storage.from(BUCKET).download(d.storage_path);
+    if (dlErr || !blob) return null;
+    try { return new Uint8Array(await blob.arrayBuffer()); }
+    catch { return null; }
+  });
+
+  // Phase 2 — name + zip + CSV strictly in doc order (unchanged logic): the
+  // unique-name reservation and zip insertion order must stay deterministic.
+  for (let i = 0; i < docs.length; i++) {
+    const d = docs[i];
     const ext = (d.storage_path.split(".").pop() || "bin").toLowerCase();
     const name = uniqueName(buildName(d, ext), used);
 
-    const { data: blob, error: dlErr } = await supabase.storage.from(BUCKET).download(d.storage_path);
+    const bytes = blobs[i];
     let storedName = "";
-    if (blob && !dlErr) {
-      zip.file(name, new Uint8Array(await blob.arrayBuffer()));
+    if (bytes) {
+      zip.file(name, bytes);
       storedName = name;
     }
 
