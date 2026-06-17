@@ -47,18 +47,25 @@ describe("i18n — dictionary key completeness", () => {
   }
 });
 
-// Placeholders are intentional but they must be obvious — a "[TODO:<lang>]"
-// prefix surfaces them at runtime and supports a grep audit before launch.
-describe("i18n — placeholder languages are marked", () => {
-  for (const lang of ["en", "si", "zh", "hi"] as const) {
-    it(`T.${lang}.clockTitle is marked [TODO:${lang}]`, () => {
-      expect(T[lang].clockTitle.startsWith(`[TODO:${lang}]`)).toBe(true);
+// Stage 2 inverted this guard: every language must now be fully
+// translated. Any value containing "[TODO" — anywhere, scalar or inside
+// `weekdays` — fails the build before it can ship to a worker.
+describe("i18n — no [TODO] markers left in any language", () => {
+  for (const lang of SUPPORTED_LANGS) {
+    it(`T.${lang} contains no "[TODO" marker`, () => {
+      const dict = T[lang];
+      for (const key of Object.keys(dict) as (keyof ScreenStrings)[]) {
+        const v = dict[key];
+        if (Array.isArray(v)) {
+          for (const item of v) {
+            expect(item.includes("[TODO"), `T.${lang}.${String(key)} entry "${item}"`).toBe(false);
+          }
+        } else {
+          expect(v.includes("[TODO"), `T.${lang}.${String(key)} = "${v}"`).toBe(false);
+        }
+      }
     });
   }
-  it("T.he and T.ru are NOT placeholders", () => {
-    expect(T.he.clockTitle.startsWith("[TODO")).toBe(false);
-    expect(T.ru.clockTitle.startsWith("[TODO")).toBe(false);
-  });
 });
 
 describe("i18n — every language has an autonym", () => {
