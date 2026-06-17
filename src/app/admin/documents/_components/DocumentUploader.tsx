@@ -19,13 +19,31 @@ import DuplicateCompareDialog, { paneFromDoc, paneFromFile } from "./DuplicateCo
 import { extractPastedImage } from "./paste-image";
 
 // A failed extraction usually means the AI couldn't parse a clean JSON — most
-// often a PDF holding several documents. Show a friendly, actionable message
-// instead of the raw "JSON אינו תקין" (the original error is still kept in
-// extraction_raw for debugging). HEIC/HEIF keeps its specific note.
-const MULTI_DOC_MSG = "לא הצלחנו לחלץ נתונים מהקובץ. ייתכן שהוא מכיל כמה מסמכים — נסה לפצל ולהעלות כל אחד בנפרד.";
+// often a PDF/photo holding several documents. Show a friendly, actionable
+// message instead of the raw "JSON אינו תקין" (the original error is still
+// kept in extraction_raw for debugging). HEIC/HEIF keeps its specific note.
+const MULTI_DOC_MSG = "זוהו כמה מסמכים בתמונה/קובץ אחד. חתוך כך שכל חשבונית תהיה בקובץ נפרד, והעלה כל אחת בנפרד.";
 function failureText(error?: string | null): string {
-  if (error && /HEIC|HEIF/i.test(error)) return error;
+  if (!error) return MULTI_DOC_MSG;
+  if (/HEIC|HEIF/i.test(error)) return error;
+  // Client-side wrapped errors (network/server failures) are already
+  // user-friendly Hebrew — pass them through instead of overwriting with
+  // the multi-doc note, which would mislead.
+  if (/^שגיאת רשת|^שגיאת שרת/.test(error)) return error;
   return MULTI_DOC_MSG;
+}
+
+// Vercel's default request-body cap for serverless/Node functions is ~4.5 MB.
+// Files above this are rejected by the platform proxy BEFORE the route runs,
+// so the server's MAX_BYTES=10MB check never fires and the client receives
+// raw HTML ("Request Entity Too Large") that explodes the response.json()
+// parser with "Unexpected token R…". A pre-flight client-side check turns
+// this into a per-file, human-readable error and skips the doomed POST.
+const MAX_UPLOAD_MB    = 4.5;
+const MAX_UPLOAD_BYTES = 4.5 * 1024 * 1024;
+function oversizedMsg(file: File): string {
+  const mb = (file.size / 1024 / 1024).toFixed(1);
+  return `הקובץ "${file.name}" שוקל ${mb} MB. המגבלה ${MAX_UPLOAD_MB} MB — נסה לדחוס או לצלם באיכות נמוכה יותר.`;
 }
 
 // Same set the file picker accepts (image/* + PDF) — applied to dropped files.
@@ -50,7 +68,11 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ i: number; n: number } | null>(null);
   const [results, setResults] = useState<ResultCard[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  // List, not a single string, so a batch can surface one banner per
+  // failed file (oversized / network / duplicate-skip) instead of
+  // showing only the last one.
+  const [errors, setErrors] = useState<string[]>([]);
+  const addError = (msg: string) => setErrors(prev => [...prev, msg]);
 
   // Mid-series duplicate prompt. The serial loop awaits decideRef's resolver.
   const [dupPrompt, setDupPrompt] = useState<{ file: File; existing: DocRow; previewUrl: string | null } | null>(null);
@@ -105,11 +127,26 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
     fd.append("file", file);
     for (const [k, v] of Object.entries(extra)) fd.append(k, v);
     const res = await fetch("/api/admin/documents", { method: "POST", body: fd });
+
+    // Safety net for the Vercel platform 413: the proxy returns raw text/HTML
+    // (no JSON), so res.json() throws "Unexpected token R". Catch the size
+    // verdict BEFORE attempting to parse, and treat any non-JSON response as
+    // a generic upload failure rather than crashing the loop.
+    if (res.status === 413) {
+      addError(oversizedMsg(file));
+      return "error";
+    }
+    const contentType = res.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      addError(`העלאת "${file.name}" נכשלה (תגובת שרת לא צפויה, status ${res.status}).`);
+      return "error";
+    }
+
     const data = await res.json();
     if (!res.ok) {
       // 409 = the server safety net caught a duplicate the client check missed
       // (e.g. a concurrent upload). Surface it; don't silently drop.
-      setError(res.status === 409
+      addError(res.status === 409
         ? `"${file.name}" כבר קיים במערכת — דולג.`
         : `העלאת "${file.name}" נכשלה: ${data.error ?? res.status}`);
       return "error";
@@ -123,24 +160,40 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
   async function runExtract(doc: DocRow): Promise<ResultCard> {
     try {
       const res = await fetch(`/api/admin/documents/${doc.id}/extract`, { method: "POST" });
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        return { doc, status: "failed", error: `שגיאת שרת בחילוץ (status ${res.status}).` };
+      }
       const data = await res.json();
       if (!res.ok) return { doc, status: "failed", error: data.error ?? `שגיאה ${res.status}` };
       return { doc: data.document ?? doc, status: data.extraction?.status ?? "failed", error: data.extraction?.error };
-    } catch (e) {
-      return { doc, status: "failed", error: String(e) };
+    } catch {
+      // Network failure / aborted fetch — never leak the raw exception string
+      // to the user; failureText() turns "" into the friendly multi-doc note,
+      // which is wrong here, so use a specific network message instead.
+      return { doc, status: "failed", error: "שגיאת רשת בחילוץ. נסה שוב." };
     }
   }
 
   async function handleFiles(list: File[]) {
     if (list.length === 0) return;
     setBusy(true);
-    setError(null);
+    setErrors([]);
     setResults([]);
     const collected: ResultCard[] = [];
 
     for (let i = 0; i < list.length; i++) {
       const file = list[i];
       setProgress({ i: i + 1, n: list.length });
+
+      // Pre-flight size guard: anything above the Vercel proxy cap never
+      // makes it to /api/admin/documents anyway — surface a clear per-file
+      // message and move on to the next file instead of wasting a doomed
+      // POST that returns raw HTML.
+      if (file.size > MAX_UPLOAD_BYTES) {
+        addError(oversizedMsg(file));
+        continue;
+      }
 
       const extra: Record<string, string> = {};
       try {
@@ -167,8 +220,11 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
           collected[idx] = done;
           setResults([...collected]);
         }
-      } catch (e) {
-        setError(`שגיאת רשת בהעלאת "${file.name}": ${String(e)}`);
+      } catch {
+        // Avoid leaking raw exception text (typically a fetch-level network
+        // error). The per-file fallback covers the only path that reaches
+        // here once uploadOne owns its own error mapping.
+        addError(`שגיאת רשת בהעלאת "${file.name}". נסה שוב.`);
       }
     }
 
@@ -225,10 +281,15 @@ export default function DocumentUploader({ onUploaded }: { onUploaded: () => voi
         )}
       </div>
 
-      {error && (
-        <p className="mt-3 text-sm text-red-600 flex items-center gap-1.5">
-          <AlertTriangle size={14} /> {error}
-        </p>
+      {errors.length > 0 && (
+        <div className="mt-3 space-y-1.5">
+          {errors.map((e, i) => (
+            <p key={i} className="text-sm text-red-600 flex items-start gap-1.5">
+              <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+              <span className="leading-snug">{e}</span>
+            </p>
+          ))}
+        </div>
       )}
 
       {results.length > 0 && (
