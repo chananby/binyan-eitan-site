@@ -12,7 +12,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useFeedback } from "../hooks/useFeedback";
-import { T, type Lang } from "./attendance/i18n";
+import { T, detectInitialLang, SUPPORTED_LANGS, type Lang } from "./attendance/i18n";
 import { countMissingExitDays } from "../../lib/worker-missing-exits";
 import type { Step, GeoCoords, Project, HistoryRecord, CorrectionSummary } from "./attendance/types";
 import PhoneScreen from "./attendance/PhoneScreen";
@@ -31,7 +31,6 @@ function nowLabel() {
 
 export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | "en" }) {
   const portalHref = `/${siteLang}/internal`;
-  const backLabel  = siteLang === "he" ? "חזור לתפריט הראשי" : "Back to Portal";
 
   // ── Worker attendance state ──────────────────────────────────────────────
   const [step, setStep]                     = useState<Step>("phone");
@@ -125,12 +124,19 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   const [selectedProjectId, setSelectedProjectId] = useState("");
 
   // ── UI language (worker-facing only) ─────────────────────────────────────
+  // Initial pick honours an existing localStorage choice first (a worker
+  // who already picked Russian last month stays in Russian); otherwise we
+  // sniff navigator.language so a first-time Sinhala speaker isn't stuck
+  // on Hebrew until they find the picker. SSR falls back to "he".
   const [lang, setLang] = useState<Lang>(() => {
     if (typeof window === "undefined") return "he";
-    return (localStorage.getItem("att_lang") as Lang) ?? "he";
+    const stored = localStorage.getItem("att_lang");
+    if (stored && (SUPPORTED_LANGS as string[]).includes(stored)) return stored as Lang;
+    return detectInitialLang(navigator.language);
   });
   useEffect(() => { localStorage.setItem("att_lang", lang); }, [lang]);
   const t = T[lang];
+  const backLabel = t.backToPortal;
 
   // ── Load worker-flow projects ─────────────────────────────────────────────
   useEffect(() => {
@@ -286,7 +292,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
 
   const submitManual = useCallback(async () => {
     if (!identifiedStaffId) { setStep("phone"); return; }
-    if (!manualDate || !manualTime) { setManualError("יש למלא תאריך ושעה"); return; }
+    if (!manualDate || !manualTime) { setManualError(T[lang].manualValidation); return; }
     setManualLoading(true); setManualError(null);
     try {
       const res = await fetch("/api/worker/manual-entry", {
@@ -303,7 +309,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       else if (res.status === 401) { setManualError(T[lang].sessionExpired); setIdentifiedStaffId(null); }
       else if (res.status === 429) { setManualError(T[lang].tooManyAttempts); }
       else { setManualError(data.error ?? T[lang].unknownError); }
-    } catch { setManualError("שגיאת רשת — נסה שוב"); }
+    } catch { setManualError(T[lang].networkError); }
     finally { setManualLoading(false); }
   }, [identifiedStaffId, manualAction, manualDate, manualTime, manualProject, lang]);
 

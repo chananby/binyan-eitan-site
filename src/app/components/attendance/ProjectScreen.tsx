@@ -42,7 +42,7 @@ export default function ProjectScreen(p: Props) {
           <div className="space-y-2">
             {p.projects.map(pr => (
               <button key={pr.id} onClick={() => p.onPickProject(pr.id)}
-                className={`w-full flex items-center gap-3 px-5 py-4 border transition-all duration-150 text-right ${p.selectedProjectId === pr.id ? "border-accent bg-accent/5 text-accent" : "border-charcoal/15 bg-white hover:border-accent/50 text-charcoal"}`}>
+                className={`w-full flex items-center gap-3 px-5 py-4 border transition-all duration-150 text-start ${p.selectedProjectId === pr.id ? "border-accent bg-accent/5 text-accent" : "border-charcoal/15 bg-white hover:border-accent/50 text-charcoal"}`}>
                 <Building2 size={18} strokeWidth={1.5} className="shrink-0" />
                 <p className="font-heading text-sm font-semibold truncate flex-1">{pr.name}</p>
               </button>

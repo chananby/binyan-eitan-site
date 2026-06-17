@@ -2,6 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ────────────────────────────────────────────────────────────────────────
+   Script fallbacks for the worker attendance i18n flow.
+   "Assistant" / "Heebo" cover Latin + Hebrew + Cyrillic, but neither
+   includes Sinhala or Devanagari glyphs — without a fallback those
+   ranges render as boxes on most systems. By aliasing the heading font
+   name to a `local()` chain restricted via `unicode-range`, the browser
+   automatically picks up whichever native script font the OS happens to
+   ship with (Noto / Iskoola Pota / Mangal / Sinhala Sangam MN / …) and
+   only for characters in that range. No webfonts downloaded.
+   ──────────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "Assistant";
+  font-style: normal;
+  font-weight: 100 900;
+  src: local("Noto Sans Sinhala"), local("Iskoola Pota"), local("Sinhala Sangam MN"), local("sans-serif");
+  unicode-range: U+0D80-0DFF;
+}
+@font-face {
+  font-family: "Assistant";
+  font-style: normal;
+  font-weight: 100 900;
+  src: local("Noto Sans Devanagari"), local("Mangal"), local("Devanagari Sangam MN"), local("Lohit Devanagari"), local("sans-serif");
+  unicode-range: U+0900-097F;
+}
+
 :root {
   --color-bone: #F3F2EE;
   --color-bone-dark: #E8E7E3;

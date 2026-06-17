@@ -61,9 +61,10 @@ function clockTime(r: HistoryRecord | null | undefined): string {
   return labelTime(r.timestamp_label);
 }
 
-const HE_DAYS_LOCAL = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"] as const;
-function dayNameFromDt(dt: Date | null): string {
-  return dt ? `יום ${HE_DAYS_LOCAL[dt.getDay()]}` : "";
+function dayNameFromDt(dt: Date | null, t: ScreenStrings): string {
+  if (!dt) return "";
+  const name = t.weekdays[dt.getDay()];
+  return t.dayPrefix ? `${t.dayPrefix} ${name}` : name;
 }
 
 type DayRow = {
@@ -98,7 +99,7 @@ export default function HistoryScreen(p: Props) {
       }
       const dayDt = first ? clockDt(first) : (last ? clockDt(last) : null);
       return {
-        date, dayName: dayNameFromDt(dayDt), project: day.project,
+        date, dayName: dayNameFromDt(dayDt, p.t), project: day.project,
         entry: clockTime(first), exit: clockTime(last), hours,
         entryId: first?.id, exitId: last?.id,
       };
@@ -116,7 +117,7 @@ export default function HistoryScreen(p: Props) {
         type="button"
         onClick={() => p.setReportingId(recordId)}
         className="ms-1 text-charcoal/40 hover:text-accent transition-colors"
-        title="דווח על טעות"
+        title={p.t.reportMistakeTooltip}
       ><Pencil size={11} strokeWidth={1.75} /></button>
     );
   }
@@ -163,10 +164,10 @@ export default function HistoryScreen(p: Props) {
           <div className="w-full space-y-1">
             {/* Header */}
             <div className="grid grid-cols-4 gap-1 px-2 py-1.5 text-[0.58rem] font-semibold text-charcoal/40 uppercase tracking-wide border-b border-charcoal/8">
-              <span>תאריך</span>
-              <span className="text-center">כניסה</span>
-              <span className="text-center">יציאה</span>
-              <span className="text-end">שעות</span>
+              <span>{p.t.historyColDate}</span>
+              <span className="text-center">{p.t.historyColEntry}</span>
+              <span className="text-center">{p.t.historyColExit}</span>
+              <span className="text-end">{p.t.historyColHours}</span>
             </div>
             <div className="divide-y divide-charcoal/8 max-h-[48vh] overflow-y-auto">
               {dayRows.map((row, i) => {
@@ -211,8 +212,8 @@ export default function HistoryScreen(p: Props) {
             </div>
             {/* Total */}
             <div className="flex items-center justify-between bg-white border border-charcoal/10 shadow-sm px-3 py-2.5 mt-1">
-              <span className="font-body text-xs font-semibold text-charcoal/60">סה&quot;כ</span>
-              <span className="font-heading text-base font-bold text-charcoal tabular-nums">{totalHours.toFixed(1)} שעות</span>
+              <span className="font-body text-xs font-semibold text-charcoal/60">{p.t.historyTotal}</span>
+              <span className="font-heading text-base font-bold text-charcoal tabular-nums">{totalHours.toFixed(1)} {p.t.historyHoursUnit}</span>
             </div>
           </div>
         )}
@@ -225,9 +226,9 @@ export default function HistoryScreen(p: Props) {
             {pendingEntries.map(r => (
               <div key={r.id} className="flex items-center justify-between px-3 py-2 gap-3">
                 <span className="text-xs font-semibold text-charcoal/80">
-                  {r.action === "in" ? "כניסה" : "יציאה"}
+                  {(r.action === "in" || r.action === "כניסה") ? p.t.clockIn : p.t.clockOut}
                 </span>
-                <span className="font-body text-xs text-charcoal/60 flex-1" dir="rtl">{labelWithDayHe(r.timestamp_label) ?? "—"}</span>
+                <span className="font-body text-xs text-charcoal/60 flex-1">{labelWithDayHe(r.timestamp_label) ?? "—"}</span>
                 <span className="font-body text-[0.75rem] text-amber-600 bg-amber-100 px-1.5 py-0.5">{p.t.pendingBadge}</span>
               </div>
             ))}
