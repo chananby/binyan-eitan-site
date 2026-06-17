@@ -173,7 +173,10 @@ export async function GET(req: NextRequest) {
 
   // ── Workbook ──────────────────────────────────────────────────────────────
   const todayDDMM = ymdToDDMMYYYY(todayYmd);
-  const sheetTitle = `דוח עובדים - ${todayDDMM}`;
+  // ExcelJS forbids `\ / ? * [ ]` in worksheet names — swap the "/"
+  // in DD/MM/YYYY for "." so a fresh export doesn't 500 every time
+  // the day rolls over.
+  const sheetTitle = `דוח עובדים - ${todayDDMM.replace(/\//g, ".")}`;
   const wb = new ExcelJS.Workbook();
   wb.creator = "Binyan Eitan";
   wb.created = new Date();
