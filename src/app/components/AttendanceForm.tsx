@@ -168,7 +168,14 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       } else if (res.status === 429) {
         feedback.error(); setIdentifyError(T[lang].tooManyAttempts);
       } else if (res.status === 401) {
-        feedback.error(); setIdentifyError(T[lang].noInternalAccess);
+        // 401 here means the be_internal_token (PIN) cookie expired or was
+        // wiped while sessionStorage still claimed authed. Show a message
+        // that matches what actually happened, drop the stale flag, then
+        // reload — PinGate's mount probe will see no flag and render the
+        // PIN keypad, letting the worker re-auth without manual recovery.
+        feedback.error(); setIdentifyError(T[lang].pinExpired);
+        try { sessionStorage.removeItem("be_internal_auth"); } catch { /* private mode */ }
+        setTimeout(() => { window.location.reload(); }, 1500);
       } else {
         feedback.error(); setIdentifyError(d?.error ?? T[lang].unknownError);
       }
@@ -416,9 +423,16 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   if (!identifyCheckDone) return null;
 
   // Default: phone-entry → /api/worker/identify (NOT clock-in).
+  // Wrap setPhone so editing the phone clears any stale identifyError —
+  // otherwise a previous 401/404 message keeps reading like a fresh error
+  // even after the worker starts typing a new number.
+  const onPhoneChange = (v: string) => {
+    setPhone(v);
+    if (identifyError) setIdentifyError(null);
+  };
   return (
     <PhoneScreen {...common}
-      phone={phone} setPhone={setPhone}
+      phone={phone} setPhone={onPhoneChange}
       identifying={identifying}
       identifyError={identifyError}
       onIdentify={identify}

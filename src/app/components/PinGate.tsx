@@ -34,10 +34,36 @@ export default function PinGate({ children, lang = "he" }: { children: React.Rea
   const [checking, setChecking]   = useState(false);
   const verifyingRef = useRef(false);
 
-  // Check sessionStorage on mount
+  // sessionStorage is a fast hint — but the be_internal_token cookie has a
+  // 12 h TTL while sessionStorage survives for the whole tab lifetime. A
+  // foreman who keeps a tab open overnight ends up with a stale "authed"
+  // flag and a missing cookie, so /api/worker/identify rejects them with
+  // 401 the moment they try to clock in. To prevent that drift, only trust
+  // the cached flag once we've round-tripped the GET probe and confirmed
+  // the server still recognises the cookie. On 401 → wipe the cache and
+  // let the PIN UI surface; on network blip → fall back to the cached hint
+  // so a transient outage doesn't lock the worker out of the form.
   useEffect(() => {
-    if (sessionStorage.getItem(SESSION_KEY) === "1") setAuthed(true);
-    setReady(true);
+    let cancelled = false;
+    const cached = sessionStorage.getItem(SESSION_KEY) === "1";
+    if (!cached) { setReady(true); return; }
+    (async () => {
+      try {
+        const res = await fetch("/api/internal-auth", { method: "GET" });
+        if (cancelled) return;
+        if (res.ok) {
+          setAuthed(true);
+        } else {
+          sessionStorage.removeItem(SESSION_KEY);
+        }
+      } catch {
+        if (cancelled) return;
+        setAuthed(true);
+      } finally {
+        if (!cancelled) setReady(true);
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const verify = useCallback(async (code: string) => {

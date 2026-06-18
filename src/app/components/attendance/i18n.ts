@@ -53,6 +53,10 @@ export interface ScreenStrings {
   corrPending: string; corrApproved: string; corrRejected: string;
   manualDateLabel: string; manualTimeIn: string; manualTimeOut: string; manualProjectLabel: string;
   identify: string; identifying: string; tooManyAttempts: string; sessionExpired: string;
+  // 401 from POST /api/worker/identify — the be_internal_token (PIN) cookie
+  // expired/was wiped. Distinct from sessionExpired (worker auth cookie
+  // expired) and from noInternalAccess (history endpoint context).
+  pinExpired: string;
   menuPrompt: string; startClock: string; switchUser: string;
   missingExitOne: string; missingExitMany: string; missingExitCta: string;
   // ── Added in the 6-language migration ──────────────────────────────────
@@ -147,6 +151,7 @@ const HE: ScreenStrings = {
   identifying: "מאמת...",
   tooManyAttempts: "יותר מדי ניסיונות. נסה שוב בעוד כמה דקות.",
   sessionExpired: "פג תוקף ההזדהות. אנא הזדהה מחדש.",
+  pinExpired: "פג תוקף קוד הכניסה — נא להזין שוב",
   menuPrompt: "מה תרצה לעשות?",
   startClock: "החתמת נוכחות",
   switchUser: "החלף משתמש",
@@ -237,6 +242,7 @@ const RU: ScreenStrings = {
   identifying: "Проверка...",
   tooManyAttempts: "Слишком много попыток. Попробуйте через несколько минут.",
   sessionExpired: "Сессия истекла. Войдите снова.",
+  pinExpired: "Срок действия кода входа истёк — введите его снова",
   menuPrompt: "Что вы хотите сделать?",
   startClock: "Отметить явку",
   switchUser: "Сменить пользователя",
@@ -327,6 +333,7 @@ const EN: ScreenStrings = {
   identifying: "Verifying…",
   tooManyAttempts: "Too many attempts. Try again in a few minutes.",
   sessionExpired: "Your session has expired. Please sign in again.",
+  pinExpired: "Your session has expired. Please sign in again.",
   menuPrompt: "What would you like to do?",
   startClock: "Clock attendance",
   switchUser: "Switch user",
@@ -417,6 +424,7 @@ const SI: ScreenStrings = {
   identifying: "සත්‍යාපනය වෙමින්…",
   tooManyAttempts: "උත්සාහයන් ඉතා වැඩියි. මිනිත්තු කිහිපයකින් නැවත උත්සාහ කරන්න.",
   sessionExpired: "ඔබේ සැසිය කල් ඉකුත් විය. කරුණාකර නැවත පුරනය වන්න.",
+  pinExpired: "ඔබේ සැසිය කල් ඉකුත් විය. කරුණාකර නැවත පුරනය වන්න.",
   menuPrompt: "ඔබ කුමක් කිරීමට කැමතිද?",
   startClock: "පැමිණීම සටහන් කරන්න",
   switchUser: "පරිශීලක මාරු කරන්න",
@@ -507,6 +515,7 @@ const ZH: ScreenStrings = {
   identifying: "正在验证…",
   tooManyAttempts: "尝试次数过多。请几分钟后重试。",
   sessionExpired: "会话已过期。请重新登录。",
+  pinExpired: "会话已过期。请重新登录。",
   menuPrompt: "您想做什么？",
   startClock: "打卡考勤",
   switchUser: "切换用户",
@@ -597,6 +606,7 @@ const HI: ScreenStrings = {
   identifying: "सत्यापित हो रहा है…",
   tooManyAttempts: "बहुत अधिक प्रयास। कुछ मिनट बाद पुनः प्रयास करें।",
   sessionExpired: "आपका सत्र समाप्त हो गया। कृपया पुनः साइन इन करें।",
+  pinExpired: "आपका सत्र समाप्त हो गया। कृपया पुनः साइन इन करें।",
   menuPrompt: "आप क्या करना चाहेंगे?",
   startClock: "उपस्थिति दर्ज करें",
   switchUser: "उपयोगकर्ता बदलें",
