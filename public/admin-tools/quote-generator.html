@@ -1420,6 +1420,16 @@
     .doc-table thead { display: table-header-group; }
     .doc-table tr { page-break-inside: avoid; }
     .doc-table .section-row { page-break-after: avoid; }
+    /* Headers print legibly even when the browser strips backgrounds:
+       the screen rule uses white-on-navy (var(--brand)), which collapses
+       to white-on-white once "background graphics" is off — the default
+       in Chrome/Safari print dialogs. Swap to dark text on transparent
+       and keep visual rank with a brand-coloured rule below. */
+    .doc-table thead th {
+      background: transparent !important;
+      color: var(--text) !important;
+      border-bottom: 2px solid var(--brand);
+    }
     .doc-totals, .doc-notes, .doc-payment-terms, .doc-footer {
       page-break-inside: avoid;
     }
