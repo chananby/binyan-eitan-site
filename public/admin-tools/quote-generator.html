@@ -1431,6 +1431,50 @@
     .form-panel { max-height: none; position: static; }
     .preview-panel { max-height: none; }
   }
+
+  /* ============ CATALOG AUTOCOMPLETE (PR 2) ============ */
+  /* Anchored absolute, the form-panel is the offset parent. Positioned by JS
+     just under the active name textarea. */
+  .ac-popover {
+    position: absolute;
+    z-index: 50;
+    min-width: 240px;
+    max-width: 420px;
+    max-height: 280px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+    display: none;
+  }
+  .ac-popover.is-open { display: block; }
+  .ac-row {
+    padding: 8px 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1efea;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  .ac-row:last-child { border-bottom: 0; }
+  .ac-row.is-active,
+  .ac-row:hover { background: #f5f4f0; }
+  .ac-row-name { font-weight: 600; color: var(--text); }
+  .ac-row-meta { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .ac-empty {
+    padding: 10px;
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+  }
+  /* "פריטים קבועים" button — same family as .btn-small but with a subtle
+     accent to read as "browse" rather than "add new". */
+  .btn-catalog {
+    background: #f1ede4;
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .btn-catalog:hover { background: var(--accent); color: #fff; }
 </style>
 </head>
 <body>
@@ -2126,6 +2170,7 @@
         }).join('')}
         <div class="section-actions">
           <button class="btn-small" data-add-item="${section.id}">+ הוסף פריט</button>
+          <button class="btn-small btn-catalog" data-catalog-browse="${section.id}" title="בחר מתוך מאגר הפריטים הקבועים">⭐ פריטים קבועים</button>
         </div>
         <div class="section-subtotal">סכום הפרק: ${money(sectionTotal(section))}</div>
       </div>
@@ -2879,6 +2924,10 @@
       if (item) {
         if (field === 'description' || field === 'name') {
           item[field] = t.value;
+          // PR 2: trigger catalog autocomplete on the name field. The
+          // popover is debounced (~250ms) so the saveState() call below
+          // still runs unconditionally — autocomplete is a side channel.
+          if (field === 'name') scheduleInlineAutocomplete(t, sid, iid);
         } else if (field === 'unit') {
           if (t.value === '__custom__') {
             // Switch to custom mode. Preserve any existing custom value the user
@@ -3082,6 +3131,20 @@
         s.items.push({ id: uid(), name: '', description: '', quantity: 1, unit: "יח'", unitPrice: 0, unitIsCustom: false });
         render();
         saveState();
+      }
+      return;
+    }
+
+    // PR 2: open the catalog browser popover anchored to this button.
+    // Clicking an item appends a new pre-filled row (see appendRowFromCatalog).
+    if (t.matches('[data-catalog-browse]')) {
+      const sid = t.getAttribute('data-catalog-browse');
+      // If the catalog hasn't loaded yet (rare; init() kicked it on mount)
+      // fire-and-await before opening so the popover isn't empty-looking.
+      if (!catalogLoaded) {
+        loadCatalog().then(() => openBrowse(t, sid));
+      } else {
+        openBrowse(t, sid);
       }
       return;
     }
@@ -3511,10 +3574,245 @@
     resizer.addEventListener('touchstart', onDown, { passive: false });
   })();
 
+  // ============ CATALOG: FIXED-ITEMS AUTOCOMPLETE (PR 2 of 3) ============
+  // The "fixed items" catalog (catalog_items table, GET via /api/admin/
+  // catalog-items) is consulted from two places:
+  //   • inline autocomplete on the name textarea — surfaces matches as the
+  //     user types so they can fill name+unit+unitPrice in one click.
+  //   • a per-section "פריטים קבועים" button — opens the catalog as a
+  //     browseable list; picking an item appends a new pre-filled row to
+  //     that section (chose "always append a new row" over "fill the first
+  //     empty row" because the latter is ambiguous when several empty rows
+  //     exist and it surprises the user with a row they didn't aim at).
+  //
+  // Failure mode is deliberately silent: if the GET fails for any reason,
+  // catalog stays empty and the generator keeps working exactly as before.
+  // No upcoming endpoint is added for usage_count increment in this PR —
+  // skipped per task scope.
+  let catalog = [];
+  let catalogLoaded = false;
+  async function loadCatalog() {
+    if (catalogLoaded) return;
+    try {
+      const r = await fetch('/api/admin/catalog-items?limit=200', { credentials: 'same-origin' });
+      if (r.ok) {
+        const d = await r.json();
+        if (Array.isArray(d.items)) catalog = d.items;
+      }
+    } catch (_e) { /* silent degrade — the generator works without */ }
+    catalogLoaded = true;
+  }
+  function normalizeCatalogName(s) {
+    if (!s) return '';
+    return String(s).trim().replace(/\s+/g, ' ').toLowerCase();
+  }
+
+  // ── Autocomplete state ────────────────────────────────────────────────
+  // A single popover element is reused across all name fields. ac.mode
+  // distinguishes the inline name autocomplete ("inline") from the "browse
+  // the catalog" mode that the section button opens ("browse").
+  const ac = {
+    el: null,                 // the popover DOM element (lazy-created)
+    open: false,
+    mode: null,               // 'inline' | 'browse'
+    anchor: null,             // the textarea (inline) or button (browse) being anchored to
+    sectionId: null,
+    itemId: null,             // only set in inline mode
+    matches: [],
+    selected: 0,
+    debounceTimer: null,
+  };
+
+  function ensurePopover() {
+    if (ac.el) return ac.el;
+    const el = document.createElement('div');
+    el.className = 'ac-popover';
+    el.setAttribute('role', 'listbox');
+    document.body.appendChild(el);
+    // Click inside → pick the row. mousedown so it fires before the
+    // textarea's blur cancels things.
+    el.addEventListener('mousedown', (e) => {
+      const row = e.target.closest('.ac-row');
+      if (!row) return;
+      e.preventDefault();
+      pickIndex(Number(row.dataset.idx));
+    });
+    ac.el = el;
+    return el;
+  }
+  function positionPopover() {
+    if (!ac.open || !ac.anchor || !ac.el) return;
+    const rect = ac.anchor.getBoundingClientRect();
+    // window scroll offsets — the popover is appended to <body> (not the
+    // anchor), so we need page-coordinate math, not viewport.
+    ac.el.style.top  = (window.scrollY + rect.bottom + 4) + 'px';
+    ac.el.style.left = (window.scrollX + rect.left) + 'px';
+    ac.el.style.minWidth = Math.max(240, rect.width) + 'px';
+  }
+  function renderPopover() {
+    const el = ensurePopover();
+    if (ac.matches.length === 0) {
+      el.innerHTML = '<div class="ac-empty">אין התאמות במאגר</div>';
+      return;
+    }
+    el.innerHTML = ac.matches.map((m, i) => {
+      const unit  = m.unit ? esc(m.unit) : '';
+      const price = (typeof m.unit_price === 'number' && m.unit_price > 0)
+        ? money(m.unit_price) + (unit ? ' / ' + unit : '')
+        : (unit ? unit : '');
+      return `
+        <div class="ac-row${i === ac.selected ? ' is-active' : ''}" data-idx="${i}" role="option">
+          <div class="ac-row-name">${esc(m.name)}</div>
+          ${price ? `<div class="ac-row-meta">${price}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+    // Keep the active row in view when arrowing past the visible bound.
+    const active = el.querySelector('.ac-row.is-active');
+    if (active) active.scrollIntoView({ block: 'nearest' });
+  }
+  function openInlineAutocomplete(textarea, sid, iid, query) {
+    const q = normalizeCatalogName(query);
+    if (q.length < 2 || catalog.length === 0) { closeAutocomplete(); return; }
+    // Filter + sort: substring on normalized name, then by usage_count DESC
+    // (which is the order the API already returned them in). Cap at 8 so
+    // the popover never grows taller than ~280px.
+    const matches = catalog
+      .filter(c => normalizeCatalogName(c.name).includes(q))
+      .slice(0, 8);
+    if (matches.length === 0) { closeAutocomplete(); return; }
+    ac.open = true;
+    ac.mode = 'inline';
+    ac.anchor = textarea;
+    ac.sectionId = sid;
+    ac.itemId = iid;
+    ac.matches = matches;
+    ac.selected = 0;
+    ensurePopover().classList.add('is-open');
+    renderPopover();
+    positionPopover();
+  }
+  function openBrowse(button, sid) {
+    if (catalog.length === 0) {
+      // Still show something so the user knows the button worked but
+      // there's nothing yet — common during the rollout.
+      ac.matches = [];
+    } else {
+      // Show the top of the catalog (usage_count DESC, then name ASC —
+      // already the GET sort order). Cap at 40 in browse mode; the
+      // popover scrolls.
+      ac.matches = catalog.slice(0, 40);
+    }
+    ac.open = true;
+    ac.mode = 'browse';
+    ac.anchor = button;
+    ac.sectionId = sid;
+    ac.itemId = null;
+    ac.selected = 0;
+    const el = ensurePopover();
+    el.classList.add('is-open');
+    el.style.maxHeight = '320px';
+    renderPopover();
+    positionPopover();
+  }
+  function closeAutocomplete() {
+    if (!ac.open) return;
+    ac.open = false; ac.mode = null; ac.anchor = null;
+    ac.sectionId = null; ac.itemId = null;
+    ac.matches = []; ac.selected = 0;
+    if (ac.el) {
+      ac.el.classList.remove('is-open');
+      ac.el.style.maxHeight = '';
+    }
+  }
+  function moveSelection(delta) {
+    if (!ac.open || ac.matches.length === 0) return;
+    ac.selected = (ac.selected + delta + ac.matches.length) % ac.matches.length;
+    renderPopover();
+  }
+  function pickIndex(idx) {
+    if (!ac.open || idx < 0 || idx >= ac.matches.length) return;
+    const picked = ac.matches[idx];
+    if (ac.mode === 'inline') applyToItem(ac.sectionId, ac.itemId, picked);
+    else if (ac.mode === 'browse') appendRowFromCatalog(ac.sectionId, picked);
+    closeAutocomplete();
+  }
+
+  // Apply a catalog hit to an existing row (inline mode).
+  function applyToItem(sid, iid, picked) {
+    const section = state.sections.find(s => s.id === sid);
+    const item    = section?.items.find(i => i.id === iid);
+    if (!item) return;
+    item.name = picked.name;
+    if (typeof picked.unit_price === 'number') item.unitPrice = picked.unit_price;
+    if (picked.unit) {
+      item.unit = picked.unit;
+      item.unitIsCustom = !UNIT_OPTIONS.includes(picked.unit);
+    }
+    renderSections();
+    renderPreview();
+    saveState();
+    requestAnimationFrame(autoSizeAll);
+  }
+  // Append a new pre-filled row to a section (browse mode).
+  function appendRowFromCatalog(sid, picked) {
+    const s = state.sections.find(x => x.id === sid);
+    if (!s) return;
+    const unit = picked.unit || "יח'";
+    s.items.push({
+      id: uid(),
+      name: picked.name,
+      description: '',
+      quantity: 1,
+      unit,
+      unitPrice: (typeof picked.unit_price === 'number') ? picked.unit_price : 0,
+      unitIsCustom: !UNIT_OPTIONS.includes(unit),
+    });
+    render();
+    saveState();
+  }
+
+  // Debounced trigger for the inline mode — driven from the existing
+  // input handler (see the field === 'name' branch below).
+  function scheduleInlineAutocomplete(textarea, sid, iid) {
+    if (ac.debounceTimer) clearTimeout(ac.debounceTimer);
+    ac.debounceTimer = setTimeout(() => openInlineAutocomplete(textarea, sid, iid, textarea.value), 250);
+  }
+
+  // ── Keyboard navigation. Registered at capture so we get Enter BEFORE
+  //    the textarea's default "insert newline" fires. We only intercept
+  //    when the popover is open AND the focus is on the active anchor.
+  document.addEventListener('keydown', (e) => {
+    if (!ac.open) return;
+    // Only intercept while the active anchor or popover row owns focus.
+    // (For the browse button we don't lock focus; navigation still works
+    // because the button keeps focus until something else takes it.)
+    const target = e.target;
+    if (ac.mode === 'inline' && target !== ac.anchor) return;
+    if (e.key === 'ArrowDown')      { e.preventDefault(); moveSelection(+1); }
+    else if (e.key === 'ArrowUp')   { e.preventDefault(); moveSelection(-1); }
+    else if (e.key === 'Enter')     { e.preventDefault(); pickIndex(ac.selected); }
+    else if (e.key === 'Escape')    { e.preventDefault(); closeAutocomplete(); }
+  }, true);
+
+  // ── Click-outside closes. Don't close if the click is on the popover
+  //    itself (mousedown handler will pick the row).
+  document.addEventListener('mousedown', (e) => {
+    if (!ac.open) return;
+    if (ac.el && ac.el.contains(e.target)) return;
+    if (e.target === ac.anchor) return;
+    closeAutocomplete();
+  });
+  // Reposition on scroll/resize while open so the popover follows the
+  // anchor instead of detaching visually.
+  window.addEventListener('scroll', () => positionPopover(), true);
+  window.addEventListener('resize', () => positionPopover());
+
   // ============ INIT ============
   render();
   cloudSync.init();
   updateDocumentTitle();
+  loadCatalog();
 </script>
 
 </body>
