@@ -37,6 +37,12 @@ interface Props {
   onSite: OnSiteEntry[];
   laborEstimate: number;
   todayExpensesTotal: number;
+  // Forward-looking monthly salary forecast — null while in flight, then a
+  // number, or null if the request failed (card stays out of the way in
+  // that case rather than flashing a 0).
+  monthlySalaryForecast: number | null;
+  monthlySalaryForecastCount: number | null;
+  monthlySalaryForecastLoading: boolean;
   todayTasks: Task[];
   roleMap: Record<string, number>;
   activeProjects: Project[];
@@ -127,6 +133,36 @@ export default function DashboardTab(p: Props) {
                 ₪{Math.round(p.laborEstimate + p.todayExpensesTotal).toLocaleString("he-IL")}
               </span>
             </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Admin: forward-looking monthly salary forecast.
+          A rough planning number — 22 days × 8.5 h × current rate per active
+          worker. Sits next to the "today" card so the admin sees both a
+          spend snapshot and a month-ahead estimate without leaving Dashboard. */}
+      {p.isAdmin && (
+        <Card title="📅 צפי שכר חודשי (אומדן)">
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center py-1.5">
+              <span className="text-sm text-charcoal/60">חודש מלא צפוי</span>
+              {p.monthlySalaryForecastLoading ? (
+                <span className="text-sm text-charcoal/40">טוען…</span>
+              ) : p.monthlySalaryForecast == null ? (
+                <span className="text-sm text-charcoal/40">—</span>
+              ) : (
+                <span className="text-base font-bold text-accent tabular-nums">
+                  ₪{Math.round(p.monthlySalaryForecast).toLocaleString("he-IL")}
+                </span>
+              )}
+            </div>
+            <p className="text-[0.7rem] text-charcoal/45 leading-snug">
+              אומדן גס: 22 ימי עבודה × 8.5 שעות
+              {p.monthlySalaryForecastCount != null && p.monthlySalaryForecastCount > 0 && (
+                <>, {p.monthlySalaryForecastCount} עובדים פעילים</>
+              )}.
+              לא כולל חופשות, חגים או היעדרויות.
+            </p>
           </div>
         </Card>
       )}

@@ -490,6 +490,32 @@ export default function AdminPortal() {
     [materials, todayStr]
   );
 
+  // Forward-looking monthly salary forecast — admin only, one-shot fetch on
+  // mount. The route does the rate lookup + math; we just surface
+  // total/count to the dashboard card. A failure leaves the values at null
+  // so the card shows "—" instead of a misleading 0.
+  const [salaryForecast, setSalaryForecast] = useState<{ total: number | null; count: number | null; loading: boolean }>(
+    { total: null, count: null, loading: false },
+  );
+  // Guarded on authState (not the derived `isAdmin` const, which is declared
+  // later in this component). Refetches only when the worker transitions
+  // into admin mode — on a login or a view-as flip.
+  useEffect(() => {
+    if (authState !== "admin") return;
+    let cancelled = false;
+    setSalaryForecast(prev => ({ ...prev, loading: true }));
+    fetch("/api/admin/payroll/forecast")
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => {
+        if (cancelled || !d) return;
+        setSalaryForecast({ total: d.total ?? 0, count: d.count ?? 0, loading: false });
+      })
+      .catch(() => {
+        if (!cancelled) setSalaryForecast({ total: null, count: null, loading: false });
+      });
+    return () => { cancelled = true; };
+  }, [authState]);
+
   const todayTasks = useMemo(
     () => tasks.filter(t => {
       if (t.status === "completed") return false;
@@ -1234,6 +1260,9 @@ export default function AdminPortal() {
             isAdmin={isAdmin} isForeman={isForeman}
             onSite={onSite} laborEstimate={laborEstimate}
             todayExpensesTotal={todayExpensesTotal}
+            monthlySalaryForecast={salaryForecast.total}
+            monthlySalaryForecastCount={salaryForecast.count}
+            monthlySalaryForecastLoading={salaryForecast.loading}
             todayTasks={todayTasks} roleMap={roleMap}
             activeProjects={activeProjects}
             staff={staff} todayLogs={todayLogs}
