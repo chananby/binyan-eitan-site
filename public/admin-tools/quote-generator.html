@@ -492,6 +492,13 @@
     text-align: right;
     font-size: 10pt;
     font-weight: 600;
+    /* Force the navy fill to print so the white labels don't collapse
+       onto a white page. The property is evaluated on the element at
+       print time — independent of @media print rules, which can fail
+       to apply when the parent page (React) triggers print on this
+       embedded iframe. Both prefixes for Chrome/Safari + Firefox. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .doc-table thead th.num { text-align: center; width: 50px; }
   .doc-table thead th.price { text-align: left; width: 90px; }
@@ -1420,16 +1427,6 @@
     .doc-table thead { display: table-header-group; }
     .doc-table tr { page-break-inside: avoid; }
     .doc-table .section-row { page-break-after: avoid; }
-    /* Headers print legibly even when the browser strips backgrounds:
-       the screen rule uses white-on-navy (var(--brand)), which collapses
-       to white-on-white once "background graphics" is off — the default
-       in Chrome/Safari print dialogs. Swap to dark text on transparent
-       and keep visual rank with a brand-coloured rule below. */
-    .doc-table thead th {
-      background: transparent !important;
-      color: var(--text) !important;
-      border-bottom: 2px solid var(--brand);
-    }
     .doc-totals, .doc-notes, .doc-payment-terms, .doc-footer {
       page-break-inside: avoid;
     }
