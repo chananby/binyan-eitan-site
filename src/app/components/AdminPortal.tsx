@@ -491,12 +491,24 @@ export default function AdminPortal() {
   );
 
   // Forward-looking monthly salary forecast — admin only, one-shot fetch on
-  // mount. The route does the rate lookup + math; we just surface
-  // total/count to the dashboard card. A failure leaves the values at null
-  // so the card shows "—" instead of a misleading 0.
-  const [salaryForecast, setSalaryForecast] = useState<{ total: number | null; count: number | null; loading: boolean }>(
-    { total: null, count: null, loading: false },
-  );
+  // mount. The route does the rate lookup + math; we surface total/count
+  // to the dashboard card, and per_worker[] to the breakdown dialog.
+  // A failure leaves total/count at null so the card shows "—" instead of
+  // a misleading 0; per_worker stays [] in that case so the dialog opens
+  // empty rather than crashing.
+  const [salaryForecast, setSalaryForecast] = useState<{
+    total: number | null;
+    count: number | null;
+    loading: boolean;
+    lines: {
+      id: string; name: string; employment_type: string;
+      rate: number; monthly_forecast: number; missing_rate: boolean;
+    }[];
+    month: string;
+  }>({
+    total: null, count: null, loading: false, lines: [],
+    month: new Date().toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" }).slice(0, 7),
+  });
   // Guarded on authState (not the derived `isAdmin` const, which is declared
   // later in this component). Refetches only when the worker transitions
   // into admin mode — on a login or a view-as flip.
@@ -508,10 +520,19 @@ export default function AdminPortal() {
       .then(r => (r.ok ? r.json() : null))
       .then(d => {
         if (cancelled || !d) return;
-        setSalaryForecast({ total: d.total ?? 0, count: d.count ?? 0, loading: false });
+        setSalaryForecast(prev => ({
+          ...prev,
+          total: d.total ?? 0,
+          count: d.count ?? 0,
+          lines: Array.isArray(d.per_worker) ? d.per_worker : [],
+          month: d.month ?? prev.month,
+          loading: false,
+        }));
       })
       .catch(() => {
-        if (!cancelled) setSalaryForecast({ total: null, count: null, loading: false });
+        if (!cancelled) setSalaryForecast(prev => ({
+          ...prev, total: null, count: null, lines: [], loading: false,
+        }));
       });
     return () => { cancelled = true; };
   }, [authState]);
@@ -1263,6 +1284,8 @@ export default function AdminPortal() {
             monthlySalaryForecast={salaryForecast.total}
             monthlySalaryForecastCount={salaryForecast.count}
             monthlySalaryForecastLoading={salaryForecast.loading}
+            monthlySalaryForecastLines={salaryForecast.lines}
+            monthlySalaryForecastMonth={salaryForecast.month}
             todayTasks={todayTasks} roleMap={roleMap}
             activeProjects={activeProjects}
             staff={staff} todayLogs={todayLogs}

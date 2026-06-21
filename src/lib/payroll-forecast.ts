@@ -33,11 +33,24 @@ export interface ForecastWorker {
   employment_type: string;
 }
 
-export interface ForecastBreakdown {
+/** A single row in the per-worker breakdown table. `rate` is the field
+ *  that actually drives this worker's forecast (hourly_rate for an
+ *  hourly worker, daily_rate for a daily worker, monthly_global_salary
+ *  for a global). 0 when missing — pair with `missing_rate` if you need
+ *  to flag the row separately. */
+export interface ForecastWorkerLine<W extends ForecastWorker = ForecastWorker> {
+  worker: W;
+  rate: number;
+  monthly_forecast: number;
+  missing_rate: boolean;
+}
+
+export interface ForecastBreakdown<W extends ForecastWorker = ForecastWorker> {
   total: number;
   per_type: { hourly: number; daily: number; global: number };
   count: number;
   missing_rate_count: number;
+  per_worker: ForecastWorkerLine<W>[]; // sorted by monthly_forecast DESC
 }
 
 /**
@@ -80,6 +93,44 @@ function hasUsableRate(employment_type: string, rates: ForecastRates | null): bo
   return true;
 }
 
+/** Extract the rate field that matters for this worker's employment_type.
+ *  Returns 0 when the relevant field is null/0 or the rates row is null,
+ *  so callers can format it as "—" or pair with the missing flag. */
+function relevantRate(employment_type: string, rates: ForecastRates | null): number {
+  if (!rates) return 0;
+  if (employment_type === "hourly") return Number(rates.hourly_rate) || 0;
+  if (employment_type === "daily")  return Number(rates.daily_rate)  || 0;
+  if (employment_type === "global") return Number(rates.monthly_global_salary) || 0;
+  return 0;
+}
+
+/**
+ * Per-worker forecast breakdown.
+ *
+ * Returns one line per input worker — preserving the input length — each
+ * with the rate that drives the forecast for that specific employment
+ * type. NOT sorted; the caller sorts to its preferred order (the
+ * dashboard dialog sorts DESC, an audit pipeline might want by name).
+ *
+ * This is the building block forecastTotal() now reuses, so the sum of
+ * `monthly_forecast` across the lines is exactly forecastTotal().total
+ * by construction.
+ */
+export function forecastByWorker<W extends ForecastWorker>(
+  workers: W[],
+  ratesFor: (workerId: string) => ForecastRates | null,
+): ForecastWorkerLine<W>[] {
+  return workers.map((w) => {
+    const rates = ratesFor(w.id);
+    return {
+      worker: w,
+      rate: relevantRate(w.employment_type, rates),
+      monthly_forecast: forecastWorker(w.employment_type, rates),
+      missing_rate: !hasUsableRate(w.employment_type, rates),
+    };
+  });
+}
+
 /**
  * Aggregate forecast across a list of workers.
  *
@@ -87,29 +138,43 @@ function hasUsableRate(employment_type: string, rates: ForecastRates | null): bo
  * `Map.get` wrapped to also consult the legacy staff columns when no
  * staff_rates row exists for the month. Keeping the lookup as a callback
  * is what lets this module stay pure and DB-free.
+ *
+ * Returns the per-worker lines sorted DESC by monthly_forecast — the
+ * dashboard dialog renders them in that order so the most expensive
+ * workers surface first.
  */
 export function forecastTotal<W extends ForecastWorker>(
   workers: W[],
   ratesFor: (workerId: string) => ForecastRates | null,
-): ForecastBreakdown {
+): ForecastBreakdown<W> {
+  const lines = forecastByWorker(workers, ratesFor);
   let total = 0;
   let hourly = 0, daily = 0, global = 0;
   let missing = 0;
 
-  for (const w of workers) {
-    const rates = ratesFor(w.id);
-    const amt = forecastWorker(w.employment_type, rates);
-    total += amt;
-    if (w.employment_type === "hourly")      hourly += amt;
-    else if (w.employment_type === "daily")  daily  += amt;
-    else if (w.employment_type === "global") global += amt;
-    if (!hasUsableRate(w.employment_type, rates)) missing++;
+  for (const line of lines) {
+    total += line.monthly_forecast;
+    if (line.worker.employment_type === "hourly")      hourly += line.monthly_forecast;
+    else if (line.worker.employment_type === "daily")  daily  += line.monthly_forecast;
+    else if (line.worker.employment_type === "global") global += line.monthly_forecast;
+    if (line.missing_rate) missing++;
   }
+
+  // Most expensive workers first. Stable-by-name on ties (toLocaleCompare)
+  // so reruns over the same data don't shuffle the dialog around.
+  const per_worker = [...lines].sort((a, b) => {
+    if (b.monthly_forecast !== a.monthly_forecast) return b.monthly_forecast - a.monthly_forecast;
+    // ForecastWorker only has `id` + `employment_type` — fall back to id
+    // for the deterministic tie-breaker. A concrete worker type may carry
+    // a name but the generic doesn't, so id is the lowest common signal.
+    return a.worker.id.localeCompare(b.worker.id);
+  });
 
   return {
     total,
     per_type: { hourly, daily, global },
     count: workers.length,
     missing_rate_count: missing,
+    per_worker,
   };
 }

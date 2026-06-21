@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { Building2 } from "lucide-react";
 import { Card } from "../shared/Card";
 import AttentionPanel, { type AttentionItem } from "../shared/AttentionPanel";
 import { TabRefreshBar } from "../shared/TabRefreshBar";
+import ForecastDetailDialog, { type ForecastLine } from "../shared/ForecastDetailDialog";
 import type {
   StaffMember, AttendanceRecord, Project, Task, BudgetLine,
 } from "../types";
@@ -39,10 +41,13 @@ interface Props {
   todayExpensesTotal: number;
   // Forward-looking monthly salary forecast — null while in flight, then a
   // number, or null if the request failed (card stays out of the way in
-  // that case rather than flashing a 0).
+  // that case rather than flashing a 0). Per-worker breakdown opens in a
+  // dialog when the admin taps the card.
   monthlySalaryForecast: number | null;
   monthlySalaryForecastCount: number | null;
   monthlySalaryForecastLoading: boolean;
+  monthlySalaryForecastLines: ForecastLine[];
+  monthlySalaryForecastMonth: string;
   todayTasks: Task[];
   roleMap: Record<string, number>;
   activeProjects: Project[];
@@ -67,6 +72,11 @@ interface Props {
 }
 
 export default function DashboardTab(p: Props) {
+  // Per-worker forecast dialog — opens from the salary forecast card.
+  // Kept local because no other screen needs it; AdminPortal doesn't need
+  // to know about the open/closed state.
+  const [forecastDialogOpen, setForecastDialogOpen] = useState(false);
+
   return (
     <div className="space-y-4">
       <TabRefreshBar loading={p.refreshing || p.dataLoading} onRefresh={p.onTabRefresh} lastRefreshed={p.lastRefreshed} />
@@ -140,32 +150,60 @@ export default function DashboardTab(p: Props) {
       {/* Admin: forward-looking monthly salary forecast.
           A rough planning number — 22 days × 8.5 h × current rate per active
           worker. Sits next to the "today" card so the admin sees both a
-          spend snapshot and a month-ahead estimate without leaving Dashboard. */}
-      {p.isAdmin && (
-        <Card title="📅 צפי שכר חודשי (אומדן)">
-          <div className="space-y-1.5">
-            <div className="flex justify-between items-center py-1.5">
-              <span className="text-sm text-charcoal/60">חודש מלא צפוי</span>
-              {p.monthlySalaryForecastLoading ? (
-                <span className="text-sm text-charcoal/40">טוען…</span>
-              ) : p.monthlySalaryForecast == null ? (
-                <span className="text-sm text-charcoal/40">—</span>
-              ) : (
-                <span className="text-base font-bold text-accent tabular-nums">
-                  ₪{Math.round(p.monthlySalaryForecast).toLocaleString("he-IL")}
-                </span>
-              )}
-            </div>
-            <p className="text-[0.7rem] text-charcoal/45 leading-snug">
-              אומדן גס: 22 ימי עבודה × 8.5 שעות
-              {p.monthlySalaryForecastCount != null && p.monthlySalaryForecastCount > 0 && (
-                <>, {p.monthlySalaryForecastCount} עובדים פעילים</>
-              )}.
-              לא כולל חופשות, חגים או היעדרויות.
-            </p>
-          </div>
-        </Card>
-      )}
+          spend snapshot and a month-ahead estimate without leaving Dashboard.
+          Tap the card to open a per-worker breakdown dialog (also downloads
+          to XLSX). When the data hasn't loaded yet or failed, the card
+          stays non-interactive — a misleading "0 workers" dialog beats a
+          clear loading state. */}
+      {p.isAdmin && (() => {
+        const canOpen = !p.monthlySalaryForecastLoading
+          && p.monthlySalaryForecast != null
+          && p.monthlySalaryForecastLines.length > 0;
+        return (
+          <button
+            type="button"
+            onClick={() => canOpen && setForecastDialogOpen(true)}
+            disabled={!canOpen}
+            aria-label="פתח פירוט צפי שכר חודשי"
+            className={`w-full text-start rounded-md border border-charcoal/10 bg-white shadow-sm transition-colors ${canOpen ? "cursor-pointer hover:border-accent/40 hover:bg-bone-dark/40" : "cursor-default"}`}
+          >
+            <Card title="📅 צפי שכר חודשי (אומדן)">
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center py-1.5">
+                  <span className="text-sm text-charcoal/60">חודש מלא צפוי</span>
+                  {p.monthlySalaryForecastLoading ? (
+                    <span className="text-sm text-charcoal/40">טוען…</span>
+                  ) : p.monthlySalaryForecast == null ? (
+                    <span className="text-sm text-charcoal/40">—</span>
+                  ) : (
+                    <span className="text-base font-bold text-accent tabular-nums">
+                      ₪{Math.round(p.monthlySalaryForecast).toLocaleString("he-IL")}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[0.7rem] text-charcoal/45 leading-snug">
+                  אומדן גס: 22 ימי עבודה × 8.5 שעות
+                  {p.monthlySalaryForecastCount != null && p.monthlySalaryForecastCount > 0 && (
+                    <>, {p.monthlySalaryForecastCount} עובדים פעילים</>
+                  )}.
+                  לא כולל חופשות, חגים או היעדרויות.
+                  {canOpen && <span className="text-accent/80"> · הקש לפירוט.</span>}
+                </p>
+              </div>
+            </Card>
+          </button>
+        );
+      })()}
+
+      {/* Per-worker breakdown dialog. Always mounted so the close-anim runs
+          cleanly; the dialog itself returns null when !open. */}
+      <ForecastDetailDialog
+        open={forecastDialogOpen}
+        onClose={() => setForecastDialogOpen(false)}
+        lines={p.monthlySalaryForecastLines}
+        total={p.monthlySalaryForecast ?? 0}
+        month={p.monthlySalaryForecastMonth}
+      />
 
       {/* Per-project cost cards were removed here: they summed `materials.cost`,
           which conflicts with the new financial_documents-based "תקציב מול ביצוע"

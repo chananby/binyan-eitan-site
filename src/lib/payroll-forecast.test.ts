@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   forecastWorker,
+  forecastByWorker,
   forecastTotal,
   WORK_DAYS_PER_MONTH,
   WORK_HOURS_PER_DAY,
@@ -104,5 +105,94 @@ describe("forecastTotal — aggregation across mixed workers", () => {
     );
     expect(r.total).toBe(0);
     expect(r.missing_rate_count).toBe(1);
+  });
+});
+
+describe("forecastByWorker — per-worker breakdown", () => {
+  const workers = [
+    { id: "h1", employment_type: "hourly" },
+    { id: "d1", employment_type: "daily"  },
+    { id: "g1", employment_type: "global" },
+    { id: "ng", employment_type: "hourly" },
+  ];
+  const ratesById: Record<string, ForecastRates | null> = {
+    h1: { hourly_rate: 50,  daily_rate: null, monthly_global_salary: null },
+    d1: { hourly_rate: null, daily_rate: 500, monthly_global_salary: null },
+    g1: { hourly_rate: null, daily_rate: null, monthly_global_salary: 10_000 },
+    ng: null,
+  };
+  const ratesFor = (id: string) => ratesById[id] ?? null;
+
+  it("returns one line per input worker, preserving length", () => {
+    const lines = forecastByWorker(workers, ratesFor);
+    expect(lines).toHaveLength(4);
+  });
+
+  it("each line carries the rate field relevant to its employment_type", () => {
+    const byId = Object.fromEntries(forecastByWorker(workers, ratesFor).map(l => [l.worker.id, l]));
+    expect(byId.h1.rate).toBe(50);
+    expect(byId.d1.rate).toBe(500);
+    expect(byId.g1.rate).toBe(10_000);
+    expect(byId.ng.rate).toBe(0); // no rate row → 0
+  });
+
+  it("monthly_forecast = rate × multiplier for the type", () => {
+    const byId = Object.fromEntries(forecastByWorker(workers, ratesFor).map(l => [l.worker.id, l]));
+    expect(byId.h1.monthly_forecast).toBe(50 * 187);
+    expect(byId.d1.monthly_forecast).toBe(500 * 22);
+    expect(byId.g1.monthly_forecast).toBe(10_000);
+    expect(byId.ng.monthly_forecast).toBe(0);
+  });
+
+  it("missing_rate flag is set per-line, not aggregated", () => {
+    const byId = Object.fromEntries(forecastByWorker(workers, ratesFor).map(l => [l.worker.id, l]));
+    expect(byId.h1.missing_rate).toBe(false);
+    expect(byId.ng.missing_rate).toBe(true);
+  });
+});
+
+describe("forecastTotal — per_worker invariants (post-refactor)", () => {
+  const workers = [
+    { id: "h1", employment_type: "hourly" },
+    { id: "d1", employment_type: "daily"  },
+    { id: "g1", employment_type: "global" },
+  ];
+  const ratesFor = (id: string): ForecastRates | null => ({
+    h1: { hourly_rate: 50,   daily_rate: null, monthly_global_salary: null },
+    d1: { hourly_rate: null, daily_rate: 500,  monthly_global_salary: null },
+    g1: { hourly_rate: null, daily_rate: null, monthly_global_salary: 10_000 },
+  }[id] ?? null);
+
+  it("per_worker length === input length", () => {
+    const r = forecastTotal(workers, ratesFor);
+    expect(r.per_worker).toHaveLength(workers.length);
+  });
+
+  it("sum of per_worker.monthly_forecast === total (the contract)", () => {
+    const r = forecastTotal(workers, ratesFor);
+    const sum = r.per_worker.reduce((s, l) => s + l.monthly_forecast, 0);
+    expect(sum).toBe(r.total);
+  });
+
+  it("per_worker is sorted DESC by monthly_forecast (most expensive first)", () => {
+    const r = forecastTotal(workers, ratesFor);
+    const amounts = r.per_worker.map(l => l.monthly_forecast);
+    const sorted = [...amounts].sort((a, b) => b - a);
+    expect(amounts).toEqual(sorted);
+    // Sanity: 11_000 > 10_000 > 9_350 (the daily worker tops the list).
+    expect(amounts).toEqual([11_000, 10_000, 9_350]);
+  });
+
+  it("tie-breaks are deterministic (stable across runs)", () => {
+    // Two workers with the same rate + type produce the same forecast →
+    // their order must be stable so the dashboard doesn't shuffle on
+    // refresh. Tie-breaks on worker.id (lexicographic ascending).
+    const tied = [
+      { id: "z", employment_type: "hourly" },
+      { id: "a", employment_type: "hourly" },
+    ];
+    const sameRate = () => ({ hourly_rate: 50, daily_rate: null, monthly_global_salary: null });
+    const r = forecastTotal(tied, sameRate);
+    expect(r.per_worker.map(l => l.worker.id)).toEqual(["a", "z"]);
   });
 });

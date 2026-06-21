@@ -18,6 +18,9 @@
  *     per_type: { hourly, daily, global },
  *     count: number,
  *     missing_rate_count: number,
+ *     per_worker: Array<{
+ *       id, name, employment_type, rate, monthly_forecast, missing_rate
+ *     }>   // sorted DESC by monthly_forecast — most expensive first
  *   }
  *
  * Admin only. Month query param is optional — defaults to the current
@@ -54,10 +57,11 @@ export async function GET(req: NextRequest) {
 
   // Same filter the historical payroll route uses — anyone the company
   // pays. Admins/manager role excluded. Legacy rate columns travel along
-  // for the fallback path below.
+  // for the fallback path below. `name` powers the per-worker breakdown
+  // in the response (the dashboard dialog renders it as the row label).
   const { data: staff, error: staffErr } = await supabase
     .from("staff")
-    .select("id, employment_type, hourly_rate, daily_rate, monthly_global_salary")
+    .select("id, name, employment_type, hourly_rate, daily_rate, monthly_global_salary")
     .eq("active", true)
     .is("deleted_at", null)
     .in("role", ["עובד", "ממונה"]);
@@ -67,13 +71,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: staffErr.message }, { status: 500 });
   }
   const workers = (staff ?? []) as Array<{
-    id: string; employment_type: string;
+    id: string; name: string; employment_type: string;
     hourly_rate: number | null; daily_rate: number | null; monthly_global_salary: number | null;
   }>;
 
   if (workers.length === 0) {
     return NextResponse.json({
-      month, total: 0, per_type: { hourly: 0, daily: 0, global: 0 }, count: 0, missing_rate_count: 0,
+      month, total: 0, per_type: { hourly: 0, daily: 0, global: 0 },
+      count: 0, missing_rate_count: 0, per_worker: [],
     });
   }
 
@@ -96,5 +101,23 @@ export async function GET(req: NextRequest) {
 
   const breakdown = forecastTotal(workers, ratesFor);
 
-  return NextResponse.json({ month, ...breakdown });
+  // Flatten the per-worker lines from generics to plain JSON the client
+  // consumes. `worker.name` survives because the input row carried it.
+  const per_worker = breakdown.per_worker.map((line) => ({
+    id: line.worker.id,
+    name: line.worker.name,
+    employment_type: line.worker.employment_type,
+    rate: line.rate,
+    monthly_forecast: line.monthly_forecast,
+    missing_rate: line.missing_rate,
+  }));
+
+  return NextResponse.json({
+    month,
+    total: breakdown.total,
+    per_type: breakdown.per_type,
+    count: breakdown.count,
+    missing_rate_count: breakdown.missing_rate_count,
+    per_worker,
+  });
 }
