@@ -139,9 +139,24 @@ export async function PUT(req: NextRequest) {
   const supabase = createServerClient();
 
   // ── action: assign (real worker → project) ────────────────────────────
-  // UPSERT on UNIQUE(worker_id) — if the worker already sits on a
-  // different project, this swaps them in place. Enforces the
-  // "one worker = one site" invariant at the DB level.
+  // Replaces any existing row for this worker_id, then inserts the new
+  // placement. Same end-state as a single UPSERT but without the
+  // ON CONFLICT clause that Postgres 42P10'd on us in production:
+  //
+  // The UNIQUE index on worker_id is *partial* — `WHERE worker_id IS
+  // NOT NULL`, because manual rows carry worker_id=NULL and would
+  // otherwise collide on each other. supabase-js's
+  // `.upsert({onConflict:'worker_id'})` can't express the WHERE
+  // predicate Postgres needs to match the partial index, so it raised
+  // 42P10 ("no unique or exclusion constraint matching the ON CONFLICT
+  // specification") on every drag.
+  //
+  // DELETE-then-INSERT enforces the same "one worker = one site"
+  // invariant naturally: any prior row for this worker is gone before
+  // we add the new one. The partial unique index still backs us up
+  // against a rare concurrent-second-admin race (would surface as
+  // 23505 and bubble up as an error — acceptable for a small admin
+  // tool where the user can just retry).
   if (body.action === "assign") {
     if (!isNonEmptyString(body.worker_id)) {
       return NextResponse.json({ error: "worker_id required" }, { status: 400 });
@@ -149,16 +164,22 @@ export async function PUT(req: NextRequest) {
     const pside = pickProjectSide(body);
     if ("error" in pside) return NextResponse.json({ error: pside.error }, { status: 400 });
 
+    const workerId = body.worker_id.trim();
+    const { error: delErr } = await supabase
+      .from("board_assignments")
+      .delete()
+      .eq("worker_id", workerId);
+    if (delErr) {
+      console.error("[admin/board-assignments PUT assign — delete prior]", JSON.stringify(delErr));
+      return NextResponse.json({ error: delErr.message }, { status: 500 });
+    }
     const { data, error } = await supabase
       .from("board_assignments")
-      .upsert(
-        { worker_id: body.worker_id.trim(), worker_name: null, ...pside, updated_at: new Date().toISOString() },
-        { onConflict: "worker_id" },
-      )
+      .insert({ worker_id: workerId, worker_name: null, ...pside })
       .select(ASSIGNMENT_COLUMNS)
       .single();
     if (error) {
-      console.error("[admin/board-assignments PUT assign]", JSON.stringify(error));
+      console.error("[admin/board-assignments PUT assign — insert]", JSON.stringify(error));
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     return NextResponse.json({ assignment: data });
