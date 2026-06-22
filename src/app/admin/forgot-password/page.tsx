@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
         )}
       </div>
 
-      <p className="font-body text-[0.7rem] tracking-widest uppercase text-charcoal/20">
+      <p className="font-body text-xs tracking-widest uppercase text-charcoal/20">
         בניין איתן — פורטל ניהול פנימי
       </p>
     </div>

@@ -62,7 +62,7 @@ export default function InternalPortalEn() {
                       <Icon size={18} className={tool.available ? "text-accent" : "text-charcoal/40"} strokeWidth={1.5} />
                     </div>
                     {!tool.available && (
-                      <span className="font-body text-[0.7rem] tracking-[0.18em] uppercase text-charcoal/30 border border-charcoal/10 px-1.5 py-0.5">
+                      <span className="font-body text-xs tracking-[0.18em] uppercase text-charcoal/30 border border-charcoal/10 px-1.5 py-0.5">
                         Coming Soon
                       </span>
                     )}

@@ -49,7 +49,7 @@ export default function SiteCard({ id, title, cards, variant, tapMode, onChipTap
         />
         <p className="font-heading text-sm font-bold text-charcoal truncate flex-1">
           {title}
-          {variant === "manual_project" && <span className="font-body text-[0.7rem] text-amber-600"> (ידני)</span>}
+          {variant === "manual_project" && <span className="font-body text-xs text-amber-600"> (ידני)</span>}
         </p>
         <span className="font-body text-xs text-charcoal/60 tabular-nums shrink-0 bg-charcoal/5 rounded-full px-2 py-0.5">{cards.length}</span>
       </div>
@@ -57,7 +57,7 @@ export default function SiteCard({ id, title, cards, variant, tapMode, onChipTap
       {/* Body: wrapping chips, or empty hint */}
       <div className="flex-1 p-2.5">
         {cards.length === 0 ? (
-          <p className="text-center font-body text-[0.7rem] text-charcoal/35 py-5">
+          <p className="text-center font-body text-xs text-charcoal/35 py-5">
             {tapMode ? "הקש על עובד כדי לשבץ" : "גרור עובד לכאן"}
           </p>
         ) : (

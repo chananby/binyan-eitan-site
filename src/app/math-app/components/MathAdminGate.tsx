@@ -87,7 +87,7 @@ export default function MathAdminGate({ children }: { children: React.ReactNode 
         </button>
       </form>
 
-      <p className="mt-10 text-white/15 text-[0.7rem] tracking-widest uppercase">
+      <p className="mt-10 text-white/15 text-xs tracking-widest uppercase">
         מתמטיקה — תוכנית המחוננים
       </p>
     </div>

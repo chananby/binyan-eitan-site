@@ -354,7 +354,7 @@ export default function PlanningTab(p: Props) {
                         <div className="flex-1 h-1 bg-charcoal/8 overflow-hidden">
                           <div className="h-full bg-accent transition-all duration-300" style={{ width: `${pct}%` }} />
                         </div>
-                        <span className="text-[0.7rem] text-charcoal/35 tabular-nums shrink-0">{pct}%</span>
+                        <span className="text-xs text-charcoal/35 tabular-nums shrink-0">{pct}%</span>
                       </div>
                     )}
                   </div>

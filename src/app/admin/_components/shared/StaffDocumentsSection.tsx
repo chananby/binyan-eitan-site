@@ -177,7 +177,7 @@ export default function StaffDocumentsSection({ staffId }: Props) {
                   type="button"
                   onClick={() => download(d)}
                   disabled={downloadingId === d.id}
-                  className="text-[0.7rem] text-accent hover:text-accent-dark p-1 disabled:opacity-40"
+                  className="text-xs text-accent hover:text-accent-dark p-1 disabled:opacity-40"
                   title="הורד / פתח"
                 >
                   {downloadingId === d.id
@@ -188,7 +188,7 @@ export default function StaffDocumentsSection({ staffId }: Props) {
                   type="button"
                   onClick={() => remove(d)}
                   disabled={deletingId === d.id}
-                  className="text-[0.7rem] text-red-500 hover:text-red-700 p-1 disabled:opacity-40"
+                  className="text-xs text-red-500 hover:text-red-700 p-1 disabled:opacity-40"
                   title="מחק"
                 >
                   {deletingId === d.id
@@ -202,7 +202,7 @@ export default function StaffDocumentsSection({ staffId }: Props) {
 
         {/* Upload form */}
         <form onSubmit={submit} className="border-t border-charcoal/10 pt-3 space-y-2">
-          <p className="text-[0.7rem] font-semibold text-charcoal/70 uppercase tracking-wider">
+          <p className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">
             העלאת מסמך חדש
           </p>
           <input

@@ -619,7 +619,7 @@ export default function ForemanPortal({
       <div className="bg-charcoal px-5 pt-12 pb-7 text-white relative">
         <button
           onClick={onLogout}
-          className="absolute top-12 end-5 flex items-center gap-1.5 border border-white/25 text-white/70 hover:text-white hover:border-white/60 transition-colors px-3 py-1.5 text-[0.7rem] tracking-wide"
+          className="absolute top-12 end-5 flex items-center gap-1.5 border border-white/25 text-white/70 hover:text-white hover:border-white/60 transition-colors px-3 py-1.5 text-xs tracking-wide"
         >
           <LogOut size={12} strokeWidth={1.5} />
           <span>התנתקות</span>
@@ -656,11 +656,11 @@ export default function ForemanPortal({
       <header className="bg-charcoal text-white px-4 pt-10 pb-4 sticky top-0 z-30">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-[0.7rem] tracking-widest uppercase text-white/30 mb-0.5">ממשק ממונה · {foremanName}</p>
+            <p className="text-xs tracking-widest uppercase text-white/30 mb-0.5">ממשק ממונה · {foremanName}</p>
             <h1 className="font-heading text-lg font-bold text-white leading-tight truncate">{project!.name}</h1>
           </div>
           <div className="shrink-0 text-end">
-            <div className="flex items-center justify-end gap-1 text-white/30 text-[0.7rem] uppercase mb-0.5">
+            <div className="flex items-center justify-end gap-1 text-white/30 text-xs uppercase mb-0.5">
               <Flame size={9} /><span>הוצאות שבועיות</span>
             </div>
             <p className="font-heading text-xl font-bold text-accent tabular-nums">
@@ -918,7 +918,7 @@ export default function ForemanPortal({
               <span className="text-xs text-charcoal/40">{new Date().toLocaleDateString("he-IL", { weekday: "long", day: "numeric", month: "long" })}</span>
             </div>
             <div>
-              <p className="text-[0.7rem] text-charcoal/65 mb-2">סטטוס יום העבודה</p>
+              <p className="text-xs text-charcoal/65 mb-2">סטטוס יום העבודה</p>
               <div className="grid grid-cols-3 gap-2">
                 {(["normal", "delay", "problem"] as LogStatus[]).map(s => (
                   <button key={s} onClick={() => setLogStatus(s)}
@@ -929,12 +929,12 @@ export default function ForemanPortal({
               </div>
             </div>
             <div>
-              <p className="text-[0.7rem] text-charcoal/65 mb-1.5">תיאור עבודת היום</p>
+              <p className="text-xs text-charcoal/65 mb-1.5">תיאור עבודת היום</p>
               <AutoGrowTextarea value={logText} onChange={e => setLogText(e.target.value)} placeholder="תאר את העבודה שבוצעה היום..."
                 rows={5} className="w-full border border-charcoal/15 bg-white px-3 py-3 text-sm text-charcoal focus:border-accent focus:outline-none transition-colors" />
             </div>
             <div>
-              <p className="text-[0.7rem] text-charcoal/65 mb-1.5">עובדי קבלן משנה היום</p>
+              <p className="text-xs text-charcoal/65 mb-1.5">עובדי קבלן משנה היום</p>
               <input type="number" min="0" value={logSub} onChange={e => setLogSub(e.target.value)}
                 className="w-32 border border-charcoal/15 bg-white px-3 py-3 text-sm text-center font-bold focus:border-accent focus:outline-none" dir="ltr" />
             </div>
@@ -951,7 +951,7 @@ export default function ForemanPortal({
           <div className="p-4 space-y-4">
             <p className="font-heading text-base font-bold text-charcoal">רישום הוצאה</p>
             <div>
-              <p className="text-[0.7rem] text-charcoal/65 mb-1.5">סכום (₪)</p>
+              <p className="text-xs text-charcoal/65 mb-1.5">סכום (₪)</p>
               <div className="relative">
                 <span className="absolute inset-y-0 end-3 flex items-center text-charcoal/30 font-bold text-lg pointer-events-none">₪</span>
                 <input type="number" inputMode="decimal" value={expAmount} onChange={e => setExpAmount(e.target.value)}
@@ -959,7 +959,7 @@ export default function ForemanPortal({
               </div>
             </div>
             <div>
-              <p className="text-[0.7rem] text-charcoal/65 mb-1.5">קטגוריה</p>
+              <p className="text-xs text-charcoal/65 mb-1.5">קטגוריה</p>
               <div className="grid grid-cols-2 gap-2">
                 {EXPENSE_CATS.map(c => (
                   <button key={c} onClick={() => setExpCat(c)}
@@ -970,7 +970,7 @@ export default function ForemanPortal({
               </div>
             </div>
             <div>
-              <p className="text-[0.7rem] text-charcoal/65 mb-1.5">תיאור</p>
+              <p className="text-xs text-charcoal/65 mb-1.5">תיאור</p>
               <AutoGrowTextarea value={expDesc} onChange={e => setExpDesc(e.target.value)} placeholder="בטון, ברזל, שרברב..."
                 className="w-full border border-charcoal/15 bg-white px-4 py-3.5 text-sm focus:border-accent focus:outline-none" />
             </div>
@@ -1066,8 +1066,8 @@ export default function ForemanPortal({
                         <div>
                           <span className="font-heading text-sm font-bold text-charcoal">{day.label}</span>
                           <span className="text-charcoal/35 text-xs me-1.5"> · {day.short}</span>
-                          {day.isToday   && <span className="text-[0.7rem] bg-accent text-bone px-1.5 py-0.5 font-semibold">היום</span>}
-                          {day.isTomorrow && <span className="text-[0.7rem] bg-charcoal/80 text-bone px-1.5 py-0.5 font-semibold">מחר</span>}
+                          {day.isToday   && <span className="text-xs bg-accent text-bone px-1.5 py-0.5 font-semibold">היום</span>}
+                          {day.isTomorrow && <span className="text-xs bg-charcoal/80 text-bone px-1.5 py-0.5 font-semibold">מחר</span>}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1194,7 +1194,7 @@ export default function ForemanPortal({
                         <div className="flex items-center gap-3">
                           <div className="text-end">
                             <p className="font-heading text-lg font-bold text-accent tabular-nums">{worker.hours.toFixed(1)}</p>
-                            <p className="text-[0.58rem] text-charcoal/35">שעות</p>
+                            <p className="text-xs text-charcoal/35">שעות</p>
                           </div>
                           {isOpen
                             ? <ChevronDown size={14} strokeWidth={2} className="text-charcoal/30" />
@@ -1206,7 +1206,7 @@ export default function ForemanPortal({
                       {isOpen && (
                         <div className="border-t border-charcoal/5">
                           {/* Header */}
-                          <div className="grid grid-cols-4 gap-2 px-4 py-2 bg-bone/60 text-[0.58rem] font-semibold text-charcoal/40 uppercase tracking-wide">
+                          <div className="grid grid-cols-4 gap-2 px-4 py-2 bg-bone/60 text-xs font-semibold text-charcoal/40 uppercase tracking-wide">
                             <span>תאריך</span>
                             <span className="text-center">כניסה</span>
                             <span className="text-center">יציאה</span>
@@ -1266,7 +1266,7 @@ export default function ForemanPortal({
                     "border-charcoal/10 text-charcoal/65 hover:border-accent hover:text-accent"
                   }`}>
                   <div>{day.label.slice(0, 2)}</div>
-                  <div className="text-[0.7rem] mt-0.5 opacity-70">{day.short}</div>
+                  <div className="text-xs mt-0.5 opacity-70">{day.short}</div>
                 </button>
               ))}
             </div>
@@ -1291,7 +1291,7 @@ export default function ForemanPortal({
             }`}>
             {t.dot && <span className="absolute top-2 right-1/2 translate-x-3.5 w-1.5 h-1.5 rounded-full bg-red-500" />}
             {t.icon}
-            <span className="text-[0.58rem] font-semibold">{t.label}</span>
+            <span className="text-xs font-semibold">{t.label}</span>
           </button>
         ))}
       </nav>

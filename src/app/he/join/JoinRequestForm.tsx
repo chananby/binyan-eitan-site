@@ -186,8 +186,8 @@ function Field({ label, required, error, hint, children }: FieldProps) {
       </span>
       {children}
       {error
-        ? <p className="font-body text-[0.7rem] text-red-600 leading-snug">{error}</p>
-        : hint ? <p className="font-body text-[0.7rem] text-charcoal/60 leading-snug">{hint}</p>
+        ? <p className="font-body text-xs text-red-600 leading-snug">{error}</p>
+        : hint ? <p className="font-body text-xs text-charcoal/60 leading-snug">{hint}</p>
         : null}
     </label>
   );

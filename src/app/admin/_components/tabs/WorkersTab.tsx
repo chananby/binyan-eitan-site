@@ -197,7 +197,7 @@ export default function WorkersTab(p: Props) {
         <button
           onClick={exportStaffReport}
           disabled={exporting}
-          className="inline-flex items-center gap-1.5 border border-accent text-accent px-4 py-2 text-[0.7rem] font-semibold tracking-wider uppercase hover:bg-accent/[0.08] disabled:opacity-40 transition-colors"
+          className="inline-flex items-center gap-1.5 border border-accent text-accent px-4 py-2 text-xs font-semibold tracking-wider uppercase hover:bg-accent/[0.08] disabled:opacity-40 transition-colors"
           title='ייצוא דוח עובדים מלא ל-XLSX (פרופיל + 3 חודשי פעילות)'
         >
           {exporting
@@ -484,27 +484,27 @@ function renderStaffRow(
           )}
           {s.name}
         </p>
-        <p className="text-[0.7rem] text-charcoal/70 tabular-nums" dir="ltr">{s.phone}</p>
+        <p className="text-xs text-charcoal/70 tabular-nums" dir="ltr">{s.phone}</p>
         {(s.hourly_rate || s.daily_rate) && (
-          <p className="text-[0.75rem] text-accent-dark">
+          <p className="text-sm text-accent-dark">
             {s.hourly_rate ? `₪${s.hourly_rate}/ש׳` : ""}{s.hourly_rate && s.daily_rate ? " · " : ""}{s.daily_rate ? `₪${s.daily_rate}/יום` : ""}
           </p>
         )}
       </div>
       <div className="flex flex-col items-end gap-1 shrink-0">
-        <span className="text-[0.75rem] text-charcoal/70">{s.role}</span>
+        <span className="text-sm text-charcoal/70">{s.role}</span>
         {s.role === "ממונה" && (
-          <span className={`text-[0.7rem] px-1.5 py-0.5 ${s.has_pin ? "bg-accent/10 text-accent" : "bg-red-50 text-red-400"}`}>
+          <span className={`text-xs px-1.5 py-0.5 ${s.has_pin ? "bg-accent/10 text-accent" : "bg-red-50 text-red-400"}`}>
             {s.has_pin ? "PIN מוגדר" : "ללא PIN"}
           </span>
         )}
       </div>
       <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/70"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
-      <button onClick={() => p.onStartEdit(s)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">ערוך</button>
+      <button onClick={() => p.onStartEdit(s)} className="text-xs border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">ערוך</button>
       {!isInactive && (
         <button
           onClick={() => p.onViewHistory(s.id)}
-          className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0 flex items-center gap-1"
+          className="text-xs border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0 flex items-center gap-1"
           aria-label={`היסטוריית ${s.name}`}
         >
           <History size={11} strokeWidth={1.5} /> היסטוריה
@@ -514,18 +514,18 @@ function renderStaffRow(
       {!isInactive && s.role === "ממונה" && (
         <button
           onClick={() => p.onViewAs(s.id)}
-          className="text-[0.7rem] border border-accent/30 text-accent px-2.5 py-1 hover:bg-accent hover:text-bone transition-colors shrink-0 flex items-center gap-1"
+          className="text-xs border border-accent/30 text-accent px-2.5 py-1 hover:bg-accent hover:text-bone transition-colors shrink-0 flex items-center gap-1"
           aria-label={`צפה בתור ${s.name}`}
         >
           <Eye size={11} strokeWidth={1.5} /> צפה בתור
         </button>
       )}
-      <button onClick={() => p.onOpenVacation(s.id)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">חופשה</button>
-      <button onClick={() => p.onToggleActive(s.id, s.active)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{s.active ? "השבת" : "הפעל"}</button>
+      <button onClick={() => p.onOpenVacation(s.id)} className="text-xs border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">חופשה</button>
+      <button onClick={() => p.onToggleActive(s.id, s.active)} className="text-xs border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{s.active ? "השבת" : "הפעל"}</button>
       {isInactive && (
         <button
           onClick={() => askDelete(s)}
-          className="text-[0.7rem] border border-red-200 text-red-500 px-2.5 py-1 hover:border-red-400 hover:bg-red-50 transition-colors shrink-0 flex items-center gap-1"
+          className="text-xs border border-red-200 text-red-500 px-2.5 py-1 hover:border-red-400 hover:bg-red-50 transition-colors shrink-0 flex items-center gap-1"
           aria-label={`מחק את ${s.name}`}
         >
           <Trash2 size={11} strokeWidth={1.5} /> מחק
@@ -559,7 +559,7 @@ function DeleteConfirmModal({
         <p className="text-sm text-charcoal/70 leading-relaxed mb-3">
           להקלדת שם העובד <span className="font-semibold text-charcoal">&quot;{worker.name}&quot;</span> באופן מדויק כדי לאשר.
         </p>
-        <p className="text-[0.7rem] text-charcoal/65 leading-relaxed mb-3">
+        <p className="text-xs text-charcoal/65 leading-relaxed mb-3">
           העובד יוסר מרשימת הצוות. רשומות שעות העבודה שלו יישמרו לצורכי דוחות וארכיון.
         </p>
         <input

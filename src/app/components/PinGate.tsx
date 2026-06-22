@@ -204,7 +204,7 @@ export default function PinGate({ children, lang = "he" }: { children: React.Rea
         })}
       </div>
 
-      <p className="font-body text-[0.7rem] tracking-[0.2em] uppercase text-charcoal/20 mt-2">
+      <p className="font-body text-xs tracking-[0.2em] uppercase text-charcoal/20 mt-2">
         {t.footer}
       </p>
 

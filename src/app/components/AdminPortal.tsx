@@ -1605,7 +1605,7 @@ export default function AdminPortal() {
           />
         )}
 
-        <p className="text-center font-body text-[0.7rem] tracking-widest uppercase text-charcoal/20 pt-2">
+        <p className="text-center font-body text-xs tracking-widest uppercase text-charcoal/20 pt-2">
           בניין איתן — פורטל ניהול פנימי
         </p>
       </div>
@@ -1642,7 +1642,7 @@ export default function AdminPortal() {
                 </form>
 
                 <div className="border-t border-warm-gray-light pt-4">
-                  <p className="text-[0.7rem] text-charcoal/65 mb-2">היסטוריה ({vacationRows.length})</p>
+                  <p className="text-xs text-charcoal/65 mb-2">היסטוריה ({vacationRows.length})</p>
                   {vacationRows.length === 0 ? (
                     <p className="text-xs text-charcoal/70 text-center py-4">אין ימי חופשה רשומים</p>
                   ) : (

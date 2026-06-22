@@ -140,14 +140,14 @@ export default function RateManager(p: Props) {
   return (
     <div className="mt-2 border-t border-charcoal/10 pt-2.5 space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-[0.7rem] font-semibold text-charcoal/70 uppercase tracking-wider">
+        <p className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">
           היסטוריית תעריפים — {empLabel}
         </p>
         {!open && (
           <button
             type="button"
             onClick={() => { setOpen(true); setMonth(defaultMonthForOpen()); setAmount(""); setFormErr(null); }}
-            className="text-[0.7rem] inline-flex items-center gap-1 border border-accent/40 text-accent px-2 py-1 hover:bg-accent hover:text-bone transition-colors"
+            className="text-xs inline-flex items-center gap-1 border border-accent/40 text-accent px-2 py-1 hover:bg-accent hover:text-bone transition-colors"
           >
             <Plus size={11} strokeWidth={2} /> עדכן תעריף
           </button>
@@ -188,7 +188,7 @@ export default function RateManager(p: Props) {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 bg-accent text-bone py-1.5 text-[0.7rem] font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
+              className="flex-1 bg-accent text-bone py-1.5 text-xs font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
             >
               {submitting ? <><Loader2 size={11} className="animate-spin" /> שומר…</> : "שמור"}
             </button>
@@ -196,7 +196,7 @@ export default function RateManager(p: Props) {
               type="button"
               onClick={() => setOpen(false)}
               disabled={submitting}
-              className="flex-1 border border-charcoal/20 text-charcoal/70 py-1.5 text-[0.7rem] font-semibold tracking-wider uppercase hover:border-accent hover:text-accent disabled:opacity-40 transition-colors"
+              className="flex-1 border border-charcoal/20 text-charcoal/70 py-1.5 text-xs font-semibold tracking-wider uppercase hover:border-accent hover:text-accent disabled:opacity-40 transition-colors"
             >
               ביטול
             </button>
@@ -204,13 +204,13 @@ export default function RateManager(p: Props) {
         </form>
       )}
 
-      {loading && <p className="text-[0.7rem] text-charcoal/70">טוען…</p>}
-      {error && <p className="flex items-center gap-1 text-[0.7rem] text-red-600"><AlertCircle size={10}/> {error}</p>}
+      {loading && <p className="text-xs text-charcoal/70">טוען…</p>}
+      {error && <p className="flex items-center gap-1 text-xs text-red-600"><AlertCircle size={10}/> {error}</p>}
       {!loading && !error && rates.length === 0 && (
-        <p className="text-[0.7rem] text-amber-700">⚠️ אין שורות תעריף — לחץ "עדכן תעריף" כדי להוסיף.</p>
+        <p className="text-xs text-amber-700">⚠️ אין שורות תעריף — לחץ "עדכן תעריף" כדי להוסיף.</p>
       )}
       {!loading && !error && rates.length > 0 && (
-        <table className="w-full text-[0.7rem]">
+        <table className="w-full text-xs">
           <thead>
             <tr className="text-charcoal/65">
               <th className="text-start font-semibold py-1">תחילה</th>

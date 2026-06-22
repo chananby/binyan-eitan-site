@@ -749,7 +749,7 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
             <p className="text-[#2D2926]/30 text-sm py-3">
               אין עדיין פתקיות. לחץ "+ פתקית" להוסיף רמזים לחשבונות, 2FA, וכל מה ששווה לזכור.
               <br />
-              <span className="text-[0.7rem] text-[#2D2926]/40">⚠ לא לאחסן סיסמאות כאן — השתמש ב-password manager.</span>
+              <span className="text-xs text-[#2D2926]/40">⚠ לא לאחסן סיסמאות כאן — השתמש ב-password manager.</span>
             </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">

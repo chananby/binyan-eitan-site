@@ -238,7 +238,7 @@ export default function WorkerHistoryPanel(p: Props) {
                           {d.hours != null ? d.hours.toFixed(2) : "—"}
                         </td>
                         <td className="px-2 py-1.5 border border-warm-gray-light">
-                          <span className={`inline-flex items-center gap-1 text-[0.7rem] font-semibold px-1.5 py-0.5 ${st.cls}`}>
+                          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 ${st.cls}`}>
                             {st.icon} {st.label}
                             {d.halfDayVacation && <span className="text-[0.65rem]"> (½)</span>}
                           </span>
@@ -290,7 +290,7 @@ function SummaryTile({ label, value, accent }: { label: string; value: string; a
   return (
     <div className="bg-bone border border-warm-gray-light p-2.5 text-center">
       <div className={`font-heading text-xl font-bold tabular-nums ${accent}`}>{value}</div>
-      <div className="text-[0.7rem] text-charcoal/65 mt-0.5">{label}</div>
+      <div className="text-xs text-charcoal/65 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -317,7 +317,7 @@ function DayActions(props: {
   const disabledProps = editable
     ? {}
     : { disabled: true, title: disabledTitle };
-  const btn = "inline-flex items-center gap-1 text-[0.7rem] font-semibold border px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed";
+  const btn = "inline-flex items-center gap-1 text-xs font-semibold border px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed";
 
   return (
     <div className="inline-flex items-center gap-1.5">

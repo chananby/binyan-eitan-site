@@ -341,12 +341,12 @@ ${detailHtml}
                   <div className="flex gap-3 mt-2">
                     <div>
                       <p className="text-lg font-heading font-bold text-accent leading-none">{s.days}</p>
-                      <p className="text-[0.58rem] text-charcoal/70 leading-none mt-0.5">ימים</p>
+                      <p className="text-xs text-charcoal/70 leading-none mt-0.5">ימים</p>
                     </div>
                     <div className="w-px bg-warm-gray-light" />
                     <div>
                       <p className="text-lg font-heading font-bold text-charcoal leading-none">{s.hours.toFixed(1)}</p>
-                      <p className="text-[0.58rem] text-charcoal/70 leading-none mt-0.5">שעות</p>
+                      <p className="text-xs text-charcoal/70 leading-none mt-0.5">שעות</p>
                     </div>
                   </div>
                 </div>
@@ -806,7 +806,7 @@ function TodayLog({
             )}
             {exempt.length > 0 && (
               <div className="mt-4 pt-3 border-t border-charcoal/10">
-                <p className="text-[0.7rem] text-charcoal/70 font-semibold mb-1">פטורים מנוכחות</p>
+                <p className="text-xs text-charcoal/70 font-semibold mb-1">פטורים מנוכחות</p>
                 <div className="divide-y divide-charcoal/5">
                   {exempt.map(r => (
                     <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
@@ -845,7 +845,7 @@ function TodayLogRow({
         <span className={`text-xs font-semibold shrink-0 ${r.action === "כניסה" || r.action === "in" ? "text-green-600" : "text-red-400"}`}>
           {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
         </span>
-        <span className="text-[0.7rem] text-charcoal/35 tabular-nums shrink-0" dir="ltr">
+        <span className="text-xs text-charcoal/35 tabular-nums shrink-0" dir="ltr">
           {attendanceTimeHHMM(r)}
         </span>
         <DistanceFlag r={r} threshold={farThresholdM} />
@@ -922,7 +922,7 @@ function RecentLogs({
                 )}
                 {exempt.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-charcoal/10">
-                    <p className="text-[0.7rem] text-charcoal/70 font-semibold mb-1">פטורים מנוכחות</p>
+                    <p className="text-xs text-charcoal/70 font-semibold mb-1">פטורים מנוכחות</p>
                     <div className="divide-y divide-charcoal/5">
                       {exempt.map(r => (
                         <RecentLogRow key={r.id} r={r} edit={edit} projects={projects}
@@ -967,7 +967,7 @@ function RecentLogRow({
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {r.project && <span className="text-[0.62rem] text-charcoal/70 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
-          <span className="text-[0.7rem] text-charcoal/35 tabular-nums" dir="ltr">
+          <span className="text-xs text-charcoal/35 tabular-nums" dir="ltr">
             {attendanceDayTimeShort(r) || "—"}
           </span>
           <DistanceFlag r={r} threshold={farThresholdM} />

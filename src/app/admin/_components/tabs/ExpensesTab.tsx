@@ -142,7 +142,7 @@ export default function ExpensesTab(p: Props) {
             <div key={m.id} className="py-2.5 flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{m.material_name}</p>
-                <p className="text-[0.7rem] text-charcoal/70">
+                <p className="text-xs text-charcoal/70">
                   {m.category && <span className="bg-charcoal/5 px-1.5 py-0.5 me-1.5">{m.category}</span>}
                   {m.quantity} {m.unit}{m.supplier ? ` · ${m.supplier}` : ""}
                 </p>

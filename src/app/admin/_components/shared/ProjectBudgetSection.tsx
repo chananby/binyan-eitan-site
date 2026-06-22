@@ -57,9 +57,9 @@ export default function ProjectBudgetSection({ projectId, data, onSaved }: {
   return (
     <div className="bg-bone/60 border border-charcoal/10 px-2.5 py-2 space-y-1.5">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[0.7rem] font-semibold text-charcoal/70">תקציב מול ביצוע</span>
+        <span className="text-xs font-semibold text-charcoal/70">תקציב מול ביצוע</span>
         {!editing && (
-          <button onClick={startEdit} className="flex items-center gap-1 text-[0.7rem] text-accent hover:text-accent-dark">
+          <button onClick={startEdit} className="flex items-center gap-1 text-xs text-accent hover:text-accent-dark">
             <Pencil size={11} /> {data?.budget != null ? "ערוך תקציב" : "הגדר תקציב"}
           </button>
         )}
@@ -73,13 +73,13 @@ export default function ProjectBudgetSection({ projectId, data, onSaved }: {
             className="flex-1 min-w-0 text-xs border border-charcoal/15 bg-white px-2 py-1 focus:border-accent focus:outline-none"
           />
           <button onClick={save} disabled={saving}
-            className="text-[0.7rem] border border-accent bg-accent text-bone px-2 py-1 hover:bg-accent-dark disabled:opacity-40 shrink-0">
+            className="text-xs border border-accent bg-accent text-bone px-2 py-1 hover:bg-accent-dark disabled:opacity-40 shrink-0">
             {saving ? <Loader2 size={11} className="animate-spin" /> : "שמור"}
           </button>
-          <button onClick={() => setEditing(false)} className="text-[0.7rem] border border-charcoal/15 text-charcoal/60 px-2 py-1 hover:border-accent shrink-0">ביטול</button>
+          <button onClick={() => setEditing(false)} className="text-xs border border-charcoal/15 text-charcoal/60 px-2 py-1 hover:border-accent shrink-0">ביטול</button>
         </div>
       ) : !data ? (
-        <p className="text-[0.7rem] text-charcoal/65 flex items-center gap-1"><Loader2 size={11} className="animate-spin" /> טוען...</p>
+        <p className="text-xs text-charcoal/65 flex items-center gap-1"><Loader2 size={11} className="animate-spin" /> טוען...</p>
       ) : (
         <>
           <div className="flex items-center justify-between text-xs tabular-nums">
@@ -92,7 +92,7 @@ export default function ProjectBudgetSection({ projectId, data, onSaved }: {
               <div className="h-2 w-full bg-charcoal/10 overflow-hidden rounded-sm">
                 <div className={`h-full ${barColor}`} style={{ width: `${barWidth}%` }} />
               </div>
-              <div className="flex items-center justify-between text-[0.7rem] tabular-nums">
+              <div className="flex items-center justify-between text-xs tabular-nums">
                 <span className={`font-semibold ${(data.remaining ?? 0) < 0 ? "text-red-600" : "text-green-700"}`}>
                   נשאר: {fmt(data.remaining)}
                 </span>
@@ -102,12 +102,12 @@ export default function ProjectBudgetSection({ projectId, data, onSaved }: {
           )}
 
           {data.pendingExpense > 0 && (
-            <p className="text-[0.7rem] text-amber-700">ממתין לאישור: {fmt(data.pendingExpense)} — לא נכלל בביצוע</p>
+            <p className="text-xs text-amber-700">ממתין לאישור: {fmt(data.pendingExpense)} — לא נכלל בביצוע</p>
           )}
         </>
       )}
 
-      {err && <p className="text-[0.7rem] text-red-500">{err}</p>}
+      {err && <p className="text-xs text-red-500">{err}</p>}
     </div>
   );
 }

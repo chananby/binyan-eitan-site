@@ -189,7 +189,7 @@ export default function AttendanceRowEditor(p: Props) {
               <button
                 type="submit"
                 disabled={busy}
-                className="bg-accent text-bone px-4 py-1.5 text-[0.7rem] font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center gap-1.5"
+                className="bg-accent text-bone px-4 py-1.5 text-xs font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center gap-1.5"
               >
                 {busy ? <><Loader2 size={12} className="animate-spin" /> שומר…</> : "שמור"}
               </button>
@@ -197,7 +197,7 @@ export default function AttendanceRowEditor(p: Props) {
                 type="button"
                 onClick={p.onCancel}
                 disabled={busy}
-                className="border border-charcoal/15 text-charcoal/70 px-4 py-1.5 text-[0.7rem] font-semibold tracking-wider uppercase hover:border-accent hover:text-accent disabled:opacity-40 transition-colors"
+                className="border border-charcoal/15 text-charcoal/70 px-4 py-1.5 text-xs font-semibold tracking-wider uppercase hover:border-accent hover:text-accent disabled:opacity-40 transition-colors"
               >
                 ביטול
               </button>

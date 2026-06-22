@@ -125,7 +125,7 @@ function FileCell({ name, meta }: { name: string; meta: string }) {
   return (
     <div className="min-w-0">
       <span className="block truncate font-medium" title={name}>{name}</span>
-      <span className="block text-[0.7rem] text-[#2D2926]/55">{meta}</span>
+      <span className="block text-xs text-[#2D2926]/55">{meta}</span>
     </div>
   );
 }

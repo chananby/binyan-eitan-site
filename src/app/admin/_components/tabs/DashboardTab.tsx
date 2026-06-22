@@ -117,7 +117,7 @@ export default function DashboardTab(p: Props) {
                   {p.isAdmin && !!worker?.daily_rate && worker.daily_rate > 0 && (
                     <span className="text-[0.75rem] text-accent-dark shrink-0">₪{worker.daily_rate}/יום</span>
                   )}
-                  <span className="text-[0.7rem] text-green-600 tabular-nums shrink-0">מ-{t}</span>
+                  <span className="text-xs text-green-600 tabular-nums shrink-0">מ-{t}</span>
                 </div>
               );
             })}
@@ -181,7 +181,7 @@ export default function DashboardTab(p: Props) {
                     </span>
                   )}
                 </div>
-                <p className="text-[0.7rem] text-charcoal/60 leading-snug">
+                <p className="text-xs text-charcoal/60 leading-snug">
                   אומדן גס: 22 ימי עבודה × 8.5 שעות
                   {p.monthlySalaryForecastCount != null && p.monthlySalaryForecastCount > 0 && (
                     <>, {p.monthlySalaryForecastCount} עובדים פעילים</>

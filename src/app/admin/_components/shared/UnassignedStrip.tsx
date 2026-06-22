@@ -36,7 +36,7 @@ export default function UnassignedStrip({ id, cards, tapMode, onChipTap }: Props
 
       <div className="p-2.5">
         {cards.length === 0 ? (
-          <p className="text-center font-body text-[0.7rem] text-charcoal/35 py-3">כל העובדים משובצים 🎉</p>
+          <p className="text-center font-body text-xs text-charcoal/35 py-3">כל העובדים משובצים 🎉</p>
         ) : (
           // Wrap inside the strip — the pool fills row by row and the
           // host container's natural vertical scroll handles overflow.

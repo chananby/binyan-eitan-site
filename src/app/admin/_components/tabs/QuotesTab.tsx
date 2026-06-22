@@ -101,7 +101,7 @@ export default function QuotesTab() {
               <a key={q.id} href={`/admin/quotes?id=${q.id}`} target="_blank" rel="noopener noreferrer"
                 className="flex items-center justify-between gap-3 py-2.5 -mx-2 px-2 hover:bg-bone/50 transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-[0.7rem] font-bold text-accent tabular-nums shrink-0">#{q.quote_number || "—"}</span>
+                  <span className="text-xs font-bold text-accent tabular-nums shrink-0">#{q.quote_number || "—"}</span>
                   <span className="text-sm font-semibold text-charcoal truncate">{q.customer_name || "ללא שם"}</span>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">

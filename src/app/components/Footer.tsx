@@ -102,7 +102,7 @@ export default function Footer() {
                 <div className="flex items-center gap-3">
                   <Link
                     href="/attendance"
-                    className="font-body text-[0.7rem] text-bone/65 hover:text-accent transition-colors duration-200 flex items-center gap-1.5 group"
+                    className="font-body text-xs text-bone/65 hover:text-accent transition-colors duration-200 flex items-center gap-1.5 group"
                   >
                     <Clock size={11} strokeWidth={1.5} className="shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
                     {lang === "he" ? "שעון נוכחות" : "Attendance"}
@@ -110,7 +110,7 @@ export default function Footer() {
                   <span className="text-bone/30 text-xs select-none" aria-hidden="true">|</span>
                   <Link
                     href="/admin"
-                    className="font-body text-[0.7rem] text-bone/65 hover:text-accent transition-colors duration-200 flex items-center gap-1.5 group"
+                    className="font-body text-xs text-bone/65 hover:text-accent transition-colors duration-200 flex items-center gap-1.5 group"
                   >
                     <ShieldCheck size={11} strokeWidth={1.5} className="shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
                     {lang === "he" ? "מערכת ניהול" : "Management"}
@@ -147,7 +147,7 @@ export default function Footer() {
                   href={`https://wa.me/${content.mobileTel?.replace("+", "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ms-2 inline-flex items-center gap-1 text-accent/60 hover:text-accent transition-colors duration-200 text-[0.7rem]"
+                  className="ms-2 inline-flex items-center gap-1 text-accent/60 hover:text-accent transition-colors duration-200 text-xs"
                   aria-label="WhatsApp"
                 >
                   <WhatsAppIcon />
@@ -164,7 +164,7 @@ export default function Footer() {
                   href={`https://wa.me/${content.mobileTel2?.replace("+", "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ms-2 inline-flex items-center gap-1 text-accent/60 hover:text-accent transition-colors duration-200 text-[0.7rem]"
+                  className="ms-2 inline-flex items-center gap-1 text-accent/60 hover:text-accent transition-colors duration-200 text-xs"
                   aria-label="WhatsApp"
                 >
                   <WhatsAppIcon />

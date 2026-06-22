@@ -61,7 +61,7 @@ export default function MoveToDialog(p: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-charcoal/10">
           <div className="min-w-0">
-            <p className="font-body text-[0.7rem] text-charcoal/70 leading-none">העבר את</p>
+            <p className="font-body text-xs text-charcoal/70 leading-none">העבר את</p>
             <p className="font-heading text-base font-bold text-charcoal truncate">{p.worker.label}</p>
           </div>
           <button

@@ -120,7 +120,7 @@ export default function ProjectsTab(p: Props) {
                   <p className="text-[0.75rem] text-charcoal/70">{p.tasks.filter(t => t.project_id === proj.id && t.status !== "completed").length} משימות פעילות</p>
                 </div>
                 <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${proj.status === "active" ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/70"}`}>{proj.status === "active" ? "פעיל" : "לא פעיל"}</span>
-                <button onClick={() => p.onToggleProjectStatus(proj.id, proj.status ?? "active")} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{proj.status === "active" ? "השבת" : "הפעל"}</button>
+                <button onClick={() => p.onToggleProjectStatus(proj.id, proj.status ?? "active")} className="text-xs border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{proj.status === "active" ? "השבת" : "הפעל"}</button>
               </div>
 
               {/* Address + GPS status */}

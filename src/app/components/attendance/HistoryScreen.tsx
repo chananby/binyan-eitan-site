@@ -163,7 +163,7 @@ export default function HistoryScreen(p: Props) {
         ) : (
           <div className="w-full space-y-1">
             {/* Header */}
-            <div className="grid grid-cols-4 gap-1 px-2 py-1.5 text-[0.58rem] font-semibold text-charcoal/40 uppercase tracking-wide border-b border-charcoal/8">
+            <div className="grid grid-cols-4 gap-1 px-2 py-1.5 text-xs font-semibold text-charcoal/40 uppercase tracking-wide border-b border-charcoal/8">
               <span>{p.t.historyColDate}</span>
               <span className="text-center">{p.t.historyColEntry}</span>
               <span className="text-center">{p.t.historyColExit}</span>
@@ -178,9 +178,9 @@ export default function HistoryScreen(p: Props) {
                   <div key={i} className="px-2 py-4 space-y-2">
                     <div className="grid grid-cols-4 gap-1 items-center">
                       <div className="min-w-0">
-                        {row.dayName && <p className="font-body text-[0.58rem] font-semibold text-accent-dark">{row.dayName}</p>}
+                        {row.dayName && <p className="font-body text-xs font-semibold text-accent-dark">{row.dayName}</p>}
                         <p className="font-body text-xs text-charcoal/70 tabular-nums" dir="ltr">{row.date}</p>
-                        {row.project !== "—" && <p className="font-body text-[0.58rem] text-charcoal/35 truncate" title={row.project}>{row.project}</p>}
+                        {row.project !== "—" && <p className="font-body text-xs text-charcoal/35 truncate" title={row.project}>{row.project}</p>}
                       </div>
                       <span className="font-body text-xs font-semibold text-charcoal/80 text-center tabular-nums inline-flex items-center justify-center">
                         {row.entry || "—"}{reportPencil(row.entryId)}

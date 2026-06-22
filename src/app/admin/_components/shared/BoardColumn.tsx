@@ -54,7 +54,7 @@ export default function BoardColumn({ id, title, cards, variant, onRemoveCard }:
       </div>
       <div className="flex-1 p-2 space-y-1.5">
         {cards.length === 0 ? (
-          <p className="text-center font-body text-[0.7rem] text-charcoal/35 py-6">
+          <p className="text-center font-body text-xs text-charcoal/35 py-6">
             {variant === "unassigned" ? "כל העובדים משובצים" : "גרור עובד לכאן"}
           </p>
         ) : (

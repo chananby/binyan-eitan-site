@@ -353,8 +353,8 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                     <span className={`text-[0.68rem] ${isPast ? "text-charcoal/40" : "text-charcoal/70"}`}>
                       {weekLabel(weekStart)}
                     </span>
-                    {isToday && <span className="text-[0.7rem] bg-accent text-bone px-1.5 py-0.5 rounded-full font-bold">שבוע זה</span>}
-                    {isPast  && <span className="text-[0.7rem] bg-charcoal/10 text-charcoal/65 px-1.5 py-0.5 rounded-full">היסטוריה</span>}
+                    {isToday && <span className="text-xs bg-accent text-bone px-1.5 py-0.5 rounded-full font-bold">שבוע זה</span>}
+                    {isPast  && <span className="text-xs bg-charcoal/10 text-charcoal/65 px-1.5 py-0.5 rounded-full">היסטוריה</span>}
                   </div>
                   <div className="flex items-center gap-4 shrink-0">
                     {weekTotal > 0 && (
@@ -448,37 +448,37 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                         <div className="overflow-x-auto">
                           <div className="flex gap-1.5 items-end flex-wrap" style={{ minWidth: 780 }}>
                             <div className="flex-1 min-w-[120px]">
-                              <label className="block text-[0.58rem] text-charcoal/40 mb-0.5">משימה *</label>
+                              <label className="block text-xs text-charcoal/40 mb-0.5">משימה *</label>
                               <input autoFocus value={newRow.task_name}
                                 onChange={e => setNewRow(p => ({ ...p, task_name: e.target.value }))}
                                 className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="rtl" />
                             </div>
                             <div className="w-24">
-                              <label className="block text-[0.58rem] text-charcoal/40 mb-0.5">קבלן משנה</label>
+                              <label className="block text-xs text-charcoal/40 mb-0.5">קבלן משנה</label>
                               <input value={newRow.subcontractor}
                                 onChange={e => setNewRow(p => ({ ...p, subcontractor: e.target.value }))}
                                 className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="rtl" />
                             </div>
                             <div className="w-16">
-                              <label className="block text-[0.58rem] text-charcoal/40 mb-0.5">עובדים</label>
+                              <label className="block text-xs text-charcoal/40 mb-0.5">עובדים</label>
                               <input type="number" min={0} value={newRow.workers_needed || ""}
                                 onChange={e => setNewRow(p => ({ ...p, workers_needed: Number(e.target.value) || 0 }))}
                                 className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="ltr" />
                             </div>
                             <div className="w-28">
-                              <label className="block text-[0.58rem] text-charcoal/40 mb-0.5">חומרים</label>
+                              <label className="block text-xs text-charcoal/40 mb-0.5">חומרים</label>
                               <input value={newRow.materials}
                                 onChange={e => setNewRow(p => ({ ...p, materials: e.target.value }))}
                                 className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="rtl" />
                             </div>
                             <div className="w-24">
-                              <label className="block text-[0.58rem] text-charcoal/40 mb-0.5">ספק</label>
+                              <label className="block text-xs text-charcoal/40 mb-0.5">ספק</label>
                               <input value={newRow.supplier}
                                 onChange={e => setNewRow(p => ({ ...p, supplier: e.target.value }))}
                                 className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="rtl" />
                             </div>
                             <div className="w-28">
-                              <label className="block text-[0.58rem] text-charcoal/40 mb-0.5">סטטוס הזמנה</label>
+                              <label className="block text-xs text-charcoal/40 mb-0.5">סטטוס הזמנה</label>
                               <select value={newRow.order_status}
                                 onChange={e => setNewRow(p => ({ ...p, order_status: e.target.value as WeeklyPlanRow["order_status"] }))}
                                 className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="rtl">
@@ -486,7 +486,7 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                               </select>
                             </div>
                             <div className="w-28">
-                              <label className="block text-[0.58rem] text-charcoal/40 mb-0.5">עלות מתוכננת (₪)</label>
+                              <label className="block text-xs text-charcoal/40 mb-0.5">עלות מתוכננת (₪)</label>
                               <input type="number" min={0} value={newRow.planned_cost || ""}
                                 onChange={e => setNewRow(p => ({ ...p, planned_cost: Number(e.target.value) || 0 }))}
                                 className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="ltr" />

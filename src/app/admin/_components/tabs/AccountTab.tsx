@@ -47,7 +47,7 @@ export default function AccountTab({
     <div className="space-y-3">
       <Card title="הגדרות חשבון">
         <div className="space-y-1.5 pb-2 border-b border-warm-gray-light">
-          <p className="text-[0.7rem] text-charcoal/65">מחובר/ת כ:</p>
+          <p className="text-xs text-charcoal/65">מחובר/ת כ:</p>
           <p className="text-sm font-semibold text-charcoal" dir="ltr">{adminEmail ?? "—"}</p>
           {adminName && <p className="text-xs text-charcoal/65">{adminName}</p>}
         </div>

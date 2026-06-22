@@ -170,7 +170,7 @@ export default function Hero() {
                 >
                   <GoogleIcon size={14} />
                   <StarRating rating={5} size={11} />
-                  <span className="font-body text-[0.7rem] font-semibold text-charcoal leading-none">
+                  <span className="font-body text-xs font-semibold text-charcoal leading-none">
                     {googleRatingValue}
                   </span>
                   <span className="hidden sm:inline-block h-3 w-px bg-warm-gray-light" aria-hidden="true" />
@@ -186,7 +186,7 @@ export default function Hero() {
                   font, accent dot mark, mirrors the form's "תוך שעה" wording
                   for consistency. */}
               <motion.div className="mt-8 md:mt-10 flex flex-col items-start gap-3" variants={fadeUp(0.25)}>
-                <span className="inline-flex items-center gap-2 font-body text-[0.7rem] text-charcoal/70">
+                <span className="inline-flex items-center gap-2 font-body text-xs text-charcoal/70">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
                   {responseTime}
                 </span>
