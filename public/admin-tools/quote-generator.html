@@ -486,19 +486,23 @@
     margin-bottom: 12px;
   }
   .doc-table thead th {
-    background: var(--brand);
-    color: white;
+    /* Dark text on a transparent bg, sandwiched by two solid navy rules.
+       Earlier attempts relied on a navy bg + white text + print-color-adjust:
+       exact — per the CSS Color Adjust spec, the user's "Background graphics"
+       toggle in the print dialog overrides `exact`, and Chrome defaults it to
+       OFF. The bg got stripped on every print, the white text collapsed onto
+       a white page, and Chrome's color-rescue heuristic painted it a faint
+       blue tint. Borders aren't backgrounds — they print regardless of that
+       toggle, in PDF, and survive a scan/photocopy of the printed page. */
+    background: transparent;
+    color: var(--brand);
     padding: 8px 10px;
     text-align: right;
     font-size: 10pt;
-    font-weight: 600;
-    /* Force the navy fill to print so the white labels don't collapse
-       onto a white page. The property is evaluated on the element at
-       print time — independent of @media print rules, which can fail
-       to apply when the parent page (React) triggers print on this
-       embedded iframe. Both prefixes for Chrome/Safari + Firefox. */
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border-top:    2px solid var(--brand);
+    border-bottom: 2px solid var(--brand);
   }
   .doc-table thead th.num { text-align: center; width: 50px; }
   .doc-table thead th.price { text-align: left; width: 90px; }
