@@ -308,11 +308,11 @@ export default function WorkersTab(p: Props) {
       <Card>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-heading text-base font-bold">עובדים פעילים ({activeStaff.length})</h2>
-          <button onClick={p.onReload} className="flex items-center gap-1 text-xs text-charcoal/55 hover:text-accent transition-colors">
+          <button onClick={p.onReload} className="flex items-center gap-1 text-xs text-charcoal/70 hover:text-accent transition-colors">
             <RefreshCw size={12} strokeWidth={1.5} /> רענן
           </button>
         </div>
-        {activeStaff.length === 0 && <p className="text-sm text-charcoal/55 text-center py-4">אין עובדים פעילים</p>}
+        {activeStaff.length === 0 && <p className="text-sm text-charcoal/70 text-center py-4">אין עובדים פעילים</p>}
         <div className="divide-y divide-charcoal/5">
           {activeStaff.map(s => renderStaffRow(p, s, false, askDelete))}
         </div>
@@ -330,8 +330,8 @@ export default function WorkersTab(p: Props) {
               מושבתים ({inactiveStaff.length})
             </h2>
             {inactiveOpen
-              ? <ChevronUp size={16} strokeWidth={1.5} className="text-charcoal/55" />
-              : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/55" />}
+              ? <ChevronUp size={16} strokeWidth={1.5} className="text-charcoal/70" />
+              : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
           </button>
           {inactiveOpen && (
             <div className="divide-y divide-charcoal/5 mt-3">
@@ -456,7 +456,7 @@ function renderStaffRow(
         {p.editMsg && <p className="text-xs text-red-500">{p.editMsg}</p>}
         <div className="flex gap-2">
           <button type="submit" disabled={p.editLoading} className="flex-1 bg-accent py-2 text-xs font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">{p.editLoading ? "שומר..." : "שמור"}</button>
-          <button type="button" onClick={() => p.setEditingId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/50 hover:border-accent transition-colors">ביטול</button>
+          <button type="button" onClick={() => p.setEditingId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/65 hover:border-accent transition-colors">ביטול</button>
         </div>
         {/* Per-month rate history + "add new rate" — inserted as a sibling
             block so its own fetch state is isolated from the edit form's
@@ -484,22 +484,22 @@ function renderStaffRow(
           )}
           {s.name}
         </p>
-        <p className="text-[0.7rem] text-charcoal/55 tabular-nums" dir="ltr">{s.phone}</p>
+        <p className="text-[0.7rem] text-charcoal/70 tabular-nums" dir="ltr">{s.phone}</p>
         {(s.hourly_rate || s.daily_rate) && (
-          <p className="text-[0.75rem] text-accent/70">
+          <p className="text-[0.75rem] text-accent-dark">
             {s.hourly_rate ? `₪${s.hourly_rate}/ש׳` : ""}{s.hourly_rate && s.daily_rate ? " · " : ""}{s.daily_rate ? `₪${s.daily_rate}/יום` : ""}
           </p>
         )}
       </div>
       <div className="flex flex-col items-end gap-1 shrink-0">
-        <span className="text-[0.75rem] text-charcoal/55">{s.role}</span>
+        <span className="text-[0.75rem] text-charcoal/70">{s.role}</span>
         {s.role === "ממונה" && (
           <span className={`text-[0.7rem] px-1.5 py-0.5 ${s.has_pin ? "bg-accent/10 text-accent" : "bg-red-50 text-red-400"}`}>
             {s.has_pin ? "PIN מוגדר" : "ללא PIN"}
           </span>
         )}
       </div>
-      <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/55"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
+      <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/70"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
       <button onClick={() => p.onStartEdit(s)} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">ערוך</button>
       {!isInactive && (
         <button
@@ -559,7 +559,7 @@ function DeleteConfirmModal({
         <p className="text-sm text-charcoal/70 leading-relaxed mb-3">
           להקלדת שם העובד <span className="font-semibold text-charcoal">&quot;{worker.name}&quot;</span> באופן מדויק כדי לאשר.
         </p>
-        <p className="text-[0.7rem] text-charcoal/50 leading-relaxed mb-3">
+        <p className="text-[0.7rem] text-charcoal/65 leading-relaxed mb-3">
           העובד יוסר מרשימת הצוות. רשומות שעות העבודה שלו יישמרו לצורכי דוחות וארכיון.
         </p>
         <input

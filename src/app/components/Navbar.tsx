@@ -296,7 +296,7 @@ export default function Navbar() {
               <Link
                 href={switchHref}
                 onClick={() => setMobileOpen(false)}
-                className="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-charcoal/50 hover:text-accent transition-colors"
+                className="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-charcoal/65 hover:text-accent transition-colors"
               >
                 <Globe size={14} strokeWidth={1.5} />
                 {t.switchLabel}

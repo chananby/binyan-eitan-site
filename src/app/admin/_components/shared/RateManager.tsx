@@ -140,7 +140,7 @@ export default function RateManager(p: Props) {
   return (
     <div className="mt-2 border-t border-charcoal/10 pt-2.5 space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-[0.7rem] font-semibold text-charcoal/55 uppercase tracking-wider">
+        <p className="text-[0.7rem] font-semibold text-charcoal/70 uppercase tracking-wider">
           היסטוריית תעריפים — {empLabel}
         </p>
         {!open && (
@@ -158,7 +158,7 @@ export default function RateManager(p: Props) {
         <form onSubmit={submit} className="bg-bone/60 border border-warm-gray-light p-2.5 space-y-2">
           <div className="grid grid-cols-2 gap-2">
             <label className="flex flex-col gap-1">
-              <span className="text-[0.62rem] uppercase tracking-wide text-charcoal/55">חודש תחולה</span>
+              <span className="text-[0.62rem] uppercase tracking-wide text-charcoal/70">חודש תחולה</span>
               <input
                 type="month"
                 value={month}
@@ -168,7 +168,7 @@ export default function RateManager(p: Props) {
               />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-[0.62rem] uppercase tracking-wide text-charcoal/55">סכום ({empLabel})</span>
+              <span className="text-[0.62rem] uppercase tracking-wide text-charcoal/70">סכום ({empLabel})</span>
               <input
                 type="number" step="0.5" min="0"
                 value={amount}
@@ -196,7 +196,7 @@ export default function RateManager(p: Props) {
               type="button"
               onClick={() => setOpen(false)}
               disabled={submitting}
-              className="flex-1 border border-charcoal/20 text-charcoal/55 py-1.5 text-[0.7rem] font-semibold tracking-wider uppercase hover:border-accent hover:text-accent disabled:opacity-40 transition-colors"
+              className="flex-1 border border-charcoal/20 text-charcoal/70 py-1.5 text-[0.7rem] font-semibold tracking-wider uppercase hover:border-accent hover:text-accent disabled:opacity-40 transition-colors"
             >
               ביטול
             </button>
@@ -204,7 +204,7 @@ export default function RateManager(p: Props) {
         </form>
       )}
 
-      {loading && <p className="text-[0.7rem] text-charcoal/55">טוען…</p>}
+      {loading && <p className="text-[0.7rem] text-charcoal/70">טוען…</p>}
       {error && <p className="flex items-center gap-1 text-[0.7rem] text-red-600"><AlertCircle size={10}/> {error}</p>}
       {!loading && !error && rates.length === 0 && (
         <p className="text-[0.7rem] text-amber-700">⚠️ אין שורות תעריף — לחץ "עדכן תעריף" כדי להוסיף.</p>
@@ -212,7 +212,7 @@ export default function RateManager(p: Props) {
       {!loading && !error && rates.length > 0 && (
         <table className="w-full text-[0.7rem]">
           <thead>
-            <tr className="text-charcoal/50">
+            <tr className="text-charcoal/65">
               <th className="text-start font-semibold py-1">תחילה</th>
               <th className="text-end font-semibold py-1">סכום</th>
               <th className="text-end font-semibold py-1 hidden sm:table-cell">נוצר ע"י</th>
@@ -225,7 +225,7 @@ export default function RateManager(p: Props) {
                 <tr key={r.id} className="border-t border-warm-gray-light/40">
                   <td className="py-1 tabular-nums text-charcoal/70" dir="ltr">{formatMonth(r.effective_month)}</td>
                   <td className="py-1 text-end tabular-nums font-semibold">{v != null ? `₪${v.toLocaleString("he-IL", { maximumFractionDigits: 2 })}` : "—"}</td>
-                  <td className="py-1 text-end text-charcoal/55 hidden sm:table-cell">{r.created_by ?? "—"}</td>
+                  <td className="py-1 text-end text-charcoal/70 hidden sm:table-cell">{r.created_by ?? "—"}</td>
                 </tr>
               );
             })}

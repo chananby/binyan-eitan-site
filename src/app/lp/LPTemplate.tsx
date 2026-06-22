@@ -189,7 +189,7 @@ export default function LPTemplate({ d }: { d: LPData }) {
       <section className="py-24 md:py-32 bg-bone">
         <div className="mx-auto max-w-[740px] px-8">
           <motion.p
-            className="overline-label mb-8 text-charcoal/45"
+            className="overline-label mb-8 text-charcoal/60"
             whileInView={{ opacity: 1, y: 0 }}
             initial={{ opacity: 0, y: 16 }}
             viewport={{ once: true }}
@@ -254,7 +254,7 @@ export default function LPTemplate({ d }: { d: LPData }) {
                 <h3 className="font-heading text-xl font-bold text-charcoal mb-4 leading-snug">
                   {p.title}
                 </h3>
-                <p className="font-body text-sm leading-[1.8] text-charcoal/55">
+                <p className="font-body text-sm leading-[1.8] text-charcoal/70">
                   {p.desc}
                 </p>
               </motion.div>

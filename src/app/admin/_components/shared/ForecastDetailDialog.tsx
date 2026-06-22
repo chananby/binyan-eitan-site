@@ -106,7 +106,7 @@ export default function ForecastDetailDialog(p: Props) {
             </button>
             <button
               onClick={p.onClose}
-              className="p-1 text-charcoal/50 hover:text-charcoal/80 transition-colors"
+              className="p-1 text-charcoal/65 hover:text-charcoal/80 transition-colors"
               aria-label="סגור"
             >
               <X size={18} strokeWidth={1.75} />
@@ -117,11 +117,11 @@ export default function ForecastDetailDialog(p: Props) {
         {/* Body */}
         <div className="flex-1 overflow-auto px-4 py-3">
           {p.lines.length === 0 ? (
-            <p className="text-sm text-charcoal/50 text-center py-8">אין עובדים פעילים לחישוב.</p>
+            <p className="text-sm text-charcoal/65 text-center py-8">אין עובדים פעילים לחישוב.</p>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-charcoal/10 text-[0.7rem] font-semibold uppercase tracking-wide text-charcoal/55">
+                <tr className="border-b border-charcoal/10 text-[0.7rem] font-semibold uppercase tracking-wide text-charcoal/70">
                   <th className="text-start py-2 px-1">שם</th>
                   <th className="text-center py-2 px-1">סוג</th>
                   <th className="text-end py-2 px-1">תעריף</th>
@@ -136,7 +136,7 @@ export default function ForecastDetailDialog(p: Props) {
                         {l.missing_rate && (
                           <AlertTriangle size={12} className="text-amber-500 shrink-0" aria-label="חסר תעריף" />
                         )}
-                        <span className={l.missing_rate ? "text-charcoal/50" : "text-charcoal"}>{l.name}</span>
+                        <span className={l.missing_rate ? "text-charcoal/65" : "text-charcoal"}>{l.name}</span>
                       </div>
                     </td>
                     <td className="text-center py-2 px-1 text-charcoal/65 text-xs">
@@ -164,7 +164,7 @@ export default function ForecastDetailDialog(p: Props) {
         </div>
 
         {/* Footer note */}
-        <div className="px-4 py-2.5 border-t border-charcoal/10 text-[0.7rem] text-charcoal/55 leading-snug">
+        <div className="px-4 py-2.5 border-t border-charcoal/10 text-[0.7rem] text-charcoal/70 leading-snug">
           אומדן גס: 22 ימי עבודה × 8.5 שעות. לא כולל חופשות, חגים או היעדרויות.
         </div>
       </div>

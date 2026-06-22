@@ -27,9 +27,9 @@ export default function UnassignedStrip({ id, cards, tapMode, onChipTap }: Props
       }`}
     >
       <div className="flex items-center gap-2 px-3 py-2 border-b border-charcoal/10">
-        <Users size={14} strokeWidth={1.5} className="text-charcoal/45 shrink-0" />
+        <Users size={14} strokeWidth={1.5} className="text-charcoal/60 shrink-0" />
         <p className="font-heading text-sm font-bold text-charcoal flex-1">לא משובצים</p>
-        <span className="font-body text-xs text-charcoal/45 tabular-nums shrink-0 bg-charcoal/5 rounded-full px-2 py-0.5">
+        <span className="font-body text-xs text-charcoal/60 tabular-nums shrink-0 bg-charcoal/5 rounded-full px-2 py-0.5">
           {cards.length}
         </span>
       </div>

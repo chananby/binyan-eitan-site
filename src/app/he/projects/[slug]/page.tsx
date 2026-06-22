@@ -310,7 +310,7 @@ export default async function HeProjectDetailPage(props: { params: Promise<{ slu
         <h2 className="text-3xl md:text-4xl font-light text-charcoal mb-4">
           הפרויקט שלכם הוא הבא
         </h2>
-        <p className="text-charcoal/50 font-light mb-8 max-w-md mx-auto leading-relaxed">
+        <p className="text-charcoal/65 font-light mb-8 max-w-md mx-auto leading-relaxed">
           צרו קשר ונבנה יחד משהו שעומד בזמן.
         </p>
         <Link

@@ -93,7 +93,7 @@ export default function ProjectsTab(p: Props) {
               placeholder="רחוב + מספר, עיר (למשל: הרצל 12, ירושלים)"
               className={INPUT}
             />
-            <p className="text-[0.62rem] text-charcoal/55 mt-1">
+            <p className="text-[0.62rem] text-charcoal/70 mt-1">
               המערכת תמיר אוטומטית לקואורדינטות. בכניסה/יציאה של עובד, אם המיקום שלו רחוק מעל הסף — תופיע אזהרה אדומה.
             </p>
           </Field>
@@ -104,9 +104,9 @@ export default function ProjectsTab(p: Props) {
       <Card>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-heading text-base font-bold">פרויקטים ({p.projects.length})</h2>
-          <button onClick={p.onReload} className="flex items-center gap-1 text-xs text-charcoal/55 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /> רענן</button>
+          <button onClick={p.onReload} className="flex items-center gap-1 text-xs text-charcoal/70 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /> רענן</button>
         </div>
-        {p.projects.length === 0 && <p className="text-sm text-charcoal/55 text-center py-4">אין פרויקטים</p>}
+        {p.projects.length === 0 && <p className="text-sm text-charcoal/70 text-center py-4">אין פרויקטים</p>}
         <div className="divide-y divide-charcoal/5">
           {p.projects.map((proj) => {
             const assignedForeman = p.staff.find(s => s.id === proj.foreman_id);
@@ -117,15 +117,15 @@ export default function ProjectsTab(p: Props) {
               <div className="flex items-center justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{proj.name}</p>
-                  <p className="text-[0.75rem] text-charcoal/55">{p.tasks.filter(t => t.project_id === proj.id && t.status !== "completed").length} משימות פעילות</p>
+                  <p className="text-[0.75rem] text-charcoal/70">{p.tasks.filter(t => t.project_id === proj.id && t.status !== "completed").length} משימות פעילות</p>
                 </div>
-                <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${proj.status === "active" ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/55"}`}>{proj.status === "active" ? "פעיל" : "לא פעיל"}</span>
+                <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${proj.status === "active" ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/70"}`}>{proj.status === "active" ? "פעיל" : "לא פעיל"}</span>
                 <button onClick={() => p.onToggleProjectStatus(proj.id, proj.status ?? "active")} className="text-[0.7rem] border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{proj.status === "active" ? "השבת" : "הפעל"}</button>
               </div>
 
               {/* Address + GPS status */}
               <div className="flex items-center gap-2 text-[0.75rem] flex-wrap">
-                <span className="text-charcoal/55 shrink-0">📍 כתובת:</span>
+                <span className="text-charcoal/70 shrink-0">📍 כתובת:</span>
                 {isEditingAddr ? (
                   <>
                     <input
@@ -143,7 +143,7 @@ export default function ProjectsTab(p: Props) {
                     </button>
                     <button
                       onClick={() => { p.setEditingProjectId(null); p.setEditProjectMsg(""); }}
-                      className="text-[0.75rem] border border-charcoal/15 text-charcoal/50 px-2 py-1 hover:border-accent transition-colors shrink-0"
+                      className="text-[0.75rem] border border-charcoal/15 text-charcoal/65 px-2 py-1 hover:border-accent transition-colors shrink-0"
                     >
                       ביטול
                     </button>
@@ -151,7 +151,7 @@ export default function ProjectsTab(p: Props) {
                 ) : (
                   <>
                     <span className="flex-1 min-w-0 text-charcoal/60 truncate">
-                      {proj.address || <span className="text-charcoal/55 italic">לא הוגדרה</span>}
+                      {proj.address || <span className="text-charcoal/70 italic">לא הוגדרה</span>}
                     </span>
                     {hasCoords ? (
                       <a
@@ -167,7 +167,7 @@ export default function ProjectsTab(p: Props) {
                     ) : null}
                     <button
                       onClick={() => p.onStartEditAddress(proj)}
-                      className="text-[0.75rem] border border-charcoal/15 text-charcoal/50 px-2 py-1 hover:border-accent hover:text-accent transition-colors shrink-0"
+                      className="text-[0.75rem] border border-charcoal/15 text-charcoal/65 px-2 py-1 hover:border-accent hover:text-accent transition-colors shrink-0"
                     >
                       ערוך
                     </button>
@@ -179,7 +179,7 @@ export default function ProjectsTab(p: Props) {
               )}
               {/* Foreman assignment */}
               <div className="flex items-center gap-2">
-                <span className="text-[0.75rem] text-charcoal/55 shrink-0">ממונה:</span>
+                <span className="text-[0.75rem] text-charcoal/70 shrink-0">ממונה:</span>
                 <select
                   value={proj.foreman_id ?? ""}
                   onChange={async e => {

@@ -27,7 +27,7 @@ export default function BoardColumn({ id, title, cards, variant, onRemoveCard }:
   const { setNodeRef, isOver } = useDroppable({ id, data: { columnId: id, variant } });
 
   const headerIcon = variant === "unassigned"
-    ? <Users size={14} strokeWidth={1.5} className="text-charcoal/45 shrink-0" />
+    ? <Users size={14} strokeWidth={1.5} className="text-charcoal/60 shrink-0" />
     : <Building2 size={14} strokeWidth={1.5} className={variant === "manual_project" ? "text-amber-500 shrink-0" : "text-accent shrink-0"} />;
 
   // shrink-0 + fixed width: kanban rows lay out left-to-right and the
@@ -50,7 +50,7 @@ export default function BoardColumn({ id, title, cards, variant, onRemoveCard }:
       <div className="flex items-center gap-2 px-3 py-2 border-b border-charcoal/10">
         {headerIcon}
         <p className="font-heading text-sm font-bold text-charcoal truncate flex-1">{title}</p>
-        <span className="font-body text-xs text-charcoal/45 tabular-nums shrink-0">{cards.length}</span>
+        <span className="font-body text-xs text-charcoal/60 tabular-nums shrink-0">{cards.length}</span>
       </div>
       <div className="flex-1 p-2 space-y-1.5">
         {cards.length === 0 ? (

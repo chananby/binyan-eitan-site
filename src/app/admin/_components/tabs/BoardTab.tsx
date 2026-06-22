@@ -259,7 +259,7 @@ export default function BoardTab() {
   // ── Render ───────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="flex items-center justify-center gap-2 py-12 text-charcoal/50">
+      <div className="flex items-center justify-center gap-2 py-12 text-charcoal/65">
         <Loader2 size={18} className="animate-spin" /> טוען לוח שיבוץ…
       </div>
     );
@@ -280,13 +280,13 @@ export default function BoardTab() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="font-body text-xs text-charcoal/55 leading-snug">
+        <p className="font-body text-xs text-charcoal/70 leading-snug">
           {tapMode
             ? "הקש על עובד לבחירת אתר. עובדים: " + data.workers.length + ", אתרים פעילים: " + data.projects.length + "."
             : "גרור עובד לאתר. עובד אחד = אתר אחד. עובדים: " + data.workers.length + ", אתרים פעילים: " + data.projects.length + "."}
         </p>
         <button onClick={reload}
-          className="flex items-center gap-1 text-xs text-charcoal/50 hover:text-accent shrink-0">
+          className="flex items-center gap-1 text-xs text-charcoal/65 hover:text-accent shrink-0">
           <RefreshCw size={12} /> רענן
         </button>
       </div>

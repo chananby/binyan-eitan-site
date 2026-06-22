@@ -92,7 +92,7 @@ export default function TechnicalAnatomy() {
             <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
               {heading}
             </h2>
-            <p className="mt-5 max-w-xl font-body text-base leading-relaxed font-light text-charcoal/55 md:mt-7 md:text-lg">
+            <p className="mt-5 max-w-xl font-body text-base leading-relaxed font-light text-charcoal/70 md:mt-7 md:text-lg">
               {sub}
             </p>
           </div>

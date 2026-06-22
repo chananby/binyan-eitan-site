@@ -89,7 +89,7 @@ export default function JoinRequestForm() {
   return (
     <main className="min-h-screen bg-bone px-6 py-16" dir="rtl">
       <div className="max-w-md mx-auto">
-        <Link href="/he" className="font-body text-xs text-charcoal/45 hover:text-accent inline-flex items-center gap-1 mb-6">
+        <Link href="/he" className="font-body text-xs text-charcoal/60 hover:text-accent inline-flex items-center gap-1 mb-6">
           <ChevronRight size={13} strokeWidth={1.5} />
           לדף הבית
         </Link>
@@ -187,7 +187,7 @@ function Field({ label, required, error, hint, children }: FieldProps) {
       {children}
       {error
         ? <p className="font-body text-[0.7rem] text-red-600 leading-snug">{error}</p>
-        : hint ? <p className="font-body text-[0.7rem] text-charcoal/45 leading-snug">{hint}</p>
+        : hint ? <p className="font-body text-[0.7rem] text-charcoal/60 leading-snug">{hint}</p>
         : null}
     </label>
   );

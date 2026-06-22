@@ -59,7 +59,7 @@ export default function AttendanceReportMistake(p: {
     <form onSubmit={submit} className="bg-amber-50/60 border border-amber-200 p-3 space-y-2.5">
       <p className="font-body text-xs font-semibold text-amber-800">{t.corrTitle}</p>
       <label className="flex flex-col gap-1">
-        <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/55">{t.corrProposedLabel}</span>
+        <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/70">{t.corrProposedLabel}</span>
         <input
           type="time"
           value={proposed}
@@ -69,7 +69,7 @@ export default function AttendanceReportMistake(p: {
         />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/55">{t.corrReasonLabel}</span>
+        <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/70">{t.corrReasonLabel}</span>
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
@@ -96,7 +96,7 @@ export default function AttendanceReportMistake(p: {
           type="button"
           onClick={p.onCancel}
           disabled={busy}
-          className="flex-1 border border-charcoal/15 text-charcoal/55 py-2 text-xs font-semibold tracking-wider uppercase hover:border-accent hover:text-accent disabled:opacity-40 transition-colors"
+          className="flex-1 border border-charcoal/15 text-charcoal/70 py-2 text-xs font-semibold tracking-wider uppercase hover:border-accent hover:text-accent disabled:opacity-40 transition-colors"
         >
           {t.corrCancel}
         </button>

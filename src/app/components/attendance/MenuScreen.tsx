@@ -59,7 +59,7 @@ export default function MenuScreen(p: Props) {
           {p.t.myHistory}
         </button>
         <button onClick={p.onShowManual}
-          className="w-full border border-charcoal/15 py-3 font-body text-sm text-charcoal/55 hover:border-accent hover:text-accent transition-colors duration-200">
+          className="w-full border border-charcoal/15 py-3 font-body text-sm text-charcoal/70 hover:border-accent hover:text-accent transition-colors duration-200">
           {p.t.manualBtn}
         </button>
         {p.geoError && (

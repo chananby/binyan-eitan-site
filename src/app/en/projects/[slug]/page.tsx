@@ -309,7 +309,7 @@ export default async function EnProjectDetailPage(props: { params: Promise<{ slu
         <h2 className="text-3xl md:text-4xl font-light text-charcoal mb-4">
           Your project is next
         </h2>
-        <p className="text-charcoal/50 font-light mb-8 max-w-md mx-auto leading-relaxed">
+        <p className="text-charcoal/65 font-light mb-8 max-w-md mx-auto leading-relaxed">
           Get in touch and let&apos;s build something that lasts.
         </p>
         <Link

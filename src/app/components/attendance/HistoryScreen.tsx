@@ -147,7 +147,7 @@ export default function HistoryScreen(p: Props) {
   return (
     <Screen backHref={p.backHref} backLabel={p.backLabel} lang={p.lang} onLangChange={p.onLangChange}>
       <div className="w-full text-center space-y-1">
-        <p className="font-body text-[0.75rem] font-bold tracking-[0.22em] uppercase text-accent/70">{p.t.historyTitle}</p>
+        <p className="font-body text-[0.75rem] font-bold tracking-[0.22em] uppercase text-accent-dark">{p.t.historyTitle}</p>
         {p.historyName && <p className="font-heading text-lg font-bold text-charcoal">{p.historyName}</p>}
       </div>
       <div className="w-full space-y-2">
@@ -178,7 +178,7 @@ export default function HistoryScreen(p: Props) {
                   <div key={i} className="px-2 py-4 space-y-2">
                     <div className="grid grid-cols-4 gap-1 items-center">
                       <div className="min-w-0">
-                        {row.dayName && <p className="font-body text-[0.58rem] font-semibold text-accent/70">{row.dayName}</p>}
+                        {row.dayName && <p className="font-body text-[0.58rem] font-semibold text-accent-dark">{row.dayName}</p>}
                         <p className="font-body text-xs text-charcoal/70 tabular-nums" dir="ltr">{row.date}</p>
                         {row.project !== "—" && <p className="font-body text-[0.58rem] text-charcoal/35 truncate" title={row.project}>{row.project}</p>}
                       </div>
@@ -242,7 +242,7 @@ export default function HistoryScreen(p: Props) {
         + {p.t.manualBtn}
       </button>
       <button onClick={p.onReset}
-        className="w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
+        className="w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/65 hover:border-accent hover:text-accent transition-colors duration-200">
         {p.t.backToForm}
       </button>
       {/* Clearance so the totals bar / actions never hide behind the

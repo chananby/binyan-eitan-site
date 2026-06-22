@@ -80,7 +80,7 @@ export default function DashboardTab(p: Props) {
   return (
     <div className="space-y-4">
       <TabRefreshBar loading={p.refreshing || p.dataLoading} onRefresh={p.onTabRefresh} lastRefreshed={p.lastRefreshed} />
-      <p className="text-[0.75rem] text-charcoal/55 text-center -mt-2">מתעדכן אוטומטית כל 2 דקות</p>
+      <p className="text-[0.75rem] text-charcoal/70 text-center -mt-2">מתעדכן אוטומטית כל 2 דקות</p>
 
       {/* Things that need attention — admin only; auto-hides when empty */}
       {p.isAdmin && <AttentionPanel items={p.attentionItems} />}
@@ -88,7 +88,7 @@ export default function DashboardTab(p: Props) {
       {/* On-site */}
       <Card title="⚡ מי באתר כרגע">
         {p.onSite.length === 0 ? (
-          <p className="text-sm text-charcoal/55 text-center py-2">אין עובדים מדווחים כרגע</p>
+          <p className="text-sm text-charcoal/70 text-center py-2">אין עובדים מדווחים כרגע</p>
         ) : (
           <div className="divide-y divide-charcoal/5">
             {p.onSite.map(({ record, worker }) => {
@@ -99,11 +99,11 @@ export default function DashboardTab(p: Props) {
                 <div key={record.id} className="flex items-center justify-between py-2.5 gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate">{record.staff?.name ?? "—"}</p>
-                    <p className="text-[0.75rem] text-charcoal/55">{record.staff?.role ?? ""}</p>
+                    <p className="text-[0.75rem] text-charcoal/70">{record.staff?.role ?? ""}</p>
                   </div>
                   {record.project && (
                     <div
-                      className="flex items-center gap-1 text-[0.75rem] text-charcoal/55"
+                      className="flex items-center gap-1 text-[0.75rem] text-charcoal/70"
                       title={record.project.name}
                     >
                       <Building2 size={10} strokeWidth={1.5} className="shrink-0" />
@@ -115,7 +115,7 @@ export default function DashboardTab(p: Props) {
                       workers). Coerce to boolean + require > 0 so the
                       span is either shown or omitted, never replaced by 0. */}
                   {p.isAdmin && !!worker?.daily_rate && worker.daily_rate > 0 && (
-                    <span className="text-[0.75rem] text-accent/70 shrink-0">₪{worker.daily_rate}/יום</span>
+                    <span className="text-[0.75rem] text-accent-dark shrink-0">₪{worker.daily_rate}/יום</span>
                   )}
                   <span className="text-[0.7rem] text-green-600 tabular-nums shrink-0">מ-{t}</span>
                 </div>
@@ -181,7 +181,7 @@ export default function DashboardTab(p: Props) {
                     </span>
                   )}
                 </div>
-                <p className="text-[0.7rem] text-charcoal/45 leading-snug">
+                <p className="text-[0.7rem] text-charcoal/60 leading-snug">
                   אומדן גס: 22 ימי עבודה × 8.5 שעות
                   {p.monthlySalaryForecastCount != null && p.monthlySalaryForecastCount > 0 && (
                     <>, {p.monthlySalaryForecastCount} עובדים פעילים</>
@@ -212,7 +212,7 @@ export default function DashboardTab(p: Props) {
       {/* Today's tasks */}
       <Card title="📋 משימות היום">
         {p.todayTasks.length === 0 ? (
-          <p className="text-sm text-charcoal/55 text-center py-2">אין משימות פעילות להיום</p>
+          <p className="text-sm text-charcoal/70 text-center py-2">אין משימות פעילות להיום</p>
         ) : (
           <div className="divide-y divide-charcoal/5">
             {p.todayTasks.map(t => {
@@ -221,7 +221,7 @@ export default function DashboardTab(p: Props) {
                 <div key={t.id} className="flex items-center justify-between py-2.5 gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate">{t.task_name}</p>
-                    <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/55 mt-0.5">
+                    <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/70 mt-0.5">
                       {proj && <><Building2 size={9} strokeWidth={1.5} /><span>{proj.name}</span></>}
                       {t.contractor && <span className="ms-1">· {t.contractor}</span>}
                     </div>

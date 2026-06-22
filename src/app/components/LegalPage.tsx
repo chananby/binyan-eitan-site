@@ -173,7 +173,7 @@ function AccessibilityEN() {
         <P>If you encounter any accessibility barriers on this Site, or if you require content in an alternative format, please contact our accessibility coordinator:</P>
         <div className="mt-4 p-5 border border-charcoal/10 bg-bone-dark text-start">
           <p className="font-heading font-bold text-charcoal text-base mb-1">Moti Eitan</p>
-          <p className="text-charcoal/50 text-xs mb-3">Accessibility Coordinator, Binyan Eitan Construction Ltd.</p>
+          <p className="text-charcoal/65 text-xs mb-3">Accessibility Coordinator, Binyan Eitan Construction Ltd.</p>
           <p>Email: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a></p>
           <p>Phone: <a href="tel:+97225000447" className="text-accent hover:underline">02-500-0447</a></p>
         </div>
@@ -303,7 +303,7 @@ function AccessibilityHE() {
         <P>אם נתקלת במחסום נגישות כלשהו באתר, או אם אתה זקוק לתוכן בפורמט חלופי, אנא פנה לרכז הנגישות שלנו:</P>
         <div className="mt-4 p-5 border border-charcoal/10 bg-bone-dark text-start">
           <p className="font-heading font-bold text-charcoal text-base mb-1">מוטי איתן</p>
-          <p className="text-charcoal/50 text-xs mb-3">רכז נגישות, חברת בניין איתן בע"מ</p>
+          <p className="text-charcoal/65 text-xs mb-3">רכז נגישות, חברת בניין איתן בע"מ</p>
           <p>דוא"ל: <a href="mailto:office@binyaneitan.com" className="text-accent hover:underline">office@binyaneitan.com</a></p>
           <p>טל&#39;: <a href="tel:+97225000447" className="text-accent hover:underline">02-500-0447</a></p>
         </div>

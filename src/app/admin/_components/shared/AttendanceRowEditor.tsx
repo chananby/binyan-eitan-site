@@ -151,7 +151,7 @@ export default function AttendanceRowEditor(p: Props) {
           <div className="flex flex-wrap items-end gap-3">
             {showStart && (
               <label className="flex flex-col gap-1">
-                <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/50">שעת כניסה</span>
+                <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/65">שעת כניסה</span>
                 <input
                   type="time"
                   value={startTime}
@@ -163,7 +163,7 @@ export default function AttendanceRowEditor(p: Props) {
             )}
             {showEnd && (
               <label className="flex flex-col gap-1">
-                <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/50">{p.mode === "add" ? "שעת יציאה (אופציונלי)" : "שעת יציאה"}</span>
+                <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/65">{p.mode === "add" ? "שעת יציאה (אופציונלי)" : "שעת יציאה"}</span>
                 <input
                   type="time"
                   value={endTime}
@@ -175,7 +175,7 @@ export default function AttendanceRowEditor(p: Props) {
             )}
             {p.mode !== "add" && (
               <label className="flex flex-col gap-1 flex-1 min-w-[180px]">
-                <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/50">סיבת תיקון (אופציונלי)</span>
+                <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/65">סיבת תיקון (אופציונלי)</span>
                 <input
                   type="text"
                   value={note}
@@ -197,7 +197,7 @@ export default function AttendanceRowEditor(p: Props) {
                 type="button"
                 onClick={p.onCancel}
                 disabled={busy}
-                className="border border-charcoal/15 text-charcoal/55 px-4 py-1.5 text-[0.7rem] font-semibold tracking-wider uppercase hover:border-accent hover:text-accent disabled:opacity-40 transition-colors"
+                className="border border-charcoal/15 text-charcoal/70 px-4 py-1.5 text-[0.7rem] font-semibold tracking-wider uppercase hover:border-accent hover:text-accent disabled:opacity-40 transition-colors"
               >
                 ביטול
               </button>

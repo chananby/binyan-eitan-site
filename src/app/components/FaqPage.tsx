@@ -97,7 +97,7 @@ export default function FaqPage() {
           </h2>
 
           {faqs.length === 0 ? (
-            <p className="text-charcoal/50 font-body text-lg text-center py-10">{c.empty}</p>
+            <p className="text-charcoal/65 font-body text-lg text-center py-10">{c.empty}</p>
           ) : (
             <div className="divide-y divide-warm-gray-light">
               {faqs.map((faq) => {

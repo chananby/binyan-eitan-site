@@ -362,7 +362,7 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
           <h2 className="text-3xl md:text-4xl font-light text-charcoal mb-4">
             {lang === "he" ? "הפרויקט שלכם הוא הבא" : "Your project is next"}
           </h2>
-          <p className="text-charcoal/50 font-light mb-8 max-w-md mx-auto leading-relaxed">
+          <p className="text-charcoal/65 font-light mb-8 max-w-md mx-auto leading-relaxed">
             {lang === "he"
               ? "צרו קשר ונבנה יחד משהו שעומד בזמן."
               : "Get in touch and let's build something that lasts."}

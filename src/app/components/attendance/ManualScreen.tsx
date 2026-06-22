@@ -41,11 +41,11 @@ export default function ManualScreen(p: Props) {
       {/* clock-in / clock-out toggle */}
       <div className="w-full grid grid-cols-2 gap-3">
         <button onClick={() => p.setManualAction("in")}
-          className={`py-4 font-body text-sm font-semibold tracking-wider border transition-all duration-150 ${p.manualAction === "in" ? "bg-charcoal text-bone border-charcoal" : "border-charcoal/20 text-charcoal/50 hover:border-accent"}`}>
+          className={`py-4 font-body text-sm font-semibold tracking-wider border transition-all duration-150 ${p.manualAction === "in" ? "bg-charcoal text-bone border-charcoal" : "border-charcoal/20 text-charcoal/65 hover:border-accent"}`}>
           {p.t.clockIn}
         </button>
         <button onClick={() => p.setManualAction("out")}
-          className={`py-4 font-body text-sm font-semibold tracking-wider border transition-all duration-150 ${p.manualAction === "out" ? "bg-charcoal text-bone border-charcoal" : "border-charcoal/20 text-charcoal/50 hover:border-accent"}`}>
+          className={`py-4 font-body text-sm font-semibold tracking-wider border transition-all duration-150 ${p.manualAction === "out" ? "bg-charcoal text-bone border-charcoal" : "border-charcoal/20 text-charcoal/65 hover:border-accent"}`}>
           {p.t.clockOut}
         </button>
       </div>
@@ -57,12 +57,12 @@ export default function ManualScreen(p: Props) {
           is "DD/MM/YYYY" while time is just "HH:MM"). */}
       <div className="w-full grid grid-cols-3 gap-3">
         <div className="col-span-2 space-y-1">
-          <p className="font-body text-[0.75rem] text-charcoal/50 font-semibold tracking-wide uppercase">{p.t.manualDateLabel}</p>
+          <p className="font-body text-[0.75rem] text-charcoal/65 font-semibold tracking-wide uppercase">{p.t.manualDateLabel}</p>
           <input type="date" value={p.manualDate} max={todayIso} onChange={e => p.setManualDate(e.target.value)}
             className="w-full border border-charcoal/20 bg-white px-3 py-3 font-body text-sm text-charcoal focus:border-accent focus:outline-none transition-colors" dir="ltr" />
         </div>
         <div className="col-span-1 space-y-1">
-          <p className="font-body text-[0.75rem] text-charcoal/50 font-semibold tracking-wide uppercase">
+          <p className="font-body text-[0.75rem] text-charcoal/65 font-semibold tracking-wide uppercase">
             {p.manualAction === "in" ? p.t.manualTimeIn : p.t.manualTimeOut}
           </p>
           <input type="time" value={p.manualTime} onChange={e => p.setManualTime(e.target.value)}
@@ -74,7 +74,7 @@ export default function ManualScreen(p: Props) {
       {/* Project (optional) */}
       {p.projects.length > 0 && (
         <div className="w-full space-y-1">
-          <p className="font-body text-[0.75rem] text-charcoal/50 font-semibold tracking-wide uppercase">{p.t.manualProjectLabel}</p>
+          <p className="font-body text-[0.75rem] text-charcoal/65 font-semibold tracking-wide uppercase">{p.t.manualProjectLabel}</p>
           <select value={p.manualProject} onChange={e => p.setManualProject(e.target.value)}
             className="w-full border border-charcoal/20 bg-white px-3 py-3 font-body text-sm text-charcoal focus:border-accent focus:outline-none transition-colors">
             <option value="">{p.t.manualNoSite}</option>

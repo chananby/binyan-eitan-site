@@ -9,7 +9,7 @@ import { TabRefreshBar } from "../shared/TabRefreshBar";
 // import here removes it from AdminPortal.tsx so the parent doesn't keep
 // a top-level dependency on a component it only mounts conditionally.
 const ReportsTab = dynamic(() => import("./ReportsTab"), {
-  loading: () => <div className="text-sm text-charcoal/55 text-center py-8">טוען דוחות...</div>,
+  loading: () => <div className="text-sm text-charcoal/70 text-center py-8">טוען דוחות...</div>,
 });
 
 interface ProjectLite {

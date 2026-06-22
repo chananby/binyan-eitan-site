@@ -28,10 +28,10 @@ export default function ReadyScreen(p: Props) {
   return (
     <Screen backHref={p.backHref} backLabel={p.backLabel} lang={p.lang} onLangChange={p.onLangChange}>
       <div className="text-center space-y-1">
-        <p className="font-body text-[0.75rem] font-bold tracking-[0.22em] uppercase text-accent/70">{p.t.locationOk}</p>
+        <p className="font-body text-[0.75rem] font-bold tracking-[0.22em] uppercase text-accent-dark">{p.t.locationOk}</p>
         {p.workerName && <p className="font-heading text-base text-charcoal/70">{p.workerName}</p>}
         {selectedProject && (
-          <div className="flex items-center justify-center gap-1 text-xs text-charcoal/50">
+          <div className="flex items-center justify-center gap-1 text-xs text-charcoal/65">
             <Building2 size={12} strokeWidth={1.5} /><span>{selectedProject.name}</span>
           </div>
         )}
@@ -50,7 +50,7 @@ export default function ReadyScreen(p: Props) {
       </div>
       <div className="flex flex-col items-center gap-2">
         <button onClick={p.onChangeProject} className="font-body text-xs text-charcoal/30 hover:text-charcoal/60 transition-colors duration-200 underline underline-offset-2">{p.t.changeSite}</button>
-        <button onClick={p.onReset} className="font-body text-xs text-charcoal/20 hover:text-charcoal/50 transition-colors duration-200">{p.t.changeNumber}</button>
+        <button onClick={p.onReset} className="font-body text-xs text-charcoal/20 hover:text-charcoal/65 transition-colors duration-200">{p.t.changeNumber}</button>
       </div>
     </Screen>
   );

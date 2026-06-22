@@ -79,7 +79,7 @@ const HASH_TO_TAB: Record<string, AdminTab> = {
 
 const MILESTONE_STATUS_HE: Record<string, string>  = { pending: "ממתין", in_progress: "בביצוע", completed: "הושלם" };
 const MILESTONE_STATUS_CLS: Record<string, string> = {
-  pending:     "bg-charcoal/5 text-charcoal/50",
+  pending:     "bg-charcoal/5 text-charcoal/65",
   in_progress: "bg-amber-50 text-amber-700",
   completed:   "bg-green-50 text-green-700",
 };
@@ -1202,13 +1202,13 @@ export default function AdminPortal() {
           <div className="flex items-center gap-2">
             {isAdmin && (
               <Link href="/admin/health"
-                className="flex items-center gap-1.5 border border-charcoal/15 px-3 py-1.5 text-xs text-charcoal/55 hover:border-accent hover:text-accent transition-colors duration-200">
+                className="flex items-center gap-1.5 border border-charcoal/15 px-3 py-1.5 text-xs text-charcoal/70 hover:border-accent hover:text-accent transition-colors duration-200">
                 <Activity size={12} strokeWidth={1.5} />
                 סטטוס מערכת
               </Link>
             )}
             <button onClick={handleLogout}
-              className="border border-charcoal/20 px-3 py-1.5 text-xs text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
+              className="border border-charcoal/20 px-3 py-1.5 text-xs text-charcoal/65 hover:border-accent hover:text-accent transition-colors duration-200">
               יציאה
             </button>
           </div>
@@ -1261,7 +1261,7 @@ export default function AdminPortal() {
               <button
                 key={t.key}
                 onClick={() => goToTab(t.key)}
-                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/55 hover:text-charcoal/70"}`}
+                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/70 hover:text-charcoal/70"}`}
               >
                 {t.icon} {t.label}
                 {badgeCount > 0 && (
@@ -1618,10 +1618,10 @@ export default function AdminPortal() {
             <div className="bg-bone max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
               <div className="bg-white border-b border-warm-gray-light px-5 py-4 flex items-center justify-between">
                 <div>
-                  <p className="text-[0.75rem] text-charcoal/55 uppercase tracking-widest">ימי חופשה</p>
+                  <p className="text-[0.75rem] text-charcoal/70 uppercase tracking-widest">ימי חופשה</p>
                   <h3 className="font-heading text-base font-bold">{worker?.name ?? "—"}</h3>
                 </div>
-                <button onClick={() => setVacationFor(null)} className="text-charcoal/55 hover:text-charcoal transition-colors p-1">
+                <button onClick={() => setVacationFor(null)} className="text-charcoal/70 hover:text-charcoal transition-colors p-1">
                   <ChevronLeft size={18} />
                 </button>
               </div>
@@ -1642,9 +1642,9 @@ export default function AdminPortal() {
                 </form>
 
                 <div className="border-t border-warm-gray-light pt-4">
-                  <p className="text-[0.7rem] text-charcoal/50 mb-2">היסטוריה ({vacationRows.length})</p>
+                  <p className="text-[0.7rem] text-charcoal/65 mb-2">היסטוריה ({vacationRows.length})</p>
                   {vacationRows.length === 0 ? (
-                    <p className="text-xs text-charcoal/55 text-center py-4">אין ימי חופשה רשומים</p>
+                    <p className="text-xs text-charcoal/70 text-center py-4">אין ימי חופשה רשומים</p>
                   ) : (
                     <div className="divide-y divide-charcoal/5">
                       {vacationRows.map(v => (
@@ -1654,9 +1654,9 @@ export default function AdminPortal() {
                               {new Date(v.date).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" })}
                             </p>
                             {v.half_day && <p className="text-[0.75rem] text-amber-600">חצי יום</p>}
-                            {v.notes && <p className="text-[0.75rem] text-charcoal/50">{v.notes}</p>}
+                            {v.notes && <p className="text-[0.75rem] text-charcoal/65">{v.notes}</p>}
                           </div>
-                          <button onClick={() => handleDeleteVacation(v.id)} className="text-charcoal/55 hover:text-red-500 transition-colors text-xs border border-charcoal/15 px-2 py-1">מחק</button>
+                          <button onClick={() => handleDeleteVacation(v.id)} className="text-charcoal/70 hover:text-red-500 transition-colors text-xs border border-charcoal/15 px-2 py-1">מחק</button>
                         </div>
                       ))}
                     </div>

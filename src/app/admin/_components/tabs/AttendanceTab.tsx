@@ -135,12 +135,12 @@ function EditAttRow({
             className="flex-1 bg-accent py-2 text-xs font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors min-w-[80px]">
             {edit.loading ? "..." : "שמור בלבד"}
           </button>
-          <button type="button" onClick={() => edit.setId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/50 hover:border-accent transition-colors min-w-[60px]">ביטול</button>
+          <button type="button" onClick={() => edit.setId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/65 hover:border-accent transition-colors min-w-[60px]">ביטול</button>
         </div>
       ) : (
         <div className="flex gap-2">
           <button type="submit" disabled={edit.loading} className="flex-1 bg-accent py-2 text-xs font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">{edit.loading ? "שומר..." : "שמור"}</button>
-          <button type="button" onClick={() => edit.setId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/50 hover:border-accent transition-colors">ביטול</button>
+          <button type="button" onClick={() => edit.setId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/65 hover:border-accent transition-colors">ביטול</button>
         </div>
       )}
     </form>
@@ -274,13 +274,13 @@ ${detailHtml}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end">
           <div>
-            <label className="block text-[0.68rem] text-charcoal/50 mb-1 font-body">מתאריך</label>
+            <label className="block text-[0.68rem] text-charcoal/65 mb-1 font-body">מתאריך</label>
             <input type="date" value={attReportFrom}
               onChange={e => { setAttReportFrom(e.target.value); setAttReportData(null); }}
               className="w-full border border-warm-gray-light bg-bone text-charcoal text-sm px-3 py-2 focus:outline-none focus:border-accent" />
           </div>
           <div>
-            <label className="block text-[0.68rem] text-charcoal/50 mb-1 font-body">עד תאריך</label>
+            <label className="block text-[0.68rem] text-charcoal/65 mb-1 font-body">עד תאריך</label>
             <input type="date" value={attReportTo}
               onChange={e => { setAttReportTo(e.target.value); setAttReportData(null); }}
               className="w-full border border-warm-gray-light bg-bone text-charcoal text-sm px-3 py-2 focus:outline-none focus:border-accent" />
@@ -325,7 +325,7 @@ ${detailHtml}
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-[0.68rem] text-charcoal/55 font-body">
+              <p className="text-[0.68rem] text-charcoal/70 font-body">
                 דוח נוכחות — {from} עד {to}
               </p>
               <span className="text-[0.62rem] text-accent font-semibold border border-accent/30 px-2 py-0.5">
@@ -337,16 +337,16 @@ ${detailHtml}
               {summary.map(s => (
                 <div key={s.phone} className="bg-bone border border-warm-gray-light p-3">
                   <p className="font-heading font-bold text-sm text-charcoal truncate">{s.name}</p>
-                  <p className="text-[0.62rem] text-charcoal/55 mt-0.5">{s.phone}</p>
+                  <p className="text-[0.62rem] text-charcoal/70 mt-0.5">{s.phone}</p>
                   <div className="flex gap-3 mt-2">
                     <div>
                       <p className="text-lg font-heading font-bold text-accent leading-none">{s.days}</p>
-                      <p className="text-[0.58rem] text-charcoal/55 leading-none mt-0.5">ימים</p>
+                      <p className="text-[0.58rem] text-charcoal/70 leading-none mt-0.5">ימים</p>
                     </div>
                     <div className="w-px bg-warm-gray-light" />
                     <div>
                       <p className="text-lg font-heading font-bold text-charcoal leading-none">{s.hours.toFixed(1)}</p>
-                      <p className="text-[0.58rem] text-charcoal/55 leading-none mt-0.5">שעות</p>
+                      <p className="text-[0.58rem] text-charcoal/70 leading-none mt-0.5">שעות</p>
                     </div>
                   </div>
                 </div>
@@ -362,7 +362,7 @@ ${detailHtml}
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs border-collapse">
                     <thead>
-                      <tr className="bg-bone text-charcoal/50">
+                      <tr className="bg-bone text-charcoal/65">
                         <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light w-16">יום</th>
                         <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">תאריך</th>
                         <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">עובד</th>
@@ -381,7 +381,7 @@ ${detailHtml}
                           <tr key={`${date}-${i}`}
                             className={`hover:bg-bone/40 transition-colors ${i === dayRows.length - 1 ? "border-b-2 border-warm-gray-light" : ""}`}
                             style={{ background: i % 2 === 0 ? "#fff" : "#FAFAF9" }}>
-                            <td className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/50 font-medium">
+                            <td className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/65 font-medium">
                               {i === 0 ? dow : ""}
                             </td>
                             <td className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/70">
@@ -393,7 +393,7 @@ ${detailHtml}
                             <td className="px-2.5 py-1.5 border border-warm-gray-light font-bold text-accent">
                               {r.hours !== null ? r.hours.toFixed(2) : <span className="text-charcoal/25">—</span>}
                             </td>
-                            <td className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/55 text-[0.68rem] max-w-[160px] truncate">{r.project}</td>
+                            <td className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/70 text-[0.68rem] max-w-[160px] truncate">{r.project}</td>
                           </tr>
                         ));
                       })}
@@ -411,9 +411,9 @@ ${detailHtml}
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-5 bg-accent" />
                       <p className="font-heading font-bold text-sm">{name}</p>
-                      <span className="text-[0.75rem] text-charcoal/55">{ws?.phone}</span>
+                      <span className="text-[0.75rem] text-charcoal/70">{ws?.phone}</span>
                     </div>
-                    <div className="flex gap-3 text-[0.68rem] text-charcoal/50">
+                    <div className="flex gap-3 text-[0.68rem] text-charcoal/65">
                       <span><strong className="text-charcoal">{ws?.days ?? 0}</strong> ימים</span>
                       <span><strong className="text-charcoal">{(ws?.hours ?? 0).toFixed(2)}</strong> שעות</span>
                     </div>
@@ -421,7 +421,7 @@ ${detailHtml}
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs border-collapse">
                       <thead>
-                        <tr className="bg-bone text-charcoal/50">
+                        <tr className="bg-bone text-charcoal/65">
                           <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">תאריך</th>
                           <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">כניסה</th>
                           <th className="text-start font-semibold px-2.5 py-1.5 border border-warm-gray-light">יציאה</th>
@@ -445,7 +445,7 @@ ${detailHtml}
                       {wRows.length > 1 && (
                         <tfoot>
                           <tr className="bg-bone font-semibold">
-                            <td colSpan={3} className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/50 text-[0.62rem]">סיכום</td>
+                            <td colSpan={3} className="px-2.5 py-1.5 border border-warm-gray-light text-charcoal/65 text-[0.62rem]">סיכום</td>
                             <td className="px-2.5 py-1.5 border border-warm-gray-light text-accent font-bold">
                               {(ws?.hours ?? 0).toFixed(2)}
                             </td>
@@ -460,7 +460,7 @@ ${detailHtml}
             })}
 
             {rows.length === 0 && (
-              <div className="text-center py-10 text-charcoal/55 text-sm">
+              <div className="text-center py-10 text-charcoal/70 text-sm">
                 לא נמצאו רשומות נוכחות לתקופה זו
               </div>
             )}
@@ -550,7 +550,7 @@ function ManualEntryForm({
               <div className="flex flex-wrap gap-2 pt-0.5">
                 {MANUAL_TYPES.map(t => (
                   <label key={t.key} className={`flex items-center gap-1.5 px-3 py-1.5 border cursor-pointer text-xs font-semibold transition-colors
-                    ${manualType === t.key ? "border-accent bg-accent/10 text-accent" : "border-charcoal/15 text-charcoal/50 hover:border-accent/40"}`}>
+                    ${manualType === t.key ? "border-accent bg-accent/10 text-accent" : "border-charcoal/15 text-charcoal/65 hover:border-accent/40"}`}>
                     <input type="radio" name="manualType" value={t.key} checked={manualType === t.key}
                       onChange={() => setManualType(t.key)} className="sr-only" />
                     {t.label}
@@ -569,7 +569,7 @@ function ManualEntryForm({
                   <input type="time" value={manualExitTime} onChange={e => setManualExitTime(e.target.value)}
                     className={INPUT} dir="ltr" />
                 </Field>
-                <p className="col-span-2 text-[0.65rem] text-charcoal/45 -mt-1">
+                <p className="col-span-2 text-[0.65rem] text-charcoal/60 -mt-1">
                   אפשר להשאיר יציאה ריקה — תיווצר רשומה פתוחה שתיסגר אחר כך.
                 </p>
               </div>
@@ -601,7 +601,7 @@ function ManualEntryForm({
                 {manualLoading ? <><Loader2 size={13} className="inline animate-spin me-1.5" />שומר...</> : "צור רשומה"}
               </button>
               <button type="button" onClick={() => setManualOpen(false)}
-                className="px-5 border border-charcoal/20 py-2.5 text-xs text-charcoal/50 hover:border-accent transition-colors">
+                className="px-5 border border-charcoal/20 py-2.5 text-xs text-charcoal/65 hover:border-accent transition-colors">
                 ביטול
               </button>
             </div>
@@ -642,14 +642,14 @@ function PendingApprovals({
             </span>
           )}
         </div>
-        <button onClick={onLoadPending} className="flex items-center gap-1 text-xs text-charcoal/55 hover:text-accent transition-colors">
+        <button onClick={onLoadPending} className="flex items-center gap-1 text-xs text-charcoal/70 hover:text-accent transition-colors">
           <RefreshCw size={12} strokeWidth={1.5} /> רענן
         </button>
       </div>
-      {pendingLoading && <p className="text-sm text-charcoal/55 text-center py-4">טוען...</p>}
+      {pendingLoading && <p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
       {pendingErr && <p className="text-xs text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {pendingErr}</p>}
       {!pendingLoading && !pendingErr && pendingRecords.length === 0 && (
-        <p className="text-sm text-charcoal/55 text-center py-4">אין בקשות ממתינות לאישור</p>
+        <p className="text-sm text-charcoal/70 text-center py-4">אין בקשות ממתינות לאישור</p>
       )}
       {!pendingLoading && pendingRecords.length > 0 && (
         <div className="divide-y divide-charcoal/5">
@@ -673,25 +673,25 @@ function PendingApprovals({
                           // column whose format varies row by row.
                           const t = attendanceDayTimeShort(r);
                           return t ? (
-                            <span className="text-[0.75rem] text-charcoal/55 tabular-nums" dir="ltr">{t}</span>
+                            <span className="text-[0.75rem] text-charcoal/70 tabular-nums" dir="ltr">{t}</span>
                           ) : null;
                         })()}
                         <DistanceFlag r={r} threshold={farThresholdM} />
                         <PhoneCallChip source={r.source} />
                       </div>
                       {r.project && (
-                        <div className="flex items-center gap-1 mt-0.5 text-[0.75rem] text-charcoal/55">
+                        <div className="flex items-center gap-1 mt-0.5 text-[0.75rem] text-charcoal/70">
                           <Building2 size={10} strokeWidth={1.5} /><span>{r.project.name}</span>
                         </div>
                       )}
                       {r.created_at && (
-                        <p className="text-[0.75rem] text-charcoal/55 mt-0.5">
+                        <p className="text-[0.75rem] text-charcoal/70 mt-0.5">
                           הוגש: {new Date(r.created_at).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                         </p>
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-                      <button onClick={() => onStartEditAtt(r, true)} className="text-charcoal/55 hover:text-accent transition-colors p-1">
+                      <button onClick={() => onStartEditAtt(r, true)} className="text-charcoal/70 hover:text-accent transition-colors p-1">
                         <Pencil size={12} strokeWidth={1.5} />
                       </button>
                       <button onClick={() => onApproveAtt(r.id)}
@@ -769,13 +769,13 @@ function TodayLog({
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="font-heading text-base font-bold">יומן היום</h2>
-          <p className="text-[0.75rem] text-charcoal/55 font-body mt-0.5">מתעדכן אוטומטית כל דקה</p>
+          <p className="text-[0.75rem] text-charcoal/70 font-body mt-0.5">מתעדכן אוטומטית כל דקה</p>
         </div>
         <button onClick={onReload} className="flex items-center gap-1.5 text-xs border border-accent/30 text-accent hover:bg-accent hover:text-bone px-3 py-1.5 transition-colors duration-150">
           <RefreshCw size={12} strokeWidth={1.5} /> רענן עכשיו
         </button>
       </div>
-      {dataLoading && <p className="text-sm text-charcoal/55 text-center py-4">טוען...</p>}
+      {dataLoading && <p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
       {!dataLoading && attLoadErr && (
         <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded px-3 py-2.5 text-sm text-red-700 mb-3">
           <AlertCircle size={15} className="shrink-0 mt-0.5" />
@@ -786,7 +786,7 @@ function TodayLog({
           </div>
         </div>
       )}
-      {!dataLoading && !attLoadErr && todayLogs.length === 0 && <p className="text-sm text-charcoal/55 text-center py-4">אין דיווחים היום — לחץ &quot;רענן עכשיו&quot; אם עובדים כבר דיווחו</p>}
+      {!dataLoading && !attLoadErr && todayLogs.length === 0 && <p className="text-sm text-charcoal/70 text-center py-4">אין דיווחים היום — לחץ &quot;רענן עכשיו&quot; אם עובדים כבר דיווחו</p>}
       {!dataLoading && todayLogs.length > 0 && (() => {
         // Regular workers first; "exempt-from-attendance" staff (managers,
         // global-salary roles) get a separate dimmed group at the bottom
@@ -806,7 +806,7 @@ function TodayLog({
             )}
             {exempt.length > 0 && (
               <div className="mt-4 pt-3 border-t border-charcoal/10">
-                <p className="text-[0.7rem] text-charcoal/55 font-semibold mb-1">פטורים מנוכחות</p>
+                <p className="text-[0.7rem] text-charcoal/70 font-semibold mb-1">פטורים מנוכחות</p>
                 <div className="divide-y divide-charcoal/5">
                   {exempt.map(r => (
                     <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
@@ -850,12 +850,12 @@ function TodayLogRow({
         </span>
         <DistanceFlag r={r} threshold={farThresholdM} />
         <PhoneCallChip source={r.source} />
-        <button onClick={() => onStartEditAtt(r)} className="text-charcoal/55 hover:text-accent transition-colors shrink-0 p-0.5">
+        <button onClick={() => onStartEditAtt(r)} className="text-charcoal/70 hover:text-accent transition-colors shrink-0 p-0.5">
           <Pencil size={11} strokeWidth={1.5} />
         </button>
       </div>
       {r.project && (
-        <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/55">
+        <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/70">
           <Building2 size={10} strokeWidth={1.5} /><span>{r.project.name}</span>
         </div>
       )}
@@ -887,25 +887,25 @@ function RecentLogs({
         <div className="flex items-center gap-2">
           <Calendar size={15} strokeWidth={1.5} className="text-accent" />
           <h2 className="font-heading text-base font-bold">עריכת רשומות אחרונות</h2>
-          <span className="text-[0.75rem] text-charcoal/55 font-body">7 ימים אחרונים</span>
+          <span className="text-[0.75rem] text-charcoal/70 font-body">7 ימים אחרונים</span>
         </div>
         {recentLogsVisible && (
-          <button onClick={onLoadRecentLogs} className="flex items-center gap-1 text-xs text-charcoal/55 hover:text-accent transition-colors">
+          <button onClick={onLoadRecentLogs} className="flex items-center gap-1 text-xs text-charcoal/70 hover:text-accent transition-colors">
             <RefreshCw size={12} strokeWidth={1.5} /> רענן
           </button>
         )}
       </div>
       {!recentLogsVisible ? (
         <button onClick={() => { setRecentLogsVisible(true); onLoadRecentLogs(); }}
-          className="w-full py-2 text-xs border border-charcoal/15 text-charcoal/50 hover:border-accent hover:text-accent transition-colors">
+          className="w-full py-2 text-xs border border-charcoal/15 text-charcoal/65 hover:border-accent hover:text-accent transition-colors">
           הצג רשומות 7 ימים אחרונים
         </button>
       ) : (
         <>
-          {recentLogsLoading && <p className="text-sm text-charcoal/55 text-center py-4">טוען...</p>}
+          {recentLogsLoading && <p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
           {recentLogsErr && <p className="text-xs text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {recentLogsErr}</p>}
           {!recentLogsLoading && !recentLogsErr && recentLogs.length === 0 && (
-            <p className="text-sm text-charcoal/55 text-center py-4">אין רשומות ב-7 הימים האחרונים</p>
+            <p className="text-sm text-charcoal/70 text-center py-4">אין רשומות ב-7 הימים האחרונים</p>
           )}
           {!recentLogsLoading && recentLogs.length > 0 && (() => {
             const regular = recentLogs.filter(r => !r.staff?.attendance_exempt);
@@ -922,7 +922,7 @@ function RecentLogs({
                 )}
                 {exempt.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-charcoal/10">
-                    <p className="text-[0.7rem] text-charcoal/55 font-semibold mb-1">פטורים מנוכחות</p>
+                    <p className="text-[0.7rem] text-charcoal/70 font-semibold mb-1">פטורים מנוכחות</p>
                     <div className="divide-y divide-charcoal/5">
                       {exempt.map(r => (
                         <RecentLogRow key={r.id} r={r} edit={edit} projects={projects}
@@ -966,13 +966,13 @@ function RecentLogRow({
           <p className="text-[0.75rem] text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {r.project && <span className="text-[0.62rem] text-charcoal/55 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
+          {r.project && <span className="text-[0.62rem] text-charcoal/70 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
           <span className="text-[0.7rem] text-charcoal/35 tabular-nums" dir="ltr">
             {attendanceDayTimeShort(r) || "—"}
           </span>
           <DistanceFlag r={r} threshold={farThresholdM} />
           <PhoneCallChip source={r.source} />
-          <button onClick={() => onStartEditAtt(r)} className="text-charcoal/55 hover:text-accent transition-colors p-0.5">
+          <button onClick={() => onStartEditAtt(r)} className="text-charcoal/70 hover:text-accent transition-colors p-0.5">
             <Pencil size={11} strokeWidth={1.5} />
           </button>
         </div>
@@ -1163,7 +1163,7 @@ export default function AttendanceTab(p: Props) {
 
       {p.subTab === "live" && (
         <>
-          <p className="text-[0.75rem] text-charcoal/55 text-center -mt-3">מתעדכן אוטומטית כל 2 דקות</p>
+          <p className="text-[0.75rem] text-charcoal/70 text-center -mt-3">מתעדכן אוטומטית כל 2 דקות</p>
 
           {hasPending && pendingPanel}
           {correctionsPanel}
@@ -1240,7 +1240,7 @@ function SubTabButton({
     <button
       onClick={onClick}
       className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-semibold tracking-wide border-b-2 transition-colors duration-150 ${
-        active ? "border-accent text-accent" : "border-transparent text-charcoal/55 hover:text-charcoal/70"
+        active ? "border-accent text-accent" : "border-transparent text-charcoal/70 hover:text-charcoal/70"
       }`}
     >
       {icon}

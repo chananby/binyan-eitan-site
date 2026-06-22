@@ -78,7 +78,7 @@ export default function WorkerChip({ data, onTap, onRemove, disableDrag }: Props
       <UserRound
         size={12}
         strokeWidth={1.5}
-        className={`shrink-0 ${data.isManual ? "text-amber-500" : "text-charcoal/45"}`}
+        className={`shrink-0 ${data.isManual ? "text-amber-500" : "text-charcoal/60"}`}
       />
       <span className="font-body text-xs font-semibold text-charcoal truncate max-w-[120px]">{data.label}</span>
       {data.isManual && (

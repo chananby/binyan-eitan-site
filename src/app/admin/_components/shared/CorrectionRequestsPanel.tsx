@@ -95,19 +95,19 @@ export default function CorrectionRequestsPanel(p: {
           )}
         </div>
         <button onClick={p.onReload}
-          className="flex items-center gap-1 text-xs text-charcoal/55 hover:text-accent transition-colors">
+          className="flex items-center gap-1 text-xs text-charcoal/70 hover:text-accent transition-colors">
           <RefreshCw size={12} strokeWidth={1.5} /> רענן
         </button>
       </div>
 
-      {p.loading && <p className="text-sm text-charcoal/55 text-center py-4">טוען...</p>}
+      {p.loading && <p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
       {p.error && (
         <p className="text-xs text-red-500 flex items-center gap-1.5">
           <AlertCircle size={12} /> {p.error}
         </p>
       )}
       {!p.loading && !p.error && p.requests.length === 0 && (
-        <p className="text-sm text-charcoal/55 text-center py-4">אין בקשות תיקון פתוחות</p>
+        <p className="text-sm text-charcoal/70 text-center py-4">אין בקשות תיקון פתוחות</p>
       )}
 
       {!p.loading && p.requests.length > 0 && (
@@ -127,29 +127,29 @@ export default function CorrectionRequestsPanel(p: {
                       ${act === "כניסה" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
                       {act}
                     </span>
-                    {date && <span className="text-[0.75rem] text-charcoal/55 tabular-nums">{date}</span>}
+                    {date && <span className="text-[0.75rem] text-charcoal/70 tabular-nums">{date}</span>}
                   </div>
 
                   {/* השינוי: מה היה ← מה ביקש */}
                   {r.proposed_time ? (
                     <div className="flex items-center gap-2" dir="ltr">
-                      <span className="text-sm text-charcoal/45 tabular-nums line-through">{time}</span>
+                      <span className="text-sm text-charcoal/60 tabular-nums line-through">{time}</span>
                       <span className="text-charcoal/40 text-base leading-none">←</span>
                       <span className="text-base font-bold text-amber-700 tabular-nums">{r.proposed_time}</span>
                     </div>
                   ) : (
-                    <p className="text-[0.75rem] text-charcoal/55" dir="ltr">
+                    <p className="text-[0.75rem] text-charcoal/70" dir="ltr">
                       רשומה: <span className="tabular-nums">{time}</span>
                     </p>
                   )}
 
                   {/* למה */}
                   <p className="text-[0.75rem] text-charcoal/70 leading-snug">
-                    <span className="text-charcoal/55">סיבה: </span>{r.reason}
+                    <span className="text-charcoal/70">סיבה: </span>{r.reason}
                   </p>
 
                   {/* מתי הוגש */}
-                  <p className="text-[0.65rem] text-charcoal/55">
+                  <p className="text-[0.65rem] text-charcoal/70">
                     הוגש: {new Date(r.created_at).toLocaleString("he-IL", {
                       timeZone: "Asia/Jerusalem",
                       day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",

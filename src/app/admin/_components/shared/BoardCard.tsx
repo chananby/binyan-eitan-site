@@ -67,7 +67,7 @@ export default function BoardCard({ data, onRemove }: Props) {
       <div className="min-w-0 flex-1">
         <p className="font-body text-sm font-semibold text-charcoal truncate">{data.label}</p>
         {data.role && !data.isManual && (
-          <p className="font-body text-[0.65rem] text-charcoal/45">{data.role}</p>
+          <p className="font-body text-[0.65rem] text-charcoal/60">{data.role}</p>
         )}
         {data.isManual && (
           <p className="font-body text-[0.65rem] text-amber-600">ידני</p>

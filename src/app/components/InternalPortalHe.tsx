@@ -47,7 +47,7 @@ export default function InternalPortalHe() {
               בניין איתן — פורטל פנימי
             </p>
             <h1 className="font-heading text-3xl font-bold text-charcoal md:text-4xl">אזור צוות</h1>
-            <p className="mt-3 font-body text-sm text-charcoal/50">
+            <p className="mt-3 font-body text-sm text-charcoal/65">
               כלים לשימוש צוות הפרויקטים בלבד. הדף אינו מופיע בחיפושים.
             </p>
           </div>
@@ -76,7 +76,7 @@ export default function InternalPortalHe() {
                   </div>
                   <div>
                     <h2 className="font-heading text-base font-bold text-charcoal mb-1">{tool.title}</h2>
-                    <p className="font-body text-xs text-charcoal/50 leading-relaxed">{tool.desc}</p>
+                    <p className="font-body text-xs text-charcoal/65 leading-relaxed">{tool.desc}</p>
                   </div>
                 </div>
               );

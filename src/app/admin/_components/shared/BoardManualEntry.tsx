@@ -91,7 +91,7 @@ export default function BoardManualEntry({ targetOptions, onAddWorker, onStageMa
         <p className="font-heading text-sm font-bold text-charcoal flex items-center gap-1.5">
           <Plus size={13} className="text-amber-500" /> אתר ידני (זמני)
         </p>
-        <p className="font-body text-[0.7rem] text-charcoal/50 leading-snug">
+        <p className="font-body text-[0.7rem] text-charcoal/65 leading-snug">
           הוסף שם של אתר זמני — הוא יוגדר כיעד הבא לטופס "עובד ידני". העמודה נוצרת ברגע שמשובץ אליה עובד ראשון.
         </p>
         <input

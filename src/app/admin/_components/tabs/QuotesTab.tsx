@@ -46,7 +46,7 @@ function ActionCard({ href, icon, title, subtitle }: {
           {title}
           <ExternalLink size={13} className="text-charcoal/30 group-hover:text-accent transition-colors" />
         </p>
-        <p className="text-xs text-charcoal/55 mt-0.5">{subtitle}</p>
+        <p className="text-xs text-charcoal/70 mt-0.5">{subtitle}</p>
       </div>
     </a>
   );
@@ -85,7 +85,7 @@ export default function QuotesTab() {
 
       <Card title="הצעות אחרונות">
         {loading && (
-          <div className="flex items-center gap-2 text-charcoal/55 text-sm py-3">
+          <div className="flex items-center gap-2 text-charcoal/70 text-sm py-3">
             <Loader2 size={14} className="animate-spin" /> טוען...
           </div>
         )}
@@ -93,7 +93,7 @@ export default function QuotesTab() {
           <p className="text-xs text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {error}</p>
         )}
         {!loading && !error && quotes.length === 0 && (
-          <p className="text-sm text-charcoal/55 text-center py-3">אין הצעות עדיין</p>
+          <p className="text-sm text-charcoal/70 text-center py-3">אין הצעות עדיין</p>
         )}
         {!loading && !error && quotes.length > 0 && (
           <div className="divide-y divide-charcoal/5">
@@ -105,7 +105,7 @@ export default function QuotesTab() {
                   <span className="text-sm font-semibold text-charcoal truncate">{q.customer_name || "ללא שם"}</span>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-xs text-charcoal/45 tabular-nums hidden sm:block" dir="ltr">{formatDate(q.issue_date)}</span>
+                  <span className="text-xs text-charcoal/60 tabular-nums hidden sm:block" dir="ltr">{formatDate(q.issue_date)}</span>
                   <span className="text-sm font-bold text-charcoal tabular-nums">{formatAmount(q.total_before_vat)}</span>
                 </div>
               </a>

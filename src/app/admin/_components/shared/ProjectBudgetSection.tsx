@@ -79,11 +79,11 @@ export default function ProjectBudgetSection({ projectId, data, onSaved }: {
           <button onClick={() => setEditing(false)} className="text-[0.7rem] border border-charcoal/15 text-charcoal/60 px-2 py-1 hover:border-accent shrink-0">ביטול</button>
         </div>
       ) : !data ? (
-        <p className="text-[0.7rem] text-charcoal/50 flex items-center gap-1"><Loader2 size={11} className="animate-spin" /> טוען...</p>
+        <p className="text-[0.7rem] text-charcoal/65 flex items-center gap-1"><Loader2 size={11} className="animate-spin" /> טוען...</p>
       ) : (
         <>
           <div className="flex items-center justify-between text-xs tabular-nums">
-            <span className="text-charcoal/70">תקציב: <span className="font-bold text-charcoal">{data.hasBudget ? fmt(data.budget) : <span className="text-charcoal/45 font-normal">לא הוגדר</span>}</span></span>
+            <span className="text-charcoal/70">תקציב: <span className="font-bold text-charcoal">{data.hasBudget ? fmt(data.budget) : <span className="text-charcoal/60 font-normal">לא הוגדר</span>}</span></span>
             <span className="text-charcoal/70">ביצוע: <span className="font-bold text-charcoal">{fmt(data.approvedExpense)}</span></span>
           </div>
 

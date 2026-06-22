@@ -420,7 +420,7 @@ export default function ArticleDetailPage({ slug }: Props) {
                         )}
                         <div className="min-w-0">
                           {relCat && (
-                            <p className="font-body text-[0.55rem] font-semibold tracking-[0.2em] uppercase text-accent/70 mb-1">{relCat}</p>
+                            <p className="font-body text-[0.55rem] font-semibold tracking-[0.2em] uppercase text-accent-dark mb-1">{relCat}</p>
                           )}
                           <p className="font-heading text-sm font-bold text-charcoal leading-snug group-hover:text-accent transition-colors duration-200 line-clamp-2">{relTitle}</p>
                         </div>
@@ -449,7 +449,7 @@ export default function ArticleDetailPage({ slug }: Props) {
                         ? "מוכנים להתחיל את הפרויקט?"
                         : "Ready to start your project?"}
                     </p>
-                    <p className="mt-2 font-body text-sm text-charcoal/55 leading-relaxed">
+                    <p className="mt-2 font-body text-sm text-charcoal/70 leading-relaxed">
                       {lang === "he"
                         ? "קבלן שיפוצים ובנייה בירושלים ובנימין — עבודה עברית מקצועית."
                         : "Licensed G1 contractor in Jerusalem. Professional, transparent, accountable."}
@@ -480,7 +480,7 @@ export default function ArticleDetailPage({ slug }: Props) {
                   <p className="font-heading text-sm font-bold text-charcoal">
                     {lang === "he" ? "קבלן רשום ג1" : "G1 Registered Contractor"}
                   </p>
-                  <p className="font-body text-xs text-charcoal/50">
+                  <p className="font-body text-xs text-charcoal/65">
                     {lang === "he" ? "מס׳ 41805 — ענף 100" : "No. 41805 — Branch 100"}
                   </p>
                 </div>

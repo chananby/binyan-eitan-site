@@ -61,12 +61,12 @@ export default function MoveToDialog(p: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-charcoal/10">
           <div className="min-w-0">
-            <p className="font-body text-[0.7rem] text-charcoal/55 leading-none">העבר את</p>
+            <p className="font-body text-[0.7rem] text-charcoal/70 leading-none">העבר את</p>
             <p className="font-heading text-base font-bold text-charcoal truncate">{p.worker.label}</p>
           </div>
           <button
             onClick={p.onClose}
-            className="p-1 text-charcoal/50 hover:text-charcoal/80 transition-colors shrink-0"
+            className="p-1 text-charcoal/65 hover:text-charcoal/80 transition-colors shrink-0"
             aria-label="סגור"
           >
             <X size={18} strokeWidth={1.75} />
@@ -76,11 +76,11 @@ export default function MoveToDialog(p: Props) {
         {/* Target list */}
         <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5">
           {visibleTargets.length === 0 ? (
-            <p className="text-center text-sm text-charcoal/45 py-6">אין יעדים זמינים</p>
+            <p className="text-center text-sm text-charcoal/60 py-6">אין יעדים זמינים</p>
           ) : (
             visibleTargets.map((t) => {
               const icon = t.variant === "unassigned"
-                ? <Users size={14} strokeWidth={1.5} className="text-charcoal/45 shrink-0" />
+                ? <Users size={14} strokeWidth={1.5} className="text-charcoal/60 shrink-0" />
                 : <Building2
                     size={14} strokeWidth={1.5}
                     className={t.variant === "manual_project" ? "text-amber-500 shrink-0" : "text-accent shrink-0"}

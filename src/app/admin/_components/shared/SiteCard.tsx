@@ -51,7 +51,7 @@ export default function SiteCard({ id, title, cards, variant, tapMode, onChipTap
           {title}
           {variant === "manual_project" && <span className="font-body text-[0.7rem] text-amber-600"> (ידני)</span>}
         </p>
-        <span className="font-body text-xs text-charcoal/45 tabular-nums shrink-0 bg-charcoal/5 rounded-full px-2 py-0.5">{cards.length}</span>
+        <span className="font-body text-xs text-charcoal/60 tabular-nums shrink-0 bg-charcoal/5 rounded-full px-2 py-0.5">{cards.length}</span>
       </div>
 
       {/* Body: wrapping chips, or empty hint */}

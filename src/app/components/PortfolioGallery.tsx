@@ -342,7 +342,7 @@ export default function PortfolioGallery() {
                 {ut[`proj_${activeProject}_challenge`] && (
                   <div className="grid grid-cols-2 gap-4 mt-3 border-t border-white/10 pt-3">
                     <div>
-                      <p className="font-body text-[0.52rem] font-semibold tracking-[0.2em] uppercase text-accent/70 mb-1">
+                      <p className="font-body text-[0.52rem] font-semibold tracking-[0.2em] uppercase text-accent-dark mb-1">
                         {lang === "he" ? "האתגר" : "Challenge"}
                       </p>
                       <p className="font-body text-[0.72rem] text-white/75 leading-snug">
@@ -350,7 +350,7 @@ export default function PortfolioGallery() {
                       </p>
                     </div>
                     <div>
-                      <p className="font-body text-[0.52rem] font-semibold tracking-[0.2em] uppercase text-accent/70 mb-1">
+                      <p className="font-body text-[0.52rem] font-semibold tracking-[0.2em] uppercase text-accent-dark mb-1">
                         {lang === "he" ? "הפתרון" : "Solution"}
                       </p>
                       <p className="font-body text-[0.72rem] text-white/75 leading-snug">

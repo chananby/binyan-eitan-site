@@ -188,7 +188,7 @@ export default function ContactForm() {
             )}
 
             <div className="pt-8">
-              <p className="text-center text-xs text-charcoal/55 mb-3">
+              <p className="text-center text-xs text-charcoal/70 mb-3">
                 {lang === "he"
                   ? "נחזור אליכם תוך שעה — לרוב מהר יותר"
                   : "We'll get back to you within an hour — usually sooner"}

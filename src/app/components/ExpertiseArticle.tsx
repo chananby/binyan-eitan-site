@@ -115,7 +115,7 @@ export default function ExpertiseArticle() {
           </h2>
 
           {articles.length === 0 ? (
-            <p className="text-charcoal/50 font-body text-lg text-center py-10">{c.empty}</p>
+            <p className="text-charcoal/65 font-body text-lg text-center py-10">{c.empty}</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {articles.map((article, index) => {

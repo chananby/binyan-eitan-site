@@ -13,12 +13,12 @@ export const metadata: Metadata = {
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   active:    { label: "פעיל",   color: "bg-green-100 text-green-700 border-green-200" },
   planning:  { label: "תכנון",  color: "bg-sky-100 text-sky-700 border-sky-200" },
-  completed: { label: "הושלם", color: "bg-charcoal/10 text-charcoal/50 border-charcoal/10" },
+  completed: { label: "הושלם", color: "bg-charcoal/10 text-charcoal/65 border-charcoal/10" },
   paused:    { label: "מושהה", color: "bg-amber-100 text-amber-700 border-amber-200" },
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_LABELS[status] ?? { label: status, color: "bg-charcoal/10 text-charcoal/50 border-charcoal/10" };
+  const cfg = STATUS_LABELS[status] ?? { label: status, color: "bg-charcoal/10 text-charcoal/65 border-charcoal/10" };
   return (
     <span className={`inline-block rounded-sm border px-2 py-0.5 font-body text-[0.75rem] font-semibold tracking-[0.15em] uppercase ${cfg.color}`}>
       {cfg.label}
@@ -132,13 +132,13 @@ export default async function AdminProjectsPage() {
 
                   <div className="space-y-1.5">
                     {project.address && (
-                      <div className="flex items-center gap-2 font-body text-xs text-charcoal/50">
+                      <div className="flex items-center gap-2 font-body text-xs text-charcoal/65">
                         <MapPin size={11} strokeWidth={1.5} className="shrink-0" />
                         <span>{project.address}</span>
                       </div>
                     )}
                     {(project.start_date || project.end_date) && (
-                      <div className="flex items-center gap-2 font-body text-xs text-charcoal/50">
+                      <div className="flex items-center gap-2 font-body text-xs text-charcoal/65">
                         <Calendar size={11} strokeWidth={1.5} className="shrink-0" />
                         <span dir="ltr">{formatDate(project.start_date)} – {formatDate(project.end_date)}</span>
                       </div>

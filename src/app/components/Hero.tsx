@@ -174,7 +174,7 @@ export default function Hero() {
                     {googleRatingValue}
                   </span>
                   <span className="hidden sm:inline-block h-3 w-px bg-warm-gray-light" aria-hidden="true" />
-                  <span className="hidden sm:inline font-body text-[0.65rem] text-charcoal/55 leading-none">
+                  <span className="hidden sm:inline font-body text-[0.65rem] text-charcoal/70 leading-none">
                     {googleRatingCount}
                   </span>
                 </Link>
@@ -186,7 +186,7 @@ export default function Hero() {
                   font, accent dot mark, mirrors the form's "תוך שעה" wording
                   for consistency. */}
               <motion.div className="mt-8 md:mt-10 flex flex-col items-start gap-3" variants={fadeUp(0.25)}>
-                <span className="inline-flex items-center gap-2 font-body text-[0.7rem] text-charcoal/55">
+                <span className="inline-flex items-center gap-2 font-body text-[0.7rem] text-charcoal/70">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
                   {responseTime}
                 </span>
@@ -213,7 +213,7 @@ export default function Hero() {
                     <span className="block font-heading text-2xl font-extrabold text-charcoal leading-none md:text-[2rem]">
                       {stat1.value}
                     </span>
-                    <span className="mt-2 block font-body text-[0.55rem] font-semibold tracking-[0.18em] uppercase text-charcoal/45">
+                    <span className="mt-2 block font-body text-[0.55rem] font-semibold tracking-[0.18em] uppercase text-charcoal/60">
                       {stat1.label}
                     </span>
                   </div>
@@ -221,7 +221,7 @@ export default function Hero() {
                     <span className="block font-heading text-2xl font-extrabold text-charcoal leading-none md:text-[2rem]">
                       {stat2.value}
                     </span>
-                    <span className="mt-2 block font-body text-[0.55rem] font-semibold tracking-[0.18em] uppercase text-charcoal/45">
+                    <span className="mt-2 block font-body text-[0.55rem] font-semibold tracking-[0.18em] uppercase text-charcoal/60">
                       {stat2.label}
                     </span>
                   </div>
@@ -229,7 +229,7 @@ export default function Hero() {
                     <span className="block font-heading text-2xl font-extrabold text-charcoal leading-none md:text-[2rem]">
                       {stat3.value}
                     </span>
-                    <span className="mt-2 block font-body text-[0.55rem] font-semibold tracking-[0.18em] uppercase text-charcoal/45">
+                    <span className="mt-2 block font-body text-[0.55rem] font-semibold tracking-[0.18em] uppercase text-charcoal/60">
                       {stat3.label}
                     </span>
                   </div>
@@ -282,7 +282,7 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1, duration: 0.7, ease }}
           >
-            <p className="font-body text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-charcoal/45">
+            <p className="font-body text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-charcoal/60">
               {imageFloatLabel as string}
             </p>
           </motion.div>

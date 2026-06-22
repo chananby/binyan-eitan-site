@@ -366,7 +366,7 @@ function MultipleChoiceRenderer({
             {(q as WhoSaidQuestion).quote}
           </p>
           {(q as WhoSaidQuestion).context && (
-            <p className="text-charcoal/50 text-sm text-center mt-1">{(q as WhoSaidQuestion).context}</p>
+            <p className="text-charcoal/65 text-sm text-center mt-1">{(q as WhoSaidQuestion).context}</p>
           )}
         </div>
       )}
@@ -727,10 +727,10 @@ function MatchingRenderer({
                     revealed
                       ? rightMatchColor(right)
                       : isMatched
-                      ? 'border-accent/40 bg-accent/[0.04] text-charcoal/50'
+                      ? 'border-accent/40 bg-accent/[0.04] text-charcoal/65'
                       : selectedLeft
                       ? 'border-accent/40 bg-white text-charcoal hover:border-accent hover:bg-accent/[0.04]'
-                      : 'border-warm-gray-light bg-white text-charcoal/50'
+                      : 'border-warm-gray-light bg-white text-charcoal/65'
                   }`}
                 >
                   {right}
@@ -885,7 +885,7 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-charcoal/55 text-base max-w-md mx-auto"
+          className="text-charcoal/70 text-base max-w-md mx-auto"
         >
           תורה, הגדה, חז"ל, הלכות ומנהגים — לכל גיל ורמה
         </motion.p>
@@ -913,7 +913,7 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
 
       {/* Age group */}
       <div className="mb-6">
-        <p className="text-xs text-charcoal/50 uppercase tracking-widest mb-3 font-medium">
+        <p className="text-xs text-charcoal/65 uppercase tracking-widest mb-3 font-medium">
           בחר את הרמה שלך
         </p>
         <div className="grid grid-cols-3 gap-3">
@@ -987,7 +987,7 @@ function StartScreen({ onStart }: { onStart: (age: AgeGroup, cat: QuizCategory |
                 className="flex items-center gap-3 px-4 py-2.5 bg-white rounded-xl border border-warm-gray-light text-sm"
               >
                 <span className={`font-mono text-xs w-5 text-center font-bold ${
-                  i === 0 ? 'text-yellow-500' : i === 1 ? 'text-charcoal/50' : i === 2 ? 'text-amber-600' : 'text-charcoal/30'
+                  i === 0 ? 'text-yellow-500' : i === 1 ? 'text-charcoal/65' : i === 2 ? 'text-amber-600' : 'text-charcoal/30'
                 }`}>
                   {i + 1}
                 </span>
@@ -1060,7 +1060,7 @@ function QuizScreen({
   // Guard: empty pool
   if (!q) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-charcoal/50">
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-charcoal/65">
         אין שאלות זמינות
       </div>
     );
@@ -1187,7 +1187,7 @@ function QuizScreen({
     >
       {/* Progress */}
       <div className="mb-6">
-        <div className="flex items-center justify-between text-xs text-charcoal/50 mb-2">
+        <div className="flex items-center justify-between text-xs text-charcoal/65 mb-2">
           <span>שאלה {index + 1} מתוך {totalCount}</span>
           <div className="flex items-center gap-2">
             <TypeBadge type={q.type} />
@@ -1444,7 +1444,7 @@ function ResultsScreen({
           <p className="font-heading text-charcoal text-lg mb-1">
             נראה שאתה מוכן לרמה הבאה
           </p>
-          <p className="text-charcoal/55 text-sm mb-4">
+          <p className="text-charcoal/70 text-sm mb-4">
             ענית {pct}% נכון — מוכן לנסות רמת <strong>{NEXT_AGE_LABEL[ageGroup]}</strong>?
           </p>
           <button

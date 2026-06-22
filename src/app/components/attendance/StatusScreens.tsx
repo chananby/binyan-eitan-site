@@ -26,7 +26,7 @@ export function SubmittingScreen(p: Common) {
   return (
     <Screen backHref={p.backHref} backLabel={p.backLabel} lang={p.lang} onLangChange={p.onLangChange}>
       <Loader2 size={48} strokeWidth={1.5} className="text-accent animate-spin" />
-      <p className="font-body text-sm text-charcoal/50 tracking-wider">{p.t.sending}</p>
+      <p className="font-body text-sm text-charcoal/65 tracking-wider">{p.t.sending}</p>
     </Screen>
   );
 }
@@ -35,7 +35,7 @@ export function LocatingScreen(p: Common) {
   return (
     <Screen backHref={p.backHref} backLabel={p.backLabel} lang={p.lang} onLangChange={p.onLangChange}>
       <MapPin size={48} strokeWidth={1.5} className="text-accent animate-pulse" />
-      <p className="font-body text-sm text-charcoal/50 tracking-wider">{p.t.locating}</p>
+      <p className="font-body text-sm text-charcoal/65 tracking-wider">{p.t.locating}</p>
     </Screen>
   );
 }
@@ -78,7 +78,7 @@ export function SuccessScreen(p: Common & {
         {p.workerName && <p className="font-heading text-xl text-charcoal/80">{p.t.hello} {p.workerName}</p>}
         <p className="font-body text-sm text-charcoal/40">{p.timestamp}</p>
         {selectedProject && (
-          <div className="flex items-center justify-center gap-1 text-sm text-charcoal/50 mt-1">
+          <div className="flex items-center justify-center gap-1 text-sm text-charcoal/65 mt-1">
             <Building2 size={14} strokeWidth={1.5} /><span>{selectedProject.name}</span>
           </div>
         )}
@@ -98,7 +98,7 @@ export function SuccessScreen(p: Common & {
         <p className="font-body text-sm text-charcoal/30">{isIn ? p.t.goodWorkIn : p.t.goodWorkOut}</p>
       )}
       <button onClick={p.onReset}
-        className="mt-2 w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
+        className="mt-2 w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/65 hover:border-accent hover:text-accent transition-colors duration-200">
         {p.t.anotherReport}
       </button>
     </Screen>
@@ -112,10 +112,10 @@ export function ManualSuccessScreen(p: Common & { onShowHistory: () => void; onR
       <CheckCircle size={64} strokeWidth={1} className="text-amber-400" />
       <div className="text-center space-y-2">
         <p className="font-heading text-2xl font-bold text-charcoal">{p.t.manualSentTitle}</p>
-        <p className="font-body text-sm text-charcoal/50">{p.t.manualSentBody}</p>
+        <p className="font-body text-sm text-charcoal/65">{p.t.manualSentBody}</p>
       </div>
       <button onClick={p.onShowHistory}
-        className="w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/50 hover:border-accent hover:text-accent transition-colors duration-200">
+        className="w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/65 hover:border-accent hover:text-accent transition-colors duration-200">
         {p.t.myHistory}
       </button>
       <button onClick={p.onReset}

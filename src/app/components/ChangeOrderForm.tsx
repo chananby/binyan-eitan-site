@@ -144,8 +144,8 @@ function Block({ num, title, children }: { num: string; title: string; children:
   return (
     <div className="border border-warm-gray-light bg-bone">
       <div className="flex items-center gap-3 border-b border-warm-gray-light bg-charcoal/[0.025] px-6 py-3">
-        <span className="font-body text-[0.58rem] font-bold tracking-[0.25em] uppercase text-accent/70">{num}</span>
-        <span className="font-body text-[0.62rem] font-bold tracking-[0.22em] uppercase text-charcoal/50">{title}</span>
+        <span className="font-body text-[0.58rem] font-bold tracking-[0.25em] uppercase text-accent-dark">{num}</span>
+        <span className="font-body text-[0.62rem] font-bold tracking-[0.22em] uppercase text-charcoal/65">{title}</span>
       </div>
       <div className="px-6 py-6 space-y-6">{children}</div>
     </div>
@@ -349,7 +349,7 @@ export default function ChangeOrderForm() {
           <CheckCircle size={56} strokeWidth={1.2} className="text-accent" />
           <div>
             <p className="font-heading text-xl font-bold text-charcoal leading-snug">הטופס נשלח בהצלחה</p>
-            <p className="mt-2 font-body text-sm text-charcoal/50">
+            <p className="mt-2 font-body text-sm text-charcoal/65">
               עותק נשלח למשרד ולמאשר לאישור סופי.
             </p>
           </div>
@@ -481,7 +481,7 @@ export default function ChangeOrderForm() {
                 {!photoPreview ? (
                   <label htmlFor="site_photo"
                     className="flex cursor-pointer items-center justify-center gap-3 border border-dashed border-accent/40 bg-accent/[0.03] px-5 py-5 transition-colors duration-200 hover:border-accent hover:bg-accent/[0.06]">
-                    <Camera size={20} className="shrink-0 text-accent/70" />
+                    <Camera size={20} className="shrink-0 text-accent-dark" />
                     <span className="font-body text-sm text-charcoal/60 leading-snug">
                       צילום מהשטח או העלאת קובץ
                     </span>
@@ -493,7 +493,7 @@ export default function ChangeOrderForm() {
                     <div className="flex items-center justify-between gap-3 border-t border-warm-gray-light bg-bone-dark px-4 py-2">
                       <span className="font-body text-[0.62rem] text-charcoal/40 truncate">{photoName}</span>
                       {photoUploading ? (
-                        <span className="shrink-0 font-body text-[0.62rem] text-accent/70 tracking-wider animate-pulse">מעלה…</span>
+                        <span className="shrink-0 font-body text-[0.62rem] text-accent-dark tracking-wider animate-pulse">מעלה…</span>
                       ) : (
                         <button type="button" onClick={removePhoto}
                           className="shrink-0 font-body text-[0.62rem] text-charcoal/40 hover:text-red-500 transition-colors duration-200 uppercase tracking-wider">

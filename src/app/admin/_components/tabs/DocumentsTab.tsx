@@ -24,13 +24,13 @@ export default function DocumentsTab() {
               תיבת אסמכתאות
               <ChevronLeft size={15} className="text-charcoal/30 group-hover:text-accent transition-colors" />
             </p>
-            <p className="text-xs text-charcoal/55 mt-0.5">העלאה, חילוץ אוטומטי, סקירה ואישור של חשבוניות וקבלות</p>
+            <p className="text-xs text-charcoal/70 mt-0.5">העלאה, חילוץ אוטומטי, סקירה ואישור של חשבוניות וקבלות</p>
           </div>
         </div>
       </Link>
 
       <Card>
-        <p className="text-xs text-charcoal/55 leading-relaxed">
+        <p className="text-xs text-charcoal/70 leading-relaxed">
           צלם או העלה חשבונית/קבלה — המערכת מחלצת את הספק, הסכום והסוג אוטומטית.
           האסמכתאות ממתינות לאישורך בתיבה, ומשם אפשר לערוך ולאשר.
         </p>

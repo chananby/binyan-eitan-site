@@ -81,7 +81,7 @@ export default function Pillars() {
                       className={`flex size-10 shrink-0 items-center justify-center rounded-full border transition-all duration-500 md:size-12 ${
                         isOpen
                           ? "border-accent/30 bg-accent/[0.08] text-accent"
-                          : "border-charcoal/[0.07] text-charcoal/30 group-hover:border-charcoal/15 group-hover:text-charcoal/50"
+                          : "border-charcoal/[0.07] text-charcoal/30 group-hover:border-charcoal/15 group-hover:text-charcoal/65"
                       }`}
                     >
                       <Icon size={18} strokeWidth={1.5} />
@@ -131,7 +131,7 @@ export default function Pillars() {
                             {content.summary}
                           </p>
 
-                          <p className="max-w-2xl font-body text-base leading-relaxed font-light text-charcoal/55 md:text-lg">
+                          <p className="max-w-2xl font-body text-base leading-relaxed font-light text-charcoal/70 md:text-lg">
                             {content.body}
                           </p>
 

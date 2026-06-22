@@ -136,7 +136,7 @@ export default function AboutPage() {
             </FadeUp>
 
             <FadeUp delay={0.15}>
-              <p className="mt-8 font-body text-base font-light leading-relaxed text-charcoal/55 md:text-lg whitespace-pre-line">
+              <p className="mt-8 font-body text-base font-light leading-relaxed text-charcoal/70 md:text-lg whitespace-pre-line">
                 {c.founderBody}
               </p>
             </FadeUp>
@@ -218,7 +218,7 @@ export default function AboutPage() {
                 <h3 className="font-heading text-xl font-bold text-charcoal transition-colors duration-500 group-hover:text-bone md:text-2xl whitespace-pre-line">
                   {item.title}
                 </h3>
-                <p className="mt-4 font-body text-sm font-light leading-relaxed text-charcoal/55 transition-colors duration-500 group-hover:text-bone/55 whitespace-pre-line">
+                <p className="mt-4 font-body text-sm font-light leading-relaxed text-charcoal/70 transition-colors duration-500 group-hover:text-bone/55 whitespace-pre-line">
                   {item.desc}
                 </p>
                 <div className="mt-8 h-px w-12 bg-accent/30 transition-all duration-500 group-hover:w-20 group-hover:bg-accent" />

@@ -96,7 +96,7 @@ export default function ForemanDocUpload() {
                 <span className="font-heading text-lg font-bold">התקבל, תודה!</span>
                 <div className="flex gap-4 mt-1">
                   <button onClick={reset} className="text-sm text-accent font-semibold">שלח עוד</button>
-                  <button onClick={() => setOpen(false)} className="text-sm text-charcoal/50">סגור</button>
+                  <button onClick={() => setOpen(false)} className="text-sm text-charcoal/65">סגור</button>
                 </div>
               </div>
             )}

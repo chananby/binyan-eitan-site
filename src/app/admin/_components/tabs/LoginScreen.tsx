@@ -53,7 +53,7 @@ export default function LoginScreen(p: Props) {
     <SuccessFlash show={p.showFlash} onDone={p.onFlashDone} />
     <div className="relative min-h-screen bg-bone flex flex-col items-center justify-center px-6 gap-8" dir="rtl">
       <div className="absolute top-5 start-5">
-        <Link href="/he" className="flex items-center gap-1 font-body text-xs text-charcoal/55 hover:text-accent transition-colors duration-200">
+        <Link href="/he" className="flex items-center gap-1 font-body text-xs text-charcoal/70 hover:text-accent transition-colors duration-200">
           <ChevronLeft size={14} strokeWidth={1.5} />
           <span>דף הבית</span>
         </Link>
@@ -64,9 +64,9 @@ export default function LoginScreen(p: Props) {
       <div className="flex border-b border-charcoal/10 w-full max-w-xs">
         {([["pin", "מנהל עבודה", "PIN"], ["password", "מנהל ראשי", "סיסמה"]] as [LoginMode, string, string][]).map(([mode, label, sub]) => (
           <button key={mode} onClick={() => { p.setLoginMode(mode); p.setPin(""); p.setEmail(""); p.setPassword(""); p.setLoginErr(""); }}
-            className={`flex-1 py-3 text-center transition-colors border-b-2 ${p.loginMode === mode ? "border-accent text-accent" : "border-transparent text-charcoal/55 hover:text-charcoal/60"}`}>
+            className={`flex-1 py-3 text-center transition-colors border-b-2 ${p.loginMode === mode ? "border-accent text-accent" : "border-transparent text-charcoal/70 hover:text-charcoal/60"}`}>
             <p className="text-sm font-semibold">{label}</p>
-            <p className="text-[0.75rem] tracking-widest uppercase text-charcoal/55">{sub}</p>
+            <p className="text-[0.75rem] tracking-widest uppercase text-charcoal/70">{sub}</p>
           </button>
         ))}
       </div>
@@ -98,7 +98,7 @@ export default function LoginScreen(p: Props) {
                   onClick={() => { p.onClearSessionExpiredMsg?.(); k === "⌫" ? p.onPinBackspace() : k && p.onPinKey(k); }}
                   className={`h-14 text-xl font-semibold border transition-all active:scale-95 ${
                     !k ? "invisible" :
-                    k === "⌫" ? "border-charcoal/10 text-charcoal/55 hover:border-accent hover:text-accent" :
+                    k === "⌫" ? "border-charcoal/10 text-charcoal/70 hover:border-accent hover:text-accent" :
                     "border-charcoal/15 bg-white text-charcoal hover:border-accent hover:text-accent"
                   } disabled:opacity-40`}>
                   {k}
@@ -144,7 +144,7 @@ export default function LoginScreen(p: Props) {
             />
             <Btn loading={p.loginLoading} disabled={!p.email.trim() || !p.password.trim()}><LogIn size={14} className="inline me-1.5" />כניסה</Btn>
             <div className="text-center pt-1">
-              <Link href="/admin/forgot-password" className="text-xs text-charcoal/55 hover:text-accent transition-colors">
+              <Link href="/admin/forgot-password" className="text-xs text-charcoal/70 hover:text-accent transition-colors">
                 שכחתי סיסמה
               </Link>
             </div>
