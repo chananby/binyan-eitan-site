@@ -486,19 +486,23 @@
     margin-bottom: 12px;
   }
   .doc-table thead th {
-    background: var(--brand);
-    color: white;
+    /* Dark text on a transparent bg, sandwiched by two solid navy rules.
+       Earlier attempts relied on a navy bg + white text + print-color-adjust:
+       exact — per the CSS Color Adjust spec, the user's "Background graphics"
+       toggle in the print dialog overrides `exact`, and Chrome defaults it to
+       OFF. The bg got stripped on every print, the white text collapsed onto
+       a white page, and Chrome's color-rescue heuristic painted it a faint
+       blue tint. Borders aren't backgrounds — they print regardless of that
+       toggle, in PDF, and survive a scan/photocopy of the printed page. */
+    background: transparent;
+    color: var(--brand);
     padding: 8px 10px;
     text-align: right;
     font-size: 10pt;
-    font-weight: 600;
-    /* Force the navy fill to print so the white labels don't collapse
-       onto a white page. The property is evaluated on the element at
-       print time — independent of @media print rules, which can fail
-       to apply when the parent page (React) triggers print on this
-       embedded iframe. Both prefixes for Chrome/Safari + Firefox. */
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border-top:    2px solid var(--brand);
+    border-bottom: 2px solid var(--brand);
   }
   .doc-table thead th.num { text-align: center; width: 50px; }
   .doc-table thead th.price { text-align: left; width: 90px; }
@@ -1440,37 +1444,50 @@
   }
 
   /* ============ CATALOG AUTOCOMPLETE (PR 2) ============ */
-  /* Anchored absolute, the form-panel is the offset parent. Positioned by JS
-     just under the active name textarea. */
+  /* Anchored absolute on <body>, positioned by JS just under the active
+     name textarea / catalog button. The opaque white surface + the
+     darker border + the lifted shadow make it read clearly as a panel
+     that floats *above* the form rather than blending into it.
+     Previously had `border: var(--border)` (#e5e7eb — almost invisible
+     against the form-panel's cream background) and referenced an
+     undefined `var(--muted)` which left meta + empty rows colourless. */
   .ac-popover {
     position: absolute;
-    z-index: 50;
+    z-index: 60;                                /* above the form-panel sticky elements (5); below toolbar (100). */
     min-width: 240px;
     max-width: 420px;
     max-height: 280px;
     overflow-y: auto;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+    background: #ffffff;                        /* fully opaque, no rgba */
+    border: 1px solid var(--border-strong);     /* #d1d5db — visible on cream */
+    border-radius: 8px;
+    box-shadow:
+      0 1px 2px  rgba(0, 0, 0, 0.06),
+      0 12px 28px rgba(0, 0, 0, 0.16);          /* tighter near + softer far → lift */
     display: none;
   }
   .ac-popover.is-open { display: block; }
   .ac-row {
-    padding: 8px 10px;
+    padding: 10px 12px;
     cursor: pointer;
-    border-bottom: 1px solid #f1efea;
+    border-bottom: 1px solid #eceae5;           /* a hair darker than before — visible separator */
     font-size: 13px;
     line-height: 1.35;
   }
   .ac-row:last-child { border-bottom: 0; }
   .ac-row.is-active,
-  .ac-row:hover { background: #f5f4f0; }
+  .ac-row:hover {
+    background: #f1ede4;                        /* same warm tint as .btn-catalog hover surface */
+  }
   .ac-row-name { font-weight: 600; color: var(--text); }
-  .ac-row-meta { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .ac-row-meta {
+    color: var(--text-muted);                   /* was var(--muted) — undefined */
+    font-size: 11px;
+    margin-top: 3px;
+  }
   .ac-empty {
-    padding: 10px;
-    color: var(--muted);
+    padding: 14px 10px;
+    color: var(--text-muted);                   /* was var(--muted) — undefined */
     font-size: 12px;
     text-align: center;
   }
