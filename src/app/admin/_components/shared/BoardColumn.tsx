@@ -30,7 +30,12 @@ export default function BoardColumn({ id, title, cards, variant, onRemoveCard }:
     ? <Users size={14} strokeWidth={1.5} className="text-charcoal/45 shrink-0" />
     : <Building2 size={14} strokeWidth={1.5} className={variant === "manual_project" ? "text-amber-500 shrink-0" : "text-accent shrink-0"} />;
 
-  const containerCls = `flex flex-col rounded-md border bg-bone-dark/40 transition-colors min-h-[180px] ${
+  // shrink-0 + fixed width: kanban rows lay out left-to-right and the
+  // parent's overflow-x-auto drives horizontal scroll when columns
+  // exceed viewport. Earlier `grid grid-flow-col auto-cols-minmax(220,1fr)`
+  // collapsed columns to fit instead of overflowing — only the first
+  // two project columns survived after the unassigned pool ate ~1fr.
+  const containerCls = `flex flex-col shrink-0 w-64 rounded-md border bg-bone-dark/40 transition-colors min-h-[180px] ${
     isOver
       ? "border-accent bg-accent/5 ring-2 ring-accent/30"
       : variant === "unassigned"

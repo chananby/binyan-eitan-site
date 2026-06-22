@@ -294,7 +294,7 @@ export default function BoardTab() {
       </div>
 
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-        <div className="grid grid-flow-col auto-cols-[minmax(220px,1fr)] gap-3 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto pb-2">
           {/* Unassigned pool — leftmost in RTL grid-flow */}
           <BoardColumn
             id={UNASSIGNED_ID}
