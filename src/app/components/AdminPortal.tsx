@@ -14,7 +14,7 @@ import {
   ClipboardList, UserPlus, Loader2, Activity,
   AlertCircle, DollarSign, Target,
   ChevronLeft, Grid3x3, Download, Plus,
-  UserCog, Clock, MapPin, UserX, FileText, Inbox,
+  UserCog, Clock, MapPin, UserX, FileText, Inbox, Users,
 } from "lucide-react";
 import { Card } from "../admin/_components/shared/Card";
 import AttentionPanel, { type AttentionItem } from "../admin/_components/shared/AttentionPanel";
@@ -27,6 +27,7 @@ import AccountTab from "../admin/_components/tabs/AccountTab";
 import { ReportsTabPanel, MatrixTabPanel } from "../admin/_components/tabs/ReportsAndMatrixTabs";
 import WorkersTab from "../admin/_components/tabs/WorkersTab";
 import ProjectsTab from "../admin/_components/tabs/ProjectsTab";
+import BoardTab from "../admin/_components/tabs/BoardTab";
 import ExpensesTab from "../admin/_components/tabs/ExpensesTab";
 import PlanningTab from "../admin/_components/tabs/PlanningTab";
 import AttendanceTab, { type ManualType, type AttendanceSubTab } from "../admin/_components/tabs/AttendanceTab";
@@ -53,7 +54,7 @@ import type { WorkerHistoryDay } from "../../lib/worker-history-aggregate";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
-type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "expenses" | "planning" | "matrix" | "income" | "reports" | "payroll" | "quotes" | "documents" | "account";
+type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "board" | "expenses" | "planning" | "matrix" | "income" | "reports" | "payroll" | "quotes" | "documents" | "account";
 type LoginMode = "pin" | "password";
 
 const HASH_TO_TAB: Record<string, AdminTab> = {
@@ -1089,6 +1090,7 @@ export default function AdminPortal() {
     { key: "attendance", label: "נוכחות",    icon: <ClipboardList size={13} />,  adminOnly: true },
     { key: "workers",    label: "עובדים",    icon: <UserPlus size={13} />,       adminOnly: true },
     { key: "projects",   label: "פרויקטים",  icon: <Building2 size={13} />,      adminOnly: true },
+    { key: "board",      label: "שיבוץ",     icon: <Users size={13} />,           adminOnly: true },
     { key: "expenses",   label: "הוצאות",    icon: <Package size={13} /> },
     { key: "planning",   label: "תכנון",         icon: <Target    size={13} /> },
     { key: "matrix",     label: "מטריצה שבועית", icon: <Grid3x3   size={13} />, adminOnly: true },
@@ -1455,6 +1457,11 @@ export default function AdminPortal() {
             dataLoading={dataLoading}
             onTabRefresh={handleTabRefresh}
           />
+        )}
+
+        {/* ── BOARD — worker assignment (admin only) ───────────────────────── */}
+        {tab === "board" && isAdmin && (
+          <BoardTab />
         )}
 
         {/* ── EXPENSES ──────────────────────────────────────────────────────── */}

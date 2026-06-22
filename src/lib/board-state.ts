@@ -112,3 +112,69 @@ export function unassignedWorkers(allWorkers: WorkerRef[], assignments: BoardAss
   }
   return allWorkers.filter((w) => !assigned.has(w.id));
 }
+
+// ── Optimistic mutations ─────────────────────────────────────────────────
+//
+// applyMoveOptimistic translates a "card was dropped on a column" event
+// into a fresh assignments list — without hitting the server — so the UI
+// can repaint immediately and the network round-trip becomes a quiet
+// reconciliation. Pure (state in, state out).
+//
+// Encoded ids match BoardTab.tsx so the same encoding lives in one
+// place. A real worker card carries `worker:<staffId>`; a manual card
+// carries `manual_card:<assignmentId>`. Targets are
+// "project:<id>" / "manual:<name>" / UNASSIGNED_TARGET.
+
+export const UNASSIGNED_TARGET = "__unassigned__";
+
+export interface MoveCard {
+  /** Stable card id encoded by the UI. */
+  id: string;
+  /** True for manual cards (no worker_id, only worker_name). */
+  isManual: boolean;
+  /** Display label — only used to rebuild a manual row on move. */
+  label: string;
+  /** The board_assignments.id when known (manual cards on the board). */
+  assignmentId?: string | null;
+}
+
+/** Returns a new list with the drag applied, or null if the move can't
+ *  be predicted locally (caller falls back to a server refetch). */
+export function applyMoveOptimistic(
+  assignments: BoardAssignment[],
+  card: MoveCard,
+  targetId: string,
+): BoardAssignment[] | null {
+  // Manual card: identify the row by assignmentId; mutate its project
+  // side; or remove on unassign.
+  if (card.isManual && card.assignmentId) {
+    const idx = assignments.findIndex((a) => a.id === card.assignmentId);
+    if (idx === -1) return null;
+    const next = [...assignments];
+    if (targetId === UNASSIGNED_TARGET) {
+      next.splice(idx, 1); return next;
+    }
+    const row = { ...next[idx] };
+    if (targetId.startsWith("project:")) { row.project_id = targetId.slice(8); row.project_name = null; }
+    else if (targetId.startsWith("manual:")) { row.project_id = null; row.project_name = targetId.slice(7); }
+    else return null;
+    next[idx] = row;
+    return next;
+  }
+
+  // Real worker card: drop any existing row for this worker (1-worker→
+  // 1-site is enforced server-side), then push the new placement (or
+  // none, if heading to the pool).
+  if (card.id.startsWith("worker:")) {
+    const workerId = card.id.slice(7);
+    const filtered = assignments.filter((a) => a.worker_id !== workerId);
+    if (targetId === UNASSIGNED_TARGET) return filtered;
+    if (targetId.startsWith("project:")) {
+      return [...filtered, { id: "optimistic-" + workerId, worker_id: workerId, worker_name: null, project_id: targetId.slice(8), project_name: null }];
+    }
+    if (targetId.startsWith("manual:")) {
+      return [...filtered, { id: "optimistic-" + workerId, worker_id: workerId, worker_name: null, project_id: null, project_name: targetId.slice(7) }];
+    }
+  }
+  return null;
+}
