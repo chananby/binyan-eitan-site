@@ -511,6 +511,9 @@ function renderStaffRow(
             <span title="חסר תעריף לחודש הנוכחי — דרוש עדכון" className="text-amber-600">⚠️</span>
           )}
           {s.name}
+          {s.label && (
+            <span className="font-body text-[0.6rem] text-charcoal/65 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[80px] truncate">{s.label}</span>
+          )}
         </p>
         <p className="text-xs text-charcoal/70 tabular-nums" dir="ltr">{s.phone}</p>
         {(s.hourly_rate || s.daily_rate) && (
