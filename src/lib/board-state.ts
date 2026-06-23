@@ -121,22 +121,42 @@ export interface ManualProjectRef {
   id: string;
   name: string;
 }
+
+/**
+ * Normalise a project name for collision detection — mirrors the SQL
+ * `LOWER(TRIM(name))` semantics on the unique index, plus an internal-
+ * whitespace collapse so "bayit  vegan" and "bayit vegan" map the same.
+ * Used only for comparison; the human display name is preserved.
+ *
+ * Without this, "Bayit Vegan" (real) + "bayit vegan" (manual) would
+ * render as twin columns instead of being deduped to the real one.
+ */
+function normName(s: string): string {
+  return s.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
 export function mergeManualProjectNames(
   manualProjectsTable: ManualProjectRef[],
   groupedKeys: Iterable<string>,
   realProjects: ProjectRef[],
 ): string[] {
-  const realNames = new Set(realProjects.map((p) => p.name));
-  const out = new Set<string>();
-  for (const mp of manualProjectsTable) {
-    if (!realNames.has(mp.name)) out.add(mp.name);
-  }
+  const realNorm = new Set(realProjects.map((p) => normName(p.name)));
+  // Track normalised forms to dedupe across sources too — two manual
+  // rows with the same name in different cases share one column.
+  const seenNorm = new Set<string>();
+  const out: string[] = [];
+  const tryAdd = (name: string) => {
+    const n = normName(name);
+    if (!n || realNorm.has(n) || seenNorm.has(n)) return;
+    seenNorm.add(n);
+    out.push(name);
+  };
+  for (const mp of manualProjectsTable) tryAdd(mp.name);
   for (const k of groupedKeys) {
     if (!k.startsWith("manual:")) continue;
-    const name = k.slice(7);
-    if (!realNames.has(name)) out.add(name);
+    tryAdd(k.slice(7));
   }
-  return [...out].sort();
+  return out.sort();
 }
 
 export function unassignedWorkers(allWorkers: WorkerRef[], assignments: BoardAssignment[]): WorkerRef[] {

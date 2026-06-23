@@ -202,6 +202,53 @@ describe("mergeManualProjectNames — UI column source unification", () => {
     expect(out).toEqual(["אתר אחר"]);
   });
 
+  it("collision filter is case-insensitive — 'bayit vegan' manual + 'Bayit Vegan' real → no twin", () => {
+    const out = mergeManualProjectNames(
+      [MP("m1", "bayit vegan")],
+      [],
+      [PR("p1", "Bayit Vegan")],
+    );
+    expect(out).toEqual([]);
+  });
+
+  it("collision filter ignores leading/trailing and collapsed internal whitespace", () => {
+    const out = mergeManualProjectNames(
+      [MP("m1", "  Bayit  Vegan  ")],
+      ["manual:bayit vegan"],
+      [PR("p1", "Bayit Vegan")],
+    );
+    // Real project absorbs both casing- and whitespace-variants of the manual entry.
+    expect(out).toEqual([]);
+  });
+
+  it("dedupes across sources case-insensitively — two variants of the same name → one column", () => {
+    const out = mergeManualProjectNames(
+      [MP("m1", "Site A")],
+      ["manual:site a", "manual:SITE A"],
+      [],
+    );
+    // First-seen wins for the display name (table is consulted first).
+    expect(out).toEqual(["Site A"]);
+  });
+
+  it("dedupes table-only entries that differ only in case/whitespace", () => {
+    const out = mergeManualProjectNames(
+      [MP("m1", "אתר X"), MP("m2", "אתר  X"), MP("m3", "אתר x")],
+      [],
+      [],
+    );
+    expect(out).toEqual(["אתר X"]);
+  });
+
+  it("an empty / whitespace-only name is dropped (defensive)", () => {
+    const out = mergeManualProjectNames(
+      [MP("m1", "   ")],
+      ["manual:   ", "manual:keep"],
+      [],
+    );
+    expect(out).toEqual(["keep"]);
+  });
+
   it("ignores non-manual keys in the grouped iterable", () => {
     const out = mergeManualProjectNames(
       [],
