@@ -354,3 +354,24 @@ export function verifyInternalToken(token: string): boolean {
   if (!secret) return false;
   return verifyToken(token, secret, INTERNAL_MAX_AGE);
 }
+
+/** Sliding-refresh helper for be_internal_token — the worker-portal PIN
+ *  cookie. Mirrors refreshAdminCookieIfValid: re-issues with a fresh iat
+ *  if the existing token verifies, returns null otherwise (handler will
+ *  return its own 401). Wired into the middleware proxy so every API hit
+ *  on a verifying route extends the 12 h window from the moment of use.
+ */
+export function refreshInternalCookieIfValid(cookieValue: string | undefined):
+  | { name: string; value: string; options: typeof COOKIE_OPTS }
+  | null
+{
+  if (!cookieValue) return null;
+  const secret = process.env.INTERNAL_STAFF_PIN;
+  if (!secret) return null;
+  if (!verifyToken(cookieValue, secret, INTERNAL_MAX_AGE)) return null;
+  return {
+    name:    INTERNAL_COOKIE,
+    value:   signToken(secret),
+    options: { ...COOKIE_OPTS, maxAge: INTERNAL_MAX_AGE },
+  };
+}

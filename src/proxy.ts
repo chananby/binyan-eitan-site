@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { refreshAdminCookieIfValid } from "./lib/admin-auth";
+import { refreshAdminCookieIfValid, refreshInternalCookieIfValid } from "./lib/admin-auth";
 
 export async function proxy(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
@@ -14,6 +14,32 @@ export async function proxy(req: NextRequest) {
   if (pathname.startsWith("/api/admin") && !pathname.startsWith("/api/admin-auth")) {
     const res = NextResponse.next();
     const refreshed = refreshAdminCookieIfValid(req.cookies.get("be_admin_token")?.value);
+    if (refreshed) res.cookies.set(refreshed.name, refreshed.value, refreshed.options);
+    return res;
+  }
+
+  // ── Internal-token sliding refresh ────────────────────────────────────────
+  // Mirror of the admin block above for be_internal_token (the shared-PIN
+  // cookie that gates the worker portal). Scope is the EXACT list of routes
+  // that call verifyInternalToken — derived from grep, kept 1:1 with the
+  // verifiers so we never refresh a cookie on a path that doesn't honour it
+  // and never skip refresh on a path that does.
+  //
+  // Excluded on purpose:
+  //   /api/worker/{history,manual-entry,corrections} — gate on
+  //     be_worker_session, not be_internal_token.
+  //   /he|en/expertise/[slug] — RSC pages that read isInternalAuthed for a
+  //     draft-preview gate; public traffic doesn't carry the cookie and
+  //     refreshing on every visitor would broaden the scope unnecessarily.
+  if (
+    pathname === "/api/internal-auth"   ||
+    pathname === "/api/worker/identify" ||
+    pathname === "/api/translations"    ||
+    pathname === "/api/revalidate"      ||
+    pathname === "/internal/api/tasks"
+  ) {
+    const res = NextResponse.next();
+    const refreshed = refreshInternalCookieIfValid(req.cookies.get("be_internal_token")?.value);
     if (refreshed) res.cookies.set(refreshed.name, refreshed.value, refreshed.options);
     return res;
   }
