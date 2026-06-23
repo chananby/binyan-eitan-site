@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Loader2, ChevronRight, FileText, List } from "lucide-react";
+import { Loader2, ChevronRight, FileText, List, Info } from "lucide-react";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
 
@@ -137,6 +137,14 @@ export default function QuoteGeneratorClient() {
           )}
         </div>
       </header>
+
+      {/* Mobile-only desktop-tool advisory. lg:hidden keeps the iframe
+          flush with the header on lg+ (unchanged), and the banner is
+          informational only — the iframe stays usable below. */}
+      <div className="lg:hidden bg-[#8D775F]/10 border-b border-[#8D775F]/30 px-4 py-2.5 text-xs text-[#2D2926] flex items-start gap-2 shrink-0">
+        <Info size={14} strokeWidth={2} className="text-[#8D775F] shrink-0 mt-0.5" />
+        <span className="leading-snug">מחולל ההצעות מותאם למחשב — לפתיחה ופעולה מיטבית, פתח ממחשב.</span>
+      </div>
 
       <iframe
         src={iframeSrc}
