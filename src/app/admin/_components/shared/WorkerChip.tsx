@@ -21,8 +21,12 @@ import { UserRound, X } from "lucide-react";
 
 export interface WorkerChipData {
   id: string;
+  /** Worker name (existing meaning, kept for source-stability across
+   *  consumers). The new badge text lives on `tag`. */
   label: string;
-  role?: string | null;
+  /** Short free-text badge from staff.label — profession / source /
+   *  temporary marker. NULL → no badge rendered. */
+  tag?: string | null;
   isManual: boolean;
   assignmentId?: string | null;
 }
@@ -81,6 +85,9 @@ export default function WorkerChip({ data, onTap, onRemove, disableDrag }: Props
         className={`shrink-0 ${data.isManual ? "text-amber-500" : "text-charcoal/60"}`}
       />
       <span className="font-body text-xs font-semibold text-charcoal truncate max-w-[120px]">{data.label}</span>
+      {data.tag && (
+        <span className="font-body text-[0.6rem] text-charcoal/65 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[80px] truncate">{data.tag}</span>
+      )}
       {data.isManual && (
         <span className="font-body text-[0.6rem] text-amber-600 px-1 py-0.5 rounded bg-amber-50 shrink-0">ידני</span>
       )}

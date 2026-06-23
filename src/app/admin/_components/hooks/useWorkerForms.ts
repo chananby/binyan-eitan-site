@@ -28,6 +28,7 @@ export function useWorkerForms(reload: () => void) {
   const [newHolidayEligible,  setNewHolidayEligible]  = useState(true);
   const [newIsFreelancer,     setNewIsFreelancer]     = useState(false);
   const [newOfficeOnly,       setNewOfficeOnly]       = useState(false);
+  const [newLabel,            setNewLabel]            = useState("");
   const [newAttendanceExempt, setNewAttendanceExempt] = useState(false);
   const [newStartDate,        setNewStartDate]        = useState("");
   const [newEmploymentEndDate, setNewEmploymentEndDate] = useState("");
@@ -56,6 +57,7 @@ export function useWorkerForms(reload: () => void) {
   const [editHolidayEligible, setEditHolidayEligible] = useState(true);
   const [editIsFreelancer,    setEditIsFreelancer]    = useState(false);
   const [editOfficeOnly,      setEditOfficeOnly]      = useState(false);
+  const [editLabel,           setEditLabel]           = useState("");
   const [editAttendanceExempt,setEditAttendanceExempt]= useState(false);
   const [editStartDate,       setEditStartDate]       = useState("");
   const [editEmploymentEndDate, setEditEmploymentEndDate] = useState("");
@@ -83,6 +85,7 @@ export function useWorkerForms(reload: () => void) {
           holiday_eligible:      newHolidayEligible,
           is_freelancer:         newIsFreelancer,
           office_only:           newOfficeOnly,
+          label:                 newLabel || undefined,
           attendance_exempt:     newAttendanceExempt,
           start_date:            newStartDate || undefined,
           employment_end_date:   newEmploymentEndDate || undefined,
@@ -102,7 +105,7 @@ export function useWorkerForms(reload: () => void) {
         setNewEmploymentType("hourly"); setNewGlobalSalary("");
         // Reset to "employee + travel=true" — the default for a fresh add.
         setNewTravelAllowance(true); setNewPensionStatus(""); setNewHolidayEligible(true);
-        setNewIsFreelancer(false); setNewOfficeOnly(false); setNewAttendanceExempt(false);
+        setNewIsFreelancer(false); setNewOfficeOnly(false); setNewLabel(""); setNewAttendanceExempt(false);
         setNewStartDate(""); setNewEmploymentEndDate(""); setNewNotes("");
         setNewBankName(""); setNewBankBranch(""); setNewBankAccount("");
         setNewBankAccountOwner(""); setNewBankIban("");
@@ -112,7 +115,7 @@ export function useWorkerForms(reload: () => void) {
       }
     } catch (err) { setAddMsg("שגיאת רשת: " + String(err)); }
     finally { setAddLoading(false); }
-  }, [newName, newPhone, newRole, newNationalId, newHourlyRate, newDailyRate, newEmploymentType, newGlobalSalary, newTravelAllowance, newPensionStatus, newHolidayEligible, newIsFreelancer, newOfficeOnly, newAttendanceExempt, newStartDate, newEmploymentEndDate, newNotes, newPin, newBankName, newBankBranch, newBankAccount, newBankAccountOwner, newBankIban, reload]);
+  }, [newName, newPhone, newRole, newNationalId, newHourlyRate, newDailyRate, newEmploymentType, newGlobalSalary, newTravelAllowance, newPensionStatus, newHolidayEligible, newIsFreelancer, newOfficeOnly, newLabel, newAttendanceExempt, newStartDate, newEmploymentEndDate, newNotes, newPin, newBankName, newBankBranch, newBankAccount, newBankAccountOwner, newBankIban, reload]);
 
   const startEdit = useCallback((s: StaffMember) => {
     setEditingId(s.id); setEditName(s.name); setEditPhone(s.phone); setEditRole(s.role);
@@ -126,6 +129,7 @@ export function useWorkerForms(reload: () => void) {
     setEditHolidayEligible(s.holiday_eligible !== false); // default true
     setEditIsFreelancer(!!s.is_freelancer);
     setEditOfficeOnly(!!s.office_only);
+    setEditLabel(s.label ?? "");
     setEditAttendanceExempt(!!s.attendance_exempt);
     setEditStartDate(s.start_date ?? "");
     setEditEmploymentEndDate(s.employment_end_date ?? "");
@@ -154,6 +158,7 @@ export function useWorkerForms(reload: () => void) {
         holiday_eligible:      editHolidayEligible,
         is_freelancer:         editIsFreelancer,
         office_only:           editOfficeOnly,
+        label:                 editLabel.trim() || null,
         attendance_exempt:     editAttendanceExempt,
         start_date:            editStartDate || null,
         employment_end_date:   editEmploymentEndDate || null,
@@ -171,7 +176,7 @@ export function useWorkerForms(reload: () => void) {
       else        { setEditMsg("שגיאה: " + (data.error ?? res.status)); }
     } catch (err) { setEditMsg("שגיאת רשת: " + String(err)); }
     finally { setEditLoading(false); }
-  }, [editingId, editName, editPhone, editRole, editNationalId, editHourlyRate, editDailyRate, editEmploymentType, editGlobalSalary, editTravelAllowance, editPensionStatus, editHolidayEligible, editIsFreelancer, editOfficeOnly, editAttendanceExempt, editStartDate, editEmploymentEndDate, editNotes, editPin, editBankName, editBankBranch, editBankAccount, editBankAccountOwner, editBankIban, reload]);
+  }, [editingId, editName, editPhone, editRole, editNationalId, editHourlyRate, editDailyRate, editEmploymentType, editGlobalSalary, editTravelAllowance, editPensionStatus, editHolidayEligible, editIsFreelancer, editOfficeOnly, editLabel, editAttendanceExempt, editStartDate, editEmploymentEndDate, editNotes, editPin, editBankName, editBankBranch, editBankAccount, editBankAccountOwner, editBankIban, reload]);
 
   const toggleActive = useCallback(async (id: string, current: boolean) => {
     await fetch(`/api/admin/staff/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active: !current }) });
@@ -203,6 +208,7 @@ export function useWorkerForms(reload: () => void) {
     newHolidayEligible,  setNewHolidayEligible,
     newIsFreelancer,     setNewIsFreelancer,
     newOfficeOnly,       setNewOfficeOnly,
+    newLabel,            setNewLabel,
     newAttendanceExempt, setNewAttendanceExempt,
     newStartDate,        setNewStartDate,
     newEmploymentEndDate, setNewEmploymentEndDate,
@@ -229,6 +235,7 @@ export function useWorkerForms(reload: () => void) {
     editHolidayEligible, setEditHolidayEligible,
     editIsFreelancer,    setEditIsFreelancer,
     editOfficeOnly,      setEditOfficeOnly,
+    editLabel,           setEditLabel,
     editAttendanceExempt,setEditAttendanceExempt,
     editStartDate,       setEditStartDate,
     editEmploymentEndDate, setEditEmploymentEndDate,

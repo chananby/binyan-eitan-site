@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
   // path above uses a narrow select that excludes them by construction.
   const { data, error } = await supabase
     .from("staff")
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, office_only, start_date, employment_end_date, notes, attendance_exempt, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, office_only, label, start_date, employment_end_date, notes, attendance_exempt, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
     .is("deleted_at", null)
     .order("active", { ascending: false })
     .order("name",   { ascending: true });
@@ -110,6 +110,7 @@ export async function POST(req: NextRequest) {
     holiday_eligible?: boolean;
     is_freelancer?: boolean;
     office_only?: boolean;
+    label?: string;
     attendance_exempt?: boolean;
     start_date?: string;
     employment_end_date?: string;
@@ -130,7 +131,7 @@ export async function POST(req: NextRequest) {
   const {
     name, phone, role, national_id, hourly_rate, daily_rate,
     employment_type, monthly_global_salary, travel_allowance,
-    pension_status, holiday_eligible, is_freelancer, office_only, attendance_exempt,
+    pension_status, holiday_eligible, is_freelancer, office_only, label, attendance_exempt,
     start_date, employment_end_date, notes, pin,
     bank_name, bank_branch, bank_account, bank_account_owner, bank_iban,
   } = body;
@@ -211,6 +212,7 @@ export async function POST(req: NextRequest) {
       holiday_eligible: holiday_eligible ?? true,
       is_freelancer: is_freelancer ?? false,
       office_only: office_only ?? false,
+      label: label?.trim() || null,
       attendance_exempt: attendance_exempt ?? false,
       start_date: start_date && start_date.trim() ? start_date : null,
       employment_end_date: employment_end_date && employment_end_date.trim() ? employment_end_date : null,
@@ -223,7 +225,7 @@ export async function POST(req: NextRequest) {
       bank_account_owner: bank_account_owner?.trim() || null,
       bank_iban:          bank_iban?.trim()          || null,
     })
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, office_only, start_date, employment_end_date, notes, attendance_exempt, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, office_only, label, start_date, employment_end_date, notes, attendance_exempt, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
     .single();
 
   if (error) {

@@ -128,7 +128,7 @@ export default function BoardTab() {
         return {
           id: cardIdForRealWorker(a.worker_id),
           label: w?.name ?? a.worker_name ?? "—",
-          role: w?.role ?? null,
+          tag: w?.label ?? null,
           isManual: false,
           assignmentId: a.id,
         };
@@ -136,7 +136,7 @@ export default function BoardTab() {
       return {
         id: cardIdForManual(a.id),
         label: a.worker_name ?? "—",
-        role: null,
+        tag: null,
         isManual: true,
         assignmentId: a.id,
       };
@@ -145,7 +145,7 @@ export default function BoardTab() {
   const unassignedCards: WorkerChipData[] = unassigned.map((w) => ({
     id: cardIdForRealWorker(w.id),
     label: w.name,
-    role: w.role ?? null,
+    tag: w.label ?? null,
     isManual: false,
   }));
 

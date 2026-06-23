@@ -15,6 +15,7 @@ export interface StaffMember {
   holiday_eligible?: boolean;
   is_freelancer?: boolean;
   office_only?: boolean;
+  label?: string | null;
   attendance_exempt?: boolean;
   start_date?: string | null;
   employment_end_date?: string | null;

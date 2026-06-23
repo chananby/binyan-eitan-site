@@ -33,6 +33,7 @@ interface StaffMember {
   holiday_eligible?: boolean;
   is_freelancer?: boolean;
   office_only?: boolean;
+  label?: string | null;
   attendance_exempt?: boolean;
   start_date?: string | null;
   notes?: string | null;
@@ -59,6 +60,7 @@ type Props = {
   newPensionStatus: string;   setNewPensionStatus:   (v: string) => void;
   newIsFreelancer: boolean;   setNewIsFreelancer:    (v: boolean) => void;
   newOfficeOnly: boolean;     setNewOfficeOnly:      (v: boolean) => void;
+  newLabel: string;           setNewLabel:           (v: string) => void;
   newAttendanceExempt: boolean; setNewAttendanceExempt: (v: boolean) => void;
   newStartDate: string;       setNewStartDate:       (v: string) => void;
   newEmploymentEndDate: string; setNewEmploymentEndDate: (v: string) => void;
@@ -88,6 +90,7 @@ type Props = {
   editPensionStatus: string;  setEditPensionStatus:   (v: string) => void;
   editIsFreelancer: boolean;  setEditIsFreelancer:    (v: boolean) => void;
   editOfficeOnly: boolean;    setEditOfficeOnly:      (v: boolean) => void;
+  editLabel: string;          setEditLabel:           (v: string) => void;
   editAttendanceExempt: boolean; setEditAttendanceExempt: (v: boolean) => void;
   editStartDate: string;      setEditStartDate:       (v: string) => void;
   editEmploymentEndDate: string; setEditEmploymentEndDate: (v: string) => void;
@@ -299,7 +302,9 @@ export default function WorkersTab(p: Props) {
                 <span className="text-charcoal/70">עובד מנהלה (לא בשיבוץ)</span>
               </label>
             </Field>
-            <div />
+            <Field label="תווית (מקצוע / סימון)">
+              <input value={p.newLabel} onChange={e => p.setNewLabel(e.target.value)} maxLength={30} placeholder="למשל: רתך, זמני, עובד זר" className={INPUT} />
+            </Field>
           </div>
           <Field label="סטטוס פנסיה (טקסט חופשי)">
             <AutoGrowTextarea value={p.newPensionStatus} onChange={e => p.setNewPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
@@ -431,7 +436,9 @@ function renderStaffRow(
               <span className="text-charcoal/70">עובד מנהלה (לא בשיבוץ)</span>
             </label>
           </Field>
-          <div />
+          <Field label="תווית (מקצוע / סימון)">
+            <input value={p.editLabel} onChange={e => p.setEditLabel(e.target.value)} maxLength={30} placeholder="למשל: רתך, זמני, עובד זר" className={INPUT} />
+          </Field>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <Field label="סטטוס העסקה">

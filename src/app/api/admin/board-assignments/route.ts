@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
       .order("updated_at", { ascending: false }),
     supabase
       .from("staff")
-      .select("id, name, role")
+      .select("id, name, role, label")
       .eq("active", true)
       .is("deleted_at", null)
       .eq("office_only", false)

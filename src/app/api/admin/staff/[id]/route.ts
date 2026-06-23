@@ -23,6 +23,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     holiday_eligible?: boolean;
     is_freelancer?: boolean;
     office_only?: boolean;
+    label?: string | null;
     attendance_exempt?: boolean;
     start_date?: string | null;
     employment_end_date?: string | null;
@@ -90,6 +91,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   if (body.holiday_eligible !== undefined) update.holiday_eligible = !!body.holiday_eligible;
   if (body.is_freelancer !== undefined) update.is_freelancer = !!body.is_freelancer;
   if (body.office_only !== undefined) update.office_only = !!body.office_only;
+  if (body.label !== undefined) update.label = body.label?.trim() || null;
   if (body.attendance_exempt !== undefined) update.attendance_exempt = !!body.attendance_exempt;
   if (body.start_date !== undefined) {
     const sd = body.start_date;
@@ -132,7 +134,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     .from("staff")
     .update(update)
     .eq("id", params.id)
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, office_only, start_date, employment_end_date, notes, attendance_exempt, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, office_only, label, start_date, employment_end_date, notes, attendance_exempt, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
     .single();
 
   if (error) {

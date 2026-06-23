@@ -254,6 +254,7 @@ export default function AdminPortal() {
     newHolidayEligible,  setNewHolidayEligible,
     newIsFreelancer,     setNewIsFreelancer,
     newOfficeOnly,       setNewOfficeOnly,
+    newLabel,            setNewLabel,
     newAttendanceExempt, setNewAttendanceExempt,
     newStartDate,        setNewStartDate,
     newEmploymentEndDate, setNewEmploymentEndDate,
@@ -279,6 +280,7 @@ export default function AdminPortal() {
     editHolidayEligible, setEditHolidayEligible,
     editIsFreelancer,    setEditIsFreelancer,
     editOfficeOnly,      setEditOfficeOnly,
+    editLabel,           setEditLabel,
     editAttendanceExempt,setEditAttendanceExempt,
     editStartDate,       setEditStartDate,
     editEmploymentEndDate, setEditEmploymentEndDate,
@@ -1386,6 +1388,7 @@ export default function AdminPortal() {
             newPensionStatus={newPensionStatus}     setNewPensionStatus={setNewPensionStatus}
             newIsFreelancer={newIsFreelancer}       setNewIsFreelancer={setNewIsFreelancer}
             newOfficeOnly={newOfficeOnly}           setNewOfficeOnly={setNewOfficeOnly}
+            newLabel={newLabel}                     setNewLabel={setNewLabel}
             newAttendanceExempt={newAttendanceExempt} setNewAttendanceExempt={setNewAttendanceExempt}
             newStartDate={newStartDate}             setNewStartDate={setNewStartDate}
             newEmploymentEndDate={newEmploymentEndDate} setNewEmploymentEndDate={setNewEmploymentEndDate}
@@ -1413,6 +1416,7 @@ export default function AdminPortal() {
             editPensionStatus={editPensionStatus}   setEditPensionStatus={setEditPensionStatus}
             editIsFreelancer={editIsFreelancer}     setEditIsFreelancer={setEditIsFreelancer}
             editOfficeOnly={editOfficeOnly}         setEditOfficeOnly={setEditOfficeOnly}
+            editLabel={editLabel}                   setEditLabel={setEditLabel}
             editAttendanceExempt={editAttendanceExempt} setEditAttendanceExempt={setEditAttendanceExempt}
             editStartDate={editStartDate}           setEditStartDate={setEditStartDate}
             editEmploymentEndDate={editEmploymentEndDate} setEditEmploymentEndDate={setEditEmploymentEndDate}

@@ -30,6 +30,9 @@ export interface WorkerRef {
   id: string;
   name: string;
   role?: string | null;
+  /** Short free-text marker (e.g. "רתך", "זמני") displayed as a badge
+   *  on the worker chip. NULL → no badge. */
+  label?: string | null;
 }
 
 export interface ProjectRef {
