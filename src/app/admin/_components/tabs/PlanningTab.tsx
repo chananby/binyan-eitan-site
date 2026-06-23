@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Flag, CheckSquare2, Calendar, RefreshCw, AlertTriangle,
   Target, ChevronDown, ChevronUp, Hammer,
@@ -113,17 +113,33 @@ type Props = {
 };
 
 export default function PlanningTab(p: Props) {
-  return (
-    <div className="space-y-5">
-      <TabRefreshBar loading={p.refreshing || p.dataLoading} onRefresh={p.onTabRefresh} lastRefreshed={p.lastRefreshed} />
+  // Two accordions, collapsed by default so the weekly board (the actual
+  // operational view) is what the admin lands on. Each auto-closes when its
+  // own success message arrives ("✓ ..." prefix). Same pattern as the
+  // workers-add-collapsed accordion — no localStorage.
+  const [msOpen, setMsOpen] = useState(false);
+  const [taskOpen, setTaskOpen] = useState(false);
+  useEffect(() => { if (p.msAddMsg?.startsWith("✓")) setMsOpen(false); }, [p.msAddMsg]);
+  useEffect(() => { if (p.taskAddMsg?.startsWith("✓")) setTaskOpen(false); }, [p.taskAddMsg]);
 
-      {/* ── Add milestone ──────────────────────────────────────────── */}
+  // The two creation forms — JSX kept as variables so the render() can place
+  // them at the bottom (operational view goes first, forms after).
+  const milestoneForm = (
       <Card>
-        <div className="flex items-center gap-2 mb-3">
-          <Flag size={15} strokeWidth={1.5} className="text-accent" />
-          <h2 className="font-heading text-base font-bold">הוספת אבן דרך</h2>
-        </div>
-        <form onSubmit={p.onAddMilestone} className="space-y-3">
+        <button
+          type="button"
+          onClick={() => setMsOpen(v => !v)}
+          className="w-full flex items-center gap-2 hover:opacity-80 transition-opacity"
+          aria-expanded={msOpen}
+        >
+          <Flag size={15} strokeWidth={1.5} className="text-accent shrink-0" />
+          <h2 className="font-heading text-base font-bold flex-1 text-start">הוספת אבן דרך</h2>
+          {msOpen
+            ? <ChevronUp size={16} strokeWidth={1.5} className="text-charcoal/70" />
+            : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
+        </button>
+        {msOpen && (
+        <form onSubmit={p.onAddMilestone} className="space-y-3 mt-3">
           <div className="grid grid-cols-2 gap-3">
             <Field label="פרויקט">
               <select value={p.newMsProjectId} onChange={e => { p.setNewMsProjectId(e.target.value); p.setNewTaskMilestoneId(""); }} required className={INPUT}>
@@ -141,15 +157,26 @@ export default function PlanningTab(p: Props) {
           <Btn loading={p.msAddLoading} disabled={!p.newMsProjectId}>הוסף אבן דרך</Btn>
           {p.msAddMsg && <p className={`text-xs ${p.msAddMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{p.msAddMsg}</p>}
         </form>
+        )}
       </Card>
+  );
 
-      {/* ── Add task ───────────────────────────────────────────────── */}
+  const taskForm = (
       <Card>
-        <div className="flex items-center gap-2 mb-3">
-          <CheckSquare2 size={15} strokeWidth={1.5} className="text-accent" />
-          <h2 className="font-heading text-base font-bold">הוספת משימה שבועית</h2>
-        </div>
-        <form onSubmit={p.onAddTask} className="space-y-3">
+        <button
+          type="button"
+          onClick={() => setTaskOpen(v => !v)}
+          className="w-full flex items-center gap-2 hover:opacity-80 transition-opacity"
+          aria-expanded={taskOpen}
+        >
+          <CheckSquare2 size={15} strokeWidth={1.5} className="text-accent shrink-0" />
+          <h2 className="font-heading text-base font-bold flex-1 text-start">הוספת משימה שבועית</h2>
+          {taskOpen
+            ? <ChevronUp size={16} strokeWidth={1.5} className="text-charcoal/70" />
+            : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
+        </button>
+        {taskOpen && (
+        <form onSubmit={p.onAddTask} className="space-y-3 mt-3">
           <div className="grid grid-cols-2 gap-3">
             <Field label="פרויקט">
               <select value={p.newTaskProjectId} onChange={e => { p.setNewTaskProjectId(e.target.value); p.setNewTaskMilestoneId(""); }} required className={INPUT}>
@@ -181,9 +208,17 @@ export default function PlanningTab(p: Props) {
           <Btn loading={p.taskAddLoading} disabled={!p.newTaskProjectId}>הוסף משימה</Btn>
           {p.taskAddMsg && <p className={`text-xs ${p.taskAddMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{p.taskAddMsg}</p>}
         </form>
+        )}
       </Card>
+  );
 
-      {/* ── Weekly look-ahead ──────────────────────────────────────── */}
+  return (
+    <div className="space-y-5">
+      <TabRefreshBar loading={p.refreshing || p.dataLoading} onRefresh={p.onTabRefresh} lastRefreshed={p.lastRefreshed} />
+
+      {/* ── Weekly look-ahead — the operational view; first thing the
+          admin should see on entry. The two create-forms (אבן דרך +
+          משימה) sit at the very bottom, behind accordions. ───────── */}
       <Card>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -456,6 +491,12 @@ export default function PlanningTab(p: Props) {
           );
         })()}
       </div>
+
+      {/* Create-forms moved here from the top — accordions, closed by default.
+          Operational view above is what the admin needs every time; creating
+          a milestone / task is rarer, lives behind a click. */}
+      {milestoneForm}
+      {taskForm}
     </div>
   );
 }

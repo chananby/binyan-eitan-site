@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, ChevronDown, ChevronUp } from "lucide-react";
 import { useFeedback } from "../../../hooks/useFeedback";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
@@ -85,15 +85,33 @@ export default function ReportsTab({
     }
   }
 
+  // Accordion — the daily-report form is the heaviest one on screen here
+  // (5 fields + 2 textareas). Collapse by default so the recent-reports
+  // list reads first. Same pattern as workers-add-collapsed; auto-closes
+  // on ✓ success; no localStorage.
+  const [submitOpen, setSubmitOpen] = useState(false);
+  useEffect(() => {
+    if (reportMsg?.startsWith("✓")) setSubmitOpen(false);
+  }, [reportMsg]);
+
   return (
     <div className="space-y-5">
       <TabRefreshBar loading={refreshing} onRefresh={onTabRefresh} lastRefreshed={lastRefreshed} />
       <Card>
-        <div className="flex items-center gap-2 mb-3">
-          <ClipboardList size={16} strokeWidth={1.5} className="text-accent" />
-          <h2 className="font-heading text-base font-bold">הגשת דוח יומי</h2>
-        </div>
-        <form onSubmit={handleAddReport} className="space-y-3">
+        <button
+          type="button"
+          onClick={() => setSubmitOpen(v => !v)}
+          className="w-full flex items-center gap-2 hover:opacity-80 transition-opacity"
+          aria-expanded={submitOpen}
+        >
+          <ClipboardList size={16} strokeWidth={1.5} className="text-accent shrink-0" />
+          <h2 className="font-heading text-base font-bold flex-1 text-start">הגשת דוח יומי</h2>
+          {submitOpen
+            ? <ChevronUp size={16} strokeWidth={1.5} className="text-charcoal/70" />
+            : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
+        </button>
+        {submitOpen && (
+        <form onSubmit={handleAddReport} className="space-y-3 mt-3">
           <div className="grid grid-cols-2 gap-3">
             <Field label="פרויקט">
               <select value={reportProjectId} onChange={e => setReportProjectId(e.target.value)} required className={INPUT}>
@@ -118,6 +136,7 @@ export default function ReportsTab({
           <Btn loading={reportLoading} disabled={!reportProjectId}>שמור דוח</Btn>
           {reportMsg && <p className={`text-xs ${reportMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{reportMsg}</p>}
         </form>
+        )}
       </Card>
 
       {reports.length > 0 && (

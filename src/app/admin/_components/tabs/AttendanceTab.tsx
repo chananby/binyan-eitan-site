@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   BarChart2, Loader2, Download, AlertCircle, Calendar, Plus,
   AlertTriangle, RefreshCw, Building2, Pencil, History, Phone, UserX,
+  ChevronDown, ChevronUp,
 } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
@@ -265,14 +266,30 @@ ${detailHtml}
     if (w) { w.document.write(html); w.document.close(); }
   };
 
+  // Accordion — collapsed by default so the live log is what greets the
+  // admin. Auto-collapse when a successful fetch produces results (the
+  // result table below pushes content; keeping the form open too would
+  // be noisy). Mirrors the workers-add-collapsed pattern. No localStorage.
+  const [reportOpen, setReportOpen] = useState(false);
+  useEffect(() => { if (attReportData) setReportOpen(false); }, [attReportData]);
+
   return (
     <>
       <Card>
-        <div className="flex items-center gap-2 mb-4">
-          <BarChart2 size={15} strokeWidth={1.5} className="text-accent" />
-          <h2 className="font-heading text-base font-bold">דוח נוכחות</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end">
+        <button
+          type="button"
+          onClick={() => setReportOpen(v => !v)}
+          className="w-full flex items-center gap-2 hover:opacity-80 transition-opacity"
+          aria-expanded={reportOpen}
+        >
+          <BarChart2 size={15} strokeWidth={1.5} className="text-accent shrink-0" />
+          <h2 className="font-heading text-base font-bold flex-1 text-start">דוח נוכחות</h2>
+          {reportOpen
+            ? <ChevronUp size={16} strokeWidth={1.5} className="text-charcoal/70" />
+            : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
+        </button>
+        {reportOpen && (<>
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end mt-4">
           <div>
             <label className="block text-[0.68rem] text-charcoal/65 mb-1 font-body">מתאריך</label>
             <input type="date" value={attReportFrom}
@@ -301,6 +318,7 @@ ${detailHtml}
             <AlertCircle size={12} /> {attReportErr}
           </p>
         )}
+        </>)}
       </Card>
 
       {attReportData && (() => {

@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { TrendingUp } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { Btn } from "../shared/Btn";
@@ -58,15 +58,32 @@ export default function IncomeTab({
   refreshing,
   onTabRefresh,
 }: Props) {
+  // Accordion for the "record payment" form — collapsed by default so the
+  // income summary + journal are the first thing on screen. Same pattern as
+  // workers-add-collapsed. No localStorage; auto-closes on ✓ success.
+  const [addOpen, setAddOpen] = useState(false);
+  useEffect(() => {
+    if (incMsg?.startsWith("✓")) setAddOpen(false);
+  }, [incMsg]);
+
   return (
     <div className="space-y-5">
       <TabRefreshBar loading={refreshing} onRefresh={onTabRefresh} lastRefreshed={lastRefreshed} />
       <Card>
-        <div className="flex items-center gap-2 mb-3">
-          <TrendingUp size={16} strokeWidth={1.5} className="text-accent" />
-          <h2 className="font-heading text-base font-bold">רישום תשלום</h2>
-        </div>
-        <form onSubmit={onAddIncome} className="space-y-3">
+        <button
+          type="button"
+          onClick={() => setAddOpen(v => !v)}
+          className="w-full flex items-center gap-2 hover:opacity-80 transition-opacity"
+          aria-expanded={addOpen}
+        >
+          <TrendingUp size={16} strokeWidth={1.5} className="text-accent shrink-0" />
+          <h2 className="font-heading text-base font-bold flex-1 text-start">רישום תשלום</h2>
+          {addOpen
+            ? <ChevronUp size={16} strokeWidth={1.5} className="text-charcoal/70" />
+            : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
+        </button>
+        {addOpen && (
+        <form onSubmit={onAddIncome} className="space-y-3 mt-3">
           <div className="grid grid-cols-2 gap-3">
             <Field label="פרויקט">
               <select value={incProjectId} onChange={e => setIncProjectId(e.target.value)} required className={INPUT}>
@@ -81,6 +98,7 @@ export default function IncomeTab({
           <Btn loading={incLoading} disabled={!incProjectId || !incAmount}>רשום תשלום</Btn>
           {incMsg && <p className={`text-xs ${incMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{incMsg}</p>}
         </form>
+        )}
       </Card>
 
       {income.length > 0 && (

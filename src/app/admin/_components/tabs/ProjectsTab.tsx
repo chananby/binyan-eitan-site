@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { Building2, RefreshCw } from "lucide-react";
+import { Building2, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { Btn } from "../shared/Btn";
@@ -74,15 +74,33 @@ export default function ProjectsTab(p: Props) {
   }, []);
   useEffect(() => { fetchBudget(); }, [fetchBudget, p.projects.length]);
 
+  // Add-project accordion — collapsed by default so the project list is the
+  // first thing admins see on entry. Auto-closes after a successful save
+  // (✓ prefix on the msg the parent passes in). Same pattern as
+  // workers-add-collapsed; no localStorage.
+  const [addOpen, setAddOpen] = useState(false);
+  useEffect(() => {
+    if (p.projectAddMsg?.startsWith("✓")) setAddOpen(false);
+  }, [p.projectAddMsg]);
+
   return (
     <div className="space-y-5">
       <TabRefreshBar loading={p.refreshing || p.dataLoading} onRefresh={p.onTabRefresh} lastRefreshed={p.lastRefreshed} />
       <Card>
-        <div className="flex items-center gap-2 mb-3">
-          <Building2 size={16} strokeWidth={1.5} className="text-accent" />
-          <h2 className="font-heading text-base font-bold">הוספת פרויקט</h2>
-        </div>
-        <form onSubmit={p.onAddProject} className="space-y-3">
+        <button
+          type="button"
+          onClick={() => setAddOpen(v => !v)}
+          className="w-full flex items-center gap-2 hover:opacity-80 transition-opacity"
+          aria-expanded={addOpen}
+        >
+          <Building2 size={16} strokeWidth={1.5} className="text-accent shrink-0" />
+          <h2 className="font-heading text-base font-bold flex-1 text-start">הוסף פרויקט</h2>
+          {addOpen
+            ? <ChevronUp size={16} strokeWidth={1.5} className="text-charcoal/70" />
+            : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
+        </button>
+        {addOpen && (
+        <form onSubmit={p.onAddProject} className="space-y-3 mt-3">
           <Field label="שם הפרויקט / אתר">
             <AutoGrowTextarea value={p.newProjectName} onChange={e => p.setNewProjectName(e.target.value)} required placeholder="פרויקט רחוב הרצל 12" className={INPUT} />
           </Field>
@@ -100,6 +118,7 @@ export default function ProjectsTab(p: Props) {
           <Btn loading={p.projectAddLoading}>הוסף פרויקט</Btn>
           {p.projectAddMsg && <p className={`text-xs ${p.projectAddMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{p.projectAddMsg}</p>}
         </form>
+        )}
       </Card>
       <Card>
         <div className="flex items-center justify-between mb-3">
