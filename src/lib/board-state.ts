@@ -105,6 +105,40 @@ export function groupByProject(assignments: BoardAssignment[]): Map<string, Boar
  * Preserves the input order of `allWorkers` — the caller sorts to
  * its preferred order (typically by name).
  */
+/**
+ * Manual project columns to render on the board: the union of names
+ * the admin has explicitly added (rows in `board_manual_projects`) +
+ * any name that still appears inside a `manual:` projectKey from the
+ * assignments map (back-compat for assignments that pre-date the
+ * persistent-column table). Real-project name collisions are dropped
+ * so we never render a manual twin next to a real project.
+ *
+ * Returns the human names, sorted alphabetically — the encoded
+ * "manual:<name>" key is BoardTab's concern, kept out of the pure
+ * helper.
+ */
+export interface ManualProjectRef {
+  id: string;
+  name: string;
+}
+export function mergeManualProjectNames(
+  manualProjectsTable: ManualProjectRef[],
+  groupedKeys: Iterable<string>,
+  realProjects: ProjectRef[],
+): string[] {
+  const realNames = new Set(realProjects.map((p) => p.name));
+  const out = new Set<string>();
+  for (const mp of manualProjectsTable) {
+    if (!realNames.has(mp.name)) out.add(mp.name);
+  }
+  for (const k of groupedKeys) {
+    if (!k.startsWith("manual:")) continue;
+    const name = k.slice(7);
+    if (!realNames.has(name)) out.add(name);
+  }
+  return [...out].sort();
+}
+
 export function unassignedWorkers(allWorkers: WorkerRef[], assignments: BoardAssignment[]): WorkerRef[] {
   const assigned = new Set<string>();
   for (const a of assignments) {

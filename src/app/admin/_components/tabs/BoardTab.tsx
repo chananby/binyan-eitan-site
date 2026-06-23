@@ -32,8 +32,9 @@ import MoveToDialog, { type MoveTarget } from "../shared/MoveToDialog";
 import BoardManualEntry from "../shared/BoardManualEntry";
 import { useCoarsePointer } from "../hooks/useCoarsePointer";
 import {
-  type BoardAssignment, type WorkerRef, type ProjectRef,
+  type BoardAssignment, type WorkerRef, type ProjectRef, type ManualProjectRef,
   groupByProject, unassignedWorkers, applyMoveOptimistic, UNASSIGNED_TARGET,
+  mergeManualProjectNames,
 } from "../../../../lib/board-state";
 
 // Encoded ids — kept identical to the previous shape so the API stays
@@ -49,6 +50,7 @@ interface BoardData {
   assignments: BoardAssignment[];
   workers: WorkerRef[];
   projects: ProjectRef[];
+  manual_projects: ManualProjectRef[];
 }
 
 export default function BoardTab() {
@@ -83,9 +85,10 @@ export default function BoardTab() {
       }
       const d = await res.json();
       setData({
-        assignments: Array.isArray(d.assignments) ? d.assignments : [],
-        workers:     Array.isArray(d.workers)     ? d.workers     : [],
-        projects:    Array.isArray(d.projects)    ? d.projects    : [],
+        assignments:     Array.isArray(d.assignments)     ? d.assignments     : [],
+        workers:         Array.isArray(d.workers)         ? d.workers         : [],
+        projects:        Array.isArray(d.projects)        ? d.projects        : [],
+        manual_projects: Array.isArray(d.manual_projects) ? d.manual_projects : [],
       });
     } catch { setError("שגיאת רשת — נסה שוב."); }
     finally { setLoading(false); }
@@ -100,14 +103,21 @@ export default function BoardTab() {
   const unassigned  = useMemo(() => data ? unassignedWorkers(data.workers, data.assignments) : [], [data]);
   const workersById = useMemo(() => new Map((data?.workers ?? []).map((w) => [w.id, w])), [data]);
 
-  // Manual project keys (without "real-twin" collisions) — same idea
-  // as before.
+  // Manual project columns: union of three sources, encoded as
+  // `manual:<name>` keys so the rest of the UI (dnd targets, dialog
+  // options, render loop) stays untouched.
+  //   1) rows in board_manual_projects (persistent — render even when empty)
+  //   2) manual: keys in the grouped assignments (back-compat: an
+  //      assignment named a site that was never inserted into the table)
+  //   3) minus any name that collides with a real project (those should
+  //      surface as the real project column, not a manual twin)
   const manualProjectKeys = useMemo(() => {
     if (!data) return [];
-    const realNames = new Set(data.projects.map((p) => p.name));
-    return [...grouped.keys()]
-      .filter((k) => k.startsWith("manual:") && !realNames.has(k.slice(7)))
-      .sort();
+    return mergeManualProjectNames(
+      data.manual_projects,
+      grouped.keys(),
+      data.projects,
+    ).map((name) => `manual:${name}`);
   }, [grouped, data]);
 
   function cardsForKey(key: string): WorkerChipData[] {
@@ -249,6 +259,35 @@ export default function BoardTab() {
     if (ok) await reload();
     setPosting(false);
   }
+
+  /** Create a persistent manual site (or surface the existing one) and
+   *  return the encoded column id ("manual:<name>") so the form can
+   *  stage it as the worker's next target. Null on failure — the user
+   *  has already been alerted. */
+  async function addManualProject(projectName: string): Promise<string | null> {
+    try {
+      const res = await fetch("/api/admin/board-manual-projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: projectName }),
+      });
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}));
+        alert(`שגיאה: ${b.error ?? res.status}`);
+        return null;
+      }
+      const body = await res.json().catch(() => ({}));
+      // Server normalised the name (trim + collapse whitespace); use
+      // what came back, not the raw input, so the encoded id matches
+      // what the merged column list will emit.
+      const finalName = (body?.manual_project?.name ?? projectName).trim();
+      await reload();
+      return `manual:${finalName}`;
+    } catch {
+      alert("שגיאת רשת — נסה שוב.");
+      return null;
+    }
+  }
   async function removeCard(c: WorkerChipData) {
     if (!c.isManual || !c.assignmentId) return;
     if (!confirm(`להסיר את "${c.label}" מהלוח?`)) return;
@@ -332,7 +371,7 @@ export default function BoardTab() {
       <BoardManualEntry
         targetOptions={targetOptions.map((t) => ({ value: t.id, label: t.label }))}
         onAddWorker={addManualWorker}
-        onStageManualProject={() => { /* form owns the staging — nothing to do server-side */ }}
+        onAddManualProject={addManualProject}
         posting={posting}
       />
 

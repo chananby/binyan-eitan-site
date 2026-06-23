@@ -51,10 +51,11 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServerClient();
 
-  // Three queries in parallel — they're independent and small. Same
-  // shape the UI in PR 2 will consume directly (no client-side joins
-  // needed; manual rows already carry their labels).
-  const [assignmentsRes, workersRes, projectsRes] = await Promise.all([
+  // Four queries in parallel — independent and small. manual_projects
+  // is the new "empty column" channel: rows here render as columns on
+  // the board even when no worker is assigned, so an admin who just
+  // typed "+ הוסף אתר" sees something immediately.
+  const [assignmentsRes, workersRes, projectsRes, manualProjectsRes] = await Promise.all([
     supabase
       .from("board_assignments")
       .select(ASSIGNMENT_COLUMNS)
@@ -71,6 +72,10 @@ export async function GET(req: NextRequest) {
       .select("id, name, status")
       .eq("status", "active") // status is a string column ('active' / 'inactive'), not a boolean
       .order("name", { ascending: true }),
+    supabase
+      .from("board_manual_projects")
+      .select("id, name, created_at")
+      .order("name", { ascending: true }),
   ]);
 
   if (assignmentsRes.error) {
@@ -85,11 +90,16 @@ export async function GET(req: NextRequest) {
     console.error("[admin/board-assignments GET] projects:", projectsRes.error.message);
     return NextResponse.json({ error: projectsRes.error.message }, { status: 500 });
   }
+  if (manualProjectsRes.error) {
+    console.error("[admin/board-assignments GET] manual_projects:", manualProjectsRes.error.message);
+    return NextResponse.json({ error: manualProjectsRes.error.message }, { status: 500 });
+  }
 
   return NextResponse.json({
-    assignments: assignmentsRes.data ?? [],
-    workers:     workersRes.data ?? [],
-    projects:    projectsRes.data ?? [],
+    assignments:     assignmentsRes.data ?? [],
+    workers:         workersRes.data ?? [],
+    projects:        projectsRes.data ?? [],
+    manual_projects: manualProjectsRes.data ?? [],
   });
 }
 

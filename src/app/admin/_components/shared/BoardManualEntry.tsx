@@ -1,15 +1,17 @@
 "use client";
 
-// BoardManualEntry — the "+ עובד ידני" + "+ אתר ידני" pair that sits
+// BoardManualEntry — the "+ עובד ידני" + "+ הוסף אתר" pair that sits
 // below the assignment board. Pulled out of BoardTab so the tab stays
 // under the 400-line ceiling AND so the form behaviour is one self-
 // contained chunk: input → dropdown → submit, no shared state with the
 // drag-and-drop layer.
 //
-// A "manual project" only materialises as a column once a manual worker
-// is assigned to it. The "set as next target" button writes the name
-// into the target dropdown so the very next "add manual worker" lands
-// on it; we never insert an empty manual column.
+// "הוסף אתר" creates a persistent manual column the moment the admin
+// clicks it (POST /api/admin/board-manual-projects via the parent),
+// so a fresh column appears immediately and is shared across admins.
+// The newly-created name is also stashed as the "next target" in the
+// worker form, so the natural flow (create site → drop a worker on it)
+// is one continuous gesture.
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
@@ -26,33 +28,34 @@ interface Props {
   /** Submitted with a fully-encoded targetId — the parent decodes back
    *  to project_id / project_name before calling the API. */
   onAddWorker: (workerName: string, targetId: string) => Promise<void>;
-  /** Returns the encoded id for a fresh "manual:<name>" target so the
-   *  parent can stash it into its state. */
-  onStageManualProject: (projectName: string) => void;
+  /** Persist a new manual site server-side. The parent POSTs and
+   *  refreshes the board; resolves with the encoded "manual:<name>"
+   *  column id on success so the form can stage it as the next worker
+   *  target. Resolves null on failure (the parent surfaces the error). */
+  onAddManualProject: (projectName: string) => Promise<string | null>;
   posting: boolean;
 }
 
-function manualProjectId(name: string): string {
-  return `manual:${name}`;
-}
-
-export default function BoardManualEntry({ targetOptions, onAddWorker, onStageManualProject, posting }: Props) {
+export default function BoardManualEntry({ targetOptions, onAddWorker, onAddManualProject, posting }: Props) {
   const [workerName, setWorkerName]     = useState("");
   const [workerTarget, setWorkerTarget] = useState("");
   const [projectName, setProjectName]   = useState("");
+  const [projectPosting, setProjectPosting] = useState(false);
 
   const workerReady = workerName.trim() && workerTarget;
-  const projectReady = projectName.trim();
+  const projectReady = projectName.trim().length > 0;
 
   async function submitWorker() {
     if (!workerReady) return;
     await onAddWorker(workerName.trim(), workerTarget);
     setWorkerName("");
   }
-  function submitProject() {
-    if (!projectReady) return;
-    const id = manualProjectId(projectName.trim());
-    onStageManualProject(projectName.trim());
+  async function submitProject() {
+    if (!projectReady || projectPosting) return;
+    setProjectPosting(true);
+    const id = await onAddManualProject(projectName.trim());
+    setProjectPosting(false);
+    if (!id) return; // parent surfaced the error already
     setWorkerTarget(id);
     setProjectName("");
   }
@@ -89,10 +92,10 @@ export default function BoardManualEntry({ targetOptions, onAddWorker, onStageMa
 
       <div className="bg-white border border-charcoal/10 rounded-md p-3 space-y-2">
         <p className="font-heading text-sm font-bold text-charcoal flex items-center gap-1.5">
-          <Plus size={13} className="text-amber-500" /> אתר ידני (זמני)
+          <Plus size={13} className="text-accent" /> הוסף אתר
         </p>
         <p className="font-body text-xs text-charcoal/65 leading-snug">
-          הוסף שם של אתר זמני — הוא יוגדר כיעד הבא לטופס "עובד ידני". העמודה נוצרת ברגע שמשובץ אליה עובד ראשון.
+          הוסף עמודת אתר חדשה. ניתן לגרור עובדים אליה.
         </p>
         <input
           value={projectName}
@@ -103,10 +106,10 @@ export default function BoardManualEntry({ targetOptions, onAddWorker, onStageMa
         <button
           type="button"
           onClick={submitProject}
-          disabled={!projectReady}
-          className="w-full border border-amber-300 text-amber-700 bg-amber-50 py-1.5 rounded text-sm font-semibold hover:bg-amber-100 disabled:opacity-40 transition-colors"
+          disabled={projectPosting || !projectReady}
+          className="w-full bg-accent text-bone py-1.5 rounded text-sm font-semibold hover:bg-accent-dark disabled:opacity-40 transition-colors"
         >
-          הגדר כיעד הבא
+          הוסף אתר
         </button>
       </div>
     </div>

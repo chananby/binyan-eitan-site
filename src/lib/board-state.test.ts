@@ -5,9 +5,11 @@ import {
   projectKey,
   groupByProject,
   unassignedWorkers,
+  mergeManualProjectNames,
   type BoardAssignment,
   type WorkerRef,
   type ProjectRef,
+  type ManualProjectRef,
 } from "./board-state";
 
 // Factory: build a minimal assignment with sensible defaults so each
@@ -156,5 +158,60 @@ describe("unassignedWorkers", () => {
   it("all workers assigned → empty result", () => {
     const assignments = allWorkers.map((w) => mk({ worker_id: w.id, project_id: "p1" }));
     expect(unassignedWorkers(allWorkers, assignments)).toEqual([]);
+  });
+});
+
+describe("mergeManualProjectNames — UI column source unification", () => {
+  const MP = (id: string, name: string): ManualProjectRef => ({ id, name });
+  const PR = (id: string, name: string): ProjectRef => ({ id, name });
+
+  it("returns names from the manual-projects table alone, sorted", () => {
+    const out = mergeManualProjectNames(
+      [MP("m1", "אתר זמני ב"), MP("m2", "אתר זמני א")],
+      [],
+      [],
+    );
+    expect(out).toEqual(["אתר זמני א", "אתר זמני ב"]);
+  });
+
+  it("includes assignments-derived manual keys too (back-compat)", () => {
+    const out = mergeManualProjectNames(
+      [MP("m1", "אתר ידני חדש")],
+      ["manual:אתר ידני ישן", "p1"],
+      [],
+    );
+    expect(out).toEqual(["אתר ידני חדש", "אתר ידני ישן"]);
+  });
+
+  it("dedupes between sources — table + grouped keys with same name → once", () => {
+    const out = mergeManualProjectNames(
+      [MP("m1", "אתר X")],
+      ["manual:אתר X"],
+      [],
+    );
+    expect(out).toEqual(["אתר X"]);
+  });
+
+  it("drops a manual name that collides with a real project name", () => {
+    const out = mergeManualProjectNames(
+      [MP("m1", "טשרניחובסקי 72")],
+      ["manual:טשרניחובסקי 72", "manual:אתר אחר"],
+      [PR("p1", "טשרניחובסקי 72")],
+    );
+    // Manual entry collides with the real project — drop it; "אתר אחר" stays.
+    expect(out).toEqual(["אתר אחר"]);
+  });
+
+  it("ignores non-manual keys in the grouped iterable", () => {
+    const out = mergeManualProjectNames(
+      [],
+      ["p1", "p2", "__none__", "manual:keep"],
+      [],
+    );
+    expect(out).toEqual(["keep"]);
+  });
+
+  it("empty inputs → empty result", () => {
+    expect(mergeManualProjectNames([], [], [])).toEqual([]);
   });
 });
