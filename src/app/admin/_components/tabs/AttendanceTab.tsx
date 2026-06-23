@@ -752,7 +752,7 @@ function AbsentTodayPanel({ staff, absentTodayIds }: {
 // ── 4. Today's log ───────────────────────────────────────────────────────────
 function TodayLog({
   todayLogs, dataLoading, attLoadErr,
-  onReload, onStartEditAtt,
+  onReload, onStartEditAtt, onViewHistory,
   edit, projects, farThresholdM,
 }: {
   todayLogs: AttendanceRecord[];
@@ -760,6 +760,7 @@ function TodayLog({
   attLoadErr: string | null;
   onReload: () => void;
   onStartEditAtt: (r: AttendanceRecord, isPending?: boolean) => void;
+  onViewHistory: (staffId: string) => void;
   edit: EditAttSlice;
   projects: ProjectLite[];
   farThresholdM: number;
@@ -800,7 +801,8 @@ function TodayLog({
               <div className="divide-y divide-charcoal/5">
                 {regular.map(r => (
                   <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
-                    onStartEditAtt={onStartEditAtt} farThresholdM={farThresholdM} dim={false} />
+                    onStartEditAtt={onStartEditAtt} onViewHistory={onViewHistory}
+                    farThresholdM={farThresholdM} dim={false} />
                 ))}
               </div>
             )}
@@ -810,7 +812,8 @@ function TodayLog({
                 <div className="divide-y divide-charcoal/5">
                   {exempt.map(r => (
                     <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
-                      onStartEditAtt={onStartEditAtt} farThresholdM={farThresholdM} dim />
+                      onStartEditAtt={onStartEditAtt} onViewHistory={onViewHistory}
+                      farThresholdM={farThresholdM} dim />
                   ))}
                 </div>
               </div>
@@ -823,12 +826,13 @@ function TodayLog({
 }
 
 function TodayLogRow({
-  r, edit, projects, onStartEditAtt, farThresholdM, dim,
+  r, edit, projects, onStartEditAtt, onViewHistory, farThresholdM, dim,
 }: {
   r: AttendanceRecord;
   edit: EditAttSlice;
   projects: ProjectLite[];
   onStartEditAtt: (r: AttendanceRecord, isPending?: boolean) => void;
+  onViewHistory: (staffId: string) => void;
   farThresholdM: number;
   dim: boolean;
 }) {
@@ -853,6 +857,16 @@ function TodayLogRow({
         <button onClick={() => onStartEditAtt(r)} className="text-charcoal/70 hover:text-accent transition-colors shrink-0 p-0.5">
           <Pencil size={11} strokeWidth={1.5} />
         </button>
+        {r.staff?.id && (
+          <button
+            onClick={() => onViewHistory(r.staff!.id)}
+            title={`היסטוריית ${r.staff?.name ?? "עובד"}`}
+            aria-label={`היסטוריית ${r.staff?.name ?? "עובד"}`}
+            className="text-charcoal/70 hover:text-accent transition-colors shrink-0 p-0.5"
+          >
+            <History size={11} strokeWidth={1.5} />
+          </button>
+        )}
       </div>
       {r.project && (
         <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/70">
@@ -1000,6 +1014,11 @@ type Props = {
   onStartEditAtt:        (r: AttendanceRecord, isPending?: boolean) => void;
   onHandleEditAtt:       (e: React.FormEvent) => void | Promise<void>;
   onHandleEditAndApprove:() => void | Promise<void>;
+  /** Jump to WorkerHistoryPanel for a specific staff member. Reuses the
+   *  same handler the WorkersTab "היסטוריה" button uses (AdminPortal:
+   *  viewWorkerHistory) so navigation lands in the existing
+   *  AttendanceTab → היסטוריית עובד sub-tab without a new flow. */
+  onViewHistory:         (staffId: string) => void;
 
   // Manual entry slice + handler
   manualOpen: boolean; setManualOpen: (v: boolean | ((prev: boolean) => boolean)) => void;
@@ -1203,6 +1222,7 @@ export default function AttendanceTab(p: Props) {
         attLoadErr={p.attLoadErr}
         onReload={p.onReload}
         onStartEditAtt={p.onStartEditAtt}
+        onViewHistory={p.onViewHistory}
         edit={edit}
         projects={p.projects}
         farThresholdM={p.farThresholdM}

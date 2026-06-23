@@ -1320,6 +1320,7 @@ export default function AdminPortal() {
             onStartEditAtt={startEditAtt}
             onHandleEditAtt={handleEditAtt}
             onHandleEditAndApprove={handleEditAndApproveAtt}
+            onViewHistory={viewWorkerHistory}
             manualOpen={manualOpen}           setManualOpen={setManualOpen}
             manualStaffId={manualStaffId}     setManualStaffId={setManualStaffId}
             manualDate={manualDate}           setManualDate={setManualDate}
