@@ -45,20 +45,44 @@ describe("normalizePhone — documented behaviour", () => {
 });
 
 describe("phoneVariants — documented behaviour", () => {
-  it("Israeli leading-0 → 4 variants (0XXX, XXX, 972XXX, +972XXX)", () => {
-    const v = phoneVariants("0585008447");
-    expect(v.sort()).toEqual([
+  it("Israeli leading-0 → legacy 4 variants + suffix-9 expansion", () => {
+    // Legacy layer: 0XXX, XXX, 972XXX, +972XXX (the 4 forms older
+    // callers depended on). Layer 2 adds the 9-digit suffix and the
+    // common country-code wrappers; for an already-Israeli input most
+    // suffix forms dedupe back into the legacy 4, so net new variants
+    // are just 94XXX / +94XXX / 0094XXX.
+    const v = phoneVariants("0585008447").sort();
+    expect(v).toEqual([
+      "+94585008447",
       "+972585008447",
+      "0094585008447",
       "0585008447",
       "585008447",
+      "94585008447",
       "972585008447",
-    ].sort());
+    ]);
   });
-  it("non-Israeli (no leading 0) → single variant of itself", () => {
-    // This is the gap the snapshot suite below documents: foreign
-    // numbers get no expansion at all, so the worker has to type a
-    // format that survives normalize unchanged.
-    expect(phoneVariants("4712789240")).toEqual(["4712789240"]);
+
+  it("non-Israeli input now gets full suffix-9 expansion (was: single variant)", () => {
+    // Pre-fix this returned just ["4712789240"], leaving Sri Lankan
+    // workers identifiable only if they typed an exact-form match.
+    // With layer 2 the variant set covers the local form, the bare
+    // 9-digit suffix, and every common country-code wrapper.
+    const v = phoneVariants("4712789240").sort();
+    expect(v).toEqual([
+      "+94712789240",
+      "+972712789240",
+      "0094712789240",
+      "0712789240",
+      "4712789240",
+      "712789240",
+      "94712789240",
+      "972712789240",
+    ]);
+  });
+
+  it("inputs shorter than 9 digits skip suffix expansion (too little material)", () => {
+    expect(phoneVariants("12345678")).toEqual(["12345678"]);
   });
 });
 
@@ -112,12 +136,14 @@ const STAFF_SNAPSHOT: StaffFixture[] = [
   { phone: "0584061010", note: "עובד נחמן" },
   { phone: "0585008447", note: "מנהל ראשי" },
   { phone: "0585716860", note: "עובד צ'ארלי" },
-  // ── 5 Sri Lankan records (stored with chopped leading 9 — bug we'll fix) ──
-  { phone: "4711692914", note: "עובד נילנגה (סרי לנקה)" },
-  { phone: "4712789240", note: "עובד פייסירי (סרי לנקה)" },
-  { phone: "4763340674", note: "עובד סנניקה (סרי לנקה)" },
-  { phone: "4775729368", note: "עובד ניפונר (סרי לנקה)" },
-  { phone: "4778300852", note: "עובד בודיגה (סרי לנקה)" },
+  // ── 5 Sri Lankan records (post-backfill: 11-digit "94..." form) ──
+  // Step 2a (DB UPDATE) put the leading 9 of the country code back.
+  // The fixture lines up with the live state again.
+  { phone: "94711692914", note: "עובד נילנגה (סרי לנקה)" },
+  { phone: "94712789240", note: "עובד פייסירי (סרי לנקה)" },
+  { phone: "94763340674", note: "עובד סנניקה (סרי לנקה)" },
+  { phone: "94775729368", note: "עובד ניפונר (סרי לנקה)" },
+  { phone: "94778300852", note: "עובד בודיגה (סרי לנקה)" },
 ];
 
 /** Inputs an Israeli worker might plausibly type at the phone-entry
@@ -136,17 +162,22 @@ function plausibleIsraeliInputs(stored: string): string[] {
   ];
 }
 
-/** Inputs the admin might type for a Sri Lankan worker when entering
- *  them in the first place. The "9X" prefix is the country code; the
- *  stored 10-digit form is what survives slice(-10) after stripping
- *  the leading 9 — so any 11/12/13-digit international form should
- *  normalize to the same stored value. */
-function plausibleForeignAdminInputs(stored: string): string[] {
+/** Inputs that should identify a Sri Lankan worker — both what the
+ *  admin would type when entering them in the first place AND what
+ *  the worker themselves would dial. With suffix-9 expansion in
+ *  phoneVariants, the local format (a worker dialling from home) now
+ *  resolves to the same stored value as the international form. */
+function plausibleSriLankanInputs(stored: string): string[] {
+  // stored = "94DDDDDDDDD" — 11 digits, full Sri Lanka country code.
+  // The 9-digit national portion is everything past the "94".
+  const national9 = stored.slice(2);
   return [
-    stored,            // "4712789240" itself
-    `9${stored}`,      // "94712789240" — full intl without +
-    `+9${stored}`,     // "+94712789240"
-    `00 9${stored}`,   // "0094712789240" — IDD-prefixed
+    stored,                   // 94712789240
+    `+${stored}`,             // +94712789240
+    `00${stored}`,            // 0094712789240 (IDD from Israel)
+    `0${national9}`,          // 0712789240 — local format the worker dials at home
+    national9,                // 712789240 — bare 9 digits
+    `4${national9}`,          // 4712789240 — the legacy chopped form, still tolerated
   ];
 }
 
@@ -155,7 +186,7 @@ describe("snapshot — every current staff record is identifiable today", () => 
     const isIsraeli = fixture.phone.startsWith("0");
     const inputs = isIsraeli
       ? plausibleIsraeliInputs(fixture.phone)
-      : plausibleForeignAdminInputs(fixture.phone);
+      : plausibleSriLankanInputs(fixture.phone);
     it(`${fixture.note} — ${fixture.phone} matches all ${inputs.length} plausible inputs`, () => {
       for (const input of inputs) {
         const variants = phoneVariants(normalizePhone(input));
@@ -168,29 +199,75 @@ describe("snapshot — every current staff record is identifiable today", () => 
   }
 });
 
-// ── Layer 3: known-broken — what step 2 will fix ──────────────────────────
+// ── Layer 3: Sri Lankan local format — now passes after step 2 ────────────
 //
-// A Sri Lankan worker, in the natural local format they'd dial back
-// home, drops the country code 94 and prepends 0 — so 94712789240
-// becomes 0712789240. With the bug-stored "4712789240" plus today's
-// normalize+variants, that input does NOT identify the worker. The
-// .fails() modifier asserts "this test SHOULD fail right now" — when
-// step 2 lands, vitest will start failing this with "expected to fail
-// but passed", and we delete the modifier (or the whole block) to
-// promote it to a normal passing test.
+// What was a .fails() block in step 1 is now a regular passing block.
+// A Sri Lankan worker dialling their own number drops the country
+// code 94 and prepends 0 — so 94712789240 becomes 0712789240. With
+// the suffix-9 expansion in phoneVariants this normalizes back to a
+// variant set that contains the stored 94XXXXXXXXX, so identify
+// succeeds regardless of which form is used.
 
 const FOREIGN_FIXTURES = STAFF_SNAPSHOT.filter((f) => !f.phone.startsWith("0"));
 
-describe("known broken — Sri Lankan local format (to fix in step 2)", () => {
+describe("Sri Lankan local format identifies via suffix-9 expansion", () => {
   for (const fixture of FOREIGN_FIXTURES) {
-    // Stored "4XXXXXXXXX" → real intl "94XXXXXXXXX" → local "0XXXXXXXXX"
-    const localFormat = "0" + fixture.phone.slice(1);
-    it.fails(
-      `${fixture.note} — local "${localFormat}" SHOULD identify ${fixture.phone} (currently doesn't)`,
-      () => {
-        const variants = phoneVariants(normalizePhone(localFormat));
-        expect(variants).toContain(fixture.phone);
-      },
-    );
+    // Stored "94DDDDDDDDD" → local "0DDDDDDDDD" (drop country code, add leading 0)
+    const localFormat = "0" + fixture.phone.slice(2);
+    it(`${fixture.note} — local "${localFormat}" → stored ${fixture.phone}`, () => {
+      const variants = phoneVariants(normalizePhone(localFormat));
+      expect(variants).toContain(fixture.phone);
+    });
   }
+});
+
+// ── Layer 4: collision protection — different suffixes → no overlap ───────
+//
+// The agnostic suffix-9 lookup hinges on the assumption that the 40
+// workers in the system have distinct last-9 digits. We audited that
+// at design time (no collisions in the live data). These tests lock
+// the invariant into the suite so a future fixture update + change
+// pairing can't silently introduce a collision.
+
+describe("collision protection — distinct suffixes never overlap", () => {
+  it("two Israeli phones with different last-9 digits → no overlapping variants", () => {
+    const a = phoneVariants(normalizePhone("0585008447"));
+    const b = phoneVariants(normalizePhone("0511111111"));
+    const overlap = a.filter((x) => b.includes(x));
+    expect(overlap, `unexpected overlap: ${JSON.stringify(overlap)}`).toEqual([]);
+  });
+
+  it("two Sri Lankan phones with different last-9 digits → no overlapping variants", () => {
+    const a = phoneVariants(normalizePhone("94712789240"));
+    const b = phoneVariants(normalizePhone("94778300852"));
+    const overlap = a.filter((x) => b.includes(x));
+    expect(overlap, `unexpected overlap: ${JSON.stringify(overlap)}`).toEqual([]);
+  });
+
+  it("an Israeli phone and a Sri Lankan phone with different suffixes → no overlap", () => {
+    const a = phoneVariants(normalizePhone("0585008447"));     // suffix 585008447
+    const b = phoneVariants(normalizePhone("94712789240"));    // suffix 712789240
+    const overlap = a.filter((x) => b.includes(x));
+    expect(overlap).toEqual([]);
+  });
+
+  it("the full snapshot has no inter-record variant overlap", () => {
+    // Stronger: across every pair of fixture records, no variant
+    // generated for record A also appears in the variant set for B.
+    const variantSets = STAFF_SNAPSHOT.map((f) => ({
+      phone: f.phone,
+      variants: new Set(phoneVariants(normalizePhone(f.phone))),
+    }));
+    for (let i = 0; i < variantSets.length; i++) {
+      for (let j = i + 1; j < variantSets.length; j++) {
+        const a = variantSets[i];
+        const b = variantSets[j];
+        const overlap = [...a.variants].filter((x) => b.variants.has(x));
+        expect(
+          overlap,
+          `${a.phone} and ${b.phone} share variants: ${JSON.stringify(overlap)}`,
+        ).toEqual([]);
+      }
+    }
+  });
 });
