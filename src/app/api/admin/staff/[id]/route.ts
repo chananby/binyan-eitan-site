@@ -179,6 +179,30 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     }
   }
 
+  // office_only=true → purge any existing board_assignments for this
+  // worker. Without this, the staff row drops out of the board GET's
+  // workers list but its assignment row stays — BoardTab then renders
+  // an orphaned chip with label "—" (looks like an empty card) in
+  // whatever column the worker had been placed in. Same DELETE pattern
+  // as PUT /api/admin/board-assignments uses for "unassign".
+  //
+  // Best-effort: if the staff UPDATE succeeded but the purge fails, we
+  // log loudly and still return success — the admin's primary action
+  // (mark as office-only) went through; the stale rows can be cleaned
+  // up by the admin re-saving or by a one-off SQL.
+  if (body.office_only === true) {
+    const { error: purgeErr } = await supabase
+      .from("board_assignments")
+      .delete()
+      .eq("worker_id", params.id);
+    if (purgeErr) {
+      console.error(
+        "[admin/staff PATCH] office_only purge failed for staff_id=" + params.id + ":",
+        JSON.stringify(purgeErr),
+      );
+    }
+  }
+
   const { pin: _pin, ...rest } = data;
   return NextResponse.json({ staff: { ...rest, has_pin: !!_pin } });
 }
