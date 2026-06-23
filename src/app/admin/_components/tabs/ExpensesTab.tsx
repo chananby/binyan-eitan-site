@@ -73,7 +73,7 @@ export default function ExpensesTab(p: Props) {
           <h2 className="font-heading text-base font-bold">רישום הוצאה</h2>
         </div>
         <form onSubmit={p.onAddMaterial} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="פרויקט">
               <select value={p.matProjectId} onChange={e => p.setMatProjectId(e.target.value)} required className={INPUT}>
                 <option value="">בחר פרויקט...</option>
@@ -86,11 +86,11 @@ export default function ExpensesTab(p: Props) {
               </select>
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="תיאור / פריט"><AutoGrowTextarea value={p.matName} onChange={e => p.setMatName(e.target.value)} required placeholder="בטון, שרברב..." className={INPUT} /></Field>
             <Field label="ספק"><AutoGrowTextarea value={p.matSupplier} onChange={e => p.setMatSupplier(e.target.value)} placeholder="שם הספק" className={INPUT} /></Field>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Field label="כמות"><input value={p.matQty} onChange={e => p.setMatQty(e.target.value)} type="number" min="0" step="any" className={INPUT} dir="ltr" /></Field>
             <Field label="יחידה">
               <select value={p.matUnit} onChange={e => p.setMatUnit(e.target.value)} className={INPUT}>

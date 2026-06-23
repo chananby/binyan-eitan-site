@@ -258,11 +258,11 @@ export default function WorkersTab(p: Props) {
             <UserPlus size={16} strokeWidth={1.5} className="text-accent" />
             <h2 className="font-heading text-sm font-bold text-charcoal">הוספת עובד חדש</h2>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="שם מלא"><AutoGrowTextarea value={p.newName} onChange={e => p.setNewName(e.target.value)} required placeholder="ישראל ישראלי" className={INPUT} /></Field>
             <Field label="טלפון"><input value={p.newPhone} onChange={e => p.setNewPhone(e.target.value)} required placeholder="05X-XXXXXXX" type="tel" dir="ltr" className={INPUT} /></Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="תפקיד">
               <select value={p.newRole} onChange={e => p.setNewRole(e.target.value)} className={INPUT}>
                 <option value="עובד">עובד</option><option value="ממונה">ממונה</option><option value="מנהל">מנהל</option>
@@ -272,7 +272,7 @@ export default function WorkersTab(p: Props) {
               <input value={p.newNationalId} onChange={e => p.setNewNationalId(e.target.value.replace(/\D/g, ""))} placeholder="123456789" inputMode="numeric" maxLength={9} dir="ltr" className={INPUT} />
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="סטטוס העסקה">
               <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
                 <input
@@ -295,7 +295,7 @@ export default function WorkersTab(p: Props) {
               <input type="date" value={p.newStartDate} onChange={e => p.setNewStartDate(e.target.value)} className={INPUT} dir="ltr" />
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="תאריך סיום העסקה (אופציונלי)">
               <input type="date" value={p.newEmploymentEndDate} onChange={e => p.setNewEmploymentEndDate(e.target.value)} className={INPUT} dir="ltr" />
             </Field>
@@ -318,7 +318,7 @@ export default function WorkersTab(p: Props) {
             bankAccountOwner={p.newBankAccountOwner} setBankAccountOwner={p.setNewBankAccountOwner}
             bankIban={p.newBankIban}               setBankIban={p.setNewBankIban}
           />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="דמי נסיעות">
               <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
                 <input type="checkbox" checked={p.newTravelAllowance} onChange={e => p.setNewTravelAllowance(e.target.checked)} className="accent-accent" />
@@ -433,7 +433,7 @@ function renderStaffRow(
             עריכת עובד: <span className="text-accent">{s.name}</span>
           </h2>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <Field label="שם"><AutoGrowTextarea value={p.editName} onChange={e => p.setEditName(e.target.value)} required className={INPUT} /></Field>
           <Field label="טלפון"><input value={p.editPhone} onChange={e => p.setEditPhone(e.target.value)} required type="tel" dir="ltr" className={INPUT} /></Field>
           <Field label="תפקיד">
@@ -453,7 +453,7 @@ function renderStaffRow(
           attendanceExempt={p.editAttendanceExempt}
           setAttendanceExempt={p.setEditAttendanceExempt}
         />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <Field label="דמי נסיעות">
             <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
               <input type="checkbox" checked={p.editTravelAllowance} onChange={e => p.setEditTravelAllowance(e.target.checked)} className="accent-accent" />
@@ -467,7 +467,7 @@ function renderStaffRow(
             </label>
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <Field label="שיבוץ ללוח">
             <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
               <input type="checkbox" checked={p.editOfficeOnly} onChange={e => p.setEditOfficeOnly(e.target.checked)} className="accent-accent" />
@@ -478,7 +478,7 @@ function renderStaffRow(
             <input value={p.editLabel} onChange={e => p.setEditLabel(e.target.value)} maxLength={30} placeholder="למשל: רתך, זמני, עובד זר" className={INPUT} />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <Field label="סטטוס העסקה">
             <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
               <input
@@ -494,7 +494,7 @@ function renderStaffRow(
             <input type="date" value={p.editStartDate} onChange={e => p.setEditStartDate(e.target.value)} className={INPUT} dir="ltr" />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <Field label="תאריך סיום העסקה (אופציונלי)">
             <input type="date" value={p.editEmploymentEndDate} onChange={e => p.setEditEmploymentEndDate(e.target.value)} className={INPUT} dir="ltr" />
           </Field>

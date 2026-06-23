@@ -233,7 +233,8 @@ export default function QuotesListClient() {
         {/* List */}
         {!loading && !error && quotes.length > 0 && (
           <div className="bg-white border border-[#2D2926]/10 rounded-md overflow-hidden">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto -mx-4 px-4">
+              <table className="w-full text-sm">
               <thead className="bg-[#F5F4F0] border-b border-[#2D2926]/10">
                 <tr className="text-right text-[#2D2926]/70 text-xs uppercase tracking-wider">
                   <th className="px-4 py-3 font-semibold">#</th>
@@ -295,6 +296,7 @@ export default function QuotesListClient() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </main>

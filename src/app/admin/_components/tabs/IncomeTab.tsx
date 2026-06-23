@@ -84,7 +84,7 @@ export default function IncomeTab({
         </button>
         {addOpen && (
         <form onSubmit={onAddIncome} className="space-y-3 mt-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="פרויקט">
               <select value={incProjectId} onChange={e => setIncProjectId(e.target.value)} required className={INPUT}>
                 <option value="">בחר פרויקט...</option>
