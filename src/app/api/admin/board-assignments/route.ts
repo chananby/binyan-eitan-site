@@ -65,7 +65,8 @@ export async function GET(req: NextRequest) {
       .select("id, name, role")
       .eq("active", true)
       .is("deleted_at", null)
-      .in("role", ["עובד", "ממונה"])
+      .eq("office_only", false)
+      .in("role", ["עובד", "ממונה"]) // kept as defence-in-depth; office_only is the primary gate
       .order("name", { ascending: true }),
     supabase
       .from("projects")

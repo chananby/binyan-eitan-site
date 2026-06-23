@@ -14,6 +14,7 @@ export interface StaffMember {
   pension_status?: string | null;
   holiday_eligible?: boolean;
   is_freelancer?: boolean;
+  office_only?: boolean;
   attendance_exempt?: boolean;
   start_date?: string | null;
   employment_end_date?: string | null;

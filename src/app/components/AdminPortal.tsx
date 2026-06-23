@@ -253,6 +253,7 @@ export default function AdminPortal() {
     newPensionStatus,    setNewPensionStatus,
     newHolidayEligible,  setNewHolidayEligible,
     newIsFreelancer,     setNewIsFreelancer,
+    newOfficeOnly,       setNewOfficeOnly,
     newAttendanceExempt, setNewAttendanceExempt,
     newStartDate,        setNewStartDate,
     newEmploymentEndDate, setNewEmploymentEndDate,
@@ -277,6 +278,7 @@ export default function AdminPortal() {
     editPensionStatus,   setEditPensionStatus,
     editHolidayEligible, setEditHolidayEligible,
     editIsFreelancer,    setEditIsFreelancer,
+    editOfficeOnly,      setEditOfficeOnly,
     editAttendanceExempt,setEditAttendanceExempt,
     editStartDate,       setEditStartDate,
     editEmploymentEndDate, setEditEmploymentEndDate,
@@ -1383,6 +1385,7 @@ export default function AdminPortal() {
             newHolidayEligible={newHolidayEligible} setNewHolidayEligible={setNewHolidayEligible}
             newPensionStatus={newPensionStatus}     setNewPensionStatus={setNewPensionStatus}
             newIsFreelancer={newIsFreelancer}       setNewIsFreelancer={setNewIsFreelancer}
+            newOfficeOnly={newOfficeOnly}           setNewOfficeOnly={setNewOfficeOnly}
             newAttendanceExempt={newAttendanceExempt} setNewAttendanceExempt={setNewAttendanceExempt}
             newStartDate={newStartDate}             setNewStartDate={setNewStartDate}
             newEmploymentEndDate={newEmploymentEndDate} setNewEmploymentEndDate={setNewEmploymentEndDate}
@@ -1409,6 +1412,7 @@ export default function AdminPortal() {
             editHolidayEligible={editHolidayEligible} setEditHolidayEligible={setEditHolidayEligible}
             editPensionStatus={editPensionStatus}   setEditPensionStatus={setEditPensionStatus}
             editIsFreelancer={editIsFreelancer}     setEditIsFreelancer={setEditIsFreelancer}
+            editOfficeOnly={editOfficeOnly}         setEditOfficeOnly={setEditOfficeOnly}
             editAttendanceExempt={editAttendanceExempt} setEditAttendanceExempt={setEditAttendanceExempt}
             editStartDate={editStartDate}           setEditStartDate={setEditStartDate}
             editEmploymentEndDate={editEmploymentEndDate} setEditEmploymentEndDate={setEditEmploymentEndDate}

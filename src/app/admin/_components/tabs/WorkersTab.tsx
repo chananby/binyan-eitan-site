@@ -32,6 +32,7 @@ interface StaffMember {
   pension_status?: string | null;
   holiday_eligible?: boolean;
   is_freelancer?: boolean;
+  office_only?: boolean;
   attendance_exempt?: boolean;
   start_date?: string | null;
   notes?: string | null;
@@ -57,6 +58,7 @@ type Props = {
   newHolidayEligible: boolean; setNewHolidayEligible: (v: boolean) => void;
   newPensionStatus: string;   setNewPensionStatus:   (v: string) => void;
   newIsFreelancer: boolean;   setNewIsFreelancer:    (v: boolean) => void;
+  newOfficeOnly: boolean;     setNewOfficeOnly:      (v: boolean) => void;
   newAttendanceExempt: boolean; setNewAttendanceExempt: (v: boolean) => void;
   newStartDate: string;       setNewStartDate:       (v: string) => void;
   newEmploymentEndDate: string; setNewEmploymentEndDate: (v: string) => void;
@@ -85,6 +87,7 @@ type Props = {
   editHolidayEligible: boolean; setEditHolidayEligible: (v: boolean) => void;
   editPensionStatus: string;  setEditPensionStatus:   (v: string) => void;
   editIsFreelancer: boolean;  setEditIsFreelancer:    (v: boolean) => void;
+  editOfficeOnly: boolean;    setEditOfficeOnly:      (v: boolean) => void;
   editAttendanceExempt: boolean; setEditAttendanceExempt: (v: boolean) => void;
   editStartDate: string;      setEditStartDate:       (v: string) => void;
   editEmploymentEndDate: string; setEditEmploymentEndDate: (v: string) => void;
@@ -289,6 +292,15 @@ export default function WorkersTab(p: Props) {
               </label>
             </Field>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="שיבוץ ללוח">
+              <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
+                <input type="checkbox" checked={p.newOfficeOnly} onChange={e => p.setNewOfficeOnly(e.target.checked)} className="accent-accent" />
+                <span className="text-charcoal/70">עובד מנהלה (לא בשיבוץ)</span>
+              </label>
+            </Field>
+            <div />
+          </div>
           <Field label="סטטוס פנסיה (טקסט חופשי)">
             <AutoGrowTextarea value={p.newPensionStatus} onChange={e => p.setNewPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
           </Field>
@@ -411,6 +423,15 @@ function renderStaffRow(
               <span className="text-charcoal/70">זכאי</span>
             </label>
           </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="שיבוץ ללוח">
+            <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
+              <input type="checkbox" checked={p.editOfficeOnly} onChange={e => p.setEditOfficeOnly(e.target.checked)} className="accent-accent" />
+              <span className="text-charcoal/70">עובד מנהלה (לא בשיבוץ)</span>
+            </label>
+          </Field>
+          <div />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <Field label="סטטוס העסקה">
