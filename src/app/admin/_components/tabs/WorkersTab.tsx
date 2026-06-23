@@ -140,6 +140,16 @@ export default function WorkersTab(p: Props) {
     });
   }
 
+  // Add-form accordion — collapsed by default so the worker list is the first
+  // thing the admin sees on entry. Mirrors the inactiveOpen pattern above
+  // BUT *without* localStorage: adding a worker is a one-off action, not a
+  // mode the admin returns to, so reopening the tab should reset to closed.
+  // Auto-closes on a successful add (✓ prefix on addMsg below).
+  const [addOpen, setAddOpen] = useState(false);
+  useEffect(() => {
+    if (p.addMsg?.startsWith("✓")) setAddOpen(false);
+  }, [p.addMsg]);
+
   // Delete confirmation modal state — requires typing the worker's name.
   const [pendingDelete, setPendingDelete] = useState<StaffMember | null>(null);
   const [confirmName, setConfirmName] = useState("");
@@ -213,7 +223,24 @@ export default function WorkersTab(p: Props) {
       </div>
 
       <Card>
-        <form onSubmit={p.onAddWorker} className="space-y-3">
+        {/* Collapse trigger — mirrors the inactiveOpen accordion below.
+            When addOpen=false, only this button renders (the entire form,
+            including its sticky header, is unmounted — so no phantom
+            sticky residue or empty space is left in the layout). */}
+        <button
+          type="button"
+          onClick={() => setAddOpen(v => !v)}
+          className="w-full flex items-center gap-2 hover:opacity-80 transition-opacity"
+          aria-expanded={addOpen}
+        >
+          <UserPlus size={16} strokeWidth={1.5} className="text-accent shrink-0" />
+          <h2 className="font-heading text-sm font-bold text-charcoal flex-1 text-start">הוסף עובד</h2>
+          {addOpen
+            ? <ChevronUp size={16} strokeWidth={1.5} className="text-charcoal/70" />
+            : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
+        </button>
+        {addOpen && (
+        <form onSubmit={p.onAddWorker} className="space-y-3 mt-3">
           {/* Sticky header — stays in view while admin scrolls the long
               add form so they always remember they're adding a new worker
               (and not editing an existing one). */}
@@ -320,6 +347,7 @@ export default function WorkersTab(p: Props) {
           <Btn loading={p.addLoading}>הוסף עובד</Btn>
           {p.addMsg && <p className={`text-xs ${p.addMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{p.addMsg}</p>}
         </form>
+        )}
       </Card>
 
       <Card>
