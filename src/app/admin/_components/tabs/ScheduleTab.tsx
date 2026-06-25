@@ -51,12 +51,23 @@ interface PayloadShape {
   vacations:       VacationRow[];
 }
 
-interface DialogState {
-  worker: WorkerKey;
-  workerName: string;          // pre-resolved for the dialog header
-  date: string;
-  current: ScheduleCell | null;
-}
+/** The picker opens either for one cell (single day) or for an
+ *  apply-week quick-fill. The cell shape carries the date being
+ *  edited; the week shape skips dates entirely — the API computes
+ *  them from week_start. */
+type DialogState =
+  | {
+      mode: "cell";
+      worker: WorkerKey;
+      workerName: string;
+      date: string;
+      current: ScheduleCell | null;
+    }
+  | {
+      mode: "week";
+      worker: WorkerKey;
+      workerName: string;
+    };
 
 const HE_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי"] as const;
 
@@ -116,6 +127,10 @@ export default function ScheduleTab() {
   // ── Edit handlers ────────────────────────────────────────────────────────
   const applyPick = useCallback(async (pick: CellPick) => {
     if (!data || !dialog) return;
+    if (dialog.mode === "week") {
+      await applyWeekPick(pick);
+      return;
+    }
     const { worker, date } = dialog;
     const before = data.schedule;
     const others = removeCellRow(before, worker, date);
@@ -180,6 +195,97 @@ export default function ScheduleTab() {
       setData({ ...data, schedule: before });
     }
   }, [data, dialog]);
+
+  // ── Apply-week handlers ───────────────────────────────────────────────────
+  // Quick-fill the whole week (or clear it) for one worker. Optimistic
+  // update first (drop the 5 cells, add 5 new — or just drop), POST/
+  // DELETE to /api/admin/schedule/apply-week, swap optimistic rows for
+  // the server's real rows on success. Vacation days are skipped on the
+  // server too — the client mirrors that so the optimistic preview
+  // matches what we'll eventually see.
+  const applyWeekPick = useCallback(async (pick: CellPick) => {
+    if (!data || !dialog || dialog.mode !== "week") return;
+    const { worker } = dialog;
+    setDialog(null);
+
+    const before = data.schedule;
+    // Drop every existing schedule row for this worker in the visible
+    // week so the optimistic state starts from a clean slate.
+    const inWeek = new Set(data.days);
+    const others = before.filter((r) => {
+      if (!inWeek.has(r.date)) return true;
+      if (worker.kind === "staff") return r.staff_id  !== worker.id;
+      return                              r.temp_name !== worker.name;
+    });
+
+    const workerBody = worker.kind === "staff"
+      ? { staff_id:  worker.id }
+      : { temp_name: worker.name };
+    const body: Record<string, unknown> = { ...workerBody, week_start: sunday };
+
+    if (pick.kind === "clear") {
+      // No optimistic insert — just drop, then DELETE on the server.
+      setData({ ...data, schedule: others });
+      try {
+        const res = await fetch("/api/admin/schedule/apply-week", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const b = await res.json().catch(() => ({}));
+          alert(`ניקוי השבוע נכשל: ${b.error ?? res.status}`);
+          setData({ ...data, schedule: before });
+        }
+      } catch {
+        alert("שגיאת רשת — נסה שוב.");
+        setData({ ...data, schedule: before });
+      }
+      return;
+    }
+
+    // Real or manual: build 5 optimistic rows, skipping vacation days
+    // (only staff have vacations — temps have no payroll trail).
+    const vacationDates = worker.kind === "staff"
+      ? new Set(data.vacations.filter((v) => v.staff_id === worker.id).map((v) => v.date))
+      : new Set<string>();
+    const targetDates = data.days.filter((d) => !vacationDates.has(d));
+
+    const optimisticRows: ScheduleAssignment[] = targetDates.map((date) => ({
+      id:           "optimistic-week-" + workerKeyString(worker) + "-" + date,
+      staff_id:     worker.kind === "staff" ? worker.id   : null,
+      temp_name:    worker.kind === "temp"  ? worker.name : null,
+      date,
+      project_id:   pick.kind === "real"   ? pick.id   : null,
+      project_name: pick.kind === "manual" ? pick.name : null,
+    }));
+    setData({ ...data, schedule: [...others, ...optimisticRows] });
+
+    if (pick.kind === "real")   body.project_id   = pick.id;
+    if (pick.kind === "manual") body.project_name = pick.name;
+
+    try {
+      const res = await fetch("/api/admin/schedule/apply-week", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}));
+        alert(`החלה על כל השבוע נכשלה: ${b.error ?? res.status}`);
+        setData({ ...data, schedule: before });
+        return;
+      }
+      const { assignments } = (await res.json()) as { assignments: ScheduleAssignment[] };
+      // Swap our optimistic rows for the server-returned rows (real
+      // ids + updated_at). `others` is identical — no overlap with
+      // the new rows by construction.
+      setData((prev) => prev ? { ...prev, schedule: [...others, ...assignments] } : prev);
+    } catch {
+      alert("שגיאת רשת — נסה שוב.");
+      setData({ ...data, schedule: before });
+    }
+  }, [data, dialog, sunday]);
 
   // Add-temp form handler. Returns ok/error so the form can show a
   // status message. Real work: POST one row + reload the week.
@@ -299,7 +405,14 @@ export default function ScheduleTab() {
                 worker.kind === "staff"
                   ? data.workers.find((w) => w.id === worker.id)?.name ?? "—"
                   : worker.name;
-              setDialog({ worker, workerName, date, current });
+              setDialog({ mode: "cell", worker, workerName, date, current });
+            }}
+            onApplyWeek={(worker) => {
+              const workerName =
+                worker.kind === "staff"
+                  ? data.workers.find((w) => w.id === worker.id)?.name ?? "—"
+                  : worker.name;
+              setDialog({ mode: "week", worker, workerName });
             }}
           />
           <AddTempWorkerForm
@@ -326,11 +439,18 @@ export default function ScheduleTab() {
         <AssignCellDialog
           open={!!dialog}
           workerName={dialog.workerName}
-          dayLabel={dayLabelFromDate(dialog.date, data.days)}
+          dayLabel={
+            dialog.mode === "week"
+              ? "כל השבוע"
+              : dayLabelFromDate(dialog.date, data.days)
+          }
           projects={data.projects}
           manualProjects={data.manual_projects}
-          currentProjectId={dialog.current?.projectId}
-          currentProjectName={dialog.current?.projectName}
+          // No "current" highlight in week mode — cells across the
+          // week may have different sites, so there's nothing single
+          // to mark as נוכחי. Cell mode keeps the existing behaviour.
+          currentProjectId={dialog.mode === "cell" ? dialog.current?.projectId : undefined}
+          currentProjectName={dialog.mode === "cell" ? dialog.current?.projectName : undefined}
           onPick={applyPick}
           onClose={() => setDialog(null)}
         />

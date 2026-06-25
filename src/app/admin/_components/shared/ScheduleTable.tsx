@@ -27,7 +27,7 @@
  * a board_assignments row.
  */
 
-import { Building2, UserRound } from "lucide-react";
+import { Building2, UserRound, CalendarRange } from "lucide-react";
 import {
   type ScheduleAssignment,
   type ScheduleCell,
@@ -53,6 +53,11 @@ interface Props {
   /** Tap on a non-vacation cell. Worker discriminated as staff/temp so
    *  the parent can branch the POST body. */
   onCellTap?: (cell: { worker: WorkerKey; date: string; current: ScheduleCell | null }) => void;
+  /** Quick-fill: open the same dialog in "whole week" mode for the
+   *  given worker. The parent handles the apply-week round-trip and
+   *  optimistic update. Without this prop, the row-level button is
+   *  hidden — keeps the component usable in read-only contexts. */
+  onApplyWeek?: (worker: WorkerKey) => void;
 }
 
 const HE_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי"] as const;
@@ -76,7 +81,7 @@ function cellDisplay(
 }
 
 export default function ScheduleTable({
-  workers, projects, schedule, vacations, days, onCellTap,
+  workers, projects, schedule, vacations, days, onCellTap, onApplyWeek,
 }: Props) {
   const grouped      = groupBySchedule(schedule);
   const projectsById = new Map(projects.map((p) => [p.id, p]));
@@ -140,6 +145,7 @@ export default function ScheduleTable({
                 vacationKeys={vacationKeys}
                 vacationStaffId={w.id}
                 onCellTap={onCellTap}
+                onApplyWeek={onApplyWeek}
               />
             ))}
 
@@ -170,6 +176,7 @@ export default function ScheduleTable({
                     vacationKeys={vacationKeys}
                     vacationStaffId={null}
                     onCellTap={onCellTap}
+                    onApplyWeek={onApplyWeek}
                   />
                 ))}
               </>
@@ -197,6 +204,7 @@ interface RowProps {
   /** Only meaningful for staff rows — temps don't appear in vacation_days. */
   vacationStaffId: string | null;
   onCellTap?: Props["onCellTap"];
+  onApplyWeek?: Props["onApplyWeek"];
 }
 
 function WorkerRow(p: RowProps) {
@@ -257,6 +265,17 @@ function WorkerRow(p: RowProps) {
             <span className="font-body text-[0.6rem] text-charcoal/65 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[70px] truncate">
               {p.tag}
             </span>
+          )}
+          {p.onApplyWeek && (
+            <button
+              type="button"
+              onClick={() => p.onApplyWeek!(p.workerKey)}
+              title={`החל על כל השבוע · ${p.displayName}`}
+              aria-label={`החל על כל השבוע · ${p.displayName}`}
+              className="ms-auto text-charcoal/50 hover:text-accent transition-colors shrink-0 p-0.5"
+            >
+              <CalendarRange size={12} strokeWidth={1.5} />
+            </button>
           )}
         </div>
       </td>
