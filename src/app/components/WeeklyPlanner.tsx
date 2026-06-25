@@ -2,11 +2,15 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Plus, Trash2, ChevronDown, ChevronUp, Loader2, AlertCircle, Check } from "lucide-react";
+import {
+  WEEK_DAYS,
+  getSundayLocal,
+  addWeeks,
+  weekLabel,
+  weekNumber,
+} from "../../lib/israel-week";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-// Days in a displayed week. Israeli construction work week is Sun–Thu (5 days);
-// Fri/Sat are skipped from the matrix display.
-const WEEK_DAYS = 5;
 
 interface WeeklyPlanRow {
   id: string;
@@ -34,46 +38,10 @@ const ORDER_LABELS: Record<string, { label: string; color: string }> = {
 const ORDER_OPTIONS = ["none", "ordered", "in_transit", "delivered"] as const;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** YYYY-MM-DD in local timezone. Avoids the TZ shift bug that `toISOString()`
- *  introduces when local time is on one side of midnight and UTC on the other
- *  (e.g. midnight Sun in IL = 22:00 Sat UTC → toISOString would say Saturday). */
-function localISODate(d: Date): string {
-  return d.toLocaleDateString("sv-SE"); // "sv-SE" gives YYYY-MM-DD format
-}
-
-/** Sunday of the week containing `date` (Israeli week start, day 0).
- *  Returns a YYYY-MM-DD string in local time. */
-function getSundayLocal(date: Date): string {
-  const d = new Date(date);
-  d.setDate(d.getDate() - d.getDay()); // back to nearest Sunday (incl. today)
-  return localISODate(d);
-}
-
-function addWeeks(sundayISO: string, n: number): string {
-  const d = new Date(sundayISO + "T12:00:00"); // noon avoids DST edge cases
-  d.setDate(d.getDate() + n * 7);
-  return localISODate(d);
-}
-
-/** "DD.M – DD.M" range for the displayed work week (Sun + WEEK_DAYS-1 = Thu). */
-function weekLabel(sundayISO: string): string {
-  const d = new Date(sundayISO + "T12:00:00");
-  const end = new Date(sundayISO + "T12:00:00");
-  end.setDate(end.getDate() + (WEEK_DAYS - 1));
-  const fmt = (x: Date) => x.toLocaleDateString("he-IL", { day: "numeric", month: "numeric" });
-  return `${fmt(d)} – ${fmt(end)}`;
-}
-
-/** Approximate week number for visual anchoring. Not ISO-compliant — the user
- *  has flagged the number itself as unimportant; it's kept so adjacent rows
- *  read as "next/previous week" at a glance. */
-function weekNumber(sundayISO: string): number {
-  const d = new Date(sundayISO + "T12:00:00");
-  const startOfYear = new Date(d.getFullYear(), 0, 1);
-  const days = Math.floor((d.getTime() - startOfYear.getTime()) / 86400000);
-  return Math.ceil((days + startOfYear.getDay() + 1) / 7);
-}
+// Date math (week-start, week-range, week-number) lives in
+// src/lib/israel-week.ts so the upcoming weekly worker-schedule UI can
+// reuse the same Sun-anchored model. Only the local number formatter
+// stays here — it's not Israeli-week-specific.
 
 function fmt(n: number): string {
   return n.toLocaleString("he-IL", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
