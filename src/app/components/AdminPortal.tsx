@@ -1191,7 +1191,12 @@ export default function AdminPortal() {
     <>
     <SuccessFlash show={showFlash} onDone={() => setShowFlash(false)} />
     <div dir="rtl" className="min-h-screen bg-bone-dark px-4 py-8 font-body text-charcoal">
-      <div className="mx-auto max-w-2xl space-y-5">
+      {/* Container width: the assignment tab (live board + weekly
+          schedule) needs a wider canvas — its tables and 3-column
+          site grid can't breathe in 640px. Every other tab keeps
+          the narrow column the rest of the admin portal is tuned
+          for (forms, dashboards, single-column lists). */}
+      <div className={`mx-auto space-y-5 ${tab === "board" ? "max-w-7xl" : "max-w-2xl"}`}>
 
         {/* Header */}
         <div className="flex items-center justify-between">
