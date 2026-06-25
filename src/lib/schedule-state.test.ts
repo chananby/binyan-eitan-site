@@ -4,6 +4,7 @@ import {
   groupBySchedule,
   cellAt,
   applyToAllWeek,
+  buildAssignmentRow,
   type ScheduleAssignment,
 } from "./schedule-state";
 import { getSundayLocal, addWeeks, WEEK_DAYS } from "./israel-week";
@@ -101,6 +102,33 @@ describe("cellAt — single-cell lookup with null fallback", () => {
 
   it("returns null when staff exists but has nothing planned that day (gap)", () => {
     expect(cellAt(grouped, "s1", "2026-07-13")).toBeNull();
+  });
+});
+
+describe("buildAssignmentRow — single-cell payload shape", () => {
+  it("real project: project_id set, project_name null", () => {
+    expect(buildAssignmentRow("s1", "2026-07-12", { kind: "real", id: "p1" })).toEqual({
+      staff_id: "s1",
+      date: "2026-07-12",
+      project_id: "p1",
+      project_name: null,
+    });
+  });
+
+  it("manual project: project_name set, project_id null", () => {
+    expect(buildAssignmentRow("s1", "2026-07-12", { kind: "manual", name: "אתר X" })).toEqual({
+      staff_id: "s1",
+      date: "2026-07-12",
+      project_id: null,
+      project_name: "אתר X",
+    });
+  });
+
+  it("exactly-one invariant: real has id, manual has name — never both", () => {
+    const real   = buildAssignmentRow("s1", "2026-07-12", { kind: "real",   id: "p1" });
+    const manual = buildAssignmentRow("s1", "2026-07-12", { kind: "manual", name: "אתר X" });
+    expect(real.project_id !== null && real.project_name === null).toBe(true);
+    expect(manual.project_id === null && manual.project_name !== null).toBe(true);
   });
 });
 

@@ -100,6 +100,24 @@ export function cellAt(
   return grouped.get(staffId)?.get(date) ?? null;
 }
 
+/** Build a single upsert-shaped row for (staff_id, date, project).
+ *  Exactly one of project_id / project_name is non-null — the DB CHECK
+ *  constraint mirrors that. Used by the per-cell POST flow (PR 3) and
+ *  the "apply to whole week" batch (PR 4) so the two call sites can't
+ *  drift apart. */
+export function buildAssignmentRow(
+  staffId: string,
+  date: string,
+  project: ProjectRef,
+): { staff_id: string; date: string; project_id: string | null; project_name: string | null } {
+  return {
+    staff_id: staffId,
+    date,
+    project_id:   project.kind === "real"   ? project.id   : null,
+    project_name: project.kind === "manual" ? project.name : null,
+  };
+}
+
 /** Row payloads for "apply this site to every day of the week" — five
  *  POSTs / upserts the API layer can send in one batch. The caller
  *  provides `weekDates` (typically `weekRange(sunday)`); a wrong-length
@@ -118,10 +136,5 @@ export function applyToAllWeek(
   project_id: string | null;
   project_name: string | null;
 }> {
-  return weekDates.map((date) => ({
-    staff_id: staffId,
-    date,
-    project_id:   project.kind === "real"   ? project.id   : null,
-    project_name: project.kind === "manual" ? project.name : null,
-  }));
+  return weekDates.map((date) => buildAssignmentRow(staffId, date, project));
 }

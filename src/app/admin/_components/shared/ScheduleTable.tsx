@@ -39,6 +39,10 @@ interface Props {
   vacations: VacationRow[];
   /** The 5 dates of the displayed week (YYYY-MM-DD, ascending). */
   days: string[];
+  /** Tap on a non-vacation cell — opens the AssignCellDialog in the
+   *  parent. PR 3 wiring; the cell payload tells the parent enough to
+   *  pre-select the current value. */
+  onCellTap?: (cell: { staffId: string; date: string; current: ScheduleCell | null }) => void;
 }
 
 const HE_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי"] as const;
@@ -66,7 +70,7 @@ function cellDisplay(
 }
 
 export default function ScheduleTable({
-  workers, projects, schedule, vacations, days,
+  workers, projects, schedule, vacations, days, onCellTap,
 }: Props) {
   const grouped     = groupBySchedule(schedule);
   const projectsById = new Map(projects.map((p) => [p.id, p]));
@@ -116,25 +120,50 @@ export default function ScheduleTable({
                   const cell = cellAt(grouped, w.id, d);
                   const onVacation = vacationKeys.has(w.id + "|" + d);
                   const display = cellDisplay(cell, projectsById);
+                  // Vacation cells stay inert (read-only by design — the
+                  // worker isn't available). Everything else is a button
+                  // when the parent wired an onCellTap, otherwise a span.
                   return (
                     <td
                       key={d}
-                      className="px-2 py-2 border border-warm-gray-light text-center align-middle min-w-[88px]"
+                      className="border border-warm-gray-light text-center align-middle min-w-[88px] p-0"
                     >
                       {onVacation ? (
-                        <span className="text-[0.7rem] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
-                          🌴 חופש
-                        </span>
-                      ) : display ? (
-                        <span
-                          className="inline-flex items-center gap-1 text-[0.7rem] text-charcoal font-semibold truncate max-w-full"
-                          title={display}
+                        <div className="px-2 py-2">
+                          <span className="text-[0.7rem] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                            🌴 חופש
+                          </span>
+                        </div>
+                      ) : onCellTap ? (
+                        <button
+                          type="button"
+                          onClick={() => onCellTap({ staffId: w.id, date: d, current: cell })}
+                          className="w-full h-full min-h-[36px] px-2 py-2 hover:bg-accent/[0.06] focus:outline-none focus:bg-accent/[0.08] transition-colors text-center"
+                          aria-label={`שיבוץ ${w.name} ליום ${d}`}
                         >
-                          <Building2 size={10} strokeWidth={1.5} className="text-accent shrink-0" />
-                          <span className="truncate">{display}</span>
-                        </span>
+                          {display ? (
+                            <span
+                              className="inline-flex items-center gap-1 text-[0.7rem] text-charcoal font-semibold truncate max-w-full"
+                              title={display}
+                            >
+                              <Building2 size={10} strokeWidth={1.5} className={cell?.projectName ? "text-amber-500 shrink-0" : "text-accent shrink-0"} />
+                              <span className="truncate">{display}</span>
+                            </span>
+                          ) : (
+                            <span className="text-charcoal/25">—</span>
+                          )}
+                        </button>
                       ) : (
-                        <span className="text-charcoal/25" aria-label="ללא שיבוץ">—</span>
+                        <div className="px-2 py-2">
+                          {display ? (
+                            <span className="inline-flex items-center gap-1 text-[0.7rem] text-charcoal font-semibold truncate max-w-full" title={display}>
+                              <Building2 size={10} strokeWidth={1.5} className="text-accent shrink-0" />
+                              <span className="truncate">{display}</span>
+                            </span>
+                          ) : (
+                            <span className="text-charcoal/25" aria-label="ללא שיבוץ">—</span>
+                          )}
+                        </div>
                       )}
                     </td>
                   );
