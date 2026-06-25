@@ -94,13 +94,26 @@ export default function ScheduleTable({
   return (
     <div className="bg-white border border-warm-gray-light rounded-md overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-xs border-collapse">
+        {/* table-fixed + colgroup: column widths are decided up front
+            instead of being grown by the longest site name in each
+            column. The day columns share the leftover space equally;
+            the site name in any cell now actually truncates with an
+            ellipsis (its tooltip carries the full text). min-w-[600px]
+            on the table preserves the previous mobile overflow-scroll
+            ergonomics — on phones the table is wider than the screen
+            and the sticky-end name column stays visible while the days
+            scroll. */}
+        <table className="w-full text-xs border-collapse table-fixed min-w-[600px]">
+          <colgroup>
+            {days.map((d) => <col key={d} />)}
+            <col className="w-[120px]" />
+          </colgroup>
           <thead className="bg-bone">
             <tr>
               {days.map((d, i) => (
                 <th
                   key={d}
-                  className="font-semibold px-2 py-2 border border-warm-gray-light text-charcoal/65 whitespace-nowrap min-w-[88px] text-center"
+                  className="font-semibold px-2 py-2 border border-warm-gray-light text-charcoal/65 whitespace-nowrap text-center"
                 >
                   <div className="leading-tight">
                     <div>{HE_DAYS[i]}</div>
@@ -108,7 +121,7 @@ export default function ScheduleTable({
                   </div>
                 </th>
               ))}
-              <th className="sticky end-0 bg-bone font-semibold px-3 py-2 border border-warm-gray-light text-charcoal/65 text-start min-w-[140px]">
+              <th className="sticky end-0 bg-bone font-semibold px-3 py-2 border border-warm-gray-light text-charcoal/65 text-start">
                 עובד
               </th>
             </tr>
@@ -198,7 +211,7 @@ function WorkerRow(p: RowProps) {
         return (
           <td
             key={d}
-            className="border border-warm-gray-light text-center align-middle min-w-[88px] p-0"
+            className="border border-warm-gray-light text-center align-middle p-0 overflow-hidden"
           >
             {onVacation ? (
               <div className="px-2 py-2">

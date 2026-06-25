@@ -96,13 +96,24 @@ export default function ScheduleByProjectTable({
   return (
     <div className="bg-white border border-warm-gray-light rounded-md overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-xs border-collapse">
+        {/* table-fixed + colgroup: column widths are committed up
+            front so a long site name (or a stack of chips in one cell)
+            can't grow its column past its share. Cells overflow-hidden
+            so long site names truncate with an ellipsis instead of
+            spilling. min-w-[680px] sits a touch wider than the
+            by-worker table because each cell here can hold a wrap of
+            worker chips. */}
+        <table className="w-full text-xs border-collapse table-fixed min-w-[680px]">
+          <colgroup>
+            {days.map((d) => <col key={d} />)}
+            <col className="w-[140px]" />
+          </colgroup>
           <thead className="bg-bone">
             <tr>
               {days.map((d, i) => (
                 <th
                   key={d}
-                  className="font-semibold px-2 py-2 border border-warm-gray-light text-charcoal/65 whitespace-nowrap min-w-[120px] text-center"
+                  className="font-semibold px-2 py-2 border border-warm-gray-light text-charcoal/65 whitespace-nowrap text-center"
                 >
                   <div className="leading-tight">
                     <div>{HE_DAYS[i]}</div>
@@ -110,7 +121,7 @@ export default function ScheduleByProjectTable({
                   </div>
                 </th>
               ))}
-              <th className="sticky end-0 bg-bone font-semibold px-3 py-2 border border-warm-gray-light text-charcoal/65 text-start min-w-[160px]">
+              <th className="sticky end-0 bg-bone font-semibold px-3 py-2 border border-warm-gray-light text-charcoal/65 text-start">
                 אתר
               </th>
             </tr>
@@ -189,7 +200,7 @@ function ProjectRow(p: RowProps) {
         return (
           <td
             key={d}
-            className="border border-warm-gray-light text-center align-top min-w-[120px] p-2"
+            className="border border-warm-gray-light text-center align-top p-2 overflow-hidden"
           >
             {list.length === 0 ? (
               <span className="text-charcoal/25" aria-label="ללא שיבוץ">—</span>
