@@ -27,7 +27,7 @@ import AccountTab from "../admin/_components/tabs/AccountTab";
 import { ReportsTabPanel, MatrixTabPanel } from "../admin/_components/tabs/ReportsAndMatrixTabs";
 import WorkersTab from "../admin/_components/tabs/WorkersTab";
 import ProjectsTab from "../admin/_components/tabs/ProjectsTab";
-import BoardTab from "../admin/_components/tabs/BoardTab";
+import BoardScreen from "../admin/_components/tabs/BoardScreen";
 import ExpensesTab from "../admin/_components/tabs/ExpensesTab";
 import PlanningTab from "../admin/_components/tabs/PlanningTab";
 import AttendanceTab, { type ManualType, type AttendanceSubTab } from "../admin/_components/tabs/AttendanceTab";
@@ -1468,9 +1468,13 @@ export default function AdminPortal() {
           />
         )}
 
-        {/* ── BOARD — worker assignment (admin only) ───────────────────────── */}
+        {/* ── BOARD — worker assignment (admin only) ─────────────────────────
+            Sub-tabbed: "lo'ach chai" = the existing drag-and-drop board,
+            "tichnun shvu'i" = the weekly forward-schedule view (PR 2/4
+            adds read-only; PRs 3-4 add edit). BoardScreen owns the
+            switch; both children manage their own data. */}
         {tab === "board" && isAdmin && (
-          <BoardTab />
+          <BoardScreen />
         )}
 
         {/* ── EXPENSES ──────────────────────────────────────────────────────── */}
