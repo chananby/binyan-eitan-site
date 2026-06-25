@@ -1,29 +1,40 @@
 "use client";
 
 /**
- * ScheduleTable — read-only weekly schedule grid (PR 2/4).
+ * ScheduleTable — weekly schedule grid.
  *
- *   Rows    = workers (active staff who pass the live board filter).
- *   Columns = 5 days of the Israeli construction week (Sun→Thu).
- *   Cells   = the worker's planned site that day, "—" when nothing is
- *             planned, "🌴 חופש" when a vacation_days row covers it.
+ *   Rows  = workers in two sections:
+ *           (1) registered staff (filtered like the live board)
+ *           (2) "פועלים יומיים" — temp_name rows surfaced from
+ *               the schedule itself (no separate registry table —
+ *               a temp worker exists in the world by having at
+ *               least one row in schedule_assignments, just like a
+ *               worker_name on the live board).
+ *   Cols  = 5 days of the Israeli construction week (Sun→Thu).
+ *   Cells = the worker's planned site, "—" when nothing is
+ *           planned, "🌴 חופש" when vacation_days covers it.
  *
- * Mobile pattern follows PayrollTab: horizontal scroll via
- * `overflow-x-auto`, and the worker-name column is `sticky end-0` so
- * it stays visible while the days scroll. RTL — sticky-right for
- * us — uses logical CSS so the layout reads the same in both modes.
+ * Cells are <button>s when onCellTap is wired; vacation cells stay
+ * inert. The temp section uses an amber accent (same palette as the
+ * live board's "ידני" badge) so the type is visible at a glance.
  *
- * PR 3 will turn the cell <td>s into <button>s; for now they're
- * inert text so the layout, sticky column, and lookups can be
- * validated in isolation.
+ * Refresh-survival of a "new" temp worker: the Add-temp form
+ * commits at least one (date, site) to the database before the row
+ * can appear here, so distinctTempWorkers picks it up on the next
+ * reload and the temp survives a refresh by virtue of being in DB.
+ * There is no client-only placeholder concept — that mirrors how a
+ * worker_name on the live board only exists once it's attached to
+ * a board_assignments row.
  */
 
 import { Building2, UserRound } from "lucide-react";
 import {
   type ScheduleAssignment,
   type ScheduleCell,
+  type WorkerKey,
   groupBySchedule,
   cellAt,
+  distinctTempWorkers,
 } from "../../../../lib/schedule-state";
 
 interface WorkerRef { id: string; name: string; label?: string | null }
@@ -39,24 +50,19 @@ interface Props {
   vacations: VacationRow[];
   /** The 5 dates of the displayed week (YYYY-MM-DD, ascending). */
   days: string[];
-  /** Tap on a non-vacation cell — opens the AssignCellDialog in the
-   *  parent. PR 3 wiring; the cell payload tells the parent enough to
-   *  pre-select the current value. */
-  onCellTap?: (cell: { staffId: string; date: string; current: ScheduleCell | null }) => void;
+  /** Tap on a non-vacation cell. Worker discriminated as staff/temp so
+   *  the parent can branch the POST body. */
+  onCellTap?: (cell: { worker: WorkerKey; date: string; current: ScheduleCell | null }) => void;
 }
 
 const HE_DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי"] as const;
 
-/** "DD.M" for the column header. */
 function dayHeader(ymd: string): string {
   const [y, m, d] = ymd.split("-");
   if (!y || !m || !d) return ymd;
   return `${parseInt(d)}.${parseInt(m)}`;
 }
 
-/** Display label for a cell. NULL when the cell is empty so the caller
- *  can render an em-dash instead. Real projects resolve through
- *  projectsById; manual projects carry their name verbatim. */
 function cellDisplay(
   cell: ScheduleCell | null,
   projectsById: ReadonlyMap<string, ProjectRef>,
@@ -72,12 +78,12 @@ function cellDisplay(
 export default function ScheduleTable({
   workers, projects, schedule, vacations, days, onCellTap,
 }: Props) {
-  const grouped     = groupBySchedule(schedule);
+  const grouped      = groupBySchedule(schedule);
   const projectsById = new Map(projects.map((p) => [p.id, p]));
-  // Vacation lookup: Set of "staff_id|date" so cell rendering is O(1).
   const vacationKeys = new Set(vacations.map((v) => v.staff_id + "|" + v.date));
+  const tempNames    = distinctTempWorkers(schedule);
 
-  if (workers.length === 0) {
+  if (workers.length === 0 && tempNames.length === 0) {
     return (
       <div className="bg-white border border-warm-gray-light rounded-md p-6 text-center">
         <p className="text-sm text-charcoal/70">אין עובדים פעילים להצגה.</p>
@@ -87,9 +93,6 @@ export default function ScheduleTable({
 
   return (
     <div className="bg-white border border-warm-gray-light rounded-md overflow-hidden">
-      {/* overflow-x-auto on a wrapper so the sticky-end column anchors
-          inside the scroll container, not the page. Same pattern as
-          PayrollTab. */}
       <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead className="bg-bone">
@@ -105,9 +108,6 @@ export default function ScheduleTable({
                   </div>
                 </th>
               ))}
-              {/* Worker name pinned to the end of the row (right in RTL,
-                  left in LTR). Background must be opaque so cells under
-                  it don't bleed through during horizontal scroll. */}
               <th className="sticky end-0 bg-bone font-semibold px-3 py-2 border border-warm-gray-light text-charcoal/65 text-start min-w-[140px]">
                 עובד
               </th>
@@ -115,75 +115,157 @@ export default function ScheduleTable({
           </thead>
           <tbody>
             {workers.map((w) => (
-              <tr key={w.id} className="hover:bg-bone/40 transition-colors">
-                {days.map((d) => {
-                  const cell = cellAt(grouped, w.id, d);
-                  const onVacation = vacationKeys.has(w.id + "|" + d);
-                  const display = cellDisplay(cell, projectsById);
-                  // Vacation cells stay inert (read-only by design — the
-                  // worker isn't available). Everything else is a button
-                  // when the parent wired an onCellTap, otherwise a span.
-                  return (
-                    <td
-                      key={d}
-                      className="border border-warm-gray-light text-center align-middle min-w-[88px] p-0"
-                    >
-                      {onVacation ? (
-                        <div className="px-2 py-2">
-                          <span className="text-[0.7rem] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
-                            🌴 חופש
-                          </span>
-                        </div>
-                      ) : onCellTap ? (
-                        <button
-                          type="button"
-                          onClick={() => onCellTap({ staffId: w.id, date: d, current: cell })}
-                          className="w-full h-full min-h-[36px] px-2 py-2 hover:bg-accent/[0.06] focus:outline-none focus:bg-accent/[0.08] transition-colors text-center"
-                          aria-label={`שיבוץ ${w.name} ליום ${d}`}
-                        >
-                          {display ? (
-                            <span
-                              className="inline-flex items-center gap-1 text-[0.7rem] text-charcoal font-semibold truncate max-w-full"
-                              title={display}
-                            >
-                              <Building2 size={10} strokeWidth={1.5} className={cell?.projectName ? "text-amber-500 shrink-0" : "text-accent shrink-0"} />
-                              <span className="truncate">{display}</span>
-                            </span>
-                          ) : (
-                            <span className="text-charcoal/25">—</span>
-                          )}
-                        </button>
-                      ) : (
-                        <div className="px-2 py-2">
-                          {display ? (
-                            <span className="inline-flex items-center gap-1 text-[0.7rem] text-charcoal font-semibold truncate max-w-full" title={display}>
-                              <Building2 size={10} strokeWidth={1.5} className="text-accent shrink-0" />
-                              <span className="truncate">{display}</span>
-                            </span>
-                          ) : (
-                            <span className="text-charcoal/25" aria-label="ללא שיבוץ">—</span>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  );
-                })}
-                <td className="sticky end-0 bg-white px-3 py-2 border border-warm-gray-light text-start">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <UserRound size={11} strokeWidth={1.5} className="text-charcoal/40 shrink-0" />
-                    <span className="font-semibold text-charcoal truncate">{w.name}</span>
-                    {w.label && (
-                      <span className="font-body text-[0.6rem] text-charcoal/65 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[70px] truncate">
-                        {w.label}
-                      </span>
-                    )}
-                  </div>
-                </td>
-              </tr>
+              <WorkerRow
+                key={"s-" + w.id}
+                workerKey={{ kind: "staff", id: w.id }}
+                displayName={w.name}
+                tag={w.label ?? null}
+                isTemp={false}
+                days={days}
+                grouped={grouped}
+                projectsById={projectsById}
+                vacationKeys={vacationKeys}
+                vacationStaffId={w.id}
+                onCellTap={onCellTap}
+              />
             ))}
+
+            {tempNames.length > 0 && (
+              <>
+                {/* Section header — spans full row width. The sticky cell
+                    background is matched to bone so it doesn't break the
+                    pinned-end column visually. */}
+                <tr>
+                  <td
+                    colSpan={days.length}
+                    className="bg-amber-50/60 border border-warm-gray-light px-3 py-1.5 text-[0.7rem] font-semibold text-amber-700 uppercase tracking-wide"
+                  >
+                    פועלים יומיים ({tempNames.length})
+                  </td>
+                  <td className="sticky end-0 bg-amber-50/60 border border-warm-gray-light" />
+                </tr>
+                {tempNames.map((name) => (
+                  <WorkerRow
+                    key={"t-" + name}
+                    workerKey={{ kind: "temp", name }}
+                    displayName={name}
+                    tag={null}
+                    isTemp={true}
+                    days={days}
+                    grouped={grouped}
+                    projectsById={projectsById}
+                    vacationKeys={vacationKeys}
+                    vacationStaffId={null}
+                    onCellTap={onCellTap}
+                  />
+                ))}
+              </>
+            )}
           </tbody>
         </table>
       </div>
     </div>
+  );
+}
+
+// ── WorkerRow ────────────────────────────────────────────────────────────────
+// One row of the grid. Lives at module scope so a re-render of the
+// table doesn't recreate the component type and remount every cell.
+
+interface RowProps {
+  workerKey: WorkerKey;
+  displayName: string;
+  tag: string | null;
+  isTemp: boolean;
+  days: string[];
+  grouped: ReadonlyMap<string, ReadonlyMap<string, ScheduleCell>>;
+  projectsById: ReadonlyMap<string, ProjectRef>;
+  vacationKeys: ReadonlySet<string>;
+  /** Only meaningful for staff rows — temps don't appear in vacation_days. */
+  vacationStaffId: string | null;
+  onCellTap?: Props["onCellTap"];
+}
+
+function WorkerRow(p: RowProps) {
+  return (
+    <tr className="hover:bg-bone/40 transition-colors">
+      {p.days.map((d) => {
+        const cell = cellAt(p.grouped, p.workerKey, d);
+        const onVacation =
+          p.vacationStaffId !== null &&
+          p.vacationKeys.has(p.vacationStaffId + "|" + d);
+        const display = cellDisplay(cell, p.projectsById);
+        return (
+          <td
+            key={d}
+            className="border border-warm-gray-light text-center align-middle min-w-[88px] p-0"
+          >
+            {onVacation ? (
+              <div className="px-2 py-2">
+                <span className="text-[0.7rem] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                  🌴 חופש
+                </span>
+              </div>
+            ) : p.onCellTap ? (
+              <button
+                type="button"
+                onClick={() => p.onCellTap!({ worker: p.workerKey, date: d, current: cell })}
+                className="w-full h-full min-h-[36px] px-2 py-2 hover:bg-accent/[0.06] focus:outline-none focus:bg-accent/[0.08] transition-colors text-center"
+                aria-label={`שיבוץ ${p.displayName} ליום ${d}`}
+              >
+                <CellContent display={display} cell={cell} />
+              </button>
+            ) : (
+              <div className="px-2 py-2">
+                <CellContent display={display} cell={cell} />
+              </div>
+            )}
+          </td>
+        );
+      })}
+      <td
+        className={`sticky end-0 px-3 py-2 border border-warm-gray-light text-start ${
+          p.isTemp ? "bg-amber-50/50" : "bg-white"
+        }`}
+      >
+        <div className="flex items-center gap-1.5 min-w-0">
+          <UserRound
+            size={11}
+            strokeWidth={1.5}
+            className={p.isTemp ? "text-amber-500 shrink-0" : "text-charcoal/40 shrink-0"}
+          />
+          <span className="font-semibold text-charcoal truncate">{p.displayName}</span>
+          {p.isTemp && (
+            <span className="font-body text-[0.6rem] text-amber-700 px-1 py-0.5 rounded bg-amber-100 shrink-0">
+              ידני
+            </span>
+          )}
+          {p.tag && (
+            <span className="font-body text-[0.6rem] text-charcoal/65 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[70px] truncate">
+              {p.tag}
+            </span>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+function CellContent({ display, cell }: { display: string | null; cell: ScheduleCell | null }) {
+  if (!display) {
+    return <span className="text-charcoal/25" aria-label="ללא שיבוץ">—</span>;
+  }
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-[0.7rem] text-charcoal font-semibold truncate max-w-full"
+      title={display}
+    >
+      <Building2
+        size={10}
+        strokeWidth={1.5}
+        className={cell?.projectName ? "text-amber-500 shrink-0" : "text-accent shrink-0"}
+      />
+      <span className="truncate">{display}</span>
+    </span>
   );
 }

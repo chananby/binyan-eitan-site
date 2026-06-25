@@ -1,84 +1,109 @@
 /**
  * schedule-state — pure helpers for the weekly worker-schedule feature.
  *
- * The `schedule_assignments` table holds one row per (staff_id, date)
- * tuple: "this worker is planned to be at this project (or this manual
- * project name) on this day". UNIQUE(staff_id, date) enforces a single
- * site per worker per day; row-per-day (not range) keeps the model
- * symmetric with `vacation_days` and the live `board_assignments`.
+ * The `schedule_assignments` table holds one row per (worker, date)
+ * tuple where "worker" is one of:
+ *   • a real staff member (staff_id set, temp_name null)
+ *   • a temporary day-laborer / "פועל יומי" (staff_id null, temp_name
+ *     set — same dual-key pattern as board_assignments.worker_id /
+ *     worker_name on the live board)
+ *
+ * The DB CHECK guarantees exactly one of those two sides is non-null,
+ * and a partial UNIQUE(staff_id, date) WHERE staff_id IS NOT NULL keeps
+ * a real staff member to one site per day. For temp workers there's no
+ * unique constraint at the DB level — two distinct day-laborers can
+ * share a name (intentional, same as the live board). The application
+ * enforces "one row per (temp_name, date)" via DELETE-then-INSERT in
+ * the POST handler.
  *
  * This module is the pure side: build a 5-day week range, fold the
- * server payload into a fast lookup map, read a single cell, and
- * generate the row set for the "apply this site to the whole week"
- * convenience. Mirrors the shape of board-state.ts so PR 2's API and
- * PR 3's UI can lean on the same idioms.
+ * server payload into a fast lookup map, read a single cell, list the
+ * temp workers that surface in a given week, and generate the row set
+ * for the "apply this site to the whole week" convenience.
  *
- * Pure JS. No DB, no I/O. All date math reuses src/lib/israel-week.
+ * Pure JS. No DB, no I/O.
  */
 
 import { addWeeks, WEEK_DAYS } from "./israel-week";
 
-/** One row of schedule_assignments as returned by the API. The
- *  CHECK constraint guarantees exactly one of project_id/project_name
- *  is non-null; consumers should still pattern-match defensively. */
+/** One row of schedule_assignments as returned by the API. Exactly one
+ *  of staff_id / temp_name is set; exactly one of project_id /
+ *  project_name is set when status='site' (the only status this PR
+ *  cares about — special states land in a later PR). */
 export interface ScheduleAssignment {
   id: string;
-  staff_id: string;
+  staff_id: string | null;
+  temp_name: string | null;
   date: string;                       // YYYY-MM-DD (local)
   project_id: string | null;
   project_name: string | null;        // free-text manual project
   updated_at?: string;
 }
 
-/** A single planned-cell value — what to render in a (worker, day) cell.
- *  Mirrors the project side of BoardAssignment so SiteCard/MoveToDialog
- *  patterns transfer to PR 3 without translation. */
+/** A single planned-cell value — what to render in a (worker, day) cell. */
 export interface ScheduleCell {
   assignmentId: string;
   projectId: string | null;
-  projectName: string | null;         // null when project_id is set
+  projectName: string | null;
 }
 
-/** Identifier for a project target — used by applyToAllWeek so the
- *  caller passes the same shape as the live board's MoveTarget. Exactly
- *  one field is set: `{id}` for a real project, `{name}` for a manual
- *  free-text site. */
+/** Identifier for a project target. Exactly one field is set. */
 export type ProjectRef =
   | { kind: "real";   id: string }
   | { kind: "manual"; name: string };
 
+/** Identifier for a worker — registered staff or a free-text temporary
+ *  day-laborer. Same discrimination as ProjectRef so the per-cell
+ *  upsert path stays symmetric on both sides. */
+export type WorkerKey =
+  | { kind: "staff"; id: string }
+  | { kind: "temp";  name: string };
+
+/** Encoded string form used as a Map key in groupBySchedule — a single
+ *  scalar means the per-day lookup is a flat Map.get instead of a
+ *  nested switch on .kind. */
+export function workerKeyString(k: WorkerKey): string {
+  return k.kind === "staff" ? "staff:" + k.id : "temp:" + k.name;
+}
+
+/** Pick the right WorkerKey out of a row. Throws when both sides are
+ *  null — that shouldn't happen per the DB CHECK, but be loud about it
+ *  if a corrupt row ever slips through. */
+export function workerKeyFromRow(row: ScheduleAssignment): WorkerKey {
+  if (row.staff_id) return { kind: "staff", id: row.staff_id };
+  if (row.temp_name) return { kind: "temp", name: row.temp_name };
+  throw new Error("schedule row has neither staff_id nor temp_name");
+}
+
 /** Return the 5 dates of the Israeli construction work week (Sun–Thu)
- *  beginning at `sundayISO`. Output is YYYY-MM-DD strings in local time,
- *  ascending. Uses addWeeks→ day arithmetic via the shared
- *  israel-week helper so DST edges stay consistent across the app. */
+ *  beginning at `sundayISO`. */
 export function weekRange(sundayISO: string): string[] {
   const out: string[] = [];
-  // weekDayFromSunday(i) === addWeeks(sundayISO, 0) + i days. Re-using
-  // addWeeks with fractional weeks isn't supported, so we do the +i math
-  // here once and verify via tests rather than spreading day math.
   const base = new Date(sundayISO + "T12:00:00");
   for (let i = 0; i < WEEK_DAYS; i++) {
     const d = new Date(base);
     d.setDate(d.getDate() + i);
-    out.push(d.toLocaleDateString("sv-SE")); // YYYY-MM-DD, local TZ
+    out.push(d.toLocaleDateString("sv-SE"));
   }
   return out;
 }
 
-/** Fold the API payload into a 2-level map for O(1) cell lookup:
- *  `byStaff.get(staff_id)?.get(date) → ScheduleCell | undefined`.
- *  Rows whose date falls outside the visible week still get indexed —
- *  pruning is the caller's concern (typically PR 2 GET narrows by
- *  `date IN (...)` so this won't normally surface). */
+/** Fold the API payload into a 2-level map for O(1) cell lookup keyed
+ *  by the encoded WorkerKey + date. Works for both staff and temp
+ *  rows in one pass; consumers ask for cells via cellAt with a
+ *  WorkerKey discriminant. */
 export function groupBySchedule(
   rows: ScheduleAssignment[],
 ): Map<string, Map<string, ScheduleCell>> {
-  const byStaff = new Map<string, Map<string, ScheduleCell>>();
+  const byWorker = new Map<string, Map<string, ScheduleCell>>();
   for (const r of rows) {
-    let byDate = byStaff.get(r.staff_id);
+    let key: string;
+    try { key = workerKeyString(workerKeyFromRow(r)); }
+    catch { continue; }  // skip corrupt rows rather than throw at the grouper
+    let byDate = byWorker.get(key);
     if (!byDate) {
       byDate = new Map();
-      byStaff.set(r.staff_id, byDate);
+      byWorker.set(key, byDate);
     }
     byDate.set(r.date, {
       assignmentId: r.id,
@@ -86,55 +111,68 @@ export function groupBySchedule(
       projectName: r.project_name,
     });
   }
-  return byStaff;
+  return byWorker;
 }
 
-/** Return the cell at (staffId, date) — or null when the worker has
- *  nothing planned that day. Wrapper so consumers don't sprinkle
- *  `?.get(...)?.get(...)` everywhere. */
+/** Read a single cell. Accepts a WorkerKey discriminant so callers
+ *  don't have to encode/decode the string form themselves. */
 export function cellAt(
   grouped: ReadonlyMap<string, ReadonlyMap<string, ScheduleCell>>,
-  staffId: string,
+  worker: WorkerKey,
   date: string,
 ): ScheduleCell | null {
-  return grouped.get(staffId)?.get(date) ?? null;
+  return grouped.get(workerKeyString(worker))?.get(date) ?? null;
 }
 
-/** Build a single upsert-shaped row for (staff_id, date, project).
- *  Exactly one of project_id / project_name is non-null — the DB CHECK
- *  constraint mirrors that. Used by the per-cell POST flow (PR 3) and
- *  the "apply to whole week" batch (PR 4) so the two call sites can't
- *  drift apart. */
+/** Names of every temp worker who has at least one assignment in the
+ *  given rows. Sorted alphabetically; deduped. Used by the table to
+ *  render the "פועלים יומיים" section without an explicit registry —
+ *  a temp worker EXISTS in the world only by having a row, the same
+ *  way manual workers exist in board_assignments.
+ *
+ *  Implication for "empty temp worker" UX: a temp can't be added to
+ *  the table without committing at least one (date, site) to the
+ *  database. The Add-temp form requires day+project for exactly this
+ *  reason — once submitted, the temp appears here on the next reload
+ *  and survives refresh by virtue of being in DB. */
+export function distinctTempWorkers(rows: ScheduleAssignment[]): string[] {
+  const set = new Set<string>();
+  for (const r of rows) {
+    if (r.temp_name) set.add(r.temp_name);
+  }
+  return [...set].sort();
+}
+
+/** Build a single upsert-shaped row for (worker, date, project).
+ *  Exactly one of staff_id / temp_name is non-null; exactly one of
+ *  project_id / project_name is non-null. Both the per-cell POST flow
+ *  and the "apply to whole week" batch call this so the row shape
+ *  can't drift apart. */
 export function buildAssignmentRow(
-  staffId: string,
+  worker: WorkerKey,
   date: string,
   project: ProjectRef,
-): { staff_id: string; date: string; project_id: string | null; project_name: string | null } {
+): {
+  staff_id:     string | null;
+  temp_name:    string | null;
+  date:         string;
+  project_id:   string | null;
+  project_name: string | null;
+} {
   return {
-    staff_id: staffId,
+    staff_id:     worker.kind === "staff" ? worker.id   : null,
+    temp_name:    worker.kind === "temp"  ? worker.name : null,
     date,
     project_id:   project.kind === "real"   ? project.id   : null,
     project_name: project.kind === "manual" ? project.name : null,
   };
 }
 
-/** Row payloads for "apply this site to every day of the week" — five
- *  POSTs / upserts the API layer can send in one batch. The caller
- *  provides `weekDates` (typically `weekRange(sunday)`); a wrong-length
- *  array would be a programmer error, so we don't recompute it here.
- *
- *  Pure data-shaping: no I/O, no validation against existing rows.
- *  PR 3's edit handler runs an UPSERT per row, relying on the DB's
- *  UNIQUE(staff_id, date) to overwrite any prior cell. */
+/** Row payloads for "apply this site to every day of the week". */
 export function applyToAllWeek(
-  staffId: string,
+  worker: WorkerKey,
   project: ProjectRef,
   weekDates: string[],
-): Array<{
-  staff_id: string;
-  date: string;
-  project_id: string | null;
-  project_name: string | null;
-}> {
-  return weekDates.map((date) => buildAssignmentRow(staffId, date, project));
+): Array<ReturnType<typeof buildAssignmentRow>> {
+  return weekDates.map((date) => buildAssignmentRow(worker, date, project));
 }
