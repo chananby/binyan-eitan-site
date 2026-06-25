@@ -124,6 +124,63 @@ export function cellAt(
   return grouped.get(workerKeyString(worker))?.get(date) ?? null;
 }
 
+/** Encoded scalar form of a project target — used as a Map key in the
+ *  inverse "by-site" grouping. Same prefix-discrimination idea as
+ *  workerKeyString so a real project and a manual project that share
+ *  a literal id/name can never collide. */
+export function projectKeyString(p: ProjectRef): string {
+  return p.kind === "real" ? "project:" + p.id : "manual:" + p.name;
+}
+
+/** Pick the project side off a row. Returns null when neither side is
+ *  set — shouldn't happen per the DB CHECK for site rows, but be
+ *  defensive (e.g., future status='off' rows that PR 6 will add). */
+export function projectKeyFromRow(row: ScheduleAssignment): string | null {
+  if (row.project_id)   return "project:" + row.project_id;
+  if (row.project_name) return "manual:"  + row.project_name;
+  return null;
+}
+
+/** Fold the same schedule payload into a 2-level map for the inverse
+ *  "by-site" view: project → date → list of workers assigned there
+ *  that day. Mirrors groupBySchedule's shape but flips the axes.
+ *  Rows without a project (defensive — shouldn't exist per CHECK)
+ *  are skipped, as are rows without a resolvable worker. */
+export function groupByProjectDate(
+  rows: ScheduleAssignment[],
+): Map<string, Map<string, WorkerKey[]>> {
+  const out = new Map<string, Map<string, WorkerKey[]>>();
+  for (const r of rows) {
+    const pkey = projectKeyFromRow(r);
+    if (!pkey) continue;
+    let wkey: WorkerKey;
+    try { wkey = workerKeyFromRow(r); }
+    catch { continue; }
+    let byDate = out.get(pkey);
+    if (!byDate) {
+      byDate = new Map();
+      out.set(pkey, byDate);
+    }
+    let list = byDate.get(r.date);
+    if (!list) {
+      list = [];
+      byDate.set(r.date, list);
+    }
+    list.push(wkey);
+  }
+  return out;
+}
+
+/** Read the list of workers planned at a project on a date. Empty
+ *  array when nothing is planned — caller renders an em-dash. */
+export function cellWorkers(
+  grouped: ReadonlyMap<string, ReadonlyMap<string, ReadonlyArray<WorkerKey>>>,
+  project: ProjectRef,
+  date: string,
+): ReadonlyArray<WorkerKey> {
+  return grouped.get(projectKeyString(project))?.get(date) ?? [];
+}
+
 /** Names of every temp worker who has at least one assignment in the
  *  given rows. Sorted alphabetically; deduped. Used by the table to
  *  render the "פועלים יומיים" section without an explicit registry —

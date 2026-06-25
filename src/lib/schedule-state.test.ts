@@ -8,8 +8,13 @@ import {
   distinctTempWorkers,
   workerKeyString,
   workerKeyFromRow,
+  projectKeyString,
+  projectKeyFromRow,
+  groupByProjectDate,
+  cellWorkers,
   type ScheduleAssignment,
   type WorkerKey,
+  type ProjectRef,
 } from "./schedule-state";
 import { getSundayLocal, addWeeks, WEEK_DAYS } from "./israel-week";
 
@@ -256,6 +261,135 @@ describe("applyToAllWeek — generate row payloads for a row-fill (staff or temp
 
   it("empty dates → empty output", () => {
     expect(applyToAllWeek(STAFF("s1"), { kind: "real", id: "p1" }, [])).toEqual([]);
+  });
+});
+
+describe("projectKeyString — Map-friendly scalar encoding for project targets", () => {
+  it("encodes real and manual with distinct prefixes", () => {
+    expect(projectKeyString({ kind: "real",   id:   "abc" })).toBe("project:abc");
+    expect(projectKeyString({ kind: "manual", name: "abc" })).toBe("manual:abc");
+  });
+
+  it("a real project whose id equals a manual project's name doesn't collide", () => {
+    expect(projectKeyString({ kind: "real",   id:   "אתר א" }))
+      .not.toBe(projectKeyString({ kind: "manual", name: "אתר א" }));
+  });
+});
+
+describe("projectKeyFromRow — pick the right side", () => {
+  const REAL   = (id: string) => mk({ project_id: id });
+  const MANUAL = (n: string)  => mk({ project_name: n });
+
+  it("real row → project:<id>", () => {
+    expect(projectKeyFromRow(REAL("p1"))).toBe("project:p1");
+  });
+
+  it("manual row → manual:<name>", () => {
+    expect(projectKeyFromRow(MANUAL("אתר X"))).toBe("manual:אתר X");
+  });
+
+  it("no project side at all → null (defensive — shouldn't reach here)", () => {
+    const row = mk({});
+    row.project_id = null;
+    row.project_name = null;
+    expect(projectKeyFromRow(row)).toBeNull();
+  });
+});
+
+describe("groupByProjectDate — inverse view (project → date → workers[])", () => {
+  const STAFF = (id: string): WorkerKey => ({ kind: "staff", id });
+  const TEMP  = (name: string): WorkerKey => ({ kind: "temp",  name });
+
+  it("groups multiple workers under the same project & date", () => {
+    const rows = [
+      mk({ id: "r1", staff_id: "s1", date: "2026-07-12", project_id: "p1" }),
+      mk({ id: "r2", staff_id: "s2", date: "2026-07-12", project_id: "p1" }),
+      mk({ id: "r3", staff_id: "s3", date: "2026-07-12", project_id: "p2" }),
+    ];
+    const m = groupByProjectDate(rows);
+    expect(m.size).toBe(2);
+    const p1Day = m.get("project:p1")?.get("2026-07-12") ?? [];
+    expect(p1Day).toHaveLength(2);
+    expect(p1Day.map(workerKeyString).sort()).toEqual([
+      workerKeyString(STAFF("s1")),
+      workerKeyString(STAFF("s2")),
+    ].sort());
+  });
+
+  it("includes temp workers on the same shape as registered staff", () => {
+    const rows = [
+      mk({ id: "r1", staff_id: "s1", date: "2026-07-12", project_id: "p1" }),
+      mk({ id: "r2", staff_id: undefined, temp_name: "אבי הזמני", date: "2026-07-12", project_id: "p1" }),
+    ];
+    const day = groupByProjectDate(rows).get("project:p1")?.get("2026-07-12") ?? [];
+    expect(day).toHaveLength(2);
+    const kinds = day.map((k) => k.kind).sort();
+    expect(kinds).toEqual(["staff", "temp"]);
+  });
+
+  it("buckets manual-project assignments under manual:<name>", () => {
+    const rows = [
+      mk({ id: "r1", staff_id: "s1", date: "2026-07-12", project_name: "אתר ידני" }),
+      mk({ id: "r2", staff_id: "s2", date: "2026-07-12", project_name: "אתר ידני" }),
+    ];
+    const day = groupByProjectDate(rows).get("manual:אתר ידני")?.get("2026-07-12") ?? [];
+    expect(day).toHaveLength(2);
+  });
+
+  it("multiple dates per project — separate inner-map entries", () => {
+    const rows = [
+      mk({ id: "r1", staff_id: "s1", date: "2026-07-12", project_id: "p1" }),
+      mk({ id: "r2", staff_id: "s1", date: "2026-07-13", project_id: "p1" }),
+    ];
+    const byDate = groupByProjectDate(rows).get("project:p1");
+    expect(byDate?.size).toBe(2);
+    expect(byDate?.get("2026-07-12")?.[0]).toEqual(STAFF("s1"));
+    expect(byDate?.get("2026-07-13")?.[0]).toEqual(STAFF("s1"));
+  });
+
+  it("a row with no project (defensive) is skipped, not blown up", () => {
+    const bad = mk({ id: "bad", staff_id: "s1", date: "2026-07-12" });
+    bad.project_id = null;
+    bad.project_name = null;
+    const good = mk({ id: "ok", staff_id: "s1", date: "2026-07-12", project_id: "p1" });
+    const m = groupByProjectDate([bad, good]);
+    expect(m.size).toBe(1);
+    expect(m.get("project:p1")?.get("2026-07-12")).toHaveLength(1);
+  });
+
+  it("empty rows → empty map", () => {
+    expect(groupByProjectDate([]).size).toBe(0);
+    void TEMP; // touch the unused factory so the lint stays clean if expanded later
+  });
+});
+
+describe("cellWorkers — list of workers planned at (project, date)", () => {
+  const grouped = groupByProjectDate([
+    mk({ id: "r1", staff_id: "s1", date: "2026-07-12", project_id: "p1" }),
+    mk({ id: "r2", staff_id: undefined, temp_name: "אבי", date: "2026-07-12", project_id: "p1" }),
+    mk({ id: "r3", staff_id: "s2", date: "2026-07-13", project_name: "אתר X" }),
+  ]);
+  const REAL   = (id: string): ProjectRef => ({ kind: "real",   id });
+  const MANUAL = (n: string):  ProjectRef => ({ kind: "manual", name: n });
+
+  it("real project, populated cell → all workers", () => {
+    const ws = cellWorkers(grouped, REAL("p1"), "2026-07-12");
+    expect(ws).toHaveLength(2);
+  });
+
+  it("manual project, populated cell", () => {
+    const ws = cellWorkers(grouped, MANUAL("אתר X"), "2026-07-13");
+    expect(ws).toHaveLength(1);
+    expect(ws[0]).toEqual({ kind: "staff", id: "s2" });
+  });
+
+  it("real project, empty cell → empty array (not null)", () => {
+    expect(cellWorkers(grouped, REAL("p1"), "2026-07-14")).toEqual([]);
+  });
+
+  it("unknown project → empty array", () => {
+    expect(cellWorkers(grouped, REAL("p-unknown"), "2026-07-12")).toEqual([]);
+    expect(cellWorkers(grouped, MANUAL("אתר Z"), "2026-07-12")).toEqual([]);
   });
 });
 

@@ -20,7 +20,7 @@
  */
 
 import { useEffect, useState, useCallback } from "react";
-import { Loader2, AlertTriangle, RefreshCw } from "lucide-react";
+import { Loader2, AlertTriangle, RefreshCw, Users, Building2 } from "lucide-react";
 import { getSundayLocal } from "../../../../lib/israel-week";
 import type {
   ScheduleAssignment,
@@ -30,8 +30,11 @@ import type {
 import { workerKeyString } from "../../../../lib/schedule-state";
 import WeekPicker from "../shared/WeekPicker";
 import ScheduleTable from "../shared/ScheduleTable";
+import ScheduleByProjectTable from "../shared/ScheduleByProjectTable";
 import AssignCellDialog, { type CellPick } from "../shared/AssignCellDialog";
 import AddTempWorkerForm from "../shared/AddTempWorkerForm";
+
+type View = "worker" | "site";
 
 interface WorkerRef       { id: string; name: string; role?: string | null; label?: string | null }
 interface ProjectRef      { id: string; name: string; status?: string | null }
@@ -84,6 +87,10 @@ export default function ScheduleTab() {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState<string | null>(null);
   const [dialog,  setDialog]  = useState<DialogState | null>(null);
+  // Axis toggle — worker (default) or site. Resets to "worker" on a
+  // hard reload (no localStorage on purpose; the by-site view is for
+  // glances, not the working mode).
+  const [view,    setView]    = useState<View>("worker");
 
   const load = useCallback(async (week: string) => {
     setLoading(true);
@@ -213,10 +220,42 @@ export default function ScheduleTab() {
     <div className="space-y-3">
       <WeekPicker sunday={sunday} onChange={setSunday} />
 
-      <div className="flex items-center justify-between gap-2">
-        <p className="font-body text-xs text-charcoal/70 leading-snug">
-          לחץ על תא כדי לשבץ עובד לאתר באותו יום. ימי חופש נעולים.
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        {/* Segmented toggle: by-worker (default, editable) ↔ by-site
+            (read-only, glance view). State is local — no localStorage. */}
+        <div className="inline-flex border border-warm-gray-light rounded-md overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setView("worker")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors ${
+              view === "worker"
+                ? "bg-accent text-bone"
+                : "bg-white text-charcoal/70 hover:bg-bone"
+            }`}
+            aria-pressed={view === "worker"}
+          >
+            <Users size={12} strokeWidth={1.5} /> לפי עובד
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("site")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-colors border-s border-warm-gray-light ${
+              view === "site"
+                ? "bg-accent text-bone"
+                : "bg-white text-charcoal/70 hover:bg-bone"
+            }`}
+            aria-pressed={view === "site"}
+          >
+            <Building2 size={12} strokeWidth={1.5} /> לפי אתר
+          </button>
+        </div>
+
+        <p className="font-body text-xs text-charcoal/70 leading-snug flex-1 min-w-0">
+          {view === "worker"
+            ? "לחץ על תא כדי לשבץ עובד לאתר באותו יום. ימי חופש נעולים."
+            : "תצוגה לפי אתר — צפייה בלבד. עריכה במבט 'לפי עובד'."}
         </p>
+
         <button
           type="button"
           onClick={() => load(sunday)}
@@ -246,7 +285,7 @@ export default function ScheduleTab() {
         </div>
       )}
 
-      {!loading && !error && data && (
+      {!loading && !error && data && view === "worker" && (
         <>
           <ScheduleTable
             workers={data.workers}
@@ -271,6 +310,16 @@ export default function ScheduleTab() {
             onAdd={handleAddTemp}
           />
         </>
+      )}
+
+      {!loading && !error && data && view === "site" && (
+        <ScheduleByProjectTable
+          workers={data.workers}
+          projects={data.projects}
+          manualProjects={data.manual_projects}
+          schedule={data.schedule}
+          days={data.days}
+        />
       )}
 
       {dialog && data && (
