@@ -95,6 +95,10 @@ export interface ScreenStrings {
   corrAlreadyOpen: string;
   corrOutOfWindow: string;
   corrGeneric: string;
+  // Join-request CTA shown beneath the "phone not found" identify error
+  // — points unknown workers to the public /he/join form so they can ask
+  // to be added to the staff list instead of getting stuck on this screen.
+  joinCta: string;
 }
 
 const HE: ScreenStrings = {
@@ -186,6 +190,7 @@ const HE: ScreenStrings = {
   corrAlreadyOpen: "כבר נשלחה בקשת תיקון לרשומה זו, ממתינה לאישור.",
   corrOutOfWindow: "ניתן לדווח על טעות רק לרשומות מהחודש הנוכחי או הקודם.",
   corrGeneric: "שגיאה — נסה שוב.",
+  joinCta: "עובד חדש? בקש הצטרפות",
 };
 
 const RU: ScreenStrings = {
@@ -277,6 +282,7 @@ const RU: ScreenStrings = {
   corrAlreadyOpen: "Запрос на исправление уже отправлен и ожидает решения.",
   corrOutOfWindow: "Можно отправить запрос только за текущий или предыдущий месяц.",
   corrGeneric: "Ошибка — попробуйте снова.",
+  joinCta: "Новый сотрудник? Подать заявку",
 };
 
 const EN: ScreenStrings = {
@@ -368,6 +374,7 @@ const EN: ScreenStrings = {
   corrAlreadyOpen: "A correction request for this record is already pending.",
   corrOutOfWindow: "You can only report a mistake for records from the current or previous month.",
   corrGeneric: "Error — try again.",
+  joinCta: "New worker? Request to join",
 };
 
 const SI: ScreenStrings = {
@@ -459,6 +466,7 @@ const SI: ScreenStrings = {
   corrAlreadyOpen: "මෙම වාර්තාව සඳහා නිවැරදි කිරීමේ ඉල්ලීමක් දැනටමත් බලාපොරොත්තුවෙන් පවතී.",
   corrOutOfWindow: "වත්මන් හෝ පෙර මාසයේ වාර්තා සඳහා පමණක් වැරැද්දක් වාර්තා කළ හැක.",
   corrGeneric: "දෝෂයක් — නැවත උත්සාහ කරන්න.",
+  joinCta: "නව සේවකයෙක්ද? එක්වීමට ඉල්ලීමක් කරන්න",
 };
 
 const ZH: ScreenStrings = {
@@ -550,6 +558,7 @@ const ZH: ScreenStrings = {
   corrAlreadyOpen: "此记录的更正请求已在等待批准。",
   corrOutOfWindow: "只能报告本月或上月记录中的错误。",
   corrGeneric: "错误 — 请重试。",
+  joinCta: "新员工？申请加入",
 };
 
 const HI: ScreenStrings = {
@@ -641,6 +650,7 @@ const HI: ScreenStrings = {
   corrAlreadyOpen: "इस रिकॉर्ड के लिए सुधार अनुरोध पहले से लंबित है।",
   corrOutOfWindow: "आप केवल वर्तमान या पिछले महीने के रिकॉर्ड की गलती रिपोर्ट कर सकते हैं।",
   corrGeneric: "त्रुटि — पुनः प्रयास करें।",
+  joinCta: "नया कर्मचारी? शामिल होने का अनुरोध करें",
 };
 
 export const T: Record<Lang, ScreenStrings> = {

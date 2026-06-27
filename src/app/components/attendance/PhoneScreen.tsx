@@ -4,6 +4,7 @@
 // The parent owns identify() and all state — this component is a pure
 // view that surfaces input, submit, and error chrome.
 
+import Link from "next/link";
 import { AlertCircle, Loader2 } from "lucide-react";
 import Screen from "./Screen";
 import type { Lang, ScreenStrings } from "./i18n";
@@ -40,7 +41,21 @@ export default function PhoneScreen(p: Props) {
         {p.identifyError && (
           <div className="flex items-start gap-2 border border-red-200 bg-red-50 px-4 py-3">
             <AlertCircle size={14} className="mt-0.5 shrink-0 text-red-400" />
-            <p className="font-body text-xs text-red-600 leading-snug">{p.identifyError}</p>
+            <div className="flex flex-col gap-1.5 min-w-0">
+              <p className="font-body text-xs text-red-600 leading-snug">{p.identifyError}</p>
+              {/* Show the join-request CTA only on the "phone not in
+                  staff list" case — other identify errors (inactive,
+                  rate-limited, PIN expired) wouldn't be fixed by joining.
+                  Comparing against p.t.notFound keeps this language-safe. */}
+              {p.identifyError === p.t.notFound && (
+                <Link
+                  href="/he/join"
+                  className="font-body text-xs text-accent hover:text-accent-dark underline underline-offset-2 self-start"
+                >
+                  {p.t.joinCta}
+                </Link>
+              )}
+            </div>
           </div>
         )}
         <button onClick={p.onIdentify} disabled={p.identifying || p.phone.replace(/\D/g, "").length < 9}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Delete } from "lucide-react";
 
 const SESSION_KEY = "be_internal_auth";
@@ -13,12 +14,14 @@ const T = {
     subtitle: "הזן קוד לכניסה",
     wrong:    "קוד שגוי",
     footer:   "בניין איתן — גישה פנימית בלבד",
+    joinCta:  "עובד חדש? לחץ כאן",
   },
   en: {
     title:    "Staff Portal",
     subtitle: "Enter PIN to continue",
     wrong:    "Incorrect PIN",
     footer:   "Binyan Eitan — Internal Access Only",
+    joinCta:  "New worker? Click here",
   },
 } as const;
 
@@ -207,6 +210,16 @@ export default function PinGate({ children, lang = "he" }: { children: React.Rea
       <p className="font-body text-xs tracking-[0.2em] uppercase text-charcoal/20 mt-2">
         {t.footer}
       </p>
+
+      {/* Join-request CTA — the only path for a worker who doesn't yet
+          have a PIN. Kept visually subtle (charcoal/55, no underline by
+          default) so it doesn't compete with the keypad. */}
+      <Link
+        href="/he/join"
+        className="font-body text-xs text-charcoal/55 hover:text-accent underline-offset-4 hover:underline transition-colors"
+      >
+        {t.joinCta}
+      </Link>
 
       {/* Shake keyframes injected inline */}
       <style>{`
