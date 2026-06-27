@@ -36,6 +36,7 @@ import DashboardTab from "../admin/_components/tabs/DashboardTab";
 import PayrollTab from "../admin/_components/tabs/PayrollTab";
 import QuotesTab from "../admin/_components/tabs/QuotesTab";
 import DocumentsTab from "../admin/_components/tabs/DocumentsTab";
+import JoinRequestsTab, { type JoinRequest } from "../admin/_components/tabs/JoinRequestsTab";
 import { useVacationDrawer } from "../admin/_components/hooks/useVacationDrawer";
 import { useChangePassword } from "../admin/_components/hooks/useChangePassword";
 import { useIncomeForm } from "../admin/_components/hooks/useIncomeForm";
@@ -54,7 +55,7 @@ import type { WorkerHistoryDay } from "../../lib/worker-history-aggregate";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
-type AdminTab  = "dashboard" | "attendance" | "workers" | "projects" | "board" | "expenses" | "planning" | "matrix" | "income" | "reports" | "payroll" | "quotes" | "documents" | "account";
+type AdminTab  = "dashboard" | "attendance" | "workers" | "join_requests" | "projects" | "board" | "expenses" | "planning" | "matrix" | "income" | "reports" | "payroll" | "quotes" | "documents" | "account";
 type LoginMode = "pin" | "password";
 
 const HASH_TO_TAB: Record<string, AdminTab> = {
@@ -387,6 +388,15 @@ export default function AdminPortal() {
   const [pendingLoading,   setPendingLoading]   = useState(false);
   const [pendingErr,       setPendingErr]       = useState<string | null>(null);
 
+  // Join requests — public submissions from /he/join awaiting review.
+  // List lives here so the badge count on the "בקשות" tab stays visible
+  // from every other tab. Mutation (approve / reject) happens inside
+  // JoinRequestsTab + ApproveWorkerDialog; this just owns the list +
+  // a refresher.
+  const [joinRequests,     setJoinRequests]     = useState<JoinRequest[]>([]);
+  const [joinRequestsLoading, setJoinRequestsLoading] = useState(false);
+  const [joinRequestsErr,  setJoinRequestsErr]  = useState<string | null>(null);
+
   // Admin attendance — edit + manual + approve/reject + recent log
   const adminAtt = useAdminAttendance({
     reload: () => reload(),
@@ -670,7 +680,7 @@ export default function AdminPortal() {
     // Load on admin auth so the Attendance tab's red badge is accurate from
     // any starting tab. Also reload when the user opens Attendance to catch
     // anything created in the last 2 min between auto-refreshes.
-    if (authState === "admin") { loadPending(); loadCorrectionRequests(); }
+    if (authState === "admin") { loadPending(); loadCorrectionRequests(); loadJoinRequests(); }
   }, [authState, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-refresh attendance every 60 s ────────────────────────────────────
@@ -792,6 +802,16 @@ export default function AdminPortal() {
     finally { setPendingLoading(false); }
   }
 
+  async function loadJoinRequests() {
+    setJoinRequestsLoading(true); setJoinRequestsErr(null);
+    try {
+      const res = await fetch("/api/admin/join-requests?status=pending");
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error ?? `שגיאה ${res.status}`); }
+      const d = await res.json(); setJoinRequests(d.requests ?? []);
+    } catch (e) { setJoinRequestsErr(String(e)); }
+    finally { setJoinRequestsLoading(false); }
+  }
+
   async function loadCorrectionRequests() {
     setCorrectionsLoading(true); setCorrectionsErr(null);
     try {
@@ -838,6 +858,8 @@ export default function AdminPortal() {
       else if (tab === "income")                            { await loadIncome();    setLastRefreshed(new Date()); }
       else if (tab === "attendance" && authState === "admin")
         await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests()]);
+      else if (tab === "join_requests" && authState === "admin")
+        await loadJoinRequests();
       else
         await loadData(authState as "admin" | "foreman");
       // loadData's finally sets lastRefreshed for the branches above that call it
@@ -1093,6 +1115,7 @@ export default function AdminPortal() {
     { key: "dashboard",  label: "דשבורד",   icon: <LayoutDashboard size={13} /> },
     { key: "attendance", label: "נוכחות",    icon: <ClipboardList size={13} />,  adminOnly: true },
     { key: "workers",    label: "עובדים",    icon: <UserPlus size={13} />,       adminOnly: true },
+    { key: "join_requests", label: "בקשות",  icon: <UserPlus size={13} />,       adminOnly: true },
     { key: "projects",   label: "פרויקטים",  icon: <Building2 size={13} />,      adminOnly: true },
     { key: "board",      label: "שיבוץ",     icon: <Users size={13} />,           adminOnly: true },
     { key: "expenses",   label: "הוצאות",    icon: <Package size={13} /> },
@@ -1263,9 +1286,10 @@ export default function AdminPortal() {
         {/* Tab bar */}
         <div className="flex flex-wrap border-b border-charcoal/10">
           {TABS.map(t => {
-            // Only Attendance carries the pending-approvals badge for now.
-            // Easy to extend later: keep the count source local to the tab def.
-            const badgeCount = t.key === "attendance" ? pendingRecords.length : 0;
+            // Tab badges — each surfaces its own "waiting for you" count.
+            const badgeCount =
+              t.key === "attendance"     ? pendingRecords.length :
+              t.key === "join_requests"  ? joinRequests.length   : 0;
             return (
               <button
                 key={t.key}
@@ -1445,6 +1469,20 @@ export default function AdminPortal() {
             refreshing={refreshing}
             dataLoading={dataLoading}
             onTabRefresh={handleTabRefresh}
+          />
+        )}
+
+        {/* ── JOIN REQUESTS (admin only) ─────────────────────────────────────
+            Queue of public submissions from /he/join. Loading + state live
+            in this portal so the tab badge stays accurate from any other
+            tab. Approve creates a staff row via the regular POST /api/
+            admin/staff and links the request — see ApproveWorkerDialog. */}
+        {tab === "join_requests" && isAdmin && (
+          <JoinRequestsTab
+            requests={joinRequests}
+            loading={joinRequestsLoading}
+            error={joinRequestsErr}
+            onReload={loadJoinRequests}
           />
         )}
 
