@@ -103,10 +103,10 @@ export default function ScheduleByProjectTable({
             spilling. min-w-[680px] sits a touch wider than the
             by-worker table because each cell here can hold a wrap of
             worker chips. */}
-        <table className="w-full text-xs border-collapse table-fixed min-w-[680px]">
+        <table className="w-full text-xs border-collapse table-fixed min-w-[760px]">
           <colgroup>
             {days.map((d) => <col key={d} />)}
-            <col className="w-[140px]" />
+            <col className="w-[200px]" />
           </colgroup>
           <thead className="bg-bone">
             <tr>

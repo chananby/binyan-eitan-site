@@ -108,10 +108,10 @@ export default function ScheduleTable({
             ergonomics — on phones the table is wider than the screen
             and the sticky-end name column stays visible while the days
             scroll. */}
-        <table className="w-full text-xs border-collapse table-fixed min-w-[600px]">
+        <table className="w-full text-xs border-collapse table-fixed min-w-[720px]">
           <colgroup>
             {days.map((d) => <col key={d} />)}
-            <col className="w-[120px]" />
+            <col className="w-[260px]" />
           </colgroup>
           <thead className="bg-bone">
             <tr>
