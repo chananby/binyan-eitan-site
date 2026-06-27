@@ -37,7 +37,7 @@ import {
   distinctTempWorkers,
 } from "../../../../lib/schedule-state";
 
-interface WorkerRef { id: string; name: string; label?: string | null }
+interface WorkerRef { id: string; name: string; role?: string | null; label?: string | null }
 interface ProjectRef { id: string; name: string }
 interface ManualProjectRef { id: string; name: string }
 interface VacationRow { staff_id: string; date: string; half_day: boolean }
@@ -139,6 +139,7 @@ export default function ScheduleTable({
                 displayName={w.name}
                 tag={w.label ?? null}
                 isTemp={false}
+                role={w.role ?? null}
                 days={days}
                 grouped={grouped}
                 projectsById={projectsById}
@@ -170,6 +171,7 @@ export default function ScheduleTable({
                     displayName={name}
                     tag={null}
                     isTemp={true}
+                    role={null}
                     days={days}
                     grouped={grouped}
                     projectsById={projectsById}
@@ -197,6 +199,10 @@ interface RowProps {
   displayName: string;
   tag: string | null;
   isTemp: boolean;
+  /** staff.role — drives the foreman colour (role==='ממונה'). null for
+   *  temp rows. The GET filter restricts to 'עובד'/'ממונה' so we treat
+   *  any non-foreman value as a regular worker. */
+  role: string | null;
   days: string[];
   grouped: ReadonlyMap<string, ReadonlyMap<string, ScheduleCell>>;
   projectsById: ReadonlyMap<string, ProjectRef>;
@@ -208,6 +214,7 @@ interface RowProps {
 }
 
 function WorkerRow(p: RowProps) {
+  const isForeman = !p.isTemp && p.role === "ממונה";
   return (
     <tr className="hover:bg-bone/40 transition-colors">
       {p.days.map((d) => {
@@ -253,12 +260,21 @@ function WorkerRow(p: RowProps) {
           <UserRound
             size={11}
             strokeWidth={1.5}
-            className={p.isTemp ? "text-amber-500 shrink-0" : "text-charcoal/40 shrink-0"}
+            className={
+              p.isTemp    ? "text-amber-500 shrink-0"
+              : isForeman ? "text-sky-600 shrink-0"
+              :             "text-charcoal/40 shrink-0"
+            }
           />
           <span className="font-semibold text-charcoal truncate">{p.displayName}</span>
           {p.isTemp && (
             <span className="font-body text-[0.6rem] text-amber-700 px-1 py-0.5 rounded bg-amber-100 shrink-0">
               ידני
+            </span>
+          )}
+          {isForeman && (
+            <span className="font-body text-[0.6rem] text-sky-700 px-1 py-0.5 rounded bg-sky-50 shrink-0">
+              מנהל
             </span>
           )}
           {p.tag && (

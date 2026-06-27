@@ -33,7 +33,7 @@ import {
   projectKeyString,
 } from "../../../../lib/schedule-state";
 
-interface WorkerRef        { id: string; name: string }
+interface WorkerRef        { id: string; name: string; role?: string | null }
 interface ProjectRefLite   { id: string; name: string }
 interface ManualProjectRef { id: string; name: string }
 
@@ -206,13 +206,21 @@ function ProjectRow(p: RowProps) {
               <span className="text-charcoal/25" aria-label="ללא שיבוץ">—</span>
             ) : (
               <div className="flex flex-wrap gap-1 justify-center">
-                {list.map((wk) => (
-                  <WorkerChipMini
-                    key={wk.kind === "staff" ? "s:" + wk.id : "t:" + wk.name}
-                    workerKey={wk}
-                    label={workerLabel(wk, p.workersById)}
-                  />
-                ))}
+                {list.map((wk) => {
+                  // role lives on staff rows only — temps have no
+                  // staff record and thus never carry the foreman flag.
+                  const isForeman =
+                    wk.kind === "staff" &&
+                    p.workersById.get(wk.id)?.role === "ממונה";
+                  return (
+                    <WorkerChipMini
+                      key={wk.kind === "staff" ? "s:" + wk.id : "t:" + wk.name}
+                      workerKey={wk}
+                      label={workerLabel(wk, p.workersById)}
+                      isForeman={isForeman}
+                    />
+                  );
+                })}
               </div>
             )}
           </td>
@@ -242,26 +250,34 @@ function ProjectRow(p: RowProps) {
 }
 
 function WorkerChipMini({
-  workerKey, label,
+  workerKey, label, isForeman,
 }: {
   workerKey: WorkerKey;
   label: string;
+  /** Tints the chip sky-blue to signal staff.role==='ממונה'. Mutually
+   *  exclusive with isTemp at the data level (a temp has no staff row). */
+  isForeman: boolean;
 }) {
   const isTemp = workerKey.kind === "temp";
+  // Three categories: temp (amber, existing) → foreman (sky) → regular
+  // (charcoal/white, default). Tested in that order so a temp can never
+  // accidentally render as a foreman even if the parent passes both.
+  const variantClasses =
+    isTemp
+      ? "bg-amber-50 border-amber-300/70 text-amber-800"
+      : isForeman
+        ? "bg-sky-50 border-sky-300/70 text-sky-800"
+        : "bg-white border-charcoal/12 text-charcoal";
+  const iconClass =
+    isTemp ? "text-amber-500 shrink-0" :
+    isForeman ? "text-sky-600 shrink-0" :
+    "text-charcoal/60 shrink-0";
   return (
     <span
       title={label}
-      className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold max-w-[110px] ${
-        isTemp
-          ? "bg-amber-50 border-amber-300/70 text-amber-800"
-          : "bg-white border-charcoal/12 text-charcoal"
-      }`}
+      className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold max-w-[110px] ${variantClasses}`}
     >
-      <UserRound
-        size={9}
-        strokeWidth={1.75}
-        className={isTemp ? "text-amber-500 shrink-0" : "text-charcoal/60 shrink-0"}
-      />
+      <UserRound size={9} strokeWidth={1.75} className={iconClass} />
       <span className="truncate">{label}</span>
     </span>
   );
