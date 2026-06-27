@@ -35,7 +35,12 @@ interface Props {
   requests: JoinRequest[];
   loading: boolean;
   error: string | null;
+  /** Refetch the join requests list — bound to "רענן" and to post-reject. */
   onReload: () => void | Promise<void>;
+  /** Called after an approval succeeds. The container refreshes both the
+   *  requests list (the approved one drops from pending) and the workers
+   *  list (the new staff row needs to appear without a hard reload). */
+  onApproved: () => void | Promise<void>;
 }
 
 function formatWhen(iso: string): string {
@@ -48,7 +53,7 @@ function formatWhen(iso: string): string {
   } catch { return iso; }
 }
 
-export default function JoinRequestsTab({ requests, loading, error, onReload }: Props) {
+export default function JoinRequestsTab({ requests, loading, error, onReload, onApproved }: Props) {
   const [approveFor, setApproveFor] = useState<JoinRequest | null>(null);
   const [rejecting,  setRejecting]  = useState<string | null>(null);
 
@@ -175,7 +180,7 @@ export default function JoinRequestsTab({ requests, loading, error, onReload }: 
         onClose={() => setApproveFor(null)}
         onApproved={async () => {
           setApproveFor(null);
-          await onReload();
+          await onApproved();
         }}
       />
     </div>

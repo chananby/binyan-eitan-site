@@ -812,6 +812,16 @@ export default function AdminPortal() {
     finally { setJoinRequestsLoading(false); }
   }
 
+  // Focused staff refresh — used after a join request is approved (which
+  // creates a new staff row via POST /api/admin/staff). loadData() also
+  // refreshes staff but reloads every other admin slice too; this one
+  // touches only what changed.
+  async function loadStaff() {
+    const res = await fetch("/api/admin/staff");
+    if (res.status === 401) { await expireSession(); return; }
+    if (res.ok) { const d = await res.json(); setStaff(d.staff ?? []); }
+  }
+
   async function loadCorrectionRequests() {
     setCorrectionsLoading(true); setCorrectionsErr(null);
     try {
@@ -1483,6 +1493,9 @@ export default function AdminPortal() {
             loading={joinRequestsLoading}
             error={joinRequestsErr}
             onReload={loadJoinRequests}
+            onApproved={async () => {
+              await Promise.all([loadJoinRequests(), loadStaff()]);
+            }}
           />
         )}
 
