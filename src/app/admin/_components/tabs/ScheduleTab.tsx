@@ -20,8 +20,8 @@
  */
 
 import { useEffect, useState, useCallback } from "react";
-import { Loader2, AlertTriangle, RefreshCw, Users, Building2 } from "lucide-react";
-import { getSundayLocal } from "../../../../lib/israel-week";
+import { Loader2, AlertTriangle, RefreshCw, Users, Building2, Copy } from "lucide-react";
+import { getSundayLocal, addWeeks } from "../../../../lib/israel-week";
 import type {
   ScheduleAssignment,
   ScheduleCell,
@@ -102,6 +102,10 @@ export default function ScheduleTab() {
   // hard reload (no localStorage on purpose; the by-site view is for
   // glances, not the working mode).
   const [view,    setView]    = useState<View>("worker");
+  // Set while the copy-to-next-week POST is in flight. Disables the
+  // copy button + the WeekPicker chevrons so the admin can't pile a
+  // navigation on top of a destructive write.
+  const [copyBusy, setCopyBusy] = useState(false);
 
   const load = useCallback(async (week: string) => {
     setLoading(true);
@@ -287,6 +291,50 @@ export default function ScheduleTab() {
     }
   }, [data, dialog, sunday]);
 
+  // Copy the displayed week into the next one. Server enforces a
+  // confirm dance: first POST returns 409 with a count if the target
+  // is non-empty; we ask the admin, then re-POST with force:true.
+  // Vacation rows that intersect target days are skipped server-side
+  // — we surface a small alert only when that happens. On success the
+  // displayed week advances by one so the result is visible.
+  const handleCopyWeek = useCallback(async () => {
+    if (copyBusy) return;
+    if (!data || data.schedule.length === 0) return;
+    setCopyBusy(true);
+    try {
+      const post = async (force: boolean) =>
+        fetch("/api/admin/schedule/copy-week", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ source_sunday: sunday, force }),
+        });
+
+      let res = await post(false);
+      if (res.status === 409) {
+        const { existing_count } = await res.json().catch(() => ({ existing_count: 0 }));
+        const ok = window.confirm(
+          `בשבוע היעד כבר יש ${existing_count} שיבוצים. ההעתקה תדרוס אותם — להמשיך?`,
+        );
+        if (!ok) return;
+        res = await post(true);
+      }
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}));
+        alert(`ההעתקה נכשלה: ${b.error ?? res.status}`);
+        return;
+      }
+      const out = (await res.json()) as { skipped_vacation?: Array<{ staff_id: string; date: string }> };
+      if (out.skipped_vacation && out.skipped_vacation.length > 0) {
+        alert(`הועתק. ${out.skipped_vacation.length} שיבוצים דולגו כי לעובד יש חופש ביום היעד.`);
+      }
+      setSunday(addWeeks(sunday, 1));  // load() runs from the useEffect
+    } catch {
+      alert("שגיאת רשת — נסה שוב.");
+    } finally {
+      setCopyBusy(false);
+    }
+  }, [copyBusy, data, sunday]);
+
   // Add-temp form handler. Returns ok/error so the form can show a
   // status message. Real work: POST one row + reload the week.
   const handleAddTemp = useCallback(async (input: {
@@ -362,6 +410,20 @@ export default function ScheduleTab() {
             : "תצוגה לפי אתר — צפייה בלבד. עריכה במבט 'לפי עובד'."}
         </p>
 
+        <button
+          type="button"
+          onClick={handleCopyWeek}
+          disabled={copyBusy || !data || data.schedule.length === 0}
+          title={
+            !data || data.schedule.length === 0
+              ? "אין מה להעתיק בשבוע הזה"
+              : "העתק את התכנון לשבוע הבא"
+          }
+          className="flex items-center gap-1 text-xs text-charcoal/65 hover:text-accent disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+        >
+          {copyBusy ? <Loader2 size={12} className="animate-spin" /> : <Copy size={12} />}
+          העתק לשבוע הבא
+        </button>
         <button
           type="button"
           onClick={() => load(sunday)}

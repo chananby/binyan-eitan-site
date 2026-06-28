@@ -262,6 +262,87 @@ export function isUnassignedWorkday(
   return true;
 }
 
+/** Source row shape used by the copy-week endpoint — adds status +
+ *  note on top of ScheduleAssignment so the copy preserves those
+ *  fields. Both are nullable / DB-defaulted; the UI doesn't surface
+ *  them yet but the copy must not silently drop them, so a row that
+ *  was created out-of-band keeps its semantics on the target side. */
+export interface CopyableScheduleRow {
+  staff_id: string | null;
+  temp_name: string | null;
+  date: string;
+  project_id: string | null;
+  project_name: string | null;
+  status?: string | null;
+  note?: string | null;
+}
+
+/** Insert payload produced by buildCopyTargetRows — the route appends
+ *  created_by + updated_at before sending to the DB. */
+export interface CopyTargetInsert {
+  staff_id: string | null;
+  temp_name: string | null;
+  date: string;
+  project_id: string | null;
+  project_name: string | null;
+  status: string | null;
+  note: string | null;
+}
+
+/** Build the target-week insert payload from the source rows.
+ *
+ *  • date is mapped through `sourceDates → targetDates` by index. The
+ *    caller passes the pair (both ascending Sun→Thu); a source row
+ *    whose date isn't in `sourceDates` is dropped (defensive — the
+ *    SELECT range should make that impossible, but a row at a stray
+ *    date shouldn't crash the build).
+ *  • staff rows whose `(staff_id, target_date)` lives in `vacationKeys`
+ *    are skipped: a vacation in the target week wins over a copied
+ *    site assignment. Temps don't appear in vacation_days so they
+ *    always carry over.
+ *  • status + note are forwarded verbatim. `id`, `updated_at`,
+ *    `created_by` are NOT set — the DB assigns id, the route stamps
+ *    the audit columns at INSERT time.
+ *
+ *  Also returns the list of skipped (staff_id, target_date) pairs so
+ *  the UI can tell the admin "N rows landed on a vacation day and
+ *  were skipped". */
+export function buildCopyTargetRows(
+  sourceRows: ReadonlyArray<CopyableScheduleRow>,
+  vacationKeys: ReadonlySet<string>,
+  sourceDates: ReadonlyArray<string>,
+  targetDates: ReadonlyArray<string>,
+): {
+  inserts: CopyTargetInsert[];
+  skippedVacation: Array<{ staff_id: string; date: string }>;
+} {
+  const dateMap = new Map<string, string>();
+  const len = Math.min(sourceDates.length, targetDates.length);
+  for (let i = 0; i < len; i++) dateMap.set(sourceDates[i], targetDates[i]);
+
+  const inserts: CopyTargetInsert[] = [];
+  const skippedVacation: Array<{ staff_id: string; date: string }> = [];
+
+  for (const row of sourceRows) {
+    const targetDate = dateMap.get(row.date);
+    if (!targetDate) continue;
+    if (row.staff_id && vacationKeys.has(row.staff_id + "|" + targetDate)) {
+      skippedVacation.push({ staff_id: row.staff_id, date: targetDate });
+      continue;
+    }
+    inserts.push({
+      staff_id:     row.staff_id,
+      temp_name:    row.temp_name,
+      date:         targetDate,
+      project_id:   row.project_id,
+      project_name: row.project_name,
+      status:       row.status ?? null,
+      note:         row.note   ?? null,
+    });
+  }
+  return { inserts, skippedVacation };
+}
+
 /** Row payloads for "apply this site to every day of the week". */
 export function applyToAllWeek(
   worker: WorkerKey,

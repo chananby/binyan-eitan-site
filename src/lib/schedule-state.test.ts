@@ -13,9 +13,11 @@ import {
   groupByProjectDate,
   cellWorkers,
   isUnassignedWorkday,
+  buildCopyTargetRows,
   type ScheduleAssignment,
   type WorkerKey,
   type ProjectRef,
+  type CopyableScheduleRow,
 } from "./schedule-state";
 import { getSundayLocal, addWeeks, WEEK_DAYS } from "./israel-week";
 
@@ -438,6 +440,76 @@ describe("isUnassignedWorkday — gap-detection for the by-worker view", () => {
     expect(
       isUnassignedWorkday({ id: "פועל יומי" /* role omitted */ }, DATE, grouped, new Set()),
     ).toBe(false);
+  });
+});
+
+describe("buildCopyTargetRows — week-to-week copy logic", () => {
+  const SOURCE = ["2026-06-28", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02"];
+  const TARGET = ["2026-07-05", "2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09"];
+
+  const src = (a: Partial<CopyableScheduleRow>): CopyableScheduleRow => ({
+    staff_id:     a.staff_id     ?? null,
+    temp_name:    a.temp_name    ?? null,
+    date:         a.date         ?? SOURCE[0],
+    project_id:   a.project_id   ?? null,
+    project_name: a.project_name ?? null,
+    status:       a.status       ?? null,
+    note:         a.note         ?? null,
+  });
+
+  it("maps each source date to the same index in target dates (+7 by convention)", () => {
+    const rows = [
+      src({ staff_id: "s1", date: SOURCE[0], project_id: "p1" }),
+      src({ staff_id: "s1", date: SOURCE[3], project_id: "p2" }),
+    ];
+    const { inserts, skippedVacation } = buildCopyTargetRows(rows, new Set(), SOURCE, TARGET);
+    expect(skippedVacation).toEqual([]);
+    expect(inserts).toHaveLength(2);
+    expect(inserts[0].date).toBe(TARGET[0]);  // Sun → Sun
+    expect(inserts[1].date).toBe(TARGET[3]);  // Wed → Wed
+  });
+
+  it("skips a staff row when (staff_id, target_date) lands on a vacation day", () => {
+    const rows = [
+      src({ staff_id: "s1", date: SOURCE[0], project_id: "p1" }),
+      src({ staff_id: "s1", date: SOURCE[1], project_id: "p1" }),  // target Mon — vacation
+    ];
+    const vac = new Set(["s1|" + TARGET[1]]);
+    const { inserts, skippedVacation } = buildCopyTargetRows(rows, vac, SOURCE, TARGET);
+    expect(inserts).toHaveLength(1);
+    expect(inserts[0].date).toBe(TARGET[0]);
+    expect(skippedVacation).toEqual([{ staff_id: "s1", date: TARGET[1] }]);
+  });
+
+  it("temp rows (staff_id null) are always copied — vacations don't apply to them", () => {
+    const rows = [
+      src({ temp_name: "פועל יומי", date: SOURCE[0], project_name: "אתר ידני" }),
+    ];
+    // Even if a "matching" vacation key existed under a fake id, temps
+    // wouldn't be filtered — they're keyed off staff_id which is null.
+    const vac = new Set(["|" + TARGET[0]]);
+    const { inserts, skippedVacation } = buildCopyTargetRows(rows, vac, SOURCE, TARGET);
+    expect(skippedVacation).toEqual([]);
+    expect(inserts).toHaveLength(1);
+    expect(inserts[0].temp_name).toBe("פועל יומי");
+    expect(inserts[0].project_name).toBe("אתר ידני");
+    expect(inserts[0].staff_id).toBeNull();
+  });
+
+  it("preserves status + note verbatim on the target row", () => {
+    const rows = [
+      src({
+        staff_id: "s1", date: SOURCE[0], project_id: "p1",
+        status: "off", note: "מילואים שמרנו ידנית",
+      }),
+    ];
+    const { inserts } = buildCopyTargetRows(rows, new Set(), SOURCE, TARGET);
+    expect(inserts[0].status).toBe("off");
+    expect(inserts[0].note).toBe("מילואים שמרנו ידנית");
+    // Audit columns are NOT set by the helper — the route stamps them.
+    expect(Object.hasOwn(inserts[0], "id")).toBe(false);
+    expect(Object.hasOwn(inserts[0], "created_by")).toBe(false);
+    expect(Object.hasOwn(inserts[0], "updated_at")).toBe(false);
   });
 });
 
