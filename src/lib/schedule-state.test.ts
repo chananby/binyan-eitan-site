@@ -12,6 +12,7 @@ import {
   projectKeyFromRow,
   groupByProjectDate,
   cellWorkers,
+  isUnassignedWorkday,
   type ScheduleAssignment,
   type WorkerKey,
   type ProjectRef,
@@ -390,6 +391,53 @@ describe("cellWorkers — list of workers planned at (project, date)", () => {
   it("unknown project → empty array", () => {
     expect(cellWorkers(grouped, REAL("p-unknown"), "2026-07-12")).toEqual([]);
     expect(cellWorkers(grouped, MANUAL("אתר Z"), "2026-07-12")).toEqual([]);
+  });
+});
+
+describe("isUnassignedWorkday — gap-detection for the by-worker view", () => {
+  const DATE = "2026-07-12";
+
+  it("regular worker, no vacation, no assignment → true (the actual gap)", () => {
+    const grouped = groupBySchedule([]);
+    expect(
+      isUnassignedWorkday({ id: "s1", role: "עובד" }, DATE, grouped, new Set()),
+    ).toBe(true);
+  });
+
+  it("foreman with the exact same empty schedule → false (managers don't need a site)", () => {
+    const grouped = groupBySchedule([]);
+    expect(
+      isUnassignedWorkday({ id: "s2", role: "ממונה" }, DATE, grouped, new Set()),
+    ).toBe(false);
+  });
+
+  it("regular worker on vacation that day → false (legitimate absence, not a gap)", () => {
+    const grouped = groupBySchedule([]);
+    const vac    = new Set(["s1|" + DATE]);
+    expect(
+      isUnassignedWorkday({ id: "s1", role: "עובד" }, DATE, grouped, vac),
+    ).toBe(false);
+  });
+
+  it("regular worker WITH a schedule row that day → false (already assigned)", () => {
+    const grouped = groupBySchedule([
+      mk({ staff_id: "s1", date: DATE, project_id: "p1" }),
+    ]);
+    expect(
+      isUnassignedWorkday({ id: "s1", role: "עובד" }, DATE, grouped, new Set()),
+    ).toBe(false);
+  });
+
+  it("temp worker (no role) → false (temps have no expectation of being placed)", () => {
+    const grouped = groupBySchedule([]);
+    // Mimic the shape distinctTempWorkers feeds the table — id is a
+    // synthetic name, role is undefined.
+    expect(
+      isUnassignedWorkday({ id: "פועל יומי", role: null }, DATE, grouped, new Set()),
+    ).toBe(false);
+    expect(
+      isUnassignedWorkday({ id: "פועל יומי" /* role omitted */ }, DATE, grouped, new Set()),
+    ).toBe(false);
   });
 });
 

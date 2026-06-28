@@ -225,6 +225,43 @@ export function buildAssignmentRow(
   };
 }
 
+/** Minimal worker shape that isUnassignedWorkday needs. Matches the
+ *  GET payload's staff row plus the role check — kept as a local type
+ *  so callers don't have to import a heavier UI WorkerRef. */
+export interface WorkerForUnassignedCheck {
+  id: string;
+  role?: string | null;
+}
+
+/** True when `worker` is a regular field worker (role==='עובד') who
+ *  has no schedule row for `date` AND is not on vacation that day.
+ *  This is the "should be on a site but isn't" signal the by-worker
+ *  table uses to surface gaps the admin still needs to fill.
+ *
+ *  Returns false for:
+ *    • foremen (role==='ממונה') and managers — they don't need a daily
+ *      site assignment; their absence from a cell is not a gap.
+ *    • temp workers — they have no role; they exist in the schedule
+ *      only because someone placed them. An "absent" temp isn't a
+ *      planning gap, it's just the default state.
+ *    • workers on vacation that day — the legitimate-absence case.
+ *    • workers who DO have a schedule row for that date.
+ *
+ *  The vacationKeys set is the same `staff_id|date` set built once at
+ *  the table level — passing the prebuilt set keeps this O(1) per
+ *  call instead of re-scanning the vacation list. */
+export function isUnassignedWorkday(
+  worker: WorkerForUnassignedCheck,
+  date: string,
+  grouped: ReadonlyMap<string, ReadonlyMap<string, ScheduleCell>>,
+  vacationKeys: ReadonlySet<string>,
+): boolean {
+  if (worker.role !== "עובד") return false;
+  if (vacationKeys.has(worker.id + "|" + date)) return false;
+  if (cellAt(grouped, { kind: "staff", id: worker.id }, date) !== null) return false;
+  return true;
+}
+
 /** Row payloads for "apply this site to every day of the week". */
 export function applyToAllWeek(
   worker: WorkerKey,

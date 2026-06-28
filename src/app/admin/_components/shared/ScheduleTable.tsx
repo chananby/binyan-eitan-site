@@ -35,6 +35,7 @@ import {
   groupBySchedule,
   cellAt,
   distinctTempWorkers,
+  isUnassignedWorkday,
 } from "../../../../lib/schedule-state";
 
 interface WorkerRef { id: string; name: string; role?: string | null; label?: string | null }
@@ -223,10 +224,23 @@ function WorkerRow(p: RowProps) {
           p.vacationStaffId !== null &&
           p.vacationKeys.has(p.vacationStaffId + "|" + d);
         const display = cellDisplay(cell, p.projectsById);
+        // "Unassigned workday" highlight — only meaningful for staff
+        // rows of role='עובד'; the helper short-circuits anyone else.
+        // We pass the synthesized {id, role} shape it expects.
+        const isUnassigned = !onVacation && !p.isTemp && isUnassignedWorkday(
+          { id: p.vacationStaffId ?? "", role: p.role },
+          d,
+          p.grouped,
+          p.vacationKeys,
+        );
+        const cellBorderClass = isUnassigned
+          ? "border border-red-300"
+          : "border border-warm-gray-light";
+        const cellBgClass = isUnassigned ? "bg-red-50" : "";
         return (
           <td
             key={d}
-            className="border border-warm-gray-light text-center align-middle p-0 overflow-hidden"
+            className={`${cellBorderClass} ${cellBgClass} text-center align-middle p-0 overflow-hidden`}
           >
             {onVacation ? (
               <div className="px-2 py-2">
