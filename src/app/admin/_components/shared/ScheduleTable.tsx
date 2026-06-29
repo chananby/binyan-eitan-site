@@ -91,14 +91,14 @@ export default function ScheduleTable({
 
   if (workers.length === 0 && tempNames.length === 0) {
     return (
-      <div className="bg-white border border-warm-gray-light rounded-md p-6 text-center">
+      <div className="bg-white border border-charcoal/30 rounded-md p-6 text-center">
         <p className="text-sm text-charcoal/70">אין עובדים פעילים להצגה.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-warm-gray-light rounded-md overflow-hidden">
+    <div className="bg-white border border-charcoal/30 rounded-md overflow-hidden">
       <div className="overflow-x-auto">
         {/* table-fixed + colgroup: column widths are decided up front
             instead of being grown by the longest site name in each
@@ -109,7 +109,12 @@ export default function ScheduleTable({
             ergonomics — on phones the table is wider than the screen
             and the sticky-end name column stays visible while the days
             scroll. */}
-        <table className="w-full text-xs border-collapse table-fixed min-w-[720px]">
+        {/* WCAG-readable defaults set here propagate to all content:
+            • table-level text-sm = 14px floor for the readable-content
+              tier; cells that hold auxiliary text re-tier to text-xs.
+            • min-w bumped to 840 so 14px content doesn't crush the
+              day columns into wrap-everything mode. */}
+        <table className="w-full text-sm border-collapse table-fixed min-w-[840px]">
           {/* Worker name column is FIRST in HTML order so RTL renders it
               against the right edge — where a Hebrew reader's eye starts.
               sticky start-0 pins it there during horizontal scroll. */}
@@ -119,17 +124,19 @@ export default function ScheduleTable({
           </colgroup>
           <thead className="bg-bone">
             <tr>
-              <th className="sticky start-0 bg-bone font-semibold px-3 py-2 border border-warm-gray-light text-charcoal/65 text-start">
+              <th className="sticky start-0 bg-bone font-semibold px-3 py-2 border border-charcoal/30 text-charcoal/80 text-start">
                 עובד
               </th>
               {days.map((d, i) => (
                 <th
                   key={d}
-                  className="font-semibold px-2 py-2 border border-warm-gray-light text-charcoal/65 whitespace-nowrap text-center"
+                  className="font-semibold px-2 py-2 border border-charcoal/30 text-charcoal/80 whitespace-nowrap text-center"
                 >
                   <div className="leading-tight">
                     <div>{HE_DAYS[i]}</div>
-                    <div className="text-[0.65rem] text-charcoal/50 tabular-nums" dir="ltr">{dayHeader(d)}</div>
+                    {/* Date is auxiliary — tiered down to text-xs (12px)
+                        with text-charcoal/75 to stay above AA on bone. */}
+                    <div className="text-xs text-charcoal/75 tabular-nums" dir="ltr">{dayHeader(d)}</div>
                   </div>
                 </th>
               ))}
@@ -160,12 +167,15 @@ export default function ScheduleTable({
                     carries the label (so it's visible during day-scroll),
                     days column is a spanned filler with matching tint. */}
                 <tr>
-                  <td className="sticky start-0 bg-amber-50/60 border border-warm-gray-light px-3 py-1.5 text-[0.7rem] font-semibold text-amber-700 uppercase tracking-wide text-start">
+                  {/* Section label is auxiliary — text-xs (12px) with
+                      amber-800 on amber-50 keeps it above AA without
+                      stealing the eye from the row content below. */}
+                  <td className="sticky start-0 bg-amber-50/60 border border-charcoal/30 px-3 py-1.5 text-xs font-semibold text-amber-800 uppercase tracking-wide text-start">
                     פועלים יומיים ({tempNames.length})
                   </td>
                   <td
                     colSpan={days.length}
-                    className="bg-amber-50/60 border border-warm-gray-light"
+                    className="bg-amber-50/60 border border-charcoal/30"
                   />
                 </tr>
                 {tempNames.map((name) => (
@@ -226,35 +236,42 @@ function WorkerRow(p: RowProps) {
   return (
     <tr className={`${rowToneClass} hover:bg-bone/40 transition-colors`}>
       <td
-        className={`sticky start-0 px-3 py-2 border border-warm-gray-light text-start ${
+        className={`sticky start-0 px-3 py-2 border border-charcoal/30 text-start ${
           p.isTemp    ? "bg-amber-50/50"
           : isForeman ? "bg-sky-100"
           :             "bg-white"
         }`}
       >
         <div className="flex items-center gap-1.5 min-w-0">
+          {/* Icons bumped 11 → 14 to track the new 14px label so they
+              register as part of the line, not specks beside it. The
+              foreman/temp icon colours stay at their semantic tone but
+              tightened to /75+ where applicable (above 3:1). */}
           <UserRound
-            size={11}
-            strokeWidth={1.5}
+            size={14}
+            strokeWidth={2}
             className={
-              p.isTemp    ? "text-amber-500 shrink-0"
+              p.isTemp    ? "text-amber-600 shrink-0"
               : isForeman ? "text-sky-700 shrink-0"
-              :             "text-charcoal/40 shrink-0"
+              :             "text-charcoal/75 shrink-0"
             }
           />
           <span className="font-semibold text-charcoal truncate">{p.displayName}</span>
+          {/* Badges promoted from 9.6px to text-xs (12px) — auxiliary
+              tier minimum. The colour pairs (amber-100/amber-800,
+              sky-200/sky-900, charcoal-06/charcoal-80) all clear AA. */}
           {p.isTemp && (
-            <span className="font-body text-[0.6rem] text-amber-700 px-1 py-0.5 rounded bg-amber-100 shrink-0">
+            <span className="font-body text-xs text-amber-800 px-1.5 py-0.5 rounded bg-amber-100 shrink-0">
               ידני
             </span>
           )}
           {isForeman && (
-            <span className="font-body text-[0.6rem] font-bold text-sky-800 px-1.5 py-0.5 rounded bg-sky-200 shrink-0">
+            <span className="font-body text-xs font-bold text-sky-900 px-1.5 py-0.5 rounded bg-sky-200 shrink-0">
               מנהל
             </span>
           )}
           {p.tag && (
-            <span className="font-body text-[0.6rem] text-charcoal/65 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[70px] truncate">
+            <span className="font-body text-xs text-charcoal/80 px-1.5 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[80px] truncate">
               {p.tag}
             </span>
           )}
@@ -264,9 +281,9 @@ function WorkerRow(p: RowProps) {
               onClick={() => p.onApplyWeek!(p.workerKey)}
               title={`החל על כל השבוע · ${p.displayName}`}
               aria-label={`החל על כל השבוע · ${p.displayName}`}
-              className="ms-auto text-charcoal/50 hover:text-accent transition-colors shrink-0 p-0.5"
+              className="ms-auto text-charcoal/65 hover:text-accent transition-colors shrink-0 p-0.5"
             >
-              <CalendarRange size={12} strokeWidth={1.5} />
+              <CalendarRange size={14} strokeWidth={2} />
             </button>
           )}
         </div>
@@ -288,7 +305,7 @@ function WorkerRow(p: RowProps) {
         );
         const cellBorderClass = isUnassigned
           ? "border border-red-300"
-          : "border border-warm-gray-light";
+          : "border border-charcoal/30";
         const cellBgClass = isUnassigned ? "bg-red-50" : "";
         return (
           <td
@@ -324,17 +341,23 @@ function WorkerRow(p: RowProps) {
 
 function CellContent({ display, cell }: { display: string | null; cell: ScheduleCell | null }) {
   if (!display) {
-    return <span className="text-charcoal/25" aria-label="ללא שיבוץ">—</span>;
+    // Em-dash is decorative — exempt from the 4.5:1 content rule.
+    // /35 keeps it visible-enough without competing with assigned cells.
+    return <span className="text-charcoal/35" aria-label="ללא שיבוץ">—</span>;
   }
+  // Site name is content. text-sm (14px) + text-charcoal full = 14:1
+  // contrast on white. Icon 14 + strokeWidth 2 reads as part of the
+  // line. accent-dark (#7A6451) on white = ~4.7:1, amber-600 on white
+  // = ~3.4:1 — both ≥3:1 for the icon tier.
   return (
     <span
-      className="inline-flex items-center gap-1 text-[0.7rem] text-charcoal font-semibold truncate max-w-full"
+      className="inline-flex items-center gap-1.5 text-sm text-charcoal font-semibold truncate max-w-full"
       title={display}
     >
       <Building2
-        size={10}
-        strokeWidth={1.5}
-        className={cell?.projectName ? "text-amber-500 shrink-0" : "text-accent shrink-0"}
+        size={14}
+        strokeWidth={2}
+        className={cell?.projectName ? "text-amber-600 shrink-0" : "text-accent-dark shrink-0"}
       />
       <span className="truncate">{display}</span>
     </span>

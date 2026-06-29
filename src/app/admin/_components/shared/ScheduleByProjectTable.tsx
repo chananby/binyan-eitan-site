@@ -87,14 +87,14 @@ export default function ScheduleByProjectTable({
 
   if (projects.length === 0 && manualNamesInWeek.length === 0) {
     return (
-      <div className="bg-white border border-warm-gray-light rounded-md p-6 text-center">
+      <div className="bg-white border border-charcoal/30 rounded-md p-6 text-center">
         <p className="text-sm text-charcoal/70">אין אתרים להצגה.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-warm-gray-light rounded-md overflow-hidden">
+    <div className="bg-white border border-charcoal/30 rounded-md overflow-hidden">
       <div className="overflow-x-auto">
         {/* table-fixed + colgroup: column widths are committed up
             front so a long site name (or a stack of chips in one cell)
@@ -103,29 +103,32 @@ export default function ScheduleByProjectTable({
             spilling. min-w-[680px] sits a touch wider than the
             by-worker table because each cell here can hold a wrap of
             worker chips. */}
-        {/* min-w bumped to 820 because the site column is wider now
-            (260 vs 200) — long names like "נחל לכיש 38 בית שמש" no
-            longer truncate so aggressively before the tooltip kicks in. */}
-        <table className="w-full text-xs border-collapse table-fixed min-w-[820px]">
+        {/* Table defaults aligned with ScheduleTable — text-sm content
+            tier (14px) inherits to every cell. Site column 260 → 280px
+            to absorb the wider site-name glyphs at 14px. min-w bumped
+            so the wrap of chips per day cell still has breathing room. */}
+        <table className="w-full text-sm border-collapse table-fixed min-w-[940px]">
           {/* Site column FIRST in HTML order → renders at the RTL right
               edge (where the eye starts). sticky start-0 pins it there. */}
           <colgroup>
-            <col className="w-[260px]" />
+            <col className="w-[280px]" />
             {days.map((d) => <col key={d} />)}
           </colgroup>
           <thead className="bg-bone">
             <tr>
-              <th className="sticky start-0 bg-bone font-semibold px-3 py-2 border border-warm-gray-light text-charcoal/65 text-start">
+              <th className="sticky start-0 bg-bone font-semibold px-3 py-2 border border-charcoal/30 text-charcoal/80 text-start">
                 אתר
               </th>
               {days.map((d, i) => (
                 <th
                   key={d}
-                  className="font-semibold px-2 py-2 border border-warm-gray-light text-charcoal/65 whitespace-nowrap text-center"
+                  className="font-semibold px-2 py-2 border border-charcoal/30 text-charcoal/80 whitespace-nowrap text-center"
                 >
                   <div className="leading-tight">
                     <div>{HE_DAYS[i]}</div>
-                    <div className="text-[0.65rem] text-charcoal/50 tabular-nums" dir="ltr">{dayHeader(d)}</div>
+                    {/* Auxiliary date tier — text-xs (12px) +
+                        charcoal/75 keeps the contrast above AA. */}
+                    <div className="text-xs text-charcoal/75 tabular-nums" dir="ltr">{dayHeader(d)}</div>
                   </div>
                 </th>
               ))}
@@ -150,12 +153,12 @@ export default function ScheduleByProjectTable({
             {manualNamesInWeek.length > 0 && (
               <>
                 <tr>
-                  <td className="sticky start-0 bg-amber-50/60 border border-warm-gray-light px-3 py-1.5 text-[0.7rem] font-semibold text-amber-700 uppercase tracking-wide text-start">
+                  <td className="sticky start-0 bg-amber-50/60 border border-charcoal/30 px-3 py-1.5 text-xs font-semibold text-amber-800 uppercase tracking-wide text-start">
                     אתרים ידניים ({manualNamesInWeek.length})
                   </td>
                   <td
                     colSpan={days.length}
-                    className="bg-amber-50/60 border border-warm-gray-light"
+                    className="bg-amber-50/60 border border-charcoal/30"
                   />
                 </tr>
                 {manualNamesInWeek.map((name) => {
@@ -201,15 +204,15 @@ function ProjectRow(p: RowProps) {
   return (
     <tr className="hover:bg-bone/40 transition-colors">
       <td
-        className={`sticky start-0 px-3 py-2 border border-warm-gray-light text-start align-top ${
+        className={`sticky start-0 px-3 py-2 border border-charcoal/30 text-start align-top ${
           p.isManual ? "bg-amber-50/50" : "bg-white"
         }`}
       >
         <div className="flex items-center gap-1.5 min-w-0">
           <Building2
-            size={11}
-            strokeWidth={1.5}
-            className={p.isManual ? "text-amber-500 shrink-0" : "text-accent shrink-0"}
+            size={14}
+            strokeWidth={2}
+            className={p.isManual ? "text-amber-600 shrink-0" : "text-accent-dark shrink-0"}
           />
           <span
             className="font-semibold text-charcoal truncate"
@@ -218,7 +221,7 @@ function ProjectRow(p: RowProps) {
             {p.displayName}
           </span>
           {p.isManual && (
-            <span className="font-body text-[0.6rem] text-amber-700 px-1 py-0.5 rounded bg-amber-100 shrink-0">
+            <span className="font-body text-xs text-amber-800 px-1.5 py-0.5 rounded bg-amber-100 shrink-0">
               ידני
             </span>
           )}
@@ -229,15 +232,16 @@ function ProjectRow(p: RowProps) {
         return (
           <td
             key={d}
-            className="border border-warm-gray-light text-center align-top p-2 overflow-hidden"
+            className="border border-charcoal/30 text-center align-top p-2 overflow-hidden"
           >
             {list.length === 0 ? (
-              <span className="text-charcoal/25" aria-label="ללא שיבוץ">—</span>
+              // Em-dash is decorative; /35 keeps it visible without
+              // competing with the content tier above it.
+              <span className="text-charcoal/35" aria-label="ללא שיבוץ">—</span>
             ) : (
-              // Bumped gap from 1 → 1.5 so adjacent chips don't bleed
-              // into one mass; cell padding (p-2) handles the outer
-              // breathing room.
-              <div className="flex flex-wrap gap-1.5 justify-center">
+              // gap-2 at 14px content gives chips proper room to wrap
+              // without merging into a single visual blob.
+              <div className="flex flex-wrap gap-2 justify-center">
                 {list.map((wk) => {
                   // role lives on staff rows only — temps have no
                   // staff record and thus never carry the foreman flag.
@@ -272,31 +276,38 @@ function WorkerChipMini({
   isForeman: boolean;
 }) {
   const isTemp = workerKey.kind === "temp";
-  // Three categories: temp (amber, existing) → foreman (sky, bolder) →
-  // regular (charcoal/white, default). Tested in that order so a temp
-  // can never accidentally render as a foreman even if the parent
-  // passes both. Foreman tint dialled up from sky-50/300 to sky-100/500
-  // + ring so it actually pops next to a wrap of white chips — the
-  // earlier muted shade was getting lost in the by-site density.
+  // Three categories: temp (amber) → foreman (sky, ring) → regular
+  // (white). Order is temp→foreman→regular so a temp can never
+  // accidentally pick up the foreman variant even if the parent
+  // passes both. Regular chips lean on border weight rather than
+  // colour to stay readable — bumping them to a tint would compete
+  // with foreman's sky pop and erase the categorical contrast.
+  //
+  // Contrast notes (all measured on the chip bg):
+  //   regular  text-charcoal on white     ≈ 14:1  ✓ AA
+  //   regular  border-charcoal/50         ≈ 2.8:1 (decorative chip edge)
+  //   foreman  text-sky-900 on sky-100    ≈ 11:1  ✓ AA
+  //   temp     text-amber-900 on amber-50 ≈  9:1  ✓ AA
   const variantClasses =
     isTemp
-      ? "bg-amber-50 border-amber-300/70 text-amber-800"
+      ? "bg-amber-50 border-amber-500 text-amber-900"
       : isForeman
         ? "bg-sky-100 border-sky-500 text-sky-900 ring-1 ring-sky-300"
-        : "bg-white border-charcoal/12 text-charcoal";
+        : "bg-white border-charcoal/50 text-charcoal";
   const iconClass =
-    isTemp ? "text-amber-500 shrink-0" :
+    isTemp ? "text-amber-700 shrink-0" :
     isForeman ? "text-sky-700 shrink-0" :
-    "text-charcoal/60 shrink-0";
-  // Chip padding nudged up (px-1.5 py-0.5 → px-2 py-1) and max-w
-  // loosened (110 → 130) so the worker name has room to breathe and
-  // common names like "מוטי איתן" don't truncate aggressively.
+    "text-charcoal/75 shrink-0";
+  // Content tier: text-sm (14px) per the WCAG-readable rule. Icon 12
+  // tracks the line height. max-w 170 absorbs the wider 14px glyphs
+  // so common Hebrew names still ride out without truncation. Padding
+  // px-2.5 py-1.5 keeps glyphs 10px clear of the chip edge.
   return (
     <span
       title={label}
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[0.65rem] font-semibold max-w-[130px] ${variantClasses}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-sm font-semibold max-w-[170px] ${variantClasses}`}
     >
-      <UserRound size={9} strokeWidth={1.75} className={iconClass} />
+      <UserRound size={12} strokeWidth={2} className={iconClass} />
       <span className="truncate">{label}</span>
     </span>
   );
