@@ -9,16 +9,16 @@
  *             Returns { ok, name } on success, 404 on no match.
  *   DELETE  — log out: clear the cookie ("החלף משתמש"). Always 200.
  *
- * Both GET and POST require the PIN cookie (verifyInternalToken) — the portal
- * is gated by a shared PIN at the layout level, and we don't want unauthed
- * traffic enumerating phones via this endpoint.
+ * Phone identification is the only worker-portal auth — the shared-PIN
+ * gate (be_internal_token) that used to wrap this route was removed
+ * because crew friction outweighed the enumeration deterrent it
+ * provided. Phone lookups are still rate-limited per IP (5/15min), so
+ * the attack surface is "guess one phone every three minutes" instead
+ * of the realtime fan-out without a limit.
  *
- * POST is rate-limited per IP with the same window as /api/internal-auth.
- *
- * Why this exists: until now, /api/worker/history and /api/worker/manual-entry
- * trusted whatever `phone` the client sent in the body — anyone with the PIN
- * could impersonate any worker. This endpoint moves identity to a signed
- * cookie the client cannot forge.
+ * Why this exists: history and manual-entry both trust the signed
+ * staff_id cookie this route issues, not the phone in the body — the
+ * caller can't forge a session for someone else's phone.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -26,7 +26,6 @@ import { createServerClient } from "../../../../lib/supabase";
 import { normalizePhone, phoneVariants } from "../../../../lib/phone";
 import { checkRateLimit, clientIp } from "../../../../lib/rate-limit";
 import {
-  verifyInternalToken,
   getWorkerStaffIdFromRequest,
   buildWorkerAuthCookie,
   buildWorkerClearCookie,
@@ -34,21 +33,8 @@ import {
 
 export const runtime = "nodejs";
 
-const INTERNAL_COOKIE = "be_internal_token";
-
-function requirePinCookie(req: NextRequest): NextResponse | null {
-  const token = req.cookies.get(INTERNAL_COOKIE)?.value ?? "";
-  if (!verifyInternalToken(token)) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-  return null;
-}
-
 // ── GET — whoami probe ───────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
-  const pinFail = requirePinCookie(req);
-  if (pinFail) return pinFail;
-
   const staffId = getWorkerStaffIdFromRequest(req);
   if (!staffId) return NextResponse.json({ ok: false }, { status: 401 });
 
@@ -70,12 +56,9 @@ export async function GET(req: NextRequest) {
 
 // ── POST — phone → cookie ────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
-  const pinFail = requirePinCookie(req);
-  if (pinFail) return pinFail;
-
-  // Rate-limit per IP — same posture as /api/internal-auth (5 attempts /
-  // 15 min). Keyed by IP + route so a spamming worker doesn't lock the
-  // shared PIN endpoint.
+  // Rate-limit per IP — 5 attempts / 15 min. This is now the *only*
+  // enumeration deterrent on the route; tightening it would be the
+  // first lever to pull if abuse appears.
   const rl = checkRateLimit(`${clientIp(req)}:worker-identify`);
   if (!rl.allowed) {
     return NextResponse.json(

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import PinGate from "../../components/PinGate";
+
+// See he/internal/layout.tsx for the rationale — PinGate is gone; phone
+// identify is the only auth from here on.
 
 export const metadata: Metadata = {
   robots: {
@@ -11,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function InternalLayoutEn({ children }: { children: React.ReactNode }) {
-  return <PinGate lang="en">{children}</PinGate>;
+  return <>{children}</>;
 }

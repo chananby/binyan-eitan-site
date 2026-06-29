@@ -5,7 +5,7 @@
 // view that surfaces input, submit, and error chrome.
 
 import Link from "next/link";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, UserPlus } from "lucide-react";
 import Screen from "./Screen";
 import type { Lang, ScreenStrings } from "./i18n";
 
@@ -62,6 +62,20 @@ export default function PhoneScreen(p: Props) {
           className="w-full bg-accent py-5 font-heading text-base font-bold tracking-[0.15em] uppercase text-bone transition-colors duration-200 hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2">
           {p.identifying ? <><Loader2 size={18} className="animate-spin" /> {p.t.identifying}</> : <>{p.t.identify}</>}
         </button>
+
+        {/* Permanent "new worker?" CTA — without the old PIN gate this
+            screen is the very first thing a brand-new worker sees, so the
+            join link has to be visible up front (not only inside the
+            notFound error block). Outlined-accent button to read as an
+            interactive secondary action without competing with the bone
+            "המשך" submit above. */}
+        <Link
+          href="/he/join"
+          className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-accent bg-white px-5 py-3 font-body text-sm font-semibold text-accent hover:bg-accent hover:text-bone transition-colors"
+        >
+          <UserPlus size={14} strokeWidth={2} />
+          {p.t.joinCta}
+        </Link>
       </div>
     </Screen>
   );

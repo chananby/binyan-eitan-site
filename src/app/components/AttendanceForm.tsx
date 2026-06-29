@@ -167,15 +167,6 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         feedback.error(); setIdentifyError(T[lang].notFound);
       } else if (res.status === 429) {
         feedback.error(); setIdentifyError(T[lang].tooManyAttempts);
-      } else if (res.status === 401) {
-        // 401 here means the be_internal_token (PIN) cookie expired or was
-        // wiped while sessionStorage still claimed authed. Show a message
-        // that matches what actually happened, drop the stale flag, then
-        // reload — PinGate's mount probe will see no flag and render the
-        // PIN keypad, letting the worker re-auth without manual recovery.
-        feedback.error(); setIdentifyError(T[lang].pinExpired);
-        try { sessionStorage.removeItem("be_internal_auth"); } catch { /* private mode */ }
-        setTimeout(() => { window.location.reload(); }, 1500);
       } else {
         feedback.error(); setIdentifyError(d?.error ?? T[lang].unknownError);
       }

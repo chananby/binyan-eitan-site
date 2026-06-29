@@ -5,8 +5,13 @@
 // split because Next.js metadata can only ship from a server component,
 // while the form needs hooks. Same shape as he/change-order/page.tsx.
 //
-// /he/join is a SIBLING of /he/internal — outside the PinGate layout
-// at /he/internal/layout.tsx — so a worker with no PIN can land here.
+// /he/join is a public route — any visitor with the URL can land here
+// and submit. The CTA into it lives in PhoneScreen so a new worker who
+// reaches the attendance entry without a staff row still has a path
+// forward. (Before the shared-PIN gate was removed, this page sat
+// outside that gate by virtue of being a sibling of /he/internal; now
+// both are public, and the form is the only thing standing between
+// "anyone" and a join_requests row — hence the rate limit on POST.)
 //
 // The form posts to /api/join-request (also public, rate-limited).
 // Client-side uses the SAME validateJoinRequest the server uses, so
