@@ -25,6 +25,23 @@ export function localISODate(d: Date): string {
   return d.toLocaleDateString("sv-SE"); // "sv-SE" gives YYYY-MM-DD format
 }
 
+/** YYYY-MM-DD for "today" in Israel local time, regardless of where the
+ *  server thinks it lives. Vercel functions run with TZ=UTC by default,
+ *  so a naive `new Date().toLocaleDateString("sv-SE")` returns the UTC
+ *  date — which is the *previous* day from ~22:00 IL onward (and lags
+ *  by two hours every night during the DST gap). We pin the timezone to
+ *  Asia/Jerusalem explicitly here so the unified board can ask "what is
+ *  today on site?" without caring about the deployment environment.
+ *
+ *  Reference for the unified-board work: schedule_assignments rows are
+ *  per-date, and the live board projects "WHERE date = todayLocal()". A
+ *  half-day skew between server and site would silently break the
+ *  "what's happening now" view, so this helper is the single, audited
+ *  source of `today`. */
+export function todayLocal(): string {
+  return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
+}
+
 /** Sunday of the week containing `date` (Israeli week start, day 0).
  *  Returns a YYYY-MM-DD string in local time. */
 export function getSundayLocal(date: Date): string {

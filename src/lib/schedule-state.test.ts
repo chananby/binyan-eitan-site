@@ -14,12 +14,14 @@ import {
   cellWorkers,
   isUnassignedWorkday,
   buildCopyTargetRows,
+  scheduleForDate,
+  unassignedWorkersForDay,
   type ScheduleAssignment,
   type WorkerKey,
   type ProjectRef,
   type CopyableScheduleRow,
 } from "./schedule-state";
-import { getSundayLocal, addWeeks, WEEK_DAYS } from "./israel-week";
+import { getSundayLocal, addWeeks, WEEK_DAYS, todayLocal } from "./israel-week";
 
 // Test factory — minimal ScheduleAssignment with sensible defaults so
 // each test only spells out the fields it cares about. The two worker
@@ -513,6 +515,81 @@ describe("buildCopyTargetRows — week-to-week copy logic", () => {
   });
 });
 
+describe("scheduleForDate — single-day projection from a wider payload", () => {
+  const rows = [
+    mk({ id: "a", staff_id: "s1", date: "2026-07-12", project_id: "p1" }),
+    mk({ id: "b", staff_id: "s1", date: "2026-07-13", project_id: "p2" }),
+    mk({ id: "c", staff_id: "s2", date: "2026-07-12", project_id: "p1" }),
+  ];
+
+  it("returns only rows whose date matches", () => {
+    const out = scheduleForDate(rows, "2026-07-12");
+    expect(out).toHaveLength(2);
+    expect(out.map((r) => r.id).sort()).toEqual(["a", "c"]);
+  });
+
+  it("returns an empty array when no rows match (not undefined/null)", () => {
+    expect(scheduleForDate(rows, "2026-07-14")).toEqual([]);
+  });
+
+  it("does not mutate input", () => {
+    const snapshot = [...rows];
+    scheduleForDate(rows, "2026-07-12");
+    expect(rows).toEqual(snapshot);
+  });
+});
+
+describe("unassignedWorkersForDay — the live board's pool for a given date", () => {
+  const DATE = "2026-07-12";
+
+  const WORKERS = [
+    { id: "s1", role: "עובד"  },
+    { id: "s2", role: "ממונה" },
+    { id: "s3", role: "עובד"  },
+    { id: "s4", role: "עובד"  },
+    { id: "s5", role: null    },           // shouldn't be in the payload but be defensive
+  ] as const;
+
+  it("returns 'עובד' + 'ממונה' rows that have no schedule + no vacation that day", () => {
+    const schedule = [mk({ staff_id: "s3", date: DATE, project_id: "p1" })];
+    const out = unassignedWorkersForDay(WORKERS, schedule, new Set(), DATE);
+    // s3 is placed → out. s5 has no role → out. s1, s2, s4 remain.
+    expect(out.map((w) => w.id)).toEqual(["s1", "s2", "s4"]);
+  });
+
+  it("filters out workers on vacation that day, even if otherwise unplaced", () => {
+    const vac = new Set(["s2|" + DATE]);
+    const out = unassignedWorkersForDay(WORKERS, [], vac, DATE);
+    expect(out.map((w) => w.id)).toEqual(["s1", "s3", "s4"]);
+  });
+
+  it("vacation on a different day doesn't filter", () => {
+    const vac = new Set(["s1|2026-07-13"]);
+    const out = unassignedWorkersForDay(WORKERS, [], vac, DATE);
+    expect(out.map((w) => w.id)).toEqual(["s1", "s2", "s3", "s4"]);
+  });
+
+  it("preserves input order so the caller's sort wins", () => {
+    const out = unassignedWorkersForDay(WORKERS, [], new Set(), DATE);
+    expect(out.map((w) => w.id)).toEqual(["s1", "s2", "s3", "s4"]);
+  });
+
+  it("ignores schedule rows for other dates when computing the placed set", () => {
+    const schedule = [mk({ staff_id: "s1", date: "2026-07-13", project_id: "p1" })];
+    const out = unassignedWorkersForDay(WORKERS, schedule, new Set(), DATE);
+    // s1 is "placed" but on a different day — still in the pool today.
+    expect(out.map((w) => w.id)).toContain("s1");
+  });
+
+  it("temp rows (staff_id null) don't accidentally mark anyone as placed", () => {
+    const schedule = [
+      mk({ staff_id: undefined, temp_name: "פועל יומי", date: DATE, project_id: "p1" }),
+    ];
+    const out = unassignedWorkersForDay(WORKERS, schedule, new Set(), DATE);
+    expect(out.map((w) => w.id)).toEqual(["s1", "s2", "s3", "s4"]);
+  });
+});
+
 describe("israel-week helpers — cross-check from this module", () => {
   it("getSundayLocal anchors a midweek date to its Sunday", () => {
     const date = new Date(2026, 6, 15, 12, 0); // Wed, local noon
@@ -528,5 +605,26 @@ describe("israel-week helpers — cross-check from this module", () => {
     expect(addWeeks("2026-07-12", 1)).toBe("2026-07-19");
     expect(addWeeks("2026-07-12", -1)).toBe("2026-07-05");
     expect(addWeeks("2026-07-12", 4)).toBe("2026-08-09");
+  });
+
+  it("todayLocal returns YYYY-MM-DD shape", () => {
+    expect(todayLocal()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("todayLocal returns Asia/Jerusalem's date, not UTC's, when they differ", () => {
+    // 2026-07-15 00:30 IDT = 2026-07-14 21:30 UTC — without TZ pinning
+    // the result would silently be "2026-07-14", which is the whole
+    // class of bug this helper exists to prevent.
+    const originalDate = global.Date;
+    class StubDate extends Date {
+      constructor() { super("2026-07-15T00:30:00+03:00"); }
+    }
+    // @ts-expect-error — test-only override of the global Date.
+    global.Date = StubDate;
+    try {
+      expect(todayLocal()).toBe("2026-07-15");
+    } finally {
+      global.Date = originalDate;
+    }
   });
 });

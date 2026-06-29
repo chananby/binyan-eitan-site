@@ -351,3 +351,53 @@ export function applyToAllWeek(
 ): Array<ReturnType<typeof buildAssignmentRow>> {
   return weekDates.map((date) => buildAssignmentRow(worker, date, project));
 }
+
+/** Filter a schedule payload down to one specific date. The /day
+ *  endpoint already runs the query with `WHERE date = X`, but the live
+ *  board occasionally needs to project a wider in-memory payload onto
+ *  a single day (e.g. when the unification work reuses cached weekly
+ *  state). Returns a new array; input isn't mutated. */
+export function scheduleForDate(
+  rows: ReadonlyArray<ScheduleAssignment>,
+  date: string,
+): ScheduleAssignment[] {
+  return rows.filter((r) => r.date === date);
+}
+
+/** Minimal worker shape that unassignedWorkersForDay needs. Matches
+ *  the GET payload's staff row plus the role check — same minimal
+ *  shape style as WorkerForUnassignedCheck above. */
+export interface WorkerForDayCheck {
+  id: string;
+  role?: string | null;
+}
+
+/** Active staff who have NO schedule row for `date` AND aren't on
+ *  vacation that day. This is the "ready to be placed" pool the live
+ *  board renders as its unassigned strip — the by-date analogue of
+ *  board-state's unassignedWorkers().
+ *
+ *  Includes both 'עובד' and 'ממונה' — both can be placed on a site.
+ *  Anyone else (no role / 'מנהל' which the GET filter already excludes)
+ *  is dropped so the strip doesn't show ghost rows. Input order is
+ *  preserved; the GET sorts by name so consumers don't re-sort.
+ *
+ *  vacationKeys is the same prebuilt `staff_id|date` set shared with
+ *  ScheduleTable, kept as ReadonlySet so the helper stays pure. */
+export function unassignedWorkersForDay<W extends WorkerForDayCheck>(
+  workers: ReadonlyArray<W>,
+  schedule: ReadonlyArray<ScheduleAssignment>,
+  vacationKeys: ReadonlySet<string>,
+  date: string,
+): W[] {
+  const placed = new Set<string>();
+  for (const r of schedule) {
+    if (r.date === date && r.staff_id) placed.add(r.staff_id);
+  }
+  return workers.filter((w) => {
+    if (w.role !== "עובד" && w.role !== "ממונה") return false;
+    if (vacationKeys.has(w.id + "|" + date)) return false;
+    if (placed.has(w.id)) return false;
+    return true;
+  });
+}
