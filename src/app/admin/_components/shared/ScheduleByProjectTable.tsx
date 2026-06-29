@@ -103,13 +103,21 @@ export default function ScheduleByProjectTable({
             spilling. min-w-[680px] sits a touch wider than the
             by-worker table because each cell here can hold a wrap of
             worker chips. */}
-        <table className="w-full text-xs border-collapse table-fixed min-w-[760px]">
+        {/* min-w bumped to 820 because the site column is wider now
+            (260 vs 200) — long names like "נחל לכיש 38 בית שמש" no
+            longer truncate so aggressively before the tooltip kicks in. */}
+        <table className="w-full text-xs border-collapse table-fixed min-w-[820px]">
+          {/* Site column FIRST in HTML order → renders at the RTL right
+              edge (where the eye starts). sticky start-0 pins it there. */}
           <colgroup>
+            <col className="w-[260px]" />
             {days.map((d) => <col key={d} />)}
-            <col className="w-[200px]" />
           </colgroup>
           <thead className="bg-bone">
             <tr>
+              <th className="sticky start-0 bg-bone font-semibold px-3 py-2 border border-warm-gray-light text-charcoal/65 text-start">
+                אתר
+              </th>
               {days.map((d, i) => (
                 <th
                   key={d}
@@ -121,9 +129,6 @@ export default function ScheduleByProjectTable({
                   </div>
                 </th>
               ))}
-              <th className="sticky end-0 bg-bone font-semibold px-3 py-2 border border-warm-gray-light text-charcoal/65 text-start">
-                אתר
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -145,13 +150,13 @@ export default function ScheduleByProjectTable({
             {manualNamesInWeek.length > 0 && (
               <>
                 <tr>
-                  <td
-                    colSpan={days.length}
-                    className="bg-amber-50/60 border border-warm-gray-light px-3 py-1.5 text-[0.7rem] font-semibold text-amber-700 uppercase tracking-wide"
-                  >
+                  <td className="sticky start-0 bg-amber-50/60 border border-warm-gray-light px-3 py-1.5 text-[0.7rem] font-semibold text-amber-700 uppercase tracking-wide text-start">
                     אתרים ידניים ({manualNamesInWeek.length})
                   </td>
-                  <td className="sticky end-0 bg-amber-50/60 border border-warm-gray-light" />
+                  <td
+                    colSpan={days.length}
+                    className="bg-amber-50/60 border border-warm-gray-light"
+                  />
                 </tr>
                 {manualNamesInWeek.map((name) => {
                   const ref: ProjectRef = { kind: "manual", name };
@@ -195,6 +200,30 @@ function ProjectRow(p: RowProps) {
 
   return (
     <tr className="hover:bg-bone/40 transition-colors">
+      <td
+        className={`sticky start-0 px-3 py-2 border border-warm-gray-light text-start align-top ${
+          p.isManual ? "bg-amber-50/50" : "bg-white"
+        }`}
+      >
+        <div className="flex items-center gap-1.5 min-w-0">
+          <Building2
+            size={11}
+            strokeWidth={1.5}
+            className={p.isManual ? "text-amber-500 shrink-0" : "text-accent shrink-0"}
+          />
+          <span
+            className="font-semibold text-charcoal truncate"
+            title={p.displayName}
+          >
+            {p.displayName}
+          </span>
+          {p.isManual && (
+            <span className="font-body text-[0.6rem] text-amber-700 px-1 py-0.5 rounded bg-amber-100 shrink-0">
+              ידני
+            </span>
+          )}
+        </div>
+      </td>
       {p.days.map((d) => {
         const list = cellWorkers(p.grouped, p.ref, d);
         return (
@@ -205,7 +234,10 @@ function ProjectRow(p: RowProps) {
             {list.length === 0 ? (
               <span className="text-charcoal/25" aria-label="ללא שיבוץ">—</span>
             ) : (
-              <div className="flex flex-wrap gap-1 justify-center">
+              // Bumped gap from 1 → 1.5 so adjacent chips don't bleed
+              // into one mass; cell padding (p-2) handles the outer
+              // breathing room.
+              <div className="flex flex-wrap gap-1.5 justify-center">
                 {list.map((wk) => {
                   // role lives on staff rows only — temps have no
                   // staff record and thus never carry the foreman flag.
@@ -226,25 +258,6 @@ function ProjectRow(p: RowProps) {
           </td>
         );
       })}
-      <td
-        className={`sticky end-0 px-3 py-2 border border-warm-gray-light text-start ${
-          p.isManual ? "bg-amber-50/50" : "bg-white"
-        }`}
-      >
-        <div className="flex items-center gap-1.5 min-w-0">
-          <Building2
-            size={11}
-            strokeWidth={1.5}
-            className={p.isManual ? "text-amber-500 shrink-0" : "text-accent shrink-0"}
-          />
-          <span className="font-semibold text-charcoal truncate">{p.displayName}</span>
-          {p.isManual && (
-            <span className="font-body text-[0.6rem] text-amber-700 px-1 py-0.5 rounded bg-amber-100 shrink-0">
-              ידני
-            </span>
-          )}
-        </div>
-      </td>
     </tr>
   );
 }
@@ -259,23 +272,29 @@ function WorkerChipMini({
   isForeman: boolean;
 }) {
   const isTemp = workerKey.kind === "temp";
-  // Three categories: temp (amber, existing) → foreman (sky) → regular
-  // (charcoal/white, default). Tested in that order so a temp can never
-  // accidentally render as a foreman even if the parent passes both.
+  // Three categories: temp (amber, existing) → foreman (sky, bolder) →
+  // regular (charcoal/white, default). Tested in that order so a temp
+  // can never accidentally render as a foreman even if the parent
+  // passes both. Foreman tint dialled up from sky-50/300 to sky-100/500
+  // + ring so it actually pops next to a wrap of white chips — the
+  // earlier muted shade was getting lost in the by-site density.
   const variantClasses =
     isTemp
       ? "bg-amber-50 border-amber-300/70 text-amber-800"
       : isForeman
-        ? "bg-sky-50 border-sky-300/70 text-sky-800"
+        ? "bg-sky-100 border-sky-500 text-sky-900 ring-1 ring-sky-300"
         : "bg-white border-charcoal/12 text-charcoal";
   const iconClass =
     isTemp ? "text-amber-500 shrink-0" :
-    isForeman ? "text-sky-600 shrink-0" :
+    isForeman ? "text-sky-700 shrink-0" :
     "text-charcoal/60 shrink-0";
+  // Chip padding nudged up (px-1.5 py-0.5 → px-2 py-1) and max-w
+  // loosened (110 → 130) so the worker name has room to breathe and
+  // common names like "מוטי איתן" don't truncate aggressively.
   return (
     <span
       title={label}
-      className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[0.65rem] font-semibold max-w-[110px] ${variantClasses}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[0.65rem] font-semibold max-w-[130px] ${variantClasses}`}
     >
       <UserRound size={9} strokeWidth={1.75} className={iconClass} />
       <span className="truncate">{label}</span>

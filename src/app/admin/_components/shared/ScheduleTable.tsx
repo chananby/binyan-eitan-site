@@ -110,12 +110,18 @@ export default function ScheduleTable({
             and the sticky-end name column stays visible while the days
             scroll. */}
         <table className="w-full text-xs border-collapse table-fixed min-w-[720px]">
+          {/* Worker name column is FIRST in HTML order so RTL renders it
+              against the right edge — where a Hebrew reader's eye starts.
+              sticky start-0 pins it there during horizontal scroll. */}
           <colgroup>
-            {days.map((d) => <col key={d} />)}
             <col className="w-[260px]" />
+            {days.map((d) => <col key={d} />)}
           </colgroup>
           <thead className="bg-bone">
             <tr>
+              <th className="sticky start-0 bg-bone font-semibold px-3 py-2 border border-warm-gray-light text-charcoal/65 text-start">
+                עובד
+              </th>
               {days.map((d, i) => (
                 <th
                   key={d}
@@ -127,9 +133,6 @@ export default function ScheduleTable({
                   </div>
                 </th>
               ))}
-              <th className="sticky end-0 bg-bone font-semibold px-3 py-2 border border-warm-gray-light text-charcoal/65 text-start">
-                עובד
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -153,17 +156,17 @@ export default function ScheduleTable({
 
             {tempNames.length > 0 && (
               <>
-                {/* Section header — spans full row width. The sticky cell
-                    background is matched to bone so it doesn't break the
-                    pinned-end column visually. */}
+                {/* Section header — sticky name column on the right
+                    carries the label (so it's visible during day-scroll),
+                    days column is a spanned filler with matching tint. */}
                 <tr>
-                  <td
-                    colSpan={days.length}
-                    className="bg-amber-50/60 border border-warm-gray-light px-3 py-1.5 text-[0.7rem] font-semibold text-amber-700 uppercase tracking-wide"
-                  >
+                  <td className="sticky start-0 bg-amber-50/60 border border-warm-gray-light px-3 py-1.5 text-[0.7rem] font-semibold text-amber-700 uppercase tracking-wide text-start">
                     פועלים יומיים ({tempNames.length})
                   </td>
-                  <td className="sticky end-0 bg-amber-50/60 border border-warm-gray-light" />
+                  <td
+                    colSpan={days.length}
+                    className="bg-amber-50/60 border border-warm-gray-light"
+                  />
                 </tr>
                 {tempNames.map((name) => (
                   <WorkerRow
@@ -216,8 +219,58 @@ interface RowProps {
 
 function WorkerRow(p: RowProps) {
   const isForeman = !p.isTemp && p.role === "ממונה";
+  // Foremen carry a soft sky tint on the whole row (visible on day cells
+  // via inherited tr bg) so they scan as a distinct band. The icon +
+  // "מנהל" badge in the name cell remain as explicit markers.
+  const rowToneClass = isForeman ? "bg-sky-50" : "";
   return (
-    <tr className="hover:bg-bone/40 transition-colors">
+    <tr className={`${rowToneClass} hover:bg-bone/40 transition-colors`}>
+      <td
+        className={`sticky start-0 px-3 py-2 border border-warm-gray-light text-start ${
+          p.isTemp    ? "bg-amber-50/50"
+          : isForeman ? "bg-sky-100"
+          :             "bg-white"
+        }`}
+      >
+        <div className="flex items-center gap-1.5 min-w-0">
+          <UserRound
+            size={11}
+            strokeWidth={1.5}
+            className={
+              p.isTemp    ? "text-amber-500 shrink-0"
+              : isForeman ? "text-sky-700 shrink-0"
+              :             "text-charcoal/40 shrink-0"
+            }
+          />
+          <span className="font-semibold text-charcoal truncate">{p.displayName}</span>
+          {p.isTemp && (
+            <span className="font-body text-[0.6rem] text-amber-700 px-1 py-0.5 rounded bg-amber-100 shrink-0">
+              ידני
+            </span>
+          )}
+          {isForeman && (
+            <span className="font-body text-[0.6rem] font-bold text-sky-800 px-1.5 py-0.5 rounded bg-sky-200 shrink-0">
+              מנהל
+            </span>
+          )}
+          {p.tag && (
+            <span className="font-body text-[0.6rem] text-charcoal/65 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[70px] truncate">
+              {p.tag}
+            </span>
+          )}
+          {p.onApplyWeek && (
+            <button
+              type="button"
+              onClick={() => p.onApplyWeek!(p.workerKey)}
+              title={`החל על כל השבוע · ${p.displayName}`}
+              aria-label={`החל על כל השבוע · ${p.displayName}`}
+              className="ms-auto text-charcoal/50 hover:text-accent transition-colors shrink-0 p-0.5"
+            >
+              <CalendarRange size={12} strokeWidth={1.5} />
+            </button>
+          )}
+        </div>
+      </td>
       {p.days.map((d) => {
         const cell = cellAt(p.grouped, p.workerKey, d);
         const onVacation =
@@ -265,50 +318,6 @@ function WorkerRow(p: RowProps) {
           </td>
         );
       })}
-      <td
-        className={`sticky end-0 px-3 py-2 border border-warm-gray-light text-start ${
-          p.isTemp ? "bg-amber-50/50" : "bg-white"
-        }`}
-      >
-        <div className="flex items-center gap-1.5 min-w-0">
-          <UserRound
-            size={11}
-            strokeWidth={1.5}
-            className={
-              p.isTemp    ? "text-amber-500 shrink-0"
-              : isForeman ? "text-sky-600 shrink-0"
-              :             "text-charcoal/40 shrink-0"
-            }
-          />
-          <span className="font-semibold text-charcoal truncate">{p.displayName}</span>
-          {p.isTemp && (
-            <span className="font-body text-[0.6rem] text-amber-700 px-1 py-0.5 rounded bg-amber-100 shrink-0">
-              ידני
-            </span>
-          )}
-          {isForeman && (
-            <span className="font-body text-[0.6rem] text-sky-700 px-1 py-0.5 rounded bg-sky-50 shrink-0">
-              מנהל
-            </span>
-          )}
-          {p.tag && (
-            <span className="font-body text-[0.6rem] text-charcoal/65 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[70px] truncate">
-              {p.tag}
-            </span>
-          )}
-          {p.onApplyWeek && (
-            <button
-              type="button"
-              onClick={() => p.onApplyWeek!(p.workerKey)}
-              title={`החל על כל השבוע · ${p.displayName}`}
-              aria-label={`החל על כל השבוע · ${p.displayName}`}
-              className="ms-auto text-charcoal/50 hover:text-accent transition-colors shrink-0 p-0.5"
-            >
-              <CalendarRange size={12} strokeWidth={1.5} />
-            </button>
-          )}
-        </div>
-      </td>
     </tr>
   );
 }
