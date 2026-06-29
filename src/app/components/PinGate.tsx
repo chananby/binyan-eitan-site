@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Delete } from "lucide-react";
+import { Delete, UserPlus } from "lucide-react";
 
 const SESSION_KEY = "be_internal_auth";
 const PIN_LENGTH  = 4;
@@ -212,12 +212,15 @@ export default function PinGate({ children, lang = "he" }: { children: React.Rea
       </p>
 
       {/* Join-request CTA — the only path for a worker who doesn't yet
-          have a PIN. Kept visually subtle (charcoal/55, no underline by
-          default) so it doesn't compete with the keypad. */}
+          have a PIN. Surfaces as an outlined accent button so it
+          actually catches the eye of someone landing here without
+          credentials. The keypad still owns the primary action (PIN
+          entry) so we stop short of a fully filled accent button. */}
       <Link
         href="/he/join"
-        className="font-body text-xs text-charcoal/55 hover:text-accent underline-offset-4 hover:underline transition-colors"
+        className="inline-flex items-center gap-2 rounded-sm border border-accent bg-white px-5 py-2.5 font-body text-sm font-semibold text-accent hover:bg-accent hover:text-bone transition-colors mt-2"
       >
+        <UserPlus size={14} strokeWidth={2} />
         {t.joinCta}
       </Link>
 
