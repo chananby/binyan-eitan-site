@@ -38,6 +38,12 @@ export interface Milestone {
 
 interface Props {
   milestone: Milestone;
+  /** 1-based position in the project's milestone list. Drives the
+   *  "שלב N" label so the contractor can refer to stages by number
+   *  ("שלב 3 שולם"). Derived from list index in the parent — when
+   *  sort_order changes via the move buttons, this updates after the
+   *  refetch. NOT persisted in the DB. */
+  index: number;
   isFirst: boolean;
   isLast: boolean;
   busy: boolean;                  // true while ANY action is in flight
@@ -88,7 +94,7 @@ export default function MilestoneCard(p: Props) {
     "due-unpaid": {
       card: "bg-red-50 border-red-300",
       badge: "bg-red-100 text-red-800 border-red-300",
-      badgeText: "בשל לגבייה",
+      badgeText: "מוכן לגבייה",
     },
     "due-partial": {
       card: "bg-amber-50 border-amber-300",
@@ -170,9 +176,14 @@ export default function MilestoneCard(p: Props) {
 
   return (
     <div className={`border rounded-md p-3 space-y-2 ${tone.card}`}>
-      {/* ── Headline: amount (loud) + title + expected date ────────── */}
+      {/* ── Headline: step number + amount (loud) + title + expected date ── */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0 flex-1">
+          {/* Step number — small uppercase tag above the amount. Reads
+              as a chip the contractor can quote back ("שלב 3 שולם"). */}
+          <p className="text-xs font-bold text-charcoal/75 tracking-wide leading-none mb-1">
+            שלב {p.index}
+          </p>
           <p className="text-lg font-bold text-charcoal tabular-nums leading-tight">
             {fmt(amount)}
           </p>
@@ -273,7 +284,7 @@ export default function MilestoneCard(p: Props) {
           {variant === "future" && (
             <button onClick={() => p.onTransition(p.milestone.id, "due")} disabled={p.busy}
               className="text-sm font-semibold bg-red-600 text-white px-3 py-1.5 rounded hover:bg-red-700 disabled:opacity-40">
-              סמן כבשל
+              סמן כמוכן לגבייה
             </button>
           )}
 
@@ -284,16 +295,16 @@ export default function MilestoneCard(p: Props) {
                 {variant === "due-partial" ? "עדכן תשלום" : "רשום תשלום"}
               </button>
               <button onClick={() => p.onTransition(p.milestone.id, "future")} disabled={p.busy}
-                title="חזור לעתידי" aria-label="ביטול סימון בשל"
+                title="החזר לעתידי" aria-label="החזר לעתידי"
                 className="text-sm border border-charcoal/30 text-charcoal/80 px-3 py-1.5 rounded hover:border-accent flex items-center gap-1">
-                <RotateCcw size={12} /> ביטול סימון
+                <RotateCcw size={12} /> החזר לעתידי
               </button>
             </>
           )}
 
           {variant === "paid" && (
             <button onClick={() => p.onPayment(p.milestone.id, 0)} disabled={p.busy}
-              title="אפס תשלום (חוזר ל-בשל)" aria-label="ביטול תשלום"
+              title="אפס תשלום (חוזר למוכן לגבייה)" aria-label="ביטול תשלום"
               className="text-sm border border-charcoal/30 text-charcoal/80 px-3 py-1.5 rounded hover:border-accent flex items-center gap-1">
               <RotateCcw size={12} /> ביטול תשלום
             </button>

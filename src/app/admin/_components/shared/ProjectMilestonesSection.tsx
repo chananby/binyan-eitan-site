@@ -276,6 +276,7 @@ export default function ProjectMilestonesSection({ projectId }: { projectId: str
                 <MilestoneCard
                   key={m.id}
                   milestone={m}
+                  index={i + 1}
                   isFirst={i === 0}
                   isLast={i === data.milestones.length - 1}
                   busy={busy}
@@ -301,11 +302,11 @@ export default function ProjectMilestonesSection({ projectId }: { projectId: str
                 <span className="font-semibold text-green-800">{fmt(num(data.totals.collected))}</span>
               </div>
               <div className="flex justify-between tabular-nums">
-                <span className="text-charcoal/75">לגבייה עכשיו (בשל)</span>
+                <span className="text-charcoal/75">לגבייה עכשיו (מוכן)</span>
                 <span className="font-bold text-red-700">{fmt(num(data.totals.due))}</span>
               </div>
               <div className="flex justify-between tabular-nums">
-                <span className="text-charcoal/75">סך פתוח (עתידי+בשל)</span>
+                <span className="text-charcoal/75">סך פתוח (עתידי+מוכן)</span>
                 <span className="font-semibold text-charcoal/85">{fmt(num(data.totals.outstanding))}</span>
               </div>
             </div>
