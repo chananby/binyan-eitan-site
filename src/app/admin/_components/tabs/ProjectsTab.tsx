@@ -9,6 +9,7 @@ import { TabRefreshBar } from "../shared/TabRefreshBar";
 import { INPUT } from "../shared/constants";
 import { AutoGrowTextarea } from "../../../components/AutoGrowTextarea";
 import ProjectBudgetSection, { type ProjectBudgetRow } from "../shared/ProjectBudgetSection";
+import ProjectMilestonesSection from "../shared/ProjectMilestonesSection";
 
 interface Project {
   id: string;
@@ -219,6 +220,11 @@ export default function ProjectsTab(p: Props) {
 
               {/* Budget vs. actual (financial_documents-based) */}
               <ProjectBudgetSection projectId={proj.id} data={budgetMap.get(proj.id)} onSaved={fetchBudget} />
+
+              {/* Payment milestones — collection-stage tracker. Accordion
+                  is collapsed by default; lazily fetches its own data the
+                  first time it opens (no N-fetch storm on tab mount). */}
+              <ProjectMilestonesSection projectId={proj.id} />
             </div>
             );
           })}
