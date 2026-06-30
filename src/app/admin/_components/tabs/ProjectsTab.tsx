@@ -130,7 +130,7 @@ export default function ProjectsTab(p: Props) {
           <button onClick={p.onReload} className="flex items-center gap-1 text-xs text-charcoal/70 hover:text-accent transition-colors"><RefreshCw size={12} strokeWidth={1.5} /> רענן</button>
         </div>
         {p.projects.length === 0 && <p className="text-sm text-charcoal/70 text-center py-4">אין פרויקטים</p>}
-        <div className="divide-y divide-charcoal/10">
+        <div className="divide-y divide-charcoal/15">
           {p.projects.map((proj) => {
             const assignedForeman = p.staff.find(s => s.id === proj.foreman_id);
             const hasCoords = proj.lat != null && proj.lng != null;

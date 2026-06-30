@@ -99,7 +99,7 @@ export default function DashboardTab(p: Props) {
         {p.onSite.length === 0 ? (
           <p className="text-content text-charcoal text-center py-2">אין עובדים מדווחים כרגע</p>
         ) : (
-          <div className="divide-y divide-charcoal/10">
+          <div className="divide-y divide-charcoal/15">
             {p.onSite.map(({ record, worker }) => {
               const t = record.clock_at
                 ? new Date(record.clock_at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" })
@@ -189,11 +189,11 @@ export default function DashboardTab(p: Props) {
       {p.isAdmin && (
         <Card title="💰 עלויות היום">
           <div className="space-y-1.5">
-            <div className="flex justify-between items-center py-1.5 border-b border-charcoal/10">
+            <div className="flex justify-between items-center py-1.5 border-b border-charcoal/15">
               <span className="text-content text-charcoal">שכר עובדים (אומדן)</span>
               <span className="text-content font-semibold text-charcoal tabular-nums">₪{Math.round(p.laborEstimate).toLocaleString("he-IL")}</span>
             </div>
-            <div className="flex justify-between items-center py-1.5 border-b border-charcoal/10">
+            <div className="flex justify-between items-center py-1.5 border-b border-charcoal/15">
               <span className="text-content text-charcoal">הוצאות שנרשמו היום</span>
               <span className="text-content font-semibold text-charcoal tabular-nums">₪{Math.round(p.todayExpensesTotal).toLocaleString("he-IL")}</span>
             </div>
@@ -274,7 +274,7 @@ export default function DashboardTab(p: Props) {
         {p.todayTasks.length === 0 ? (
           <p className="text-content text-charcoal text-center py-2">אין משימות פעילות להיום</p>
         ) : (
-          <div className="divide-y divide-charcoal/10">
+          <div className="divide-y divide-charcoal/15">
             {p.todayTasks.map(t => {
               const proj = p.projects.find(pr => pr.id === t.project_id);
               return (

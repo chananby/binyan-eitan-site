@@ -106,7 +106,7 @@ export default function ExpensesTab(p: Props) {
 
       {p.materials.length > 0 && (
         <Card title="סיכום לפי קטגוריה">
-          <div className="divide-y divide-charcoal/10">
+          <div className="divide-y divide-charcoal/15">
             {p.expenseCategories.map(cat => {
               const total = p.materials.filter(m => (m.category ?? "חומרים") === cat).reduce((s, m) => s + (m.cost ?? 0), 0);
               if (!total) return null;
@@ -137,7 +137,7 @@ export default function ExpensesTab(p: Props) {
           </div>
         </div>
         {p.materials.length === 0 && <p className="text-sm text-charcoal/70 text-center py-4">אין הוצאות רשומות</p>}
-        <div className="divide-y divide-charcoal/10">
+        <div className="divide-y divide-charcoal/15">
           {p.materials.map(m => (
             <div key={m.id} className="py-2.5 flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">

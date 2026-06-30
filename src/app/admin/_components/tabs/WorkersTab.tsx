@@ -368,7 +368,7 @@ export default function WorkersTab(p: Props) {
           </button>
         </div>
         {activeStaff.length === 0 && <p className="text-sm text-charcoal/70 text-center py-4">אין עובדים פעילים</p>}
-        <div className="divide-y divide-charcoal/10">
+        <div className="divide-y divide-charcoal/15">
           {activeStaff.map(s => renderStaffRow(p, s, false, askDelete))}
         </div>
       </Card>
@@ -389,7 +389,7 @@ export default function WorkersTab(p: Props) {
               : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
           </button>
           {inactiveOpen && (
-            <div className="divide-y divide-charcoal/10 mt-3">
+            <div className="divide-y divide-charcoal/15 mt-3">
               {inactiveStaff.map(s => renderStaffRow(p, s, true, askDelete))}
             </div>
           )}

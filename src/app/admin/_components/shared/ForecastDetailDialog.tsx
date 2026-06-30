@@ -93,7 +93,7 @@ export default function ForecastDetailDialog(p: Props) {
         dir="rtl"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-charcoal/10">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-charcoal/15">
           <h2 className="font-heading text-base font-bold">צפי שכר חודשי — פירוט לעובד</h2>
           <div className="flex items-center gap-2">
             <button
@@ -121,7 +121,7 @@ export default function ForecastDetailDialog(p: Props) {
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-charcoal/10 text-xs font-semibold uppercase tracking-wide text-charcoal/70">
+                <tr className="border-b border-charcoal/15 text-xs font-semibold uppercase tracking-wide text-charcoal/70">
                   <th className="text-start py-2 px-1">שם</th>
                   <th className="text-center py-2 px-1">סוג</th>
                   <th className="text-end py-2 px-1">תעריף</th>
@@ -130,7 +130,7 @@ export default function ForecastDetailDialog(p: Props) {
               </thead>
               <tbody>
                 {p.lines.map((l) => (
-                  <tr key={l.id} className="border-b border-charcoal/10">
+                  <tr key={l.id} className="border-b border-charcoal/15">
                     <td className="py-2 px-1">
                       <div className="flex items-center gap-1.5">
                         {l.missing_rate && (
@@ -164,7 +164,7 @@ export default function ForecastDetailDialog(p: Props) {
         </div>
 
         {/* Footer note */}
-        <div className="px-4 py-2.5 border-t border-charcoal/10 text-xs text-charcoal/70 leading-snug">
+        <div className="px-4 py-2.5 border-t border-charcoal/15 text-xs text-charcoal/70 leading-snug">
           אומדן גס: 22 ימי עבודה × 8.5 שעות. לא כולל חופשות, חגים או היעדרויות.
         </div>
       </div>

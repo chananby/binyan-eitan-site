@@ -670,7 +670,7 @@ function PendingApprovals({
         <p className="text-sm text-charcoal/70 text-center py-4">אין בקשות ממתינות לאישור</p>
       )}
       {!pendingLoading && pendingRecords.length > 0 && (
-        <div className="divide-y divide-charcoal/10">
+        <div className="divide-y divide-charcoal/15">
           {pendingRecords.map(r => (
             <React.Fragment key={r.id}>
               {edit.id === r.id ? (
@@ -816,7 +816,7 @@ function TodayLog({
         return (
           <>
             {regular.length > 0 && (
-              <div className="divide-y divide-charcoal/10">
+              <div className="divide-y divide-charcoal/15">
                 {regular.map(r => (
                   <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
                     onStartEditAtt={onStartEditAtt} onViewHistory={onViewHistory}
@@ -825,9 +825,9 @@ function TodayLog({
               </div>
             )}
             {exempt.length > 0 && (
-              <div className="mt-4 pt-3 border-t border-charcoal/10">
+              <div className="mt-4 pt-3 border-t border-charcoal/15">
                 <p className="text-xs text-charcoal/70 font-semibold mb-1">פטורים מנוכחות</p>
-                <div className="divide-y divide-charcoal/10">
+                <div className="divide-y divide-charcoal/15">
                   {exempt.map(r => (
                     <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
                       onStartEditAtt={onStartEditAtt} onViewHistory={onViewHistory}
@@ -945,7 +945,7 @@ function RecentLogs({
             return (
               <>
                 {regular.length > 0 && (
-                  <div className="divide-y divide-charcoal/10">
+                  <div className="divide-y divide-charcoal/15">
                     {regular.map(r => (
                       <RecentLogRow key={r.id} r={r} edit={edit} projects={projects}
                         onStartEditAtt={onStartEditAtt} farThresholdM={farThresholdM} dim={false} />
@@ -953,9 +953,9 @@ function RecentLogs({
                   </div>
                 )}
                 {exempt.length > 0 && (
-                  <div className="mt-4 pt-3 border-t border-charcoal/10">
+                  <div className="mt-4 pt-3 border-t border-charcoal/15">
                     <p className="text-xs text-charcoal/70 font-semibold mb-1">פטורים מנוכחות</p>
-                    <div className="divide-y divide-charcoal/10">
+                    <div className="divide-y divide-charcoal/15">
                       {exempt.map(r => (
                         <RecentLogRow key={r.id} r={r} edit={edit} projects={projects}
                           onStartEditAtt={onStartEditAtt} farThresholdM={farThresholdM} dim />
@@ -1167,7 +1167,7 @@ export default function AttendanceTab(p: Props) {
       {/* Sub-tab bar — live vs. per-worker history. The pending-approvals
           badge here mirrors the one on the main Attendance tab so it stays
           visible even while viewing history. */}
-      <div className="flex border-b border-charcoal/10 -mt-1">
+      <div className="flex border-b border-charcoal/15 -mt-1">
         <SubTabButton
           active={p.subTab === "live"}
           onClick={() => p.setSubTab("live")}

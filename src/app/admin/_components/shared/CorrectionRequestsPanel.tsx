@@ -116,7 +116,7 @@ export default function CorrectionRequestsPanel(p: {
       )}
 
       {!p.loading && p.requests.length > 0 && (
-        <div className="divide-y divide-charcoal/10">
+        <div className="divide-y divide-charcoal/15">
           {p.requests.map((r) => (
             <div key={r.id} className="py-3">
               <div className="flex items-start justify-between gap-3">

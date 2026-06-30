@@ -141,7 +141,7 @@ export default function ReportsTab({
 
       {reports.length > 0 && (
         <Card title="דוחות אחרונים">
-          <div className="divide-y divide-charcoal/10">
+          <div className="divide-y divide-charcoal/15">
             {reports.slice(0, 10).map(r => (
               <div key={r.id} className="py-3 space-y-1">
                 <div className="flex items-center justify-between gap-2">

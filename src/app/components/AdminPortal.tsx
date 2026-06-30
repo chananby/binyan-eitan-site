@@ -1377,8 +1377,17 @@ export default function AdminPortal() {
           )}
         </div>
 
-        {/* Tab bar */}
-        <div className="flex flex-wrap border-b border-charcoal/10">
+        {/* Tab bar
+            - gap-y-2: with ~12 tabs at 15px text on a phone the row wraps;
+              without an explicit row-gap the second row pressed right up
+              against the first one and the bar read as a wall.
+            - text-content (15px): bumps the labels off the cramped 12px
+              tier they were on (everything else on screen sits at 15px,
+              the tabs were the odd one out and hardest to read).
+            - The border-b-2 inside each tab now sits over a thicker hairline
+              under the bar (border-charcoal/15), so the active-tab accent
+              line still wins visually. */}
+        <div className="flex flex-wrap gap-y-2 border-b border-charcoal/15">
           {TABS.map(t => {
             // Tab badges — each surfaces its own "waiting for you" count.
             const badgeCount =
@@ -1393,7 +1402,7 @@ export default function AdminPortal() {
                 // no-underline kills the default anchor styling so the
                 // tab bar reads visually identical to the button version
                 // it replaces.
-                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 no-underline transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/70 hover:text-charcoal/70"}`}
+                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-content font-semibold tracking-wide whitespace-nowrap border-b-2 no-underline transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/70 hover:text-charcoal/70"}`}
               >
                 {t.icon} {t.label}
                 {badgeCount > 0 && (
