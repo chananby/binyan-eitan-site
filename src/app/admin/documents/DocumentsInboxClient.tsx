@@ -366,6 +366,29 @@ export default function DocumentsInboxClient() {
           </div>
         )}
 
+        {/* Compact-mode triage entry — surfaces when the no_project filter is
+            already on (so the full banner above is hidden) AND there are
+            still unlinked docs to triage. Without this row, an admin who
+            picked 'סנן ברשימה' once has no UI path back to the dedicated
+            triage screen; they'd have to know the URL or clear filters by
+            hand. Hidden when nothing's left to triage. */}
+        {unlinkedCount != null && unlinkedCount > 0 && filters.no_project === "1" && (
+          <div className="flex items-center justify-between gap-3 bg-amber-50/60 border border-amber-200 rounded-md px-3 py-2">
+            <p className="text-caption text-amber-900 flex items-center gap-1.5 min-w-0">
+              <AlertCircle size={13} className="text-amber-700 shrink-0" />
+              <span className="truncate">
+                {unlinkedCount} {unlinkedCount === 1 ? "אסמכתא ללא פרויקט" : "אסמכתאות ללא פרויקט"}
+              </span>
+            </p>
+            <Link
+              href="/admin/documents/triage"
+              className="inline-flex items-center justify-center text-caption font-semibold bg-amber-700 text-white border border-amber-700 px-2.5 py-1 rounded hover:bg-amber-800 whitespace-nowrap shrink-0"
+            >
+              סקור בטריאז' →
+            </Link>
+          </div>
+        )}
+
         <DocumentFilters filters={filters} setFilters={setFilters} vendors={vendors} projects={projects} duplicateCount={duplicateCount} />
 
         {error && (

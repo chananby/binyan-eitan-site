@@ -74,6 +74,9 @@ function dirToLabel(name: string): string {
 const URL_LABEL_OVERRIDES: Record<string, string> = {
   // ── Admin / internal (existing) ──────────────────────────────────────────
   "/admin":                          "פורטל ניהול",
+  "/admin/documents":                "תיבת אסמכתאות",
+  "/admin/documents/review":         "סקירת אסמכתאות",
+  "/admin/documents/triage":         "טריאז' שיוך אסמכתאות",
   "/admin/health":                   "בריאות מערכת",
   "/admin/hub":                      "מרכז שליטה",
   "/admin/quotes":                   "מחולל הצעות מחיר",
