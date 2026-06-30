@@ -4,19 +4,23 @@
 //   line 1: vendor name + bold amount
 //   line 2: doc-type label · date · project
 //   + a status chip (pending / approved / rejected / extraction-failed)
+//   + an "👁 תצוגה מקדימה" button (lazy lightbox of the file itself)
 //   + an inline project-assign bar (PR 4 of the unification work)
 //
 // The link to the detail screen wraps only the upper content area —
-// the project bar is a sibling so the inline <select> can't bubble a
-// click into the navigation.
+// the project bar and the preview-dialog mount are siblings so the
+// inline <select> and the preview button can't bubble a click into
+// the navigation.
 
+import { useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Building2, Camera } from "lucide-react";
+import { AlertTriangle, Building2, Camera, Eye } from "lucide-react";
 import {
   DOC_TYPE_LABELS, statusChip, fmtCurrency, fmtDate, displayVendor, type DocRow,
 } from "./labels";
 import DuplicateChip from "./DuplicateChip";
 import DocumentProjectAssignBar from "./DocumentProjectAssignBar";
+import DocumentPreviewDialog from "./DocumentPreviewDialog";
 import type { ProjectOption } from "./ProjectSelect";
 
 export default function DocumentCard({
@@ -33,6 +37,10 @@ export default function DocumentCard({
   const fieldUpload = doc.uploaded_by?.startsWith("foreman:")
     ? doc.uploaded_by.slice("foreman:".length)
     : null;
+
+  // Lightbox state — mounted only while open so the /file fetch is
+  // lazy and a list of 90+ cards doesn't preload anything.
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   // The project-assign bar is opt-in: callers that don't pass `projects`
   // (e.g. read-only contexts) get the plain card just like before.
@@ -75,6 +83,20 @@ export default function DocumentCard({
               <Camera size={11} />{fieldUpload}
             </span>
           )}
+          {/* Inline preview trigger — stops propagation so clicking the
+              eye doesn't follow the Link to the detail screen. The
+              dialog is rendered as a sibling below so position:fixed
+              works correctly regardless of any ancestor transforms. */}
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreviewOpen(true); }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-[#2D2926]/[0.06] text-[#2D2926]/80 hover:bg-[#2D2926]/[0.12] transition-colors"
+            title="תצוגה מקדימה"
+            aria-label="תצוגה מקדימה של המסמך"
+          >
+            <Eye size={11} /> תצוגה
+          </button>
           {/* Actionable everywhere: opens the compare dialog (vs the suspected
               original) with delete / clear-flag actions. onChanged refreshes the
               inbox list after a resolution. */}
@@ -88,6 +110,15 @@ export default function DocumentCard({
           currentProjectId={doc.project_id ?? null}
           projects={projects!}
           onChanged={onChanged}
+        />
+      )}
+
+      {previewOpen && (
+        <DocumentPreviewDialog
+          doc={doc}
+          projects={projects}
+          onChanged={onChanged}
+          onClose={() => setPreviewOpen(false)}
         />
       )}
     </div>
