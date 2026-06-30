@@ -18,6 +18,7 @@ import { useState } from "react";
 import { Loader2, AlertTriangle, RefreshCw, UserPlus, X, Inbox } from "lucide-react";
 import { Card } from "../shared/Card";
 import ApproveWorkerDialog from "../shared/ApproveWorkerDialog";
+import { StaleRefresh } from "../shared/StaleRefresh";
 
 export interface JoinRequest {
   id: string;
@@ -103,12 +104,10 @@ export default function JoinRequestsTab({ requests, loading, error, onReload, on
         </button>
       </div>
 
-      {loading && (
-        <div className="flex items-center justify-center gap-2 py-12 text-charcoal/65">
-          <Loader2 size={18} className="animate-spin" /> טוען בקשות…
-        </div>
-      )}
-
+      {/* Errors short-circuit the wrapper — once we know the fetch failed
+          there's nothing useful to keep mounted underneath. Loading-vs-
+          refresh handling lives inside StaleRefresh so a reload after an
+          approve/reject doesn't blank the queue back to a spinner. */}
       {!loading && error && (
         <div className="flex flex-col items-center gap-3 py-12">
           <AlertTriangle size={32} className="text-amber-500" />
@@ -123,16 +122,26 @@ export default function JoinRequestsTab({ requests, loading, error, onReload, on
         </div>
       )}
 
-      {!loading && !error && requests.length === 0 && (
-        <Card>
-          <div className="flex flex-col items-center justify-center gap-2 py-8">
-            <Inbox size={28} strokeWidth={1.5} className="text-charcoal/35" />
-            <p className="text-sm text-charcoal/65">אין בקשות הצטרפות ממתינות.</p>
+      {!error && (
+      <StaleRefresh
+        loading={loading}
+        hasContent={requests.length > 0}
+        spinner={
+          <div className="flex items-center justify-center gap-2 py-12 text-charcoal/65">
+            <Loader2 size={18} className="animate-spin" /> טוען בקשות…
           </div>
-        </Card>
-      )}
+        }
+      >
+        {requests.length === 0 && (
+          <Card>
+            <div className="flex flex-col items-center justify-center gap-2 py-8">
+              <Inbox size={28} strokeWidth={1.5} className="text-charcoal/35" />
+              <p className="text-sm text-charcoal/65">אין בקשות הצטרפות ממתינות.</p>
+            </div>
+          </Card>
+        )}
 
-      {!loading && !error && requests.length > 0 && (
+        {requests.length > 0 && (
         <Card>
           <div className="divide-y divide-charcoal/15">
             {requests.map((r) => (
@@ -172,6 +181,8 @@ export default function JoinRequestsTab({ requests, loading, error, onReload, on
             ))}
           </div>
         </Card>
+        )}
+      </StaleRefresh>
       )}
 
       <ApproveWorkerDialog

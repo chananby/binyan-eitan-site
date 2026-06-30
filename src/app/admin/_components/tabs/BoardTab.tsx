@@ -24,12 +24,13 @@ import {
   DndContext, PointerSensor, TouchSensor, useSensor, useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { Loader2, AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 import UnassignedStrip from "../shared/UnassignedStrip";
 import SiteCard from "../shared/SiteCard";
 import { type WorkerChipData } from "../shared/WorkerChip";
 import MoveToDialog, { type MoveTarget } from "../shared/MoveToDialog";
 import BoardManualEntry from "../shared/BoardManualEntry";
+import { StaleRefresh } from "../shared/StaleRefresh";
 import { useCoarsePointer } from "../hooks/useCoarsePointer";
 import {
   type BoardAssignment, type WorkerRef, type ProjectRef, type ManualProjectRef,
@@ -296,14 +297,12 @@ export default function BoardTab() {
   }
 
   // ── Render ───────────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center gap-2 py-12 text-charcoal/65">
-        <Loader2 size={18} className="animate-spin" /> טוען לוח שיבוץ…
-      </div>
-    );
-  }
-  if (error || !data) {
+  // Errors still get their own dead-end screen — there is nothing useful
+  // to keep mounted underneath. But the load-vs-refresh split moves into
+  // StaleRefresh so the board stays on screen during a post-drop reload:
+  // first-time loads still render the centred spinner, subsequent
+  // reloads dim the board for a beat instead of flashing.
+  if (error || (!loading && !data)) {
     return (
       <div className="flex flex-col items-center gap-3 py-12">
         <AlertTriangle size={32} className="text-amber-500" />
@@ -317,6 +316,18 @@ export default function BoardTab() {
   }
 
   return (
+    <StaleRefresh loading={loading} hasContent={!!data}>
+      {data && <BoardView />}
+    </StaleRefresh>
+  );
+
+  // Extracted into a closure so the JSX below stays inline with the data!=null
+  // narrowing. Pulling it out keeps the StaleRefresh return-shape one-liner
+  // tidy without splitting the whole tab into a new file. The guard re-asserts
+  // for TypeScript what the call site already enforces ({data && ...}).
+  function BoardView() {
+    if (!data) return null;
+    return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <p className="font-body text-xs text-charcoal/70 leading-snug">
@@ -389,5 +400,6 @@ export default function BoardTab() {
         onClose={() => setMoveDialog(null)}
       />
     </div>
-  );
+    );
+  }
 }

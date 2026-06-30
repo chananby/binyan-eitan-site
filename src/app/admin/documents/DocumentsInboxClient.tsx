@@ -13,6 +13,7 @@ import DocumentFilters, { EMPTY_FILTERS, type DocFilters } from "./_components/D
 import DocumentCard from "./_components/DocumentCard";
 import DocumentExportModal from "./_components/DocumentExportModal";
 import ApproveAllDialog from "./review/ApproveAllDialog";
+import { StaleRefresh } from "../_components/shared/StaleRefresh";
 import { fmtCurrency, isCleanHighConfidence, type DocRow } from "./_components/labels";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
@@ -360,25 +361,31 @@ export default function DocumentsInboxClient() {
           </div>
         )}
 
-        {loading && <div className="flex justify-center py-12"><Loader2 className="animate-spin text-[#8D775F]" size={24} /></div>}
+        {/* StaleRefresh keeps the previously-rendered list mounted during a
+            re-fetch (filter change, post-upload refresh, project assignment
+            change). The page no longer 'jumps' to a spinner mid-edit — the
+            list dims slightly while the next page loads in. Empty-state and
+            list are both children, so toggling between them doesn't break
+            the wrapper's seen-content tracking either. */}
+        <StaleRefresh loading={loading} hasContent={docs.length > 0}>
+          {!error && docs.length === 0 && (
+            <div className="bg-white border border-[#2D2926]/10 rounded-md p-10 text-center">
+              <Inbox size={28} strokeWidth={1.5} className="text-[#8D775F] mx-auto mb-2" />
+              <p className="text-[#2D2926]/70 text-sm">לא נמצאו אסמכתאות</p>
+            </div>
+          )}
 
-        {!loading && !error && docs.length === 0 && (
-          <div className="bg-white border border-[#2D2926]/10 rounded-md p-10 text-center">
-            <Inbox size={28} strokeWidth={1.5} className="text-[#8D775F] mx-auto mb-2" />
-            <p className="text-[#2D2926]/70 text-sm">לא נמצאו אסמכתאות</p>
-          </div>
-        )}
-
-        {!loading && docs.length > 0 && (
-          <div className="space-y-2">
-            {docs.map(d => <DocumentCard key={d.id} doc={d} projects={projects} onChanged={refreshAfterUpload} />)}
-            {hasMore && (
-              <button onClick={loadMore} className="w-full py-2.5 text-sm font-semibold text-[#8D775F] border border-[#8D775F]/30 rounded-md hover:bg-[#8D775F]/5">
-                טען עוד
-              </button>
-            )}
-          </div>
-        )}
+          {docs.length > 0 && (
+            <div className="space-y-2">
+              {docs.map(d => <DocumentCard key={d.id} doc={d} projects={projects} onChanged={refreshAfterUpload} />)}
+              {hasMore && (
+                <button onClick={loadMore} className="w-full py-2.5 text-sm font-semibold text-[#8D775F] border border-[#8D775F]/30 rounded-md hover:bg-[#8D775F]/5">
+                  טען עוד
+                </button>
+              )}
+            </div>
+          )}
+        </StaleRefresh>
       </main>
 
       <DocumentExportModal open={exportOpen} onClose={() => setExportOpen(false)} />

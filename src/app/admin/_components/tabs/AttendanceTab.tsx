@@ -9,6 +9,7 @@ import {
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { TabRefreshBar } from "../shared/TabRefreshBar";
+import { StaleRefresh } from "../shared/StaleRefresh";
 import { INPUT } from "../shared/constants";
 import DistanceFlag from "../shared/DistanceFlag";
 import CorrectionRequestsPanel, { type CorrectionRequest } from "../shared/CorrectionRequestsPanel";
@@ -664,12 +665,21 @@ function PendingApprovals({
           <RefreshCw size={12} strokeWidth={1.5} /> רענן
         </button>
       </div>
-      {pendingLoading && <p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
       {pendingErr && <p className="text-content text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {pendingErr}</p>}
-      {!pendingLoading && !pendingErr && pendingRecords.length === 0 && (
-        <p className="text-sm text-charcoal/70 text-center py-4">אין בקשות ממתינות לאישור</p>
-      )}
-      {!pendingLoading && pendingRecords.length > 0 && (
+      {/* StaleRefresh keeps the queue visible during a post-approve reload —
+          the row the admin just approved disappears, others stay put, and a
+          small badge in the corner signals the in-flight fetch instead of
+          blanking the whole list back to a 'טוען...' placeholder. */}
+      {!pendingErr && (
+      <StaleRefresh
+        loading={pendingLoading}
+        hasContent={pendingRecords.length > 0}
+        spinner={<p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
+      >
+        {pendingRecords.length === 0 && (
+          <p className="text-sm text-charcoal/70 text-center py-4">אין בקשות ממתינות לאישור</p>
+        )}
+        {pendingRecords.length > 0 && (
         <div className="divide-y divide-charcoal/15">
           {pendingRecords.map(r => (
             <React.Fragment key={r.id}>
@@ -729,6 +739,8 @@ function PendingApprovals({
             </React.Fragment>
           ))}
         </div>
+        )}
+      </StaleRefresh>
       )}
     </Card>
   );
