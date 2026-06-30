@@ -294,6 +294,7 @@ export default function AdminPortal() {
     editBankAccount,      setEditBankAccount,
     editBankAccountOwner, setEditBankAccountOwner,
     editBankIban,         setEditBankIban,
+    editLanguage,         setEditLanguage,
     editLoading, editMsg,
     handleAddWorker,
     handleEditWorker,
@@ -1556,6 +1557,7 @@ export default function AdminPortal() {
             editBankAccount={editBankAccount}           setEditBankAccount={setEditBankAccount}
             editBankAccountOwner={editBankAccountOwner} setEditBankAccountOwner={setEditBankAccountOwner}
             editBankIban={editBankIban}                 setEditBankIban={setEditBankIban}
+            editLanguage={editLanguage}                 setEditLanguage={setEditLanguage}
             editPin={editPin}                       setEditPin={setEditPin}
             editLoading={editLoading} editMsg={editMsg}
             onEditWorker={handleEditWorker}

@@ -44,14 +44,16 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   const { data } = await supabase
     .from("staff")
-    .select("id, name, active")
+    .select("id, name, active, language")
     .eq("id", staffId)
     .is("deleted_at", null)
     .maybeSingle();
   if (!data || data.active === false) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
-  return NextResponse.json({ ok: true, staff_id: data.id, name: data.name });
+  return NextResponse.json({
+    ok: true, staff_id: data.id, name: data.name, language: data.language,
+  });
 }
 
 // ── POST — phone → cookie ────────────────────────────────────────────────────
@@ -81,7 +83,7 @@ export async function POST(req: NextRequest) {
   const supabase = createServerClient();
   const { data: rows, error } = await supabase
     .from("staff")
-    .select("id, name, active")
+    .select("id, name, active, language")
     .in("phone", variants)
     .eq("active", true)
     .is("deleted_at", null)
@@ -98,7 +100,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const res = NextResponse.json({ ok: true, staff_id: worker.id, name: worker.name });
+  const res = NextResponse.json({
+    ok: true, staff_id: worker.id, name: worker.name, language: worker.language,
+  });
   const { name, value, options } = buildWorkerAuthCookie(worker.id);
   res.cookies.set(name, value, options);
   return res;

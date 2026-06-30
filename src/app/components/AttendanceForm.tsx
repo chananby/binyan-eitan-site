@@ -64,6 +64,12 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         if (d?.ok) {
           setIdentifiedStaffId(d.staff_id);
           setWorkerName(d.name);
+          // staff.language is the source of truth — overrides whatever
+          // localStorage carried. So a worker who picked Russian on a phone
+          // last month sees Russian again on a fresh device, not Hebrew.
+          if (d.language && (SUPPORTED_LANGS as string[]).includes(d.language)) {
+            setLang(d.language as Lang);
+          }
           setStep("menu");
         }
       })
@@ -138,6 +144,22 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   const t = T[lang];
   const backLabel = t.backToPortal;
 
+  // Persist the worker's language to staff.language whenever they change it
+  // via the picker. Two paths in: this wrapper (clicks in the UI) and the
+  // identify response (DB → state), and only the click should POST back. The
+  // identify path calls setLang directly so it never re-enters this wrapper.
+  // No-op when the worker isn't authenticated yet — falls back to localStorage
+  // until they identify, and the next identify-response will normalise.
+  const handleLangChange = useCallback((next: Lang) => {
+    setLang(next);
+    if (!identifiedStaffId) return;
+    fetch("/api/worker/lang-pref", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ language: next }),
+    }).catch(() => { /* best-effort — localStorage still has it */ });
+  }, [identifiedStaffId]);
+
   // ── Load worker-flow projects ─────────────────────────────────────────────
   useEffect(() => {
     if (step !== "project" && step !== "manual") return;
@@ -160,6 +182,9 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       if (res.ok && d?.ok) {
         setIdentifiedStaffId(d.staff_id);
         setWorkerName(d.name);
+        if (d.language && (SUPPORTED_LANGS as string[]).includes(d.language)) {
+          setLang(d.language as Lang);
+        }
         setPhone("");
         setStep("menu");
         feedback.success();
@@ -314,7 +339,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
   // ── Dispatch ──────────────────────────────────────────────────────────────
   // Common props every screen receives. The per-screen components are pure
   // presentation; they read these and dispatch back via the callbacks above.
-  const common = { t, lang, onLangChange: setLang, backHref: portalHref, backLabel };
+  const common = { t, lang, onLangChange: handleLangChange, backHref: portalHref, backLabel };
 
   if (step === "success") {
     return (

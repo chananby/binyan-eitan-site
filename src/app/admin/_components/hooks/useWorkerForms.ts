@@ -67,6 +67,9 @@ export function useWorkerForms(reload: () => void) {
   const [editBankAccount,      setEditBankAccount]      = useState("");
   const [editBankAccountOwner, setEditBankAccountOwner] = useState("");
   const [editBankIban,         setEditBankIban]         = useState("");
+  // Worker's preferred attendance-flow language — kept on staff.language.
+  // Default 'he' mirrors the DB column default.
+  const [editLanguage,         setEditLanguage]         = useState("he");
   const [editLoading, setEditLoading] = useState(false);
   const [editMsg,     setEditMsg]     = useState("");
 
@@ -139,6 +142,7 @@ export function useWorkerForms(reload: () => void) {
     setEditBankAccount(s.bank_account           ?? "");
     setEditBankAccountOwner(s.bank_account_owner ?? "");
     setEditBankIban(s.bank_iban                 ?? "");
+    setEditLanguage(s.language ?? "he");
     setEditPin(""); // always blank — admin sets a new PIN explicitly
     setEditMsg("");
   }, []);
@@ -168,6 +172,7 @@ export function useWorkerForms(reload: () => void) {
         bank_account:          editBankAccount       || null,
         bank_account_owner:    editBankAccountOwner  || null,
         bank_iban:             editBankIban          || null,
+        language:              editLanguage          || "he",
       };
       if (editPin) body.pin = editPin; // only send if a new PIN was entered
       const res  = await fetch(`/api/admin/staff/${editingId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -176,7 +181,7 @@ export function useWorkerForms(reload: () => void) {
       else        { setEditMsg("שגיאה: " + (data.error ?? res.status)); }
     } catch (err) { setEditMsg("שגיאת רשת: " + String(err)); }
     finally { setEditLoading(false); }
-  }, [editingId, editName, editPhone, editRole, editNationalId, editHourlyRate, editDailyRate, editEmploymentType, editGlobalSalary, editTravelAllowance, editPensionStatus, editHolidayEligible, editIsFreelancer, editOfficeOnly, editLabel, editAttendanceExempt, editStartDate, editEmploymentEndDate, editNotes, editPin, editBankName, editBankBranch, editBankAccount, editBankAccountOwner, editBankIban, reload]);
+  }, [editingId, editName, editPhone, editRole, editNationalId, editHourlyRate, editDailyRate, editEmploymentType, editGlobalSalary, editTravelAllowance, editPensionStatus, editHolidayEligible, editIsFreelancer, editOfficeOnly, editLabel, editAttendanceExempt, editStartDate, editEmploymentEndDate, editNotes, editPin, editBankName, editBankBranch, editBankAccount, editBankAccountOwner, editBankIban, editLanguage, reload]);
 
   const toggleActive = useCallback(async (id: string, current: boolean) => {
     await fetch(`/api/admin/staff/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active: !current }) });
@@ -245,6 +250,7 @@ export function useWorkerForms(reload: () => void) {
     editBankAccount,      setEditBankAccount,
     editBankAccountOwner, setEditBankAccountOwner,
     editBankIban,         setEditBankIban,
+    editLanguage,         setEditLanguage,
     editLoading, editMsg,
 
     handleAddWorker,

@@ -21,6 +21,10 @@ export interface StaffMember {
   employment_end_date?: string | null;
   notes?: string | null;
   has_pin?: boolean;
+  /** Worker's preferred attendance-flow UI language. Synced via
+   *  /api/worker/lang-pref; admin can override in the edit form. NOT NULL
+   *  DEFAULT 'he' on the DB. */
+  language?: string;
   // Bank details — surfaced ONLY by admin-authed routes (admin/staff GET
   // admin path, POST, PATCH, export). Foreman and worker portals never
   // see these because their server SELECTs use narrow column lists.

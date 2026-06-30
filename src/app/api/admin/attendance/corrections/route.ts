@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     .select(`
       id, attendance_id, staff_id, proposed_time, reason, status, created_at,
       attendance:attendance_id ( id, action, clock_at, timestamp_label, project_id ),
-      staff:staff_id ( id, name, phone )
+      staff:staff_id ( id, name, phone, language )
     `)
     .eq("status", "pending")
     .order("created_at", { ascending: false });

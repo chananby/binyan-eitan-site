@@ -22,6 +22,11 @@
 import React, { useState } from "react";
 import { AlertCircle, AlertTriangle, Loader2, RefreshCw } from "lucide-react";
 import { Card } from "./Card";
+import {
+  WORKER_LANG_FLAGS,
+  WORKER_LANG_LABEL_HE,
+  isWorkerLangCode,
+} from "../../../../lib/worker-language";
 
 export interface CorrectionRequest {
   id: string;
@@ -38,7 +43,7 @@ export interface CorrectionRequest {
     timestamp_label: string | null;
     project_id: string | null;
   } | null;
-  staff: { id: string; name: string; phone: string } | null;
+  staff: { id: string; name: string; phone: string; language?: string | null } | null;
 }
 
 function actionLabel(action: string): string {
@@ -123,6 +128,18 @@ export default function CorrectionRequestsPanel(p: {
                   {/* מי + מה (פעולה ותאריך) */}
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-semibold">{r.staff?.name ?? "—"}</p>
+                    {/* Language flag: shown only for non-Hebrew workers, so
+                        the admin sees instantly that a reply / clarification
+                        ought to be in another tongue. Hebrew is the majority
+                        — no badge there keeps the card tidy. */}
+                    {isWorkerLangCode(r.staff?.language) && r.staff!.language !== "he" && (
+                      <span
+                        className="text-[0.65rem] text-charcoal/70 px-1 py-0.5 rounded bg-charcoal/[0.06] tabular-nums"
+                        title={`שפת פורטל: ${WORKER_LANG_LABEL_HE[r.staff!.language as "en" | "ru" | "si" | "zh" | "hi"]}`}
+                      >
+                        {WORKER_LANG_FLAGS[r.staff!.language as "en" | "ru" | "si" | "zh" | "hi"]} {r.staff!.language!.toUpperCase()}
+                      </span>
+                    )}
                     <span className={`text-[0.75rem] font-semibold px-1.5 py-0.5
                       ${act === "כניסה" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
                       {act}

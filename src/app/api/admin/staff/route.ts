@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await supabase
       .from("staff")
-      .select("id, name, phone, role, active, pin, attendance!inner(project_id)")
+      .select("id, name, phone, role, active, language, pin, attendance!inner(project_id)")
       .is("deleted_at", null)
       .in("attendance.project_id", projectIds)
       .order("name", { ascending: true });
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
   // path above uses a narrow select that excludes them by construction.
   const { data, error } = await supabase
     .from("staff")
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, office_only, label, start_date, employment_end_date, notes, attendance_exempt, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, office_only, label, start_date, employment_end_date, notes, attendance_exempt, language, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
     .is("deleted_at", null)
     .order("active", { ascending: false })
     .order("name",   { ascending: true });
@@ -225,7 +225,7 @@ export async function POST(req: NextRequest) {
       bank_account_owner: bank_account_owner?.trim() || null,
       bank_iban:          bank_iban?.trim()          || null,
     })
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, office_only, label, start_date, employment_end_date, notes, attendance_exempt, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, office_only, label, start_date, employment_end_date, notes, attendance_exempt, language, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
     .single();
 
   if (error) {

@@ -12,6 +12,12 @@ import EmploymentSection from "../shared/EmploymentSection";
 import BankDetailsSection from "../shared/BankDetailsSection";
 import StaffDocumentsSection from "../shared/StaffDocumentsSection";
 import { AutoGrowTextarea } from "../../../components/AutoGrowTextarea";
+import {
+  WORKER_LANG_CODES,
+  WORKER_LANG_FLAGS,
+  WORKER_LANG_LABEL_HE,
+  isWorkerLangCode,
+} from "../../../../lib/worker-language";
 
 type EmploymentType = "hourly" | "daily" | "global";
 
@@ -41,6 +47,9 @@ interface StaffMember {
   /** Whether the worker has a usable rate (staff_rates) for the current
    *  month. Set by /api/admin/staff GET. Drives the ⚠️ marker. */
   has_rate?: boolean;
+  /** Preferred attendance-flow UI language (he/en/ru/si/zh/hi). NOT NULL
+   *  DEFAULT 'he' on the DB. Drives the row-level language badge. */
+  language?: string;
 }
 
 type Props = {
@@ -100,6 +109,7 @@ type Props = {
   editBankAccount: string;      setEditBankAccount:      (v: string) => void;
   editBankAccountOwner: string; setEditBankAccountOwner: (v: string) => void;
   editBankIban: string;         setEditBankIban:         (v: string) => void;
+  editLanguage: string;         setEditLanguage:         (v: string) => void;
   editPin: string;            setEditPin:             (v: string) => void;
   editLoading: boolean;
   editMsg: string;
@@ -498,6 +508,20 @@ function renderStaffRow(
           bankIban={p.editBankIban}               setBankIban={p.setEditBankIban}
         />
         <StaffDocumentsSection staffId={s.id} />
+        <Field label="שפה מועדפת (לפורטל הנוכחות של העובד)">
+          <select
+            value={p.editLanguage}
+            onChange={e => p.setEditLanguage(e.target.value)}
+            className={INPUT}
+            dir="ltr"
+          >
+            {WORKER_LANG_CODES.map(code => (
+              <option key={code} value={code}>
+                {WORKER_LANG_FLAGS[code]}  {code.toUpperCase()} — {WORKER_LANG_LABEL_HE[code]}
+              </option>
+            ))}
+          </select>
+        </Field>
         <Field label="סטטוס פנסיה">
           <AutoGrowTextarea value={p.editPensionStatus} onChange={e => p.setEditPensionStatus(e.target.value)} placeholder="פעיל / תקופת המתנה / לא הוסדר" className={INPUT} />
         </Field>
@@ -541,6 +565,19 @@ function renderStaffRow(
           {s.name}
           {s.label && (
             <span className="font-body text-[0.6rem] text-charcoal/65 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[80px] truncate">{s.label}</span>
+          )}
+          {/* Non-Hebrew workers get a visible language flag + code so the
+              admin sees at a glance who is on a foreign-language portal
+              (e.g. when responding to a correction request in their tongue).
+              Hebrew is the majority — we render no badge for it to keep the
+              row uncluttered. */}
+          {isWorkerLangCode(s.language) && s.language !== "he" && (
+            <span
+              className="font-body text-[0.6rem] text-charcoal/70 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 tabular-nums"
+              title={`שפת פורטל: ${WORKER_LANG_LABEL_HE[s.language]}`}
+            >
+              {WORKER_LANG_FLAGS[s.language]} {s.language.toUpperCase()}
+            </span>
           )}
         </p>
         <p className="text-xs text-charcoal/70 tabular-nums" dir="ltr">{s.phone}</p>

@@ -34,6 +34,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     bank_account?: string | null;
     bank_account_owner?: string | null;
     bank_iban?: string | null;
+    language?: string | null;
   };
   try {
     body = await req.json();
@@ -125,6 +126,20 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     update.pin = body.pin?.trim() || null;
   }
 
+  if (body.language !== undefined) {
+    // Same allow-list as SUPPORTED_LANGS in attendance/i18n.ts. Worker-side
+    // /api/worker/lang-pref enforces the same list — when those diverge,
+    // both gatekeepers need to be touched.
+    const VALID_LANGS = ["he", "en", "ru", "si", "zh", "hi"];
+    const lang = body.language?.trim() || null;
+    if (lang && !VALID_LANGS.includes(lang)) {
+      return NextResponse.json({ error: "שפה לא נתמכת" }, { status: 400 });
+    }
+    // language is NOT NULL DEFAULT 'he' on the DB — admins clearing the
+    // dropdown back to "use system default" persists 'he' explicitly.
+    update.language = lang ?? "he";
+  }
+
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "אין שדות לעדכון" }, { status: 400 });
   }
@@ -134,7 +149,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     .from("staff")
     .update(update)
     .eq("id", params.id)
-    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, office_only, label, start_date, employment_end_date, notes, attendance_exempt, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
+    .select("id, name, phone, role, active, national_id, hourly_rate, daily_rate, employment_type, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, is_freelancer, office_only, label, start_date, employment_end_date, notes, attendance_exempt, language, bank_name, bank_branch, bank_account, bank_account_owner, bank_iban, pin")
     .single();
 
   if (error) {
