@@ -271,7 +271,7 @@ export default function PlanningTab(p: Props) {
                 {dayTasks.length === 0 ? (
                   <p className="text-[0.75rem] text-charcoal/20 text-center py-1.5">ריק</p>
                 ) : (
-                  <div className="divide-y divide-charcoal/5">
+                  <div className="divide-y divide-charcoal/10">
                     {dayTasks.map(t => (
                       <div key={t.id} className="flex items-center gap-2 px-3 py-2">
                         <CheckSquare2 size={11} strokeWidth={1.5} className={`shrink-0 ${t.status === "in_progress" ? "text-amber-500" : "text-charcoal/20"}`} />
@@ -405,7 +405,7 @@ export default function PlanningTab(p: Props) {
                     {msTasks.length === 0 ? (
                       <p className="text-[0.75rem] text-charcoal/25 text-center py-3">אין משימות תחת אבן דרך זו</p>
                     ) : (
-                      <div className="divide-y divide-charcoal/5">
+                      <div className="divide-y divide-charcoal/10">
                         {msTasks.map(t => (
                           <div key={t.id} className={`flex items-center gap-2 px-4 py-2.5 ${t.status === "completed" ? "opacity-50" : ""}`}>
                             <CheckSquare2 size={12} strokeWidth={1.5} className={`shrink-0 ${t.status === "completed" ? "text-green-500" : t.status === "in_progress" ? "text-amber-400" : t.status === "delayed" ? "text-red-400" : "text-charcoal/20"}`} />
@@ -467,7 +467,7 @@ export default function PlanningTab(p: Props) {
                 <Hammer size={12} strokeWidth={1.5} className="text-charcoal/70" />
                 <p className="text-xs font-semibold text-charcoal/65">משימות ללא אבן דרך</p>
               </div>
-              <div className="divide-y divide-charcoal/5">
+              <div className="divide-y divide-charcoal/10">
                 {free.map(t => {
                   const proj = p.projects.find(pr => pr.id === t.project_id);
                   return (

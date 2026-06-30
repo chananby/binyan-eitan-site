@@ -151,7 +151,7 @@ export default function PayrollTab(p: Props) {
               </thead>
               <tbody>
                 {p.payrollRows.map(r => (
-                  <tr key={r.staff_id} className="border-b border-charcoal/5">
+                  <tr key={r.staff_id} className="border-b border-charcoal/10">
                     <td className="py-2 font-semibold">
                       {r.name}
                       {r.is_freelancer && (

@@ -130,7 +130,7 @@ export default function ForecastDetailDialog(p: Props) {
               </thead>
               <tbody>
                 {p.lines.map((l) => (
-                  <tr key={l.id} className="border-b border-charcoal/5">
+                  <tr key={l.id} className="border-b border-charcoal/10">
                     <td className="py-2 px-1">
                       <div className="flex items-center gap-1.5">
                         {l.missing_rate && (

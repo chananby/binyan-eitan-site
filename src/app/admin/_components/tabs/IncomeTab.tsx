@@ -104,7 +104,7 @@ export default function IncomeTab({
       {income.length > 0 && (
         <>
           <Card title="סיכום הכנסות לפי פרויקט">
-            <div className="divide-y divide-charcoal/5">
+            <div className="divide-y divide-charcoal/10">
               {Object.entries(incomeTotals).map(([projId, total]) => {
                 const proj = projects.find(p => p.id === projId);
                 return (
@@ -124,7 +124,7 @@ export default function IncomeTab({
           </Card>
 
           <Card title="יומן תשלומים">
-            <div className="divide-y divide-charcoal/5">
+            <div className="divide-y divide-charcoal/10">
               {income.map(r => (
                 <div key={r.id} className="py-2.5 flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">

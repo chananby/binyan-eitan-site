@@ -96,7 +96,7 @@ export default function QuotesTab() {
           <p className="text-sm text-charcoal/70 text-center py-3">אין הצעות עדיין</p>
         )}
         {!loading && !error && quotes.length > 0 && (
-          <div className="divide-y divide-charcoal/5">
+          <div className="divide-y divide-charcoal/10">
             {quotes.map(q => (
               <a key={q.id} href={`/admin/quotes?id=${q.id}`} target="_blank" rel="noopener noreferrer"
                 className="flex items-center justify-between gap-3 py-2.5 -mx-2 px-2 hover:bg-bone/50 transition-colors">

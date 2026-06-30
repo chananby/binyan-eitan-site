@@ -99,7 +99,7 @@ export default function DashboardTab(p: Props) {
         {p.onSite.length === 0 ? (
           <p className="text-content text-charcoal text-center py-2">אין עובדים מדווחים כרגע</p>
         ) : (
-          <div className="divide-y divide-charcoal/5">
+          <div className="divide-y divide-charcoal/10">
             {p.onSite.map(({ record, worker }) => {
               const t = record.clock_at
                 ? new Date(record.clock_at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" })
@@ -274,7 +274,7 @@ export default function DashboardTab(p: Props) {
         {p.todayTasks.length === 0 ? (
           <p className="text-content text-charcoal text-center py-2">אין משימות פעילות להיום</p>
         ) : (
-          <div className="divide-y divide-charcoal/5">
+          <div className="divide-y divide-charcoal/10">
             {p.todayTasks.map(t => {
               const proj = p.projects.find(pr => pr.id === t.project_id);
               return (

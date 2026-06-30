@@ -134,7 +134,7 @@ export default function JoinRequestsTab({ requests, loading, error, onReload, on
 
       {!loading && !error && requests.length > 0 && (
         <Card>
-          <div className="divide-y divide-charcoal/5">
+          <div className="divide-y divide-charcoal/10">
             {requests.map((r) => (
               <div key={r.id} className="py-3 space-y-2">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
