@@ -6,6 +6,22 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // Readability tier — three named sizes the UI is meant to lean on.
+      //   caption (14px) — auxiliary labels, table cells where 15px would
+      //                    crush the column. Only here on purpose.
+      //   content (15px) — the floor for everything a reader of the dashboard
+      //                    actually has to read (worker names, project
+      //                    labels, form values, row content).
+      //   body    (16px) — comfortable default; section descriptions, prose.
+      // Headings stay on text-base/lg/xl with font-bold as before. text-xs
+      // (12px) is left in Tailwind's defaults so legacy callers still
+      // compile, but every new piece of UI should reach for the three
+      // tokens here instead.
+      fontSize: {
+        caption: ['0.875rem',  { lineHeight: '1.4'  }],  // 14px
+        content: ['0.9375rem', { lineHeight: '1.55' }],  // 15px — new floor
+        body:    ['1rem',      { lineHeight: '1.6'  }],  // 16px
+      },
       fontFamily: {
         // חיבור ישיר לפונטים שהוגדרו ב-layout כדי להבטיח מראה נקי ואחיד
         heading: ['var(--font-heading)', 'sans-serif'],
