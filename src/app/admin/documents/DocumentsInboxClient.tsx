@@ -327,15 +327,16 @@ export default function DocumentsInboxClient() {
             gap that blocks per-project costs. Shown only when there
             actually ARE unlinked docs (otherwise just noise), and
             hidden again once the no_project filter is active (the
-            user already chose to look at them). The CTA flips the
-            filter on; existing filters are cleared so the view is
-            "just the unassigned set" without leftover narrowing. */}
+            user already chose to look at them).
+            Two CTAs:
+              • "סקור בטריאז'" — the dedicated walk-through screen,
+                one big doc + side panel, optimistic advance per
+                assignment. Recommended path for clearing a backlog.
+              • "סנן ושייך" — keeps the row-by-row inbox flow for
+                admins who'd rather skim the list themselves; flips
+                the no_project filter on and clears the rest. */}
         {unlinkedCount != null && unlinkedCount > 0 && filters.no_project !== "1" && (
-          <button
-            type="button"
-            onClick={() => setFilters({ ...EMPTY_FILTERS, no_project: "1" })}
-            className="w-full flex items-center justify-between gap-3 bg-amber-50 border border-amber-300 rounded-md px-4 py-3 hover:bg-amber-100 transition-colors text-start"
-          >
+          <div className="w-full bg-amber-50 border border-amber-300 rounded-md px-4 py-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <AlertCircle size={16} className="text-amber-700 shrink-0" />
               <div className="min-w-0">
@@ -343,14 +344,26 @@ export default function DocumentsInboxClient() {
                   {unlinkedCount} {unlinkedCount === 1 ? "אסמכתא ללא פרויקט" : "אסמכתאות ללא פרויקט"}
                 </p>
                 <p className="text-xs text-amber-800">
-                  שיוך פרויקט חשוב לחישוב הוצאות פר-פרויקט. סנן אותן עכשיו ושייך מהכרטיס.
+                  שיוך פרויקט חשוב לחישוב הוצאות פר-פרויקט.
                 </p>
               </div>
             </div>
-            <span className="text-xs font-semibold bg-amber-200 text-amber-900 border border-amber-400 px-2 py-1 rounded shrink-0 whitespace-nowrap">
-              סנן ושייך ←
-            </span>
-          </button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 shrink-0">
+              <Link
+                href="/admin/documents/triage"
+                className="inline-flex items-center justify-center text-xs font-semibold bg-amber-700 text-white border border-amber-700 px-2.5 py-1.5 rounded hover:bg-amber-800 whitespace-nowrap"
+              >
+                סקור בטריאז' →
+              </Link>
+              <button
+                type="button"
+                onClick={() => setFilters({ ...EMPTY_FILTERS, no_project: "1" })}
+                className="inline-flex items-center justify-center text-xs font-semibold bg-amber-200 text-amber-900 border border-amber-400 px-2.5 py-1.5 rounded hover:bg-amber-300 whitespace-nowrap"
+              >
+                סנן ברשימה
+              </button>
+            </div>
+          </div>
         )}
 
         <DocumentFilters filters={filters} setFilters={setFilters} vendors={vendors} projects={projects} duplicateCount={duplicateCount} />

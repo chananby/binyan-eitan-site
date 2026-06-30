@@ -23,6 +23,7 @@ import { useEffect } from "react";
 import { X, FileText } from "lucide-react";
 import type { DocRow } from "./labels";
 import DocumentProjectAssignBar from "./DocumentProjectAssignBar";
+import DocumentPreviewArea from "./DocumentPreviewArea";
 import type { ProjectOption } from "./ProjectSelect";
 import { fmtCurrency, fmtDate, displayVendor } from "./labels";
 
@@ -38,11 +39,10 @@ interface Props {
 }
 
 export default function DocumentPreviewDialog({ doc, projects, onChanged, onClose }: Props) {
+  // Still used for the "open in new tab" link in the title strip. The
+  // actual preview body's mime-type branching now lives inside
+  // DocumentPreviewArea — see the body further down.
   const fileUrl = `/api/admin/documents/${doc.id}/file`;
-  // mime_type drives the render path; admins occasionally upload HEIC
-  // which the browser renders as an image just fine. Anything not a
-  // PDF goes through <img>.
-  const isPdf = (doc.mime_type ?? "").toLowerCase() === "application/pdf";
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -103,22 +103,10 @@ export default function DocumentPreviewDialog({ doc, projects, onChanged, onClos
 
         {/* Document body — bytes are fetched here for the first time;
             iframe/img start streaming only after this paints. */}
-        <div className="flex-1 min-h-0 overflow-auto bg-[#2D2926]/5">
-          {isPdf ? (
-            <iframe
-              src={fileUrl}
-              title="מסמך"
-              className="w-full h-[70vh] sm:h-[78vh] bg-white"
-            />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={fileUrl}
-              alt="מסמך"
-              className="w-full h-auto max-h-[78vh] object-contain mx-auto"
-            />
-          )}
-        </div>
+        <DocumentPreviewArea
+          doc={doc}
+          className="flex-1 min-h-0 overflow-auto bg-[#2D2926]/5"
+        />
 
         {/* Inline project assign — same bar as the card itself. */}
         {projects && (
