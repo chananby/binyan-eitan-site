@@ -1184,13 +1184,39 @@ export default function AdminPortal() {
   // ── Tab navigation helper ──────────────────────────────────────────────────
   // Used by both the tab bar and the AttentionPanel; keeps the URL hash in
   // sync so the active tab is shareable and the back button works.
+  //
+  // pushState (not replaceState) so the browser back button cycles through
+  // visited tabs instead of leaving /admin straight away. hashchange
+  // already fires for our listener on pushState that changes the hash
+  // portion, so the hash → tab sync continues to work unchanged.
   function goToTab(key: AdminTab) {
     setTab(key);
     if (typeof window !== "undefined") {
       const base = window.location.pathname + window.location.search;
       const next = key === "dashboard" ? base : `${base}#${key}`;
-      history.replaceState(null, "", next);
+      // Skip the history entry when we're already on that URL — clicking
+      // the active tab repeatedly shouldn't pollute the back stack.
+      const current = window.location.pathname + window.location.search + window.location.hash;
+      if (current !== next) history.pushState(null, "", next);
     }
+  }
+
+  /** Anchor href for a tab key — dashboard is the bare path (no hash) so
+   *  the canonical landing URL stays clean; every other tab carries its
+   *  hash so Ctrl+Click / middle-click open that tab fresh in a new
+   *  browser tab. */
+  function tabHref(key: AdminTab): string {
+    return key === "dashboard" ? "/admin" : `/admin#${key}`;
+  }
+
+  /** Click guard for tab anchors: lets the browser handle every
+   *  modifier-click (Ctrl/Cmd/Shift/Alt + middle-button) so the user's
+   *  open-in-new-tab muscle memory works exactly like on any other link.
+   *  Plain left-clicks are intercepted and routed through the SPA. */
+  function onTabClick(e: React.MouseEvent<HTMLAnchorElement>, key: AdminTab) {
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    goToTab(key);
   }
 
   // ── AttentionPanel inputs ──────────────────────────────────────────────────
@@ -1342,10 +1368,14 @@ export default function AdminPortal() {
               t.key === "join_requests"  ? joinRequests.length   :
               t.key === "collections"    ? (collections?.totals.count ?? 0) : 0;
             return (
-              <button
+              <a
                 key={t.key}
-                onClick={() => goToTab(t.key)}
-                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/70 hover:text-charcoal/70"}`}
+                href={tabHref(t.key)}
+                onClick={(e) => onTabClick(e, t.key)}
+                // no-underline kills the default anchor styling so the
+                // tab bar reads visually identical to the button version
+                // it replaces.
+                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap border-b-2 no-underline transition-colors duration-150 ${tab === t.key ? "border-accent text-accent" : "border-transparent text-charcoal/70 hover:text-charcoal/70"}`}
               >
                 {t.icon} {t.label}
                 {badgeCount > 0 && (
@@ -1356,7 +1386,7 @@ export default function AdminPortal() {
                     {badgeCount > 99 ? "99+" : badgeCount}
                   </span>
                 )}
-              </button>
+              </a>
             );
           })}
         </div>
