@@ -485,21 +485,44 @@ export default function AdminPortal() {
   const weekDays = useMemo(() => getWeekDays(), []);
 
   const { onSite, laborEstimate } = useMemo(() => {
-    const seen = new Set<string>();
-    const list: Array<{ record: AttendanceRecord; worker?: StaffMember }> = [];
+    // Group every attendance row of today by staff_id so the cost
+    // calculation sees ALL of a worker's in/out events (not just the
+    // latest one). Iteration order is todayLogs's (created_at desc),
+    // but the helper sorts events chronologically on its own.
+    const byStaff = new Map<string, AttendanceRecord[]>();
     for (const log of todayLogs) {
       const sid = log.staff?.id;
-      if (!sid || seen.has(sid)) continue;
-      seen.add(sid);
-      if (log.action === "כניסה" || log.action === "in") {
-        list.push({ record: log, worker: staff.find(s => s.id === sid) });
+      if (!sid) continue;
+      const arr = byStaff.get(sid) ?? [];
+      arr.push(log);
+      byStaff.set(sid, arr);
+    }
+
+    // onSite: workers whose MOST RECENT row is a clock-in — drives the
+    // "מי באתר כרגע" card. Same definition as before; the cost surface
+    // no longer borrows it.
+    const onSiteList: Array<{ record: AttendanceRecord; worker?: StaffMember }> = [];
+    // attendedToday: one entry per worker who showed up at all,
+    // carrying every event of theirs so the cost helper can pair
+    // clock-in/clock-out events itself.
+    const attendedToday: Array<{ worker?: StaffMember; events: AttendanceRecord[] }> = [];
+
+    for (const [sid, rows] of byStaff) {
+      const worker = staff.find(s => s.id === sid);
+      attendedToday.push({ worker, events: rows });
+      // rows[0] is the newest because todayLogs arrives created_at desc.
+      const newest = rows[0];
+      if (newest && (newest.action === "כניסה" || newest.action === "in")) {
+        onSiteList.push({ record: newest, worker });
       }
     }
-    // computeTodayLaborCost is NaN-safe — a worker without a parseable
-    // clock-in timestamp (the today endpoint returns clock_at, not the
-    // legacy recorded_at the inline code used to read) contributes 0
-    // instead of poisoning the whole rollup.
-    return { onSite: list, laborEstimate: computeTodayLaborCost(list, Date.now()) };
+
+    // Approach C — actual hours from in/out pairs with a 10h safety cap,
+    // daily/global handled per employment_type. NaN-safe.
+    return {
+      onSite: onSiteList,
+      laborEstimate: computeTodayLaborCost(attendedToday, Date.now()),
+    };
   }, [todayLogs, staff]);
 
   const todayExpensesTotal = useMemo(
