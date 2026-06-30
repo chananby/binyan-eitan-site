@@ -53,6 +53,7 @@ import type {
   AttReportRow, AttSummaryRow, AttReportData,
 } from "../admin/_components/types";
 import type { WorkerHistoryDay } from "../../lib/worker-history-aggregate";
+import { computeTodayLaborCost } from "../../lib/today-labor-cost";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
@@ -494,18 +495,11 @@ export default function AdminPortal() {
         list.push({ record: log, worker: staff.find(s => s.id === sid) });
       }
     }
-    const now = Date.now();
-    let labor = 0;
-    for (const { record, worker } of list) {
-      if (!worker) continue;
-      if (worker.daily_rate) {
-        labor += worker.daily_rate;
-      } else if (worker.hourly_rate) {
-        const hrs = (now - new Date(record.recorded_at).getTime()) / 3_600_000;
-        labor += Math.max(0, hrs) * worker.hourly_rate;
-      }
-    }
-    return { onSite: list, laborEstimate: labor };
+    // computeTodayLaborCost is NaN-safe — a worker without a parseable
+    // clock-in timestamp (the today endpoint returns clock_at, not the
+    // legacy recorded_at the inline code used to read) contributes 0
+    // instead of poisoning the whole rollup.
+    return { onSite: list, laborEstimate: computeTodayLaborCost(list, Date.now()) };
   }, [todayLogs, staff]);
 
   const todayExpensesTotal = useMemo(
