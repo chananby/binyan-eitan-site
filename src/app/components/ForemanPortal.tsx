@@ -74,7 +74,7 @@ const LOG_STATUS_BTN: Record<LogStatus, string>   = {
   problem: "border-red-400   text-red-700   bg-red-50",
 };
 const TASK_STATUS_CLS: Record<string, string> = {
-  planned:     "bg-charcoal/5 text-charcoal/65",
+  planned:     "bg-charcoal/5 text-muted",
   in_progress: "bg-amber-50 text-amber-700",
   delayed:     "bg-red-50 text-red-600",
   completed:   "bg-green-50 text-green-700",
@@ -488,7 +488,7 @@ export default function ForemanPortal({
       <button
         onClick={() => handleToggleReadiness(task, field)}
         title={label}
-        className={`flex items-center gap-1 px-2 py-1 border text-[0.75rem] font-semibold transition-all active:scale-95 ${
+        className={`flex items-center gap-1 px-2 py-1 border text-caption font-semibold transition-all active:scale-95 ${
           on ? "border-green-300 bg-green-50 text-green-700" : "border-red-300 bg-red-50 text-red-600"
         }`}
       >
@@ -518,16 +518,16 @@ export default function ForemanPortal({
               )}
             </div>
             {ms && (
-              <span className="text-[0.58rem] text-accent/80 font-semibold uppercase tracking-wide">{ms.name}</span>
+              <span className="text-caption text-accent/80 font-semibold uppercase tracking-wide">{ms.name}</span>
             )}
             {isDelayed && task.delay_reason && (
-              <span className="text-[0.75rem] text-red-500 block">
+              <span className="text-caption text-red-500 block">
                 עיכוב: {DELAY_REASONS.find(d => d.value === task.delay_reason)?.label}
               </span>
             )}
-            {task.notes && <p className="text-[0.62rem] text-charcoal/40 mt-0.5">{task.notes}</p>}
+            {task.notes && <p className="text-caption text-muted mt-0.5">{task.notes}</p>}
           </div>
-          <span className={`text-[0.58rem] px-1.5 py-0.5 shrink-0 ${TASK_STATUS_CLS[task.status] ?? ""}`}>
+          <span className={`text-caption px-1.5 py-0.5 shrink-0 ${TASK_STATUS_CLS[task.status] ?? ""}`}>
             {TASK_STATUS_HE[task.status] ?? task.status}
           </span>
         </div>
@@ -546,29 +546,29 @@ export default function ForemanPortal({
           <div className="flex gap-1.5 flex-wrap">
             {task.status === "planned" && (
               <button onClick={() => handleSetStatus(task.id, "in_progress")}
-                className="text-[0.75rem] border border-amber-300 px-2.5 py-1 text-amber-700 hover:bg-amber-50 active:scale-95 transition-all">
+                className="text-caption border border-amber-300 px-2.5 py-1 text-amber-700 hover:bg-amber-50 active:scale-95 transition-all">
                 ▶ הפעל
               </button>
             )}
             {task.status !== "delayed" && (
               <button onClick={() => setShowDelayFor(task.id)}
-                className="text-[0.75rem] border border-red-200 px-2.5 py-1 text-red-500 hover:bg-red-50 active:scale-95 transition-all">
+                className="text-caption border border-red-200 px-2.5 py-1 text-red-500 hover:bg-red-50 active:scale-95 transition-all">
                 ⏸ עיכוב
               </button>
             )}
             {task.status === "delayed" && (
               <button onClick={() => handleSetStatus(task.id, "in_progress")}
-                className="text-[0.75rem] border border-amber-300 px-2.5 py-1 text-amber-700 hover:bg-amber-50 active:scale-95 transition-all">
+                className="text-caption border border-amber-300 px-2.5 py-1 text-amber-700 hover:bg-amber-50 active:scale-95 transition-all">
                 ▶ חדש לביצוע
               </button>
             )}
             <button onClick={() => handleSetStatus(task.id, "completed")}
-              className="text-[0.75rem] border border-green-300 px-2.5 py-1 text-green-700 hover:bg-green-50 active:scale-95 transition-all flex items-center gap-1">
+              className="text-caption border border-green-300 px-2.5 py-1 text-green-700 hover:bg-green-50 active:scale-95 transition-all flex items-center gap-1">
               <Check size={11} strokeWidth={2.5} /> סיים
             </button>
             <button onClick={() => setMoveTaskId(task.id)}
               title="הזז לתאריך אחר"
-              className="text-[0.75rem] border border-charcoal/15 px-2.5 py-1 text-charcoal/65 hover:border-accent hover:text-accent active:scale-95 transition-all flex items-center gap-1">
+              className="text-caption border border-charcoal/15 px-2.5 py-1 text-muted hover:border-accent hover:text-accent active:scale-95 transition-all flex items-center gap-1">
               <ArrowLeftRight size={10} strokeWidth={1.8} />
             </button>
           </div>
@@ -578,7 +578,7 @@ export default function ForemanPortal({
         {showingDelay && (
           <div className="flex gap-2 items-center">
             <select
-              className="flex-1 border border-red-200 bg-red-50 text-red-700 text-xs px-2 py-1.5 focus:outline-none focus:border-red-400"
+              className="flex-1 border border-red-200 bg-red-50 text-red-700 text-content px-2 py-1.5 focus:outline-none focus:border-red-400"
               defaultValue=""
               onChange={e => {
                 if (e.target.value) handleSetStatus(task.id, "delayed", e.target.value as DelayReason);
@@ -587,7 +587,7 @@ export default function ForemanPortal({
               <option value="" disabled>בחר סיבת עיכוב...</option>
               {DELAY_REASONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
             </select>
-            <button onClick={() => setShowDelayFor(null)} className="text-charcoal/30 hover:text-charcoal/60">
+            <button onClick={() => setShowDelayFor(null)} className="text-charcoal/30 hover:text-muted">
               <X size={14} strokeWidth={2} />
             </button>
           </div>
@@ -608,9 +608,9 @@ export default function ForemanPortal({
       <AlertCircle size={52} strokeWidth={1} className="text-charcoal/20" />
       <div>
         <p className="font-heading text-xl font-bold text-charcoal">אין פרויקטים מוקצים</p>
-        <p className="text-sm text-charcoal/65 mt-1">פנה למנהל לשיוך פרויקט לחשבונך</p>
+        <p className="text-sm text-muted mt-1">פנה למנהל לשיוך פרויקט לחשבונך</p>
       </div>
-      <button onClick={onLogout} className="text-xs text-charcoal/30 underline underline-offset-2">יציאה</button>
+      <button onClick={onLogout} className="text-content text-charcoal/30 underline underline-offset-2">יציאה</button>
     </div>
   );
 
@@ -619,12 +619,12 @@ export default function ForemanPortal({
       <div className="bg-charcoal px-5 pt-12 pb-7 text-white relative">
         <button
           onClick={onLogout}
-          className="absolute top-12 end-5 flex items-center gap-1.5 border border-white/25 text-white/70 hover:text-white hover:border-white/60 transition-colors px-3 py-1.5 text-xs tracking-wide"
+          className="absolute top-12 end-5 flex items-center gap-1.5 border border-white/25 text-white/70 hover:text-white hover:border-white/60 transition-colors px-3 py-1.5 text-caption tracking-wide"
         >
           <LogOut size={12} strokeWidth={1.5} />
           <span>התנתקות</span>
         </button>
-        <p className="text-[0.75rem] tracking-widest uppercase text-white/35 mb-1">בניין איתן · ממשק ממונה</p>
+        <p className="text-caption tracking-widest uppercase text-white/35 mb-1">בניין איתן · ממשק ממונה</p>
         <h1 className="font-heading text-2xl font-bold">שלום, {foremanName}</h1>
         <p className="text-sm text-white/45 mt-1">בחר פרויקט להמשך</p>
       </div>
@@ -634,13 +634,13 @@ export default function ForemanPortal({
             className="w-full bg-white border border-warm-gray-light p-5 text-start flex items-center justify-between hover:border-accent transition-colors active:scale-[0.98]">
             <div>
               <p className="font-heading text-base font-bold text-charcoal">{p.name}</p>
-              <p className="text-xs text-charcoal/35 mt-0.5">לחץ לכניסה לפרויקט</p>
+              <p className="text-content text-charcoal/35 mt-0.5">לחץ לכניסה לפרויקט</p>
             </div>
             <ChevronRight size={20} strokeWidth={1.5} className="text-charcoal/25 shrink-0" />
           </button>
         ))}
       </div>
-      <button onClick={onLogout} className="pb-10 text-center text-xs text-charcoal/25 underline underline-offset-2">
+      <button onClick={onLogout} className="pb-10 text-center text-content text-charcoal/25 underline underline-offset-2">
         יציאה מהמערכת
       </button>
     </div>
@@ -656,11 +656,11 @@ export default function ForemanPortal({
       <header className="bg-charcoal text-white px-4 pt-10 pb-4 sticky top-0 z-30">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-xs tracking-widest uppercase text-white/30 mb-0.5">ממשק ממונה · {foremanName}</p>
+            <p className="text-caption tracking-widest uppercase text-white/30 mb-0.5">ממשק ממונה · {foremanName}</p>
             <h1 className="font-heading text-lg font-bold text-white leading-tight truncate">{project!.name}</h1>
           </div>
           <div className="shrink-0 text-end">
-            <div className="flex items-center justify-end gap-1 text-white/30 text-xs uppercase mb-0.5">
+            <div className="flex items-center justify-end gap-1 text-white/30 text-caption uppercase mb-0.5">
               <Flame size={9} /><span>הוצאות שבועיות</span>
             </div>
             <p className="font-heading text-xl font-bold text-accent tabular-nums">
@@ -670,14 +670,14 @@ export default function ForemanPortal({
         </div>
         <div className="flex items-center justify-between mt-2.5">
           <button onClick={() => loadDashboard(project!.id)}
-            className="flex items-center gap-1 text-[0.75rem] text-white/25 hover:text-white/50 transition-colors">
+            className="flex items-center gap-1 text-caption text-white/25 hover:text-white/50 transition-colors">
             <RefreshCw size={10} strokeWidth={1.5} className={dataLoading ? "animate-spin" : ""} />
             <span>רענן</span>
           </button>
           {projects.length > 1 && (
-            <button onClick={() => setView("select")} className="text-[0.75rem] text-white/25 hover:text-white/50">החלף פרויקט</button>
+            <button onClick={() => setView("select")} className="text-caption text-white/25 hover:text-white/50">החלף פרויקט</button>
           )}
-          <button onClick={onLogout} className="flex items-center gap-1 text-[0.75rem] text-white/25 hover:text-white/50">
+          <button onClick={onLogout} className="flex items-center gap-1 text-caption text-white/25 hover:text-white/50">
             <LogOut size={10} strokeWidth={1.5} /><span>יציאה</span>
           </button>
         </div>
@@ -699,7 +699,7 @@ export default function ForemanPortal({
                 <button key={s.label} onClick={() => setTab(s.go)}
                   className="bg-white border border-warm-gray-light p-3 text-center active:scale-95 transition-transform">
                   <div className={`font-heading text-2xl font-bold ${s.color}`}>{s.value}</div>
-                  <div className="text-[0.75rem] text-charcoal/40 mt-0.5 leading-tight">{s.label}</div>
+                  <div className="text-caption text-muted mt-0.5 leading-tight">{s.label}</div>
                 </button>
               ))}
             </div>
@@ -711,7 +711,7 @@ export default function ForemanPortal({
                   <Target size={14} strokeWidth={2} className="text-accent" />
                   המיקוד של היום
                 </p>
-                <span className="text-[0.75rem] text-accent font-semibold">{new Date().toLocaleDateString("he-IL", { weekday: "long" })}</span>
+                <span className="text-caption text-accent font-semibold">{new Date().toLocaleDateString("he-IL", { weekday: "long" })}</span>
               </div>
               {todayTasks.length === 0 ? (
                 <p className="text-sm text-charcoal/30 text-center py-4">אין משימות מתוכננות להיום</p>
@@ -725,10 +725,10 @@ export default function ForemanPortal({
                           {hasReadinessIssue(t) && <AlertTriangle size={12} strokeWidth={2} className="text-amber-500 shrink-0" />}
                         </div>
                         {milestones.find(m => m.id === t.milestone_id) && (
-                          <p className="text-[0.58rem] text-accent-dark font-semibold uppercase">{milestones.find(m => m.id === t.milestone_id)?.name}</p>
+                          <p className="text-caption text-accent-dark font-semibold uppercase">{milestones.find(m => m.id === t.milestone_id)?.name}</p>
                         )}
                       </div>
-                      <span className={`text-[0.75rem] px-1.5 py-0.5 shrink-0 ${TASK_STATUS_CLS[t.status] ?? ""}`}>
+                      <span className={`text-caption px-1.5 py-0.5 shrink-0 ${TASK_STATUS_CLS[t.status] ?? ""}`}>
                         {TASK_STATUS_HE[t.status] ?? ""}
                       </span>
                       {t.status !== "completed" && (
@@ -755,9 +755,9 @@ export default function ForemanPortal({
                     <div key={t.id} className="py-2.5">
                       <p className="text-sm font-semibold text-amber-800">{t.task_name}</p>
                       <div className="flex gap-2 mt-1">
-                        {!t.material_ready    && <span className="text-[0.75rem] bg-red-100 text-red-600 px-1.5 py-0.5 flex items-center gap-0.5"><Package size={9} /> חומרים</span>}
-                        {!t.sub_confirmed     && <span className="text-[0.75rem] bg-red-100 text-red-600 px-1.5 py-0.5 flex items-center gap-0.5"><Users   size={9} /> קבלן</span>}
-                        {!t.equipment_on_site && <span className="text-[0.75rem] bg-red-100 text-red-600 px-1.5 py-0.5 flex items-center gap-0.5"><Wrench  size={9} /> ציוד</span>}
+                        {!t.material_ready    && <span className="text-caption bg-red-100 text-red-600 px-1.5 py-0.5 flex items-center gap-0.5"><Package size={9} /> חומרים</span>}
+                        {!t.sub_confirmed     && <span className="text-caption bg-red-100 text-red-600 px-1.5 py-0.5 flex items-center gap-0.5"><Users   size={9} /> קבלן</span>}
+                        {!t.equipment_on_site && <span className="text-caption bg-red-100 text-red-600 px-1.5 py-0.5 flex items-center gap-0.5"><Wrench  size={9} /> ציוד</span>}
                       </div>
                     </div>
                   ))}
@@ -771,13 +771,13 @@ export default function ForemanPortal({
                 className="bg-charcoal text-white p-4 text-start space-y-1 active:scale-95 transition-transform">
                 <ClipboardList size={22} strokeWidth={1.5} className="text-white/60" />
                 <p className="font-heading text-sm font-bold mt-2">יומן יומי</p>
-                <p className="text-[0.75rem] text-white/40">{hasLogToday ? "עדכן יומן" : "רשום עבודת היום"}</p>
+                <p className="text-caption text-white/40">{hasLogToday ? "עדכן יומן" : "רשום עבודת היום"}</p>
               </button>
               <button onClick={() => setTab("expense")}
                 className="bg-accent text-bone p-4 text-start space-y-1 active:scale-95 transition-transform">
                 <PlusCircle size={22} strokeWidth={1.5} className="text-bone/60" />
                 <p className="font-heading text-sm font-bold mt-2">הוסף הוצאה</p>
-                <p className="text-[0.75rem] text-bone/50">חומרים, קבלן, הזמנות</p>
+                <p className="text-caption text-bone/50">חומרים, קבלן, הזמנות</p>
               </button>
             </div>
 
@@ -802,7 +802,7 @@ export default function ForemanPortal({
                     <div className="flex items-start justify-between gap-3 mb-2.5">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-charcoal text-sm">{rec.staff?.name ?? "—"}</p>
-                        <div className="flex items-center gap-1 text-[0.75rem] text-charcoal/65 mt-0.5 flex-wrap">
+                        <div className="flex items-center gap-1 text-caption text-muted mt-0.5 flex-wrap">
                           <Clock size={10} strokeWidth={1.5} />
                           <span>{rec.action === "in" || rec.action === "כניסה" ? "כניסה" : "יציאה"} · {rec.timestamp_label ?? "—"}</span>
                           {(() => {
@@ -812,12 +812,12 @@ export default function ForemanPortal({
                             const mapsUrl = hasCoords ? `https://www.google.com/maps?q=${rec.lat},${rec.lng}` : undefined;
                             // No distance but has coords → neutral pin
                             if (d == null) {
-                              const cls = "text-[0.75rem] font-semibold px-1.5 py-0.5 bg-white text-charcoal/65 border border-charcoal/10";
+                              const cls = "text-caption font-semibold px-1.5 py-0.5 bg-white text-muted border border-charcoal/10";
                               return <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className={cls} title="לחץ לפתיחה במפה">📍 מפה</a>;
                             }
                             const over = d > FAR_THRESHOLD_M;
                             const label = d < 1000 ? `${d}מ׳` : `${(d / 1000).toFixed(1)}ק"מ`;
-                            const cls = `text-[0.75rem] font-semibold px-1.5 py-0.5 ${over ? "bg-red-100 text-red-700 border border-red-200" : "bg-white text-charcoal/65 border border-charcoal/10"}`;
+                            const cls = `text-caption font-semibold px-1.5 py-0.5 ${over ? "bg-red-100 text-red-700 border border-red-200" : "bg-white text-muted border border-charcoal/10"}`;
                             return mapsUrl
                               ? <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className={cls} title="לחץ לפתיחה במפה">📍 {label}</a>
                               : <span className={cls}>📍 {label}</span>;
@@ -827,11 +827,11 @@ export default function ForemanPortal({
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => handlePendingDecision(rec, "approved")} disabled={pendingLoading === rec.id}
-                        className="flex-1 border border-green-400 text-green-700 bg-white px-3 py-2.5 text-xs font-semibold hover:bg-green-50 active:scale-95 transition-all disabled:opacity-40 flex items-center justify-center gap-1">
+                        className="flex-1 border border-green-400 text-green-700 bg-white px-3 py-2.5 text-content font-semibold hover:bg-green-50 active:scale-95 transition-all disabled:opacity-40 flex items-center justify-center gap-1">
                         {pendingLoading === rec.id ? <Loader2 size={14} className="animate-spin" /> : <><Check size={14} strokeWidth={2} /> אשר</>}
                       </button>
                       <button onClick={() => handlePendingDecision(rec, "rejected")} disabled={pendingLoading === rec.id}
-                        className="flex-1 border border-red-300 text-red-600 bg-white px-3 py-2.5 text-xs font-semibold hover:bg-red-50 active:scale-95 transition-all disabled:opacity-40 flex items-center justify-center gap-1">
+                        className="flex-1 border border-red-300 text-red-600 bg-white px-3 py-2.5 text-content font-semibold hover:bg-red-50 active:scale-95 transition-all disabled:opacity-40 flex items-center justify-center gap-1">
                         {pendingLoading === rec.id ? <Loader2 size={14} className="animate-spin" /> : <><X size={14} strokeWidth={2} /> דחה</>}
                       </button>
                     </div>
@@ -847,13 +847,13 @@ export default function ForemanPortal({
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                   באתר כעת ({onSite.length})
                 </p>
-                <button onClick={() => loadDashboard(project!.id)} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent">
+                <button onClick={() => loadDashboard(project!.id)} className="flex items-center gap-1 text-content text-muted hover:text-accent">
                   <RefreshCw size={12} strokeWidth={1.5} /> רענן
                 </button>
               </div>
               {onSite.length === 0 ? (
                 <div className="bg-white border border-warm-gray-light p-6 text-center">
-                  <p className="text-xs text-charcoal/30">אין עובדים מדווחים באתר כרגע</p>
+                  <p className="text-content text-charcoal/30">אין עובדים מדווחים באתר כרגע</p>
                 </div>
               ) : (
                 onSite.map(w => (
@@ -861,7 +861,7 @@ export default function ForemanPortal({
                     <div className="w-2 h-2 rounded-full bg-green-500 shrink-0 animate-pulse" />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-charcoal text-sm">{w.name}</p>
-                      <div className="flex items-center gap-2 text-[0.75rem] text-charcoal/40 mt-0.5 flex-wrap">
+                      <div className="flex items-center gap-2 text-caption text-muted mt-0.5 flex-wrap">
                         <span className="inline-flex items-center gap-1"><Clock size={10} strokeWidth={1.5} />כניסה: {w.entry_time}</span>
                         {(() => {
                           const d = w.distance_from_project_m;
@@ -869,11 +869,11 @@ export default function ForemanPortal({
                           if (d == null && !hasCoords) return null;
                           const mapsUrl = hasCoords ? `https://www.google.com/maps?q=${w.lat},${w.lng}` : undefined;
                           if (d == null) {
-                            return <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="text-[0.75rem] font-semibold px-1.5 py-0.5 bg-charcoal/[0.04] text-charcoal/65 border border-charcoal/10" title="לחץ לפתיחה במפה">📍 מפה</a>;
+                            return <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="text-caption font-semibold px-1.5 py-0.5 bg-charcoal/[0.04] text-muted border border-charcoal/10" title="לחץ לפתיחה במפה">📍 מפה</a>;
                           }
                           const over = d > FAR_THRESHOLD_M;
                           const label = d < 1000 ? `${d}מ׳` : `${(d / 1000).toFixed(1)}ק"מ`;
-                          const cls = `text-[0.75rem] font-semibold px-1.5 py-0.5 ${over ? "bg-red-100 text-red-700 border border-red-200" : "bg-charcoal/[0.04] text-charcoal/65 border border-charcoal/10"}`;
+                          const cls = `text-caption font-semibold px-1.5 py-0.5 ${over ? "bg-red-100 text-red-700 border border-red-200" : "bg-charcoal/[0.04] text-muted border border-charcoal/10"}`;
                           return mapsUrl
                             ? <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className={cls} title="לחץ לפתיחה במפה">📍 {label}</a>
                             : <span className={cls}>📍 {label}</span>;
@@ -881,7 +881,7 @@ export default function ForemanPortal({
                       </div>
                     </div>
                     <button onClick={() => handleClockOut(w)} disabled={clockOutLoading === w.staff_id}
-                      className="shrink-0 border border-red-300 text-red-600 px-4 py-2 text-xs font-semibold hover:bg-red-50 active:scale-95 transition-all disabled:opacity-40">
+                      className="shrink-0 border border-red-300 text-red-600 px-4 py-2 text-content font-semibold hover:bg-red-50 active:scale-95 transition-all disabled:opacity-40">
                       {clockOutLoading === w.staff_id ? <Loader2 size={14} className="animate-spin" /> : "יציאה"}
                     </button>
                   </div>
@@ -895,13 +895,13 @@ export default function ForemanPortal({
               if (missing.length === 0) return null;
               return (
                 <div className="space-y-2">
-                  <p className="font-heading text-sm font-bold text-charcoal/60 flex items-center gap-1.5">
-                    <X size={14} strokeWidth={2} className="text-charcoal/40" />
+                  <p className="font-heading text-sm font-bold text-muted flex items-center gap-1.5">
+                    <X size={14} strokeWidth={2} className="text-muted" />
                     לא החתימו היום ({missing.length})
                   </p>
                   <div className="bg-white border border-warm-gray-light divide-y divide-warm-gray-light">
                     {missing.map(s => (
-                      <div key={s.id} className="px-4 py-2.5 text-sm text-charcoal/60">{s.name}</div>
+                      <div key={s.id} className="px-4 py-2.5 text-sm text-muted">{s.name}</div>
                     ))}
                   </div>
                 </div>
@@ -915,26 +915,26 @@ export default function ForemanPortal({
           <div className="p-4 space-y-4">
             <div className="flex items-center justify-between">
               <p className="font-heading text-base font-bold text-charcoal">יומן עבודה יומי</p>
-              <span className="text-xs text-charcoal/40">{new Date().toLocaleDateString("he-IL", { weekday: "long", day: "numeric", month: "long" })}</span>
+              <span className="text-content text-muted">{new Date().toLocaleDateString("he-IL", { weekday: "long", day: "numeric", month: "long" })}</span>
             </div>
             <div>
-              <p className="text-xs text-charcoal/65 mb-2">סטטוס יום העבודה</p>
+              <p className="text-content text-muted mb-2">סטטוס יום העבודה</p>
               <div className="grid grid-cols-3 gap-2">
                 {(["normal", "delay", "problem"] as LogStatus[]).map(s => (
                   <button key={s} onClick={() => setLogStatus(s)}
-                    className={`py-3 text-xs font-semibold border transition-all active:scale-95 ${logStatus === s ? LOG_STATUS_BTN[s] : "border-charcoal/15 text-charcoal/40 bg-white"}`}>
+                    className={`py-3 text-content font-semibold border transition-all active:scale-95 ${logStatus === s ? LOG_STATUS_BTN[s] : "border-charcoal/15 text-muted bg-white"}`}>
                     {LOG_STATUS_LABEL[s]}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <p className="text-xs text-charcoal/65 mb-1.5">תיאור עבודת היום</p>
+              <p className="text-content text-muted mb-1.5">תיאור עבודת היום</p>
               <AutoGrowTextarea value={logText} onChange={e => setLogText(e.target.value)} placeholder="תאר את העבודה שבוצעה היום..."
                 rows={5} className="w-full border border-charcoal/15 bg-white px-3 py-3 text-sm text-charcoal focus:border-accent focus:outline-none transition-colors" />
             </div>
             <div>
-              <p className="text-xs text-charcoal/65 mb-1.5">עובדי קבלן משנה היום</p>
+              <p className="text-content text-muted mb-1.5">עובדי קבלן משנה היום</p>
               <input type="number" min="0" value={logSub} onChange={e => setLogSub(e.target.value)}
                 className="w-32 border border-charcoal/15 bg-white px-3 py-3 text-sm text-center font-bold focus:border-accent focus:outline-none" dir="ltr" />
             </div>
@@ -951,7 +951,7 @@ export default function ForemanPortal({
           <div className="p-4 space-y-4">
             <p className="font-heading text-base font-bold text-charcoal">רישום הוצאה</p>
             <div>
-              <p className="text-xs text-charcoal/65 mb-1.5">סכום (₪)</p>
+              <p className="text-content text-muted mb-1.5">סכום (₪)</p>
               <div className="relative">
                 <span className="absolute inset-y-0 end-3 flex items-center text-charcoal/30 font-bold text-lg pointer-events-none">₪</span>
                 <input type="number" inputMode="decimal" value={expAmount} onChange={e => setExpAmount(e.target.value)}
@@ -959,18 +959,18 @@ export default function ForemanPortal({
               </div>
             </div>
             <div>
-              <p className="text-xs text-charcoal/65 mb-1.5">קטגוריה</p>
+              <p className="text-content text-muted mb-1.5">קטגוריה</p>
               <div className="grid grid-cols-2 gap-2">
                 {EXPENSE_CATS.map(c => (
                   <button key={c} onClick={() => setExpCat(c)}
-                    className={`py-3 text-sm font-semibold border transition-all active:scale-95 ${expCat === c ? "border-accent bg-accent/[0.08] text-accent" : "border-charcoal/15 bg-white text-charcoal/60"}`}>
+                    className={`py-3 text-sm font-semibold border transition-all active:scale-95 ${expCat === c ? "border-accent bg-accent/[0.08] text-accent" : "border-charcoal/15 bg-white text-muted"}`}>
                     {c}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <p className="text-xs text-charcoal/65 mb-1.5">תיאור</p>
+              <p className="text-content text-muted mb-1.5">תיאור</p>
               <AutoGrowTextarea value={expDesc} onChange={e => setExpDesc(e.target.value)} placeholder="בטון, ברזל, שרברב..."
                 className="w-full border border-charcoal/15 bg-white px-4 py-3.5 text-sm focus:border-accent focus:outline-none" />
             </div>
@@ -994,7 +994,7 @@ export default function ForemanPortal({
                   <Flag size={14} strokeWidth={2} className="text-accent" />
                   <p className="font-heading text-sm font-bold text-charcoal">אבני דרך</p>
                 </div>
-                {msExpanded ? <ChevronDown size={14} strokeWidth={2} className="text-charcoal/40" /> : <ChevronRight size={14} strokeWidth={2} className="text-charcoal/30" />}
+                {msExpanded ? <ChevronDown size={14} strokeWidth={2} className="text-muted" /> : <ChevronRight size={14} strokeWidth={2} className="text-charcoal/30" />}
               </button>
 
               {msExpanded && (
@@ -1010,12 +1010,12 @@ export default function ForemanPortal({
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-charcoal truncate">{ms.name}</p>
-                            <p className="text-[0.75rem] text-charcoal/40">
+                            <p className="text-caption text-muted">
                               {msTaskCount} משימות
                               {ms.target_date && ` · יעד: ${new Date(ms.target_date).toLocaleDateString("he-IL", { day: "numeric", month: "numeric", year: "2-digit" })}`}
                             </p>
                           </div>
-                          <span className="text-xs font-bold tabular-nums text-accent shrink-0">{pct}%</span>
+                          <span className="text-content font-bold tabular-nums text-accent shrink-0">{pct}%</span>
                         </div>
                         {/* Progress bar */}
                         <div className="h-1.5 bg-charcoal/8 rounded-full overflow-hidden">
@@ -1035,12 +1035,12 @@ export default function ForemanPortal({
             {milestones.length > 0 && (
               <div className="flex gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none" }}>
                 <button onClick={() => setMsFilter("all")}
-                  className={`shrink-0 text-[0.75rem] font-semibold px-3 py-1.5 border transition-colors ${msFilter === "all" ? "border-accent bg-accent/[0.08] text-accent" : "border-charcoal/15 text-charcoal/65"}`}>
+                  className={`shrink-0 text-caption font-semibold px-3 py-1.5 border transition-colors ${msFilter === "all" ? "border-accent bg-accent/[0.08] text-accent" : "border-charcoal/15 text-muted"}`}>
                   הכל
                 </button>
                 {milestones.map(ms => (
                   <button key={ms.id} onClick={() => setMsFilter(ms.id)}
-                    className={`shrink-0 text-[0.75rem] font-semibold px-3 py-1.5 border transition-colors whitespace-nowrap ${msFilter === ms.id ? "border-accent bg-accent/[0.08] text-accent" : "border-charcoal/15 text-charcoal/65"}`}>
+                    className={`shrink-0 text-caption font-semibold px-3 py-1.5 border transition-colors whitespace-nowrap ${msFilter === ms.id ? "border-accent bg-accent/[0.08] text-accent" : "border-charcoal/15 text-muted"}`}>
                     {ms.name}
                   </button>
                 ))}
@@ -1065,21 +1065,21 @@ export default function ForemanPortal({
                         {day.isToday && <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />}
                         <div>
                           <span className="font-heading text-sm font-bold text-charcoal">{day.label}</span>
-                          <span className="text-charcoal/35 text-xs me-1.5"> · {day.short}</span>
-                          {day.isToday   && <span className="text-xs bg-accent text-bone px-1.5 py-0.5 font-semibold">היום</span>}
-                          {day.isTomorrow && <span className="text-xs bg-charcoal/80 text-bone px-1.5 py-0.5 font-semibold">מחר</span>}
+                          <span className="text-charcoal/35 text-caption me-1.5"> · {day.short}</span>
+                          {day.isToday   && <span className="text-caption bg-accent text-bone px-1.5 py-0.5 font-semibold">היום</span>}
+                          {day.isTomorrow && <span className="text-caption bg-charcoal/80 text-bone px-1.5 py-0.5 font-semibold">מחר</span>}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {dayRedCount > 0 && (
-                          <span className="text-[0.75rem] bg-red-100 text-red-600 px-1.5 py-0.5 font-bold flex items-center gap-0.5">
+                          <span className="text-caption bg-red-100 text-red-600 px-1.5 py-0.5 font-bold flex items-center gap-0.5">
                             <AlertTriangle size={9} /> {dayRedCount}
                           </span>
                         )}
                         {allDayTasks.length > 0 && (
-                          <span className="text-xs font-bold text-charcoal/40">{allDayTasks.length}</span>
+                          <span className="text-caption font-bold text-muted">{allDayTasks.length}</span>
                         )}
-                        {isOpen ? <ChevronDown size={14} strokeWidth={2} className="text-charcoal/40" /> : <ChevronRight size={14} strokeWidth={2} className="text-charcoal/25" />}
+                        {isOpen ? <ChevronDown size={14} strokeWidth={2} className="text-muted" /> : <ChevronRight size={14} strokeWidth={2} className="text-charcoal/25" />}
                       </div>
                     </button>
 
@@ -1087,7 +1087,7 @@ export default function ForemanPortal({
                     {isOpen && (
                       <div className="border-t border-charcoal/5">
                         {dayTasks.length === 0 && msFilter !== "all" && (
-                          <p className="text-xs text-charcoal/30 text-center py-3">אין משימות לאבן דרך זו</p>
+                          <p className="text-content text-charcoal/30 text-center py-3">אין משימות לאבן דרך זו</p>
                         )}
 
                         {/* Task cards */}
@@ -1099,7 +1099,7 @@ export default function ForemanPortal({
                         <div className="px-4 py-3 bg-bone/60">
                           {!isAdding ? (
                             <button onClick={() => { setAddTaskForDay(day.date); setNewTaskDate(day.date); setNewTaskDesc(""); setNewTaskNotes(""); setNewTaskMs(""); setTaskMsg(""); }}
-                              className="text-xs text-accent font-semibold flex items-center gap-1">
+                              className="text-content text-accent font-semibold flex items-center gap-1">
                               <PlusCircle size={13} strokeWidth={2} /> הוסף משימה
                             </button>
                           ) : (
@@ -1119,15 +1119,15 @@ export default function ForemanPortal({
                                 className="w-full border border-charcoal/15 bg-white px-3 py-2.5 text-sm focus:border-accent focus:outline-none" />
                               <div className="flex gap-2">
                                 <button onClick={() => handleAddTask(day.date)} disabled={taskSaving || !newTaskDesc.trim()}
-                                  className="flex-1 bg-accent text-bone py-2.5 text-xs font-semibold hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
+                                  className="flex-1 bg-accent text-bone py-2.5 text-content font-semibold hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1">
                                   {taskSaving ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} הוסף
                                 </button>
                                 <button onClick={() => setAddTaskForDay(null)}
-                                  className="border border-charcoal/15 px-4 py-2.5 text-xs text-charcoal/40 hover:border-accent transition-colors">
+                                  className="border border-charcoal/15 px-4 py-2.5 text-content text-muted hover:border-accent transition-colors">
                                   ביטול
                                 </button>
                               </div>
-                              {taskMsg && <p className={`text-xs font-semibold ${taskMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{taskMsg}</p>}
+                              {taskMsg && <p className={`text-content font-semibold ${taskMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{taskMsg}</p>}
                             </div>
                           )}
                         </div>
@@ -1145,7 +1145,7 @@ export default function ForemanPortal({
           <div className="p-4 space-y-4">
             <div className="flex items-center justify-between">
               <p className="font-heading text-base font-bold text-charcoal">שעות עבודה — 28 ימים אחרונים</p>
-              <button onClick={loadHours} className="flex items-center gap-1 text-xs text-charcoal/40 hover:text-accent">
+              <button onClick={loadHours} className="flex items-center gap-1 text-content text-muted hover:text-accent">
                 <RefreshCw size={12} strokeWidth={1.5} className={hoursLoading ? "animate-spin" : ""} /> רענן
               </button>
             </div>
@@ -1184,17 +1184,17 @@ export default function ForemanPortal({
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
-                            <span className="text-xs font-bold text-accent">{worker.name.charAt(0)}</span>
+                            <span className="text-caption font-bold text-accent">{worker.name.charAt(0)}</span>
                           </div>
                           <div>
                             <p className="font-semibold text-charcoal text-sm">{worker.name}</p>
-                            <p className="text-[0.62rem] text-charcoal/40">{worker.days} ימי עבודה</p>
+                            <p className="text-caption text-muted">{worker.days} ימי עבודה</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="text-end">
                             <p className="font-heading text-lg font-bold text-accent tabular-nums">{worker.hours.toFixed(1)}</p>
-                            <p className="text-xs text-charcoal/35">שעות</p>
+                            <p className="text-caption text-charcoal/35">שעות</p>
                           </div>
                           {isOpen
                             ? <ChevronDown size={14} strokeWidth={2} className="text-charcoal/30" />
@@ -1206,7 +1206,7 @@ export default function ForemanPortal({
                       {isOpen && (
                         <div className="border-t border-charcoal/5">
                           {/* Header */}
-                          <div className="grid grid-cols-4 gap-2 px-4 py-2 bg-bone/60 text-xs font-semibold text-charcoal/40 uppercase tracking-wide">
+                          <div className="grid grid-cols-4 gap-2 px-4 py-2 bg-bone/60 text-caption font-semibold text-muted uppercase tracking-wide">
                             <span>תאריך</span>
                             <span className="text-center">כניסה</span>
                             <span className="text-center">יציאה</span>
@@ -1215,10 +1215,10 @@ export default function ForemanPortal({
                           <div className="divide-y divide-charcoal/5">
                             {workerRows.map((row, i) => (
                               <div key={i} className="grid grid-cols-4 gap-2 px-4 py-2.5 items-center">
-                                <span className="text-xs text-charcoal/60 tabular-nums">{row.date}</span>
-                                <span className="text-xs font-semibold text-green-700 text-center tabular-nums">{row.entry || "—"}</span>
-                                <span className="text-xs font-semibold text-red-600 text-center tabular-nums">{row.exit || "—"}</span>
-                                <span className="text-xs font-bold text-charcoal text-end tabular-nums">
+                                <span className="text-caption text-muted tabular-nums">{row.date}</span>
+                                <span className="text-caption font-semibold text-green-700 text-center tabular-nums">{row.entry || "—"}</span>
+                                <span className="text-caption font-semibold text-red-600 text-center tabular-nums">{row.exit || "—"}</span>
+                                <span className="text-caption font-bold text-charcoal text-end tabular-nums">
                                   {row.hours !== null ? row.hours.toFixed(1) : "—"}
                                 </span>
                               </div>
@@ -1253,20 +1253,20 @@ export default function ForemanPortal({
               <p className="font-heading text-sm font-bold text-charcoal flex items-center gap-2">
                 <Calendar size={15} strokeWidth={2} className="text-accent" /> הזז משימה לתאריך
               </p>
-              <button onClick={() => setMoveTaskId(null)} className="text-charcoal/30 hover:text-charcoal/60">
+              <button onClick={() => setMoveTaskId(null)} className="text-charcoal/30 hover:text-muted">
                 <X size={18} strokeWidth={2} />
               </button>
             </div>
             <div className="grid grid-cols-7 gap-1.5">
               {planDays.map(day => (
                 <button key={day.date} onClick={() => handleMoveTask(moveTaskId, day.date)}
-                  className={`py-2.5 text-center border text-[0.75rem] font-semibold active:scale-95 transition-all ${
+                  className={`py-2.5 text-center border text-caption font-semibold active:scale-95 transition-all ${
                     day.isToday   ? "border-accent bg-accent/[0.08] text-accent"  :
                     day.isTomorrow ? "border-charcoal/25 bg-charcoal/5 text-charcoal" :
-                    "border-charcoal/10 text-charcoal/65 hover:border-accent hover:text-accent"
+                    "border-charcoal/10 text-muted hover:border-accent hover:text-accent"
                   }`}>
                   <div>{day.label.slice(0, 2)}</div>
-                  <div className="text-xs mt-0.5 opacity-70">{day.short}</div>
+                  <div className="text-caption mt-0.5 opacity-70">{day.short}</div>
                 </button>
               ))}
             </div>
@@ -1291,7 +1291,7 @@ export default function ForemanPortal({
             }`}>
             {t.dot && <span className="absolute top-2 right-1/2 translate-x-3.5 w-1.5 h-1.5 rounded-full bg-red-500" />}
             {t.icon}
-            <span className="text-xs font-semibold">{t.label}</span>
+            <span className="text-caption font-semibold">{t.label}</span>
           </button>
         ))}
       </nav>
