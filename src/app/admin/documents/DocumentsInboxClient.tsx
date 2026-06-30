@@ -102,7 +102,9 @@ export default function DocumentsInboxClient() {
     fetch("/api/admin/vendors", { cache: "no-store" }).then(r => r.json())
       .then(d => setVendors(d.vendors ?? [])).catch(() => {});
     // All projects (incl. finished) so the filter can target finished projects too.
-    fetch("/api/admin/projects", { cache: "no-store" }).then(r => r.json())
+    // include=site,overhead so the per-card project picker can offer "תקורות"
+    // as a destination for company-wide expense receipts.
+    fetch("/api/admin/projects?include=site,overhead", { cache: "no-store" }).then(r => r.json())
       .then(d => setProjects(d.projects ?? [])).catch(() => {});
   }, [auth]);
 

@@ -10,6 +10,20 @@ import {
 export const runtime = "nodejs";
 
 // GET — list projects. Foreman only sees their own (foreman_id match).
+//
+// Optional ?include= narrows or widens the project_type set. Default is
+// 'site' so existing UI consumers (admin tab, ScheduleTab, IncomeTab,
+// the foreman portal) continue to see exactly what they saw before the
+// overhead/meta concept landed. Documents-related screens pass
+// ?include=site,overhead so the project picker can offer "תקורות" as a
+// destination for company-wide expense receipts.
+//
+//   ?include=site            → default, only site projects
+//   ?include=site,overhead   → both
+//   ?include=overhead        → only overhead (rare; admin tooling)
+//
+// Unknown values are dropped silently. An empty/missing param falls
+// back to ['site'].
 export async function GET(req: NextRequest) {
   if (!isAuthedFromRequest(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -18,10 +32,20 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   const role     = getRoleFromRequest(req);
 
+  const includeRaw = req.nextUrl.searchParams.get("include");
+  const validTypes = new Set(["site", "overhead"]);
+  const includeTypes = includeRaw
+    ? includeRaw.split(",").map(s => s.trim()).filter(t => validTypes.has(t))
+    : [];
+  // Empty after filtering → fall back to safe default rather than
+  // accidentally returning nothing.
+  const projectTypes = includeTypes.length > 0 ? includeTypes : ["site"];
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query: any = supabase
     .from("projects")
-    .select("id, name, status, foreman_id, address, lat, lng")
+    .select("id, name, status, foreman_id, address, lat, lng, project_type")
+    .in("project_type", projectTypes)
     .order("status", { ascending: true })
     .order("name",   { ascending: true });
 

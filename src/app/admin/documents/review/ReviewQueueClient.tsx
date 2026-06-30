@@ -88,7 +88,8 @@ export default function ReviewQueueClient() {
     })();
     loadVendors();
     // All projects (incl. finished) with status — see DocumentDetailClient.
-    fetch("/api/admin/projects", { cache: "no-store" }).then(r => r.json())
+    // include=site,overhead surfaces the "תקורות" destination.
+    fetch("/api/admin/projects?include=site,overhead", { cache: "no-store" }).then(r => r.json())
       .then(d => setProjects(d.projects ?? [])).catch(() => {});
     return () => { cancelled = true; };
   }, [auth, loadVendors]);

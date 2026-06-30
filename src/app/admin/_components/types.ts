@@ -76,6 +76,10 @@ export interface Project {
   lat?: number | null;
   lng?: number | null;
   foreman_id?: string | null;
+  /** 'site' | 'overhead'. Surfaces in ProjectsTab so the overhead row
+   *  can hide its payment-milestones accordion (no customer paying us
+   *  for company overhead). */
+  project_type?: string | null;
 }
 
 export interface Task {

@@ -41,7 +41,22 @@ function fmt(n: number): string {
   return "₪" + Math.round(n).toLocaleString("he-IL");
 }
 
-export default function ProjectMilestonesSection({ projectId }: { projectId: string }) {
+export default function ProjectMilestonesSection({
+  projectId,
+  projectType,
+}: {
+  projectId: string;
+  /** 'site' | 'overhead'. Overhead projects are pure expense buckets
+   *  (insurance, accountant, office) — there is no customer paying us
+   *  in stages, so the milestones surface has no role there and we
+   *  render nothing at all. Anything else falls through to the normal
+   *  per-project flow. */
+  projectType?: string | null;
+}) {
+  // Overhead guard — early return so no fetch is triggered and no
+  // section header occupies the card.
+  if (projectType === "overhead") return null;
+
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<ApiPayload | null>(null);
   const [loading, setLoading] = useState(false);

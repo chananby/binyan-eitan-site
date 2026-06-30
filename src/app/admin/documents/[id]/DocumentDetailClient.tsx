@@ -72,7 +72,8 @@ export default function DocumentDetailClient({ id }: { id: string }) {
     loadVendors();
     // /api/admin/projects (not /api/projects) so documents can be filed to
     // ANY project, including finished ones, with status for grouping.
-    fetch("/api/admin/projects", { cache: "no-store" }).then(r => r.json())
+    // include=site,overhead surfaces the "תקורות" destination.
+    fetch("/api/admin/projects?include=site,overhead", { cache: "no-store" }).then(r => r.json())
       .then(d => setProjects(d.projects ?? [])).catch(() => {});
     return () => { cancelled = true; };
   }, [auth, id]);

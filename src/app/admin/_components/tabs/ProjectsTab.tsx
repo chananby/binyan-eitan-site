@@ -19,6 +19,9 @@ interface Project {
   lat?: number | null;
   lng?: number | null;
   foreman_id?: string | null;
+  /** 'site' | 'overhead'. Forwarded to ProjectMilestonesSection so the
+   *  overhead row hides its (irrelevant) milestone accordion. */
+  project_type?: string | null;
 }
 
 interface StaffLite {
@@ -223,8 +226,9 @@ export default function ProjectsTab(p: Props) {
 
               {/* Payment milestones — collection-stage tracker. Accordion
                   is collapsed by default; lazily fetches its own data the
-                  first time it opens (no N-fetch storm on tab mount). */}
-              <ProjectMilestonesSection projectId={proj.id} />
+                  first time it opens (no N-fetch storm on tab mount).
+                  Overhead projects return null from the section. */}
+              <ProjectMilestonesSection projectId={proj.id} projectType={proj.project_type} />
             </div>
             );
           })}

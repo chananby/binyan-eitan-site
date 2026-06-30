@@ -61,3 +61,39 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ project: data, geocode_failed: geocodeFailed });
 }
+
+// DELETE — refuses every request. The project lifecycle uses the
+// status='inactive' toggle (see PATCH above) instead of hard delete:
+// every FK that points at projects (attendance, schedule_assignments,
+// daily_reports, materials, payment_milestones, financial_documents,
+// …) would orphan without a cascade we don't want.
+//
+// Overhead projects get an extra-explicit 403 with the reason spelled
+// out, because deleting the "תקורות" row would silently unlink every
+// company-overhead receipt from its destination.
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  if (!isAdminAuthedFromRequest(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const supabase = createServerClient();
+  const { data: row, error } = await supabase
+    .from("projects")
+    .select("project_type")
+    .eq("id", params.id)
+    .maybeSingle();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!row)  return NextResponse.json({ error: "פרויקט לא נמצא" }, { status: 404 });
+
+  if (row.project_type === "overhead") {
+    return NextResponse.json(
+      { error: "אסור למחוק את פרויקט התקורות — הוא משויך למסמכים פיננסיים. אפשר להשבית אותו עם סטטוס=לא פעיל, אם נדרש." },
+      { status: 403 },
+    );
+  }
+  return NextResponse.json(
+    { error: "מחיקת פרויקטים אינה נתמכת — השבת את הפרויקט (סטטוס=לא פעיל) במקום." },
+    { status: 405 },
+  );
+}
