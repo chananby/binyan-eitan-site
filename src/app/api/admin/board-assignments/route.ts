@@ -72,6 +72,10 @@ export async function GET(req: NextRequest) {
       .from("projects")
       .select("id, name, status")
       .eq("status", "active") // status is a string column ('active' / 'inactive'), not a boolean
+      // project_type='site' keeps overhead/meta projects out of the live
+      // board's drag targets. Layered ON TOP of the active filter so a
+      // user with neither column set up still gets the historical default.
+      .eq("project_type", "site")
       .order("name", { ascending: true }),
     supabase
       .from("board_manual_projects")

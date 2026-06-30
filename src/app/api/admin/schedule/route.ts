@@ -92,6 +92,10 @@ export async function GET(req: NextRequest) {
       .from("projects")
       .select("id, name, status")
       .eq("status", "active")
+      // project_type='site' keeps overhead/meta projects out of the
+      // weekly schedule's site picker — they're never destinations
+      // for worker placement.
+      .eq("project_type", "site")
       .order("name", { ascending: true }),
     supabase
       .from("board_manual_projects")

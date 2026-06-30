@@ -137,10 +137,14 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Fetch active projects ───────────────────────────────────────────────
+  // project_type='site' keeps overhead projects out of the voice IVR's
+  // site list — a worker calling in for clock-in/out should never hear
+  // "תקורות" as a numbered option.
   const { data: projects, error: projErr } = await supabase
     .from("projects")
     .select("id, name")
     .eq("status", "active")
+    .eq("project_type", "site")
     .order("name", { ascending: true });
   if (projErr) {
     console.error("[twilio/voice/action] projects fetch error:", JSON.stringify(projErr));

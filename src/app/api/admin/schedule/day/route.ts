@@ -79,6 +79,8 @@ export async function GET(req: NextRequest) {
       .from("projects")
       .select("id, name, status")
       .eq("status", "active")
+      // Same site-only constraint as the weekly schedule + live board.
+      .eq("project_type", "site")
       .order("name", { ascending: true }),
     supabase
       .from("board_manual_projects")
