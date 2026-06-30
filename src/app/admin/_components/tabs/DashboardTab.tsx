@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Building2 } from "lucide-react";
+import { Building2, Coins, ChevronLeft } from "lucide-react";
 import { Card } from "../shared/Card";
 import AttentionPanel, { type AttentionItem } from "../shared/AttentionPanel";
 import { TabRefreshBar } from "../shared/TabRefreshBar";
 import ForecastDetailDialog, { type ForecastLine } from "../shared/ForecastDetailDialog";
+import type { CollectionsData } from "./CollectionsTab";
 import type {
   StaffMember, AttendanceRecord, Project, Task, BudgetLine,
 } from "../types";
@@ -59,6 +60,12 @@ interface Props {
   tasks: Task[];
   budget: BudgetLine[];
   incomeTotals: Record<string, number>;
+  /** Collections payload from /api/admin/collections — drives the
+   *  "💰 לגבייה" card. Null while in flight; the card only renders
+   *  when total_due > 0 so the dashboard doesn't carry a ₪0 card. */
+  collections: CollectionsData | null;
+  /** Tab switch to "גבייה" — wired from AdminPortal's goToTab. */
+  onGoToCollections: () => void;
 
   // Top bar
   refreshing: boolean;
@@ -124,6 +131,57 @@ export default function DashboardTab(p: Props) {
           </div>
         )}
       </Card>
+
+      {/* Admin: collections — only renders when there IS something to
+          collect. A zero-state card would just be noise the contractor
+          scrolls past, so we hide it. Top 3 by remaining (highest first)
+          so the largest unpaid stage anchors the eye. Tap takes the
+          admin straight to the full CollectionsTab. */}
+      {p.isAdmin && p.collections && p.collections.totals.count > 0 && (() => {
+        const sorted = [...p.collections.items].sort((a, b) => b.remaining - a.remaining);
+        const top3 = sorted.slice(0, 3);
+        return (
+          <button
+            type="button"
+            onClick={p.onGoToCollections}
+            aria-label="פתח את מסך הגבייה"
+            className="w-full text-start rounded-md border-2 border-red-300 bg-red-50 shadow-sm hover:bg-red-100 transition-colors"
+          >
+            <div className="p-4 space-y-2">
+              <div className="flex items-center gap-1.5">
+                <Coins size={14} strokeWidth={2} className="text-red-700" />
+                <p className="text-xs font-bold text-red-700 tracking-wide uppercase">לגבייה עכשיו</p>
+              </div>
+              <p className="text-3xl font-bold text-red-800 tabular-nums leading-tight">
+                ₪{Math.round(p.collections.totals.total_due).toLocaleString("he-IL")}
+              </p>
+              <p className="text-sm text-charcoal/85">
+                {p.collections.totals.count} {p.collections.totals.count === 1 ? "תשלום" : "תשלומים"} מ-{Object.keys(p.collections.totals.by_project).length} פרויקטים
+              </p>
+              <div className="pt-2 space-y-1 border-t border-red-300">
+                {top3.map((item) => (
+                  <div key={item.milestone.id} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="text-charcoal/85 truncate min-w-0 flex-1">
+                      {item.project?.name ?? "—"} · <span className="text-charcoal/70">{item.milestone.title}</span>
+                    </span>
+                    <span className="font-semibold text-red-700 tabular-nums shrink-0">
+                      ₪{Math.round(item.remaining).toLocaleString("he-IL")}
+                    </span>
+                  </div>
+                ))}
+                {p.collections.totals.count > 3 && (
+                  <p className="text-xs text-charcoal/65 pt-1">
+                    ועוד {p.collections.totals.count - 3}…
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center justify-end gap-1 text-sm font-semibold text-red-700 pt-1">
+                ראה הכל <ChevronLeft size={14} strokeWidth={2} />
+              </div>
+            </div>
+          </button>
+        );
+      })()}
 
       {/* Admin: daily spend */}
       {p.isAdmin && (

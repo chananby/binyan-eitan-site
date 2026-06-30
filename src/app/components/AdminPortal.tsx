@@ -14,7 +14,7 @@ import {
   ClipboardList, UserPlus, Loader2, Activity,
   AlertCircle, DollarSign, Target,
   ChevronLeft, Grid3x3, Download, Plus,
-  UserCog, Clock, MapPin, UserX, FileText, Inbox, Users,
+  UserCog, Clock, MapPin, UserX, FileText, Inbox, Users, Coins,
 } from "lucide-react";
 import { Card } from "../admin/_components/shared/Card";
 import AttentionPanel, { type AttentionItem } from "../admin/_components/shared/AttentionPanel";
@@ -37,6 +37,7 @@ import PayrollTab from "../admin/_components/tabs/PayrollTab";
 import QuotesTab from "../admin/_components/tabs/QuotesTab";
 import DocumentsTab from "../admin/_components/tabs/DocumentsTab";
 import JoinRequestsTab, { type JoinRequest } from "../admin/_components/tabs/JoinRequestsTab";
+import CollectionsTab, { type CollectionsData } from "../admin/_components/tabs/CollectionsTab";
 import { useVacationDrawer } from "../admin/_components/hooks/useVacationDrawer";
 import { useChangePassword } from "../admin/_components/hooks/useChangePassword";
 import { useIncomeForm } from "../admin/_components/hooks/useIncomeForm";
@@ -55,7 +56,7 @@ import type { WorkerHistoryDay } from "../../lib/worker-history-aggregate";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
-type AdminTab  = "dashboard" | "attendance" | "workers" | "join_requests" | "projects" | "board" | "expenses" | "planning" | "matrix" | "income" | "reports" | "payroll" | "quotes" | "documents" | "account";
+type AdminTab  = "dashboard" | "attendance" | "workers" | "join_requests" | "projects" | "board" | "expenses" | "planning" | "matrix" | "income" | "collections" | "reports" | "payroll" | "quotes" | "documents" | "account";
 type LoginMode = "pin" | "password";
 
 const HASH_TO_TAB: Record<string, AdminTab> = {
@@ -68,6 +69,7 @@ const HASH_TO_TAB: Record<string, AdminTab> = {
   matrix:     "matrix",
   weekly:     "matrix",
   income:     "income",
+  collections: "collections",
   reports:    "reports",
   payroll:    "payroll",
   salary:     "payroll",
@@ -397,6 +399,12 @@ export default function AdminPortal() {
   const [joinRequestsLoading, setJoinRequestsLoading] = useState(false);
   const [joinRequestsErr,  setJoinRequestsErr]  = useState<string | null>(null);
 
+  // CollectionsTab — what's currently due to be collected, across all
+  // projects. Loaded by loadCollections() on admin init + on tab open.
+  const [collections,        setCollections]        = useState<CollectionsData | null>(null);
+  const [collectionsLoading, setCollectionsLoading] = useState(false);
+  const [collectionsErr,     setCollectionsErr]     = useState<string | null>(null);
+
   // Admin attendance — edit + manual + approve/reject + recent log
   const adminAtt = useAdminAttendance({
     reload: () => reload(),
@@ -680,7 +688,7 @@ export default function AdminPortal() {
     // Load on admin auth so the Attendance tab's red badge is accurate from
     // any starting tab. Also reload when the user opens Attendance to catch
     // anything created in the last 2 min between auto-refreshes.
-    if (authState === "admin") { loadPending(); loadCorrectionRequests(); loadJoinRequests(); }
+    if (authState === "admin") { loadPending(); loadCorrectionRequests(); loadJoinRequests(); loadCollections(); }
   }, [authState, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-refresh attendance every 60 s ────────────────────────────────────
@@ -812,6 +820,35 @@ export default function AdminPortal() {
     finally { setJoinRequestsLoading(false); }
   }
 
+  async function loadCollections() {
+    setCollectionsLoading(true); setCollectionsErr(null);
+    try {
+      const res = await fetch("/api/admin/collections", { cache: "no-store" });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error ?? `שגיאה ${res.status}`); }
+      const d = await res.json() as CollectionsData;
+      setCollections(d);
+    } catch (e) { setCollectionsErr(String(e)); }
+    finally { setCollectionsLoading(false); }
+  }
+
+  /** Single-milestone payment from inside CollectionsTab. Hits the same
+   *  endpoint the per-project ProjectMilestonesSection uses, then asks
+   *  the collections list to reload so the just-paid row drops out
+   *  (or moves to partial). */
+  async function handleCollectionsPayment(id: string, paid_amount: number) {
+    const res = await fetch(`/api/admin/payment-milestones/${id}/payment`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paid_amount }),
+    });
+    if (!res.ok) {
+      const b = await res.json().catch(() => ({}));
+      alert(`שגיאה: ${b.error ?? res.status}`);
+      return;
+    }
+    await loadCollections();
+  }
+
   // Focused staff refresh — used after a join request is approved (which
   // creates a new staff row via POST /api/admin/staff). loadData() also
   // refreshes staff but reloads every other admin slice too; this one
@@ -870,6 +907,8 @@ export default function AdminPortal() {
         await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests()]);
       else if (tab === "join_requests" && authState === "admin")
         await loadJoinRequests();
+      else if (tab === "collections" && authState === "admin")
+        await loadCollections();
       else
         await loadData(authState as "admin" | "foreman");
       // loadData's finally sets lastRefreshed for the branches above that call it
@@ -1132,6 +1171,7 @@ export default function AdminPortal() {
     { key: "planning",   label: "תכנון",         icon: <Target    size={13} /> },
     { key: "matrix",     label: "מטריצה שבועית", icon: <Grid3x3   size={13} />, adminOnly: true },
     { key: "income",     label: "הכנסות",        icon: <DollarSign size={13} />, adminOnly: true },
+    { key: "collections", label: "גבייה",        icon: <Coins     size={13} />,  adminOnly: true },
     { key: "reports",    label: "דוחות",      icon: <BarChart2 size={13} />,      adminOnly: true },
     { key: "payroll",    label: "שכר",         icon: <DollarSign size={13} />,    adminOnly: true },
     { key: "quotes",     label: "הצעות מחיר",  icon: <FileText  size={13} />,      adminOnly: true },
@@ -1299,7 +1339,8 @@ export default function AdminPortal() {
             // Tab badges — each surfaces its own "waiting for you" count.
             const badgeCount =
               t.key === "attendance"     ? pendingRecords.length :
-              t.key === "join_requests"  ? joinRequests.length   : 0;
+              t.key === "join_requests"  ? joinRequests.length   :
+              t.key === "collections"    ? (collections?.totals.count ?? 0) : 0;
             return (
               <button
                 key={t.key}
@@ -1336,6 +1377,8 @@ export default function AdminPortal() {
             staff={staff} todayLogs={todayLogs}
             projects={projects} tasks={tasks}
             budget={budget} incomeTotals={incomeTotals}
+            collections={collections}
+            onGoToCollections={() => goToTab("collections")}
             refreshing={refreshing} dataLoading={dataLoading}
             lastRefreshed={lastRefreshed} onTabRefresh={handleTabRefresh}
             attentionItems={attentionItems}
@@ -1610,6 +1653,17 @@ export default function AdminPortal() {
             lastRefreshed={lastRefreshed}
             refreshing={refreshing}
             onTabRefresh={handleTabRefresh}
+          />
+        )}
+
+        {/* ── COLLECTIONS — what to chase right now (admin only) ───────────── */}
+        {tab === "collections" && isAdmin && (
+          <CollectionsTab
+            data={collections}
+            loading={collectionsLoading}
+            error={collectionsErr}
+            onReload={loadCollections}
+            onPayment={handleCollectionsPayment}
           />
         )}
 
