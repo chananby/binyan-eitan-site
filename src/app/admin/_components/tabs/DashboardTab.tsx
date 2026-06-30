@@ -6,10 +6,12 @@ import { Card } from "../shared/Card";
 import AttentionPanel, { type AttentionItem } from "../shared/AttentionPanel";
 import { TabRefreshBar } from "../shared/TabRefreshBar";
 import ForecastDetailDialog, { type ForecastLine } from "../shared/ForecastDetailDialog";
+import MonthlyPnlCard from "../shared/MonthlyPnlCard";
 import type { CollectionsData } from "./CollectionsTab";
 import type {
   StaffMember, AttendanceRecord, Project, Task, BudgetLine,
 } from "../types";
+import type { PnlResult } from "../../../../lib/finance-pnl";
 
 // Dashboard tab content — pure move from AdminPortal.tsx. All derived
 // values (onSite, laborEstimate, todayExpensesTotal, todayTasks, roleMap,
@@ -51,6 +53,10 @@ interface Props {
   monthlySalaryForecastLoading: boolean;
   monthlySalaryForecastLines: ForecastLine[];
   monthlySalaryForecastMonth: string;
+  /** Monthly P&L for the headline card. Null while loading or on error;
+   *  the card renders its own loading/empty state from the loading flag. */
+  pnl: PnlResult | null;
+  pnlLoading: boolean;
   todayTasks: Task[];
   roleMap: Record<string, number>;
   activeProjects: Project[];
@@ -93,6 +99,12 @@ export default function DashboardTab(p: Props) {
 
       {/* Things that need attention — admin only; auto-hides when empty */}
       {p.isAdmin && <AttentionPanel items={p.attentionItems} />}
+
+      {/* Headline P&L — placed near the top because it's the question
+          admins ask first ("האם החודש בפלוס?"). Income / expense / net
+          for the current month + a 6-month trend strip. Foreman doesn't
+          see it (financial detail is out of scope for the field portal). */}
+      {p.isAdmin && <MonthlyPnlCard data={p.pnl} loading={p.pnlLoading} />}
 
       {/* On-site */}
       <Card title="⚡ מי באתר כרגע">

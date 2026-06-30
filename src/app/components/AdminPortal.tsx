@@ -54,6 +54,7 @@ import type {
 } from "../admin/_components/types";
 import type { WorkerHistoryDay } from "../../lib/worker-history-aggregate";
 import { computeTodayLaborCost } from "../../lib/today-labor-cost";
+import type { PnlResult } from "../../lib/finance-pnl";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
@@ -574,6 +575,31 @@ export default function AdminPortal() {
         if (!cancelled) setSalaryForecast(prev => ({
           ...prev, total: null, count: null, lines: [], loading: false,
         }));
+      });
+    return () => { cancelled = true; };
+  }, [authState]);
+
+  // Monthly P&L for the dashboard card. Mirrors the salaryForecast shape:
+  // null while loading, a populated PnlResult on success, null again on
+  // failure (the card stays out of the way rather than flashing zeros).
+  // Refetches on the same admin-transition trigger; the dashboard's
+  // 2-minute polling cycle picks up subsequent changes via the broader
+  // refresh flow.
+  const [pnl, setPnl] = useState<{ data: PnlResult | null; loading: boolean }>({
+    data: null, loading: false,
+  });
+  useEffect(() => {
+    if (authState !== "admin") return;
+    let cancelled = false;
+    setPnl(prev => ({ ...prev, loading: true }));
+    fetch("/api/admin/finance/pnl?months=6", { cache: "no-store" })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => {
+        if (cancelled) return;
+        setPnl({ data: d ?? null, loading: false });
+      })
+      .catch(() => {
+        if (!cancelled) setPnl({ data: null, loading: false });
       });
     return () => { cancelled = true; };
   }, [authState]);
@@ -1429,6 +1455,7 @@ export default function AdminPortal() {
             monthlySalaryForecastLoading={salaryForecast.loading}
             monthlySalaryForecastLines={salaryForecast.lines}
             monthlySalaryForecastMonth={salaryForecast.month}
+            pnl={pnl.data} pnlLoading={pnl.loading}
             todayTasks={todayTasks} roleMap={roleMap}
             activeProjects={activeProjects}
             staff={staff} todayLogs={todayLogs}
