@@ -125,13 +125,13 @@ function SignaturePad({
         {!hasSig && (
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 select-none">
             <PenLine size={22} className="text-charcoal/20" />
-            <span className="font-body text-xs tracking-wider text-charcoal/25">חתום עם אצבע או עכבר</span>
+            <span className="font-body text-content tracking-wider text-charcoal/25">חתום עם אצבע או עכבר</span>
           </div>
         )}
         <canvas ref={sigRef} className="absolute inset-0 h-full w-full touch-none" style={{ cursor: "crosshair" }} />
       </div>
       <button type="button" onClick={clear}
-        className="mt-2 inline-flex items-center gap-1.5 font-body text-xs text-charcoal/40 transition-colors duration-200 hover:text-accent">
+        className="mt-2 inline-flex items-center gap-1.5 font-body text-content text-muted transition-colors duration-200 hover:text-accent">
         <RotateCcw size={11} /> {clearLabel}
       </button>
     </div>
@@ -144,8 +144,8 @@ function Block({ num, title, children }: { num: string; title: string; children:
   return (
     <div className="border border-warm-gray-light bg-bone">
       <div className="flex items-center gap-3 border-b border-warm-gray-light bg-charcoal/[0.025] px-6 py-3">
-        <span className="font-body text-[0.58rem] font-bold tracking-[0.25em] uppercase text-accent-dark">{num}</span>
-        <span className="font-body text-[0.62rem] font-bold tracking-[0.22em] uppercase text-charcoal/65">{title}</span>
+        <span className="font-body text-caption font-bold tracking-[0.25em] uppercase text-accent-dark">{num}</span>
+        <span className="font-body text-caption font-bold tracking-[0.22em] uppercase text-muted">{title}</span>
       </div>
       <div className="px-6 py-6 space-y-6">{children}</div>
     </div>
@@ -214,9 +214,9 @@ function Field({ label, name, required, multiline, type = "text" }: {
           className={base} placeholder=" " />
       )}
       <label htmlFor={name}
-        className="pointer-events-none absolute start-0 top-3 font-body text-sm text-charcoal/40 uppercase tracking-widest transition-all
-          peer-focus:-top-3.5 peer-focus:text-[0.75rem] peer-focus:font-semibold peer-focus:text-accent
-          peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-[0.75rem]">
+        className="pointer-events-none absolute start-0 top-3 font-body text-sm text-muted uppercase tracking-widest transition-all
+          peer-focus:-top-3.5 peer-focus:text-caption peer-focus:font-semibold peer-focus:text-accent
+          peer-[:not(:placeholder-shown)]:-top-3.5 peer-[:not(:placeholder-shown)]:text-caption">
         {label}
       </label>
     </div>
@@ -349,7 +349,7 @@ export default function ChangeOrderForm() {
           <CheckCircle size={56} strokeWidth={1.2} className="text-accent" />
           <div>
             <p className="font-heading text-xl font-bold text-charcoal leading-snug">הטופס נשלח בהצלחה</p>
-            <p className="mt-2 font-body text-sm text-charcoal/65">
+            <p className="mt-2 font-body text-sm text-muted">
               עותק נשלח למשרד ולמאשר לאישור סופי.
             </p>
           </div>
@@ -371,7 +371,7 @@ export default function ChangeOrderForm() {
         {/* Back link */}
         <div className="mb-6 text-start">
           <Link href={`/${lang}/internal`}
-            className="inline-flex items-center gap-2 font-body text-xs font-semibold tracking-widest uppercase text-charcoal/40 hover:text-accent transition-colors duration-200">
+            className="inline-flex items-center gap-2 font-body text-content font-semibold tracking-widest uppercase text-muted hover:text-accent transition-colors duration-200">
             <ArrowBack size={12} />
             {lang === "he" ? "פורטל צוות" : "Staff Portal"}
           </Link>
@@ -387,14 +387,14 @@ export default function ChangeOrderForm() {
             <h1 className="font-heading text-xl font-bold text-charcoal leading-tight md:text-2xl">
               פרוטוקול אישור שינויים ותוספות
             </h1>
-            <p className="mt-1 font-body text-[0.75rem] font-semibold tracking-[0.25em] uppercase text-charcoal/35">
+            <p className="mt-1 font-body text-caption font-semibold tracking-[0.25em] uppercase text-charcoal/35">
               חברת בניין איתן בע&quot;מ
             </p>
           </div>
 
           {/* ── Date/time badge ── */}
           <div className="flex items-center justify-between bg-charcoal/[0.03] border-b border-warm-gray-light px-8 py-3">
-            <span className="font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-charcoal/35">
+            <span className="font-body text-caption font-semibold tracking-[0.22em] uppercase text-charcoal/35">
               תאריך ושעה
             </span>
             <span className="font-body text-sm font-semibold text-charcoal tabular-nums">{now}</span>
@@ -410,7 +410,7 @@ export default function ChangeOrderForm() {
               {/* Project selector */}
               <div className="relative">
                 <label htmlFor="project_select"
-                  className="block font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40 mb-2">
+                  className="block font-body text-caption font-semibold tracking-[0.22em] uppercase text-muted mb-2">
                   פרויקט / Project *
                 </label>
                 <select
@@ -439,7 +439,7 @@ export default function ChangeOrderForm() {
               {/* Category */}
               <div className="relative">
                 <label htmlFor="work_category"
-                  className="block font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40 mb-2">
+                  className="block font-body text-caption font-semibold tracking-[0.22em] uppercase text-muted mb-2">
                   קטגוריית עבודה / Category
                 </label>
                 <select id="work_category" name="work_category" required defaultValue=""
@@ -463,7 +463,7 @@ export default function ChangeOrderForm() {
                 />
                 <span className="font-body text-sm text-charcoal/70 leading-snug">
                   השינוי משפיע על לוחות הזמנים
-                  <span className="block text-[0.62rem] text-charcoal/40 mt-0.5">
+                  <span className="block text-caption text-muted mt-0.5">
                     Does this change affect the project schedule?
                   </span>
                 </span>
@@ -471,7 +471,7 @@ export default function ChangeOrderForm() {
 
               {/* Photo upload */}
               <div className="space-y-3">
-                <p className="font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40">
+                <p className="font-body text-caption font-semibold tracking-[0.22em] uppercase text-muted">
                   תיעוד מהשטח / Site Photo
                 </p>
                 <input ref={fileInputRef} id="site_photo" type="file" accept="image/*" capture="environment"
@@ -482,7 +482,7 @@ export default function ChangeOrderForm() {
                   <label htmlFor="site_photo"
                     className="flex cursor-pointer items-center justify-center gap-3 border border-dashed border-accent/40 bg-accent/[0.03] px-5 py-5 transition-colors duration-200 hover:border-accent hover:bg-accent/[0.06]">
                     <Camera size={20} className="shrink-0 text-accent-dark" />
-                    <span className="font-body text-sm text-charcoal/60 leading-snug">
+                    <span className="font-body text-sm text-muted leading-snug">
                       צילום מהשטח או העלאת קובץ
                     </span>
                   </label>
@@ -491,12 +491,12 @@ export default function ChangeOrderForm() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={photoPreview} alt="תצוגה מקדימה" className="w-full object-cover max-h-64 block" />
                     <div className="flex items-center justify-between gap-3 border-t border-warm-gray-light bg-bone-dark px-4 py-2">
-                      <span className="font-body text-[0.62rem] text-charcoal/40 truncate">{photoName}</span>
+                      <span className="font-body text-caption text-muted truncate">{photoName}</span>
                       {photoUploading ? (
-                        <span className="shrink-0 font-body text-[0.62rem] text-accent-dark tracking-wider animate-pulse">מעלה…</span>
+                        <span className="shrink-0 font-body text-caption text-accent-dark tracking-wider animate-pulse">מעלה…</span>
                       ) : (
                         <button type="button" onClick={removePhoto}
-                          className="shrink-0 font-body text-[0.62rem] text-charcoal/40 hover:text-red-500 transition-colors duration-200 uppercase tracking-wider">
+                          className="shrink-0 font-body text-caption text-muted hover:text-red-500 transition-colors duration-200 uppercase tracking-wider">
                           הסר ×
                         </button>
                       )}
@@ -504,7 +504,7 @@ export default function ChangeOrderForm() {
                   </div>
                 )}
                 {photoUploadErr && (
-                  <p className="font-body text-xs text-red-500">שגיאה: {photoUploadErr}</p>
+                  <p className="font-body text-content text-red-500">שגיאה: {photoUploadErr}</p>
                 )}
               </div>
             </Block>
@@ -514,7 +514,7 @@ export default function ChangeOrderForm() {
 
               {/* Pricing type */}
               <div className="space-y-2">
-                <p className="font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40">
+                <p className="font-body text-caption font-semibold tracking-[0.22em] uppercase text-muted">
                   סוג תמחור / Pricing Type
                 </p>
                 <div className="grid grid-cols-2 gap-3">
@@ -528,7 +528,7 @@ export default function ChangeOrderForm() {
                         className="h-4 w-4 shrink-0 accent-[#8D775F] cursor-pointer" />
                       <span className="font-body text-sm text-charcoal leading-snug">
                         {opt.he}
-                        <span className="block text-[0.62rem] text-charcoal/40">{opt.en}</span>
+                        <span className="block text-caption text-muted">{opt.en}</span>
                       </span>
                     </label>
                   ))}
@@ -537,7 +537,7 @@ export default function ChangeOrderForm() {
 
               <Field label="סכום כולל (₪) / Total Amount" name="agreed_price" required type="number" />
 
-              <p className="font-body text-[0.75rem] text-charcoal/35 tracking-wide border-s-2 border-accent/30 ps-3">
+              <p className="font-body text-caption text-charcoal/35 tracking-wide border-s-2 border-accent/30 ps-3">
                 המחיר אינו כולל מע&quot;מ — Price does not include VAT
               </p>
             </Block>
@@ -547,7 +547,7 @@ export default function ChangeOrderForm() {
 
               {/* Approval status */}
               <div className="space-y-2">
-                <p className="font-body text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-charcoal/40">
+                <p className="font-body text-caption font-semibold tracking-[0.22em] uppercase text-muted">
                   החלטת המאשר / Decision
                 </p>
                 <div className="flex flex-col gap-2">
@@ -568,10 +568,10 @@ export default function ChangeOrderForm() {
 
               {/* Legal disclaimer */}
               <div className="border border-accent/20 bg-accent/[0.03] px-5 py-4">
-                <p className="font-body text-xs leading-relaxed text-charcoal/65">
+                <p className="font-body text-content leading-relaxed text-muted">
                   חתימה על טופס זה מהווה אישור סופי לביצוע השינוי והתחייבות לתשלום.
                 </p>
-                <p className="mt-1 font-body text-[0.62rem] leading-relaxed text-charcoal/40">
+                <p className="mt-1 font-body text-caption leading-relaxed text-muted">
                   Signature on this form constitutes final approval for the change and commitment to payment.
                 </p>
               </div>
@@ -580,7 +580,7 @@ export default function ChangeOrderForm() {
               <input type="hidden" name="signature" ref={sigHiddenRef} />
 
               {sigErr && (
-                <p className="font-body text-xs text-red-500">יש לחתום על הטופס לפני השליחה.</p>
+                <p className="font-body text-content text-red-500">יש לחתום על הטופס לפני השליחה.</p>
               )}
             </Block>
 
@@ -598,7 +598,7 @@ export default function ChangeOrderForm() {
         </div>
 
         {/* Footer note */}
-        <p className="mt-5 text-center font-body text-[0.58rem] tracking-widest uppercase text-charcoal/25">
+        <p className="mt-5 text-center font-body text-caption tracking-widest uppercase text-charcoal/25">
           מסמך פנימי — בניין איתן בע&quot;מ
         </p>
       </div>

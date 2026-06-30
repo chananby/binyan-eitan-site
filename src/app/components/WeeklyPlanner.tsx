@@ -87,7 +87,7 @@ function EditableCell({ rowId, field, value, type = "text", className = "", edit
           if (e.key === "Enter") edit.commitEdit(rowId, field, edit.editVal);
           if (e.key === "Escape") edit.cancelEdit();
         }}
-        className={`w-full bg-accent/[0.06] border-b border-accent px-1 py-0.5 text-xs outline-none ${className}`}
+        className={`w-full bg-accent/[0.06] border-b border-accent px-1 py-0.5 text-caption outline-none ${className}`}
         dir={type === "number" ? "ltr" : "rtl"}
       />
     );
@@ -239,7 +239,7 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
 
   if (!projectId) {
     return (
-      <div className="flex items-center justify-center h-40 text-charcoal/40 font-body text-sm">
+      <div className="flex items-center justify-center h-40 text-muted font-body text-sm">
         אין פרויקטים זמינים
       </div>
     );
@@ -251,12 +251,12 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
       <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
         <div>
           <h2 className="text-sm font-bold tracking-wide text-charcoal">מטריצה שבועית</h2>
-          <p className="text-[0.75rem] text-charcoal/60 mt-0.5">תכנון משאבים, עלויות וסטטוס הזמנות לפי שבוע</p>
+          <p className="text-caption text-muted mt-0.5">תכנון משאבים, עלויות וסטטוס הזמנות לפי שבוע</p>
         </div>
         <select
           value={projectId}
           onChange={e => setProjectId(e.target.value)}
-          className="text-xs border border-charcoal/15 bg-white px-3 py-1.5 rounded-sm text-charcoal focus:outline-none focus:border-accent"
+          className="text-caption border border-charcoal/15 bg-white px-3 py-1.5 rounded-sm text-charcoal focus:outline-none focus:border-accent"
         >
           {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
@@ -264,18 +264,18 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
 
       {/* ── Grand total bar ── */}
       <div className="flex items-center justify-between bg-charcoal text-bone px-4 py-2.5 mb-1 rounded-sm">
-        <span className="text-[0.75rem] font-bold tracking-[0.15em] uppercase opacity-60">סה״כ תקציב מתוכנן</span>
+        <span className="text-caption font-bold tracking-[0.15em] uppercase opacity-60">סה״כ תקציב מתוכנן</span>
         <span className="text-base font-bold tracking-wide">₪ {fmt(grandTotal)}</span>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 bg-red-50 border border-red-200 px-3 py-2 mb-3 text-xs text-red-600 rounded-sm">
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 px-3 py-2 mb-3 text-caption text-red-600 rounded-sm">
           <AlertCircle size={12} /> {error}
         </div>
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center h-32 gap-2 text-charcoal/40 text-xs">
+        <div className="flex items-center justify-center h-32 gap-2 text-muted text-caption">
           <Loader2 size={14} className="animate-spin" /> טוען…
         </div>
       ) : (
@@ -313,20 +313,20 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className={`text-[0.58rem] font-bold tracking-[0.18em] uppercase shrink-0 ${
-                      isToday ? "text-accent" : isPast ? "text-charcoal/35" : "text-charcoal/65"
+                    <span className={`text-caption font-bold tracking-[0.18em] uppercase shrink-0 ${
+                      isToday ? "text-accent" : isPast ? "text-charcoal/35" : "text-muted"
                     }`}>
                       שבוע {weekNumber(weekStart)}
                     </span>
-                    <span className={`text-[0.68rem] ${isPast ? "text-charcoal/40" : "text-charcoal/70"}`}>
+                    <span className={`text-caption ${isPast ? "text-muted" : "text-charcoal/70"}`}>
                       {weekLabel(weekStart)}
                     </span>
-                    {isToday && <span className="text-xs bg-accent text-bone px-1.5 py-0.5 rounded-full font-bold">שבוע זה</span>}
-                    {isPast  && <span className="text-xs bg-charcoal/10 text-charcoal/65 px-1.5 py-0.5 rounded-full">היסטוריה</span>}
+                    {isToday && <span className="text-caption bg-accent text-bone px-1.5 py-0.5 rounded-full font-bold">שבוע זה</span>}
+                    {isPast  && <span className="text-caption bg-charcoal/10 text-muted px-1.5 py-0.5 rounded-full">היסטוריה</span>}
                   </div>
                   <div className="flex items-center gap-4 shrink-0">
                     {weekTotal > 0 && (
-                      <span className={`text-[0.68rem] font-semibold ${isPast ? "text-charcoal/60" : "text-charcoal/80"}`}>
+                      <span className={`text-caption font-semibold ${isPast ? "text-muted" : "text-charcoal/80"}`}>
                         ₪ {fmt(weekTotal)}
                       </span>
                     )}
@@ -342,11 +342,11 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                     {/* Table */}
                     {weekRows.length > 0 && (
                       <div className="overflow-x-auto">
-                        <table className="w-full text-xs border-collapse" style={{ minWidth: 780 }}>
+                        <table className="w-full text-caption border-collapse" style={{ minWidth: 780 }}>
                           <thead>
                             <tr className={`border-b ${isPast ? "bg-charcoal/[0.03] border-charcoal/8" : "bg-bone/40 border-charcoal/8"}`}>
                               {["משימה","קבלן משנה","עובדים","חומרים","ספק","סטטוס הזמנה","עלות מתוכננת",""].map((h, i) => (
-                                <th key={i} className={`px-2 py-1.5 text-right text-[0.75rem] font-bold tracking-[0.1em] uppercase text-charcoal/35 ${
+                                <th key={i} className={`px-2 py-1.5 text-right text-caption font-bold tracking-[0.1em] uppercase text-charcoal/35 ${
                                   i === 6 ? "text-left" : i === 7 ? "w-6" : ""
                                 }`}>
                                   {h}
@@ -383,7 +383,7 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                                   <select
                                     value={row.order_status}
                                     onChange={e => commitOrderStatus(row.id, e.target.value)}
-                                    className={`w-full bg-transparent text-xs cursor-pointer focus:outline-none focus:bg-accent/[0.05] rounded-sm ${ORDER_LABELS[row.order_status]?.color}`}
+                                    className={`w-full bg-transparent text-caption cursor-pointer focus:outline-none focus:bg-accent/[0.05] rounded-sm ${ORDER_LABELS[row.order_status]?.color}`}
                                     dir="rtl"
                                   >
                                     {ORDER_OPTIONS.map(o => (
@@ -416,61 +416,61 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                         <div className="overflow-x-auto">
                           <div className="flex gap-1.5 items-end flex-wrap" style={{ minWidth: 780 }}>
                             <div className="flex-1 min-w-[120px]">
-                              <label className="block text-xs text-charcoal/40 mb-0.5">משימה *</label>
+                              <label className="block text-caption text-muted mb-0.5">משימה *</label>
                               <input autoFocus value={newRow.task_name}
                                 onChange={e => setNewRow(p => ({ ...p, task_name: e.target.value }))}
-                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="rtl" />
+                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-caption focus:outline-none focus:border-accent" dir="rtl" />
                             </div>
                             <div className="w-24">
-                              <label className="block text-xs text-charcoal/40 mb-0.5">קבלן משנה</label>
+                              <label className="block text-caption text-muted mb-0.5">קבלן משנה</label>
                               <input value={newRow.subcontractor}
                                 onChange={e => setNewRow(p => ({ ...p, subcontractor: e.target.value }))}
-                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="rtl" />
+                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-caption focus:outline-none focus:border-accent" dir="rtl" />
                             </div>
                             <div className="w-16">
-                              <label className="block text-xs text-charcoal/40 mb-0.5">עובדים</label>
+                              <label className="block text-caption text-muted mb-0.5">עובדים</label>
                               <input type="number" min={0} value={newRow.workers_needed || ""}
                                 onChange={e => setNewRow(p => ({ ...p, workers_needed: Number(e.target.value) || 0 }))}
-                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="ltr" />
+                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-caption focus:outline-none focus:border-accent" dir="ltr" />
                             </div>
                             <div className="w-28">
-                              <label className="block text-xs text-charcoal/40 mb-0.5">חומרים</label>
+                              <label className="block text-caption text-muted mb-0.5">חומרים</label>
                               <input value={newRow.materials}
                                 onChange={e => setNewRow(p => ({ ...p, materials: e.target.value }))}
-                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="rtl" />
+                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-caption focus:outline-none focus:border-accent" dir="rtl" />
                             </div>
                             <div className="w-24">
-                              <label className="block text-xs text-charcoal/40 mb-0.5">ספק</label>
+                              <label className="block text-caption text-muted mb-0.5">ספק</label>
                               <input value={newRow.supplier}
                                 onChange={e => setNewRow(p => ({ ...p, supplier: e.target.value }))}
-                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="rtl" />
+                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-caption focus:outline-none focus:border-accent" dir="rtl" />
                             </div>
                             <div className="w-28">
-                              <label className="block text-xs text-charcoal/40 mb-0.5">סטטוס הזמנה</label>
+                              <label className="block text-caption text-muted mb-0.5">סטטוס הזמנה</label>
                               <select value={newRow.order_status}
                                 onChange={e => setNewRow(p => ({ ...p, order_status: e.target.value as WeeklyPlanRow["order_status"] }))}
-                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="rtl">
+                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-caption focus:outline-none focus:border-accent" dir="rtl">
                                 {ORDER_OPTIONS.map(o => <option key={o} value={o}>{ORDER_LABELS[o].label}</option>)}
                               </select>
                             </div>
                             <div className="w-28">
-                              <label className="block text-xs text-charcoal/40 mb-0.5">עלות מתוכננת (₪)</label>
+                              <label className="block text-caption text-muted mb-0.5">עלות מתוכננת (₪)</label>
                               <input type="number" min={0} value={newRow.planned_cost || ""}
                                 onChange={e => setNewRow(p => ({ ...p, planned_cost: Number(e.target.value) || 0 }))}
-                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent" dir="ltr" />
+                                className="w-full border border-charcoal/15 bg-white px-2 py-1.5 text-caption focus:outline-none focus:border-accent" dir="ltr" />
                             </div>
                             <div className="flex gap-1.5 pb-0.5">
                               <button
                                 onClick={() => handleAddRow(weekStart)}
                                 disabled={saving || !newRow.task_name.trim()}
-                                className="flex items-center gap-1 bg-accent text-bone px-3 py-1.5 text-xs font-semibold disabled:opacity-40 hover:bg-accent-dark transition-colors"
+                                className="flex items-center gap-1 bg-accent text-bone px-3 py-1.5 text-caption font-semibold disabled:opacity-40 hover:bg-accent-dark transition-colors"
                               >
                                 {saving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
                                 שמור
                               </button>
                               <button
                                 onClick={() => { setAddingWeek(null); setNewRow(emptyNewRow()); }}
-                                className="px-2 py-1.5 text-xs text-charcoal/40 hover:text-charcoal transition-colors"
+                                className="px-2 py-1.5 text-caption text-muted hover:text-charcoal transition-colors"
                               >
                                 ביטול
                               </button>
@@ -483,15 +483,15 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
                         <div className="flex items-center justify-between">
                           <button
                             onClick={() => { setAddingWeek(weekStart); setNewRow(emptyNewRow()); }}
-                            className="flex items-center gap-1 text-[0.75rem] text-charcoal/60 hover:text-accent transition-colors py-1"
+                            className="flex items-center gap-1 text-caption text-muted hover:text-accent transition-colors py-1"
                           >
                             <Plus size={11} strokeWidth={2} />
                             הוסף משימה
                           </button>
                           {/* Running total */}
                           {cumul > 0 && (
-                            <span className="text-[0.75rem] text-charcoal/30 tracking-wide">
-                              מצטבר עד כאן: <span className="font-semibold text-charcoal/65">₪ {fmt(cumul)}</span>
+                            <span className="text-caption text-charcoal/30 tracking-wide">
+                              מצטבר עד כאן: <span className="font-semibold text-muted">₪ {fmt(cumul)}</span>
                             </span>
                           )}
                         </div>
@@ -506,7 +506,7 @@ export default function WeeklyPlanner({ projects }: { projects: Project[] }) {
       )}
 
       {/* ── Migration hint ── */}
-      <p className="mt-5 text-[0.58rem] text-charcoal/25 text-center">
+      <p className="mt-5 text-caption text-charcoal/25 text-center">
         נדרשת טבלה <code className="font-mono">weekly_plan</code> בסופאבייס — ראה הנחיות SQL
       </p>
     </div>

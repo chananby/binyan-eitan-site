@@ -55,7 +55,7 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
   return (
     <div className="min-h-screen bg-[#F5F4F0] flex flex-col items-center justify-center p-8">
       <Wrench size={22} strokeWidth={1.5} className="text-[#8D775F] mb-5" />
-      <p className="text-[#8D775F] text-xs font-bold tracking-[0.28em] uppercase mb-1.5">מרכז שליטה</p>
+      <p className="text-[#8D775F] text-content font-bold tracking-[0.28em] uppercase mb-1.5">מרכז שליטה</p>
       <h1 className="text-[#2D2926] text-xl font-semibold mb-8">כניסה פרטית</h1>
 
       <div className="flex gap-3 mb-6">
@@ -66,7 +66,7 @@ function PinGate({ onAuth }: { onAuth: (a: Author) => void }) {
       </div>
 
       {error && (
-        <div className="mb-4 flex items-center gap-1.5 text-red-500 text-xs font-medium">
+        <div className="mb-4 flex items-center gap-1.5 text-red-500 text-content font-medium">
           <AlertCircle size={13} /> קוד שגוי — נסה שוב
         </div>
       )}
@@ -146,14 +146,14 @@ function QuickCard({
             {item.label}
           </p>
           {item.underConstruction && (
-            <span className="text-[0.75rem] text-amber-600/70 font-medium leading-none">🚧 בעבודה</span>
+            <span className="text-caption text-amber-600/70 font-medium leading-none">🚧 בעבודה</span>
           )}
         </div>
         {item.ext && !editMode && (
           <ExternalLink size={13} className="shrink-0 mt-0.5 text-[#2D2926]/20 group-hover:text-[#8D775F]/60 transition-colors" />
         )}
       </div>
-      <p className="text-xs text-[#2D2926]/40 leading-snug">{item.desc}</p>
+      <p className="text-content text-[#2D2926]/40 leading-snug">{item.desc}</p>
     </div>
   );
   if (editMode) return <div>{inner}</div>;
@@ -174,7 +174,7 @@ const METHOD_META: Record<string, { color: string; he: string }> = {
 function MethodBadge({ method }: { method: string }) {
   const meta = METHOD_META[method];
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded
+    <span className={`inline-flex items-center gap-1 text-content font-bold px-2 py-0.5 rounded
       ${meta?.color ?? "bg-[#2D2926]/5 text-[#2D2926]/40"}`}>
       {method}
       {meta && <span className="opacity-60 font-normal">· {meta.he}</span>}
@@ -204,7 +204,7 @@ function UICard({ route }: { route: UIRoute }) {
         <p className="text-sm font-semibold text-[#2D2926] group-hover:text-[#8D775F] leading-snug truncate transition-colors">
           {route.label}
         </p>
-        <p className="text-xs text-[#2D2926]/35 mt-0.5 truncate font-mono">{route.url}</p>
+        <p className="text-content text-[#2D2926]/35 mt-0.5 truncate font-mono">{route.url}</p>
       </div>
     </Link>
   );
@@ -217,9 +217,9 @@ function UICardExpanded({ route }: { route: UIRoute }) {
       <div className="flex items-center justify-between px-4 py-3 bg-[#F9F9F7] border-b border-[#E0DFD9]">
         <div>
           <p className="text-sm font-bold text-[#2D2926]">{route.label}</p>
-          <p className="text-xs text-[#2D2926]/30 font-mono">{route.url}</p>
+          <p className="text-content text-[#2D2926]/30 font-mono">{route.url}</p>
         </div>
-        <span className="text-[0.75rem] text-[#2D2926]/25 uppercase tracking-widest font-semibold">
+        <span className="text-caption text-[#2D2926]/25 uppercase tracking-widest font-semibold">
           {ADMIN_TAB_ITEMS.length} לשוניות
         </span>
       </div>
@@ -230,10 +230,10 @@ function UICardExpanded({ route }: { route: UIRoute }) {
             key={item.hash || "dashboard"}
             href={item.hash ? `/admin#${item.hash}` : "/admin"}
             className="bg-white px-4 py-3 hover:bg-[#F5F4F0] transition-colors group">
-            <p className="text-xs font-semibold text-[#2D2926] group-hover:text-[#8D775F] transition-colors leading-snug">
+            <p className="text-content font-semibold text-[#2D2926] group-hover:text-[#8D775F] transition-colors leading-snug">
               {item.label}
             </p>
-            <p className="text-[0.75rem] text-[#2D2926]/35 mt-0.5 leading-snug">{item.desc}</p>
+            <p className="text-caption text-[#2D2926]/35 mt-0.5 leading-snug">{item.desc}</p>
           </Link>
         ))}
       </div>
@@ -251,7 +251,7 @@ function ExtCard({ item }: { item: { label: string; url: string; description?: s
           {item.label}
         </p>
         {item.description && !item.description.startsWith("# TODO") && (
-          <p className="text-xs text-[#2D2926]/35 mt-0.5 truncate">{item.description}</p>
+          <p className="text-content text-[#2D2926]/35 mt-0.5 truncate">{item.description}</p>
         )}
       </div>
       <ExternalLink size={12} className="shrink-0 text-[#2D2926]/20 group-hover:text-[#8D775F]/60 transition-colors" />
@@ -263,11 +263,11 @@ function APICard({ route }: { route: APIRoute }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3 border border-[#E0DFD9] bg-white/60 rounded-lg">
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-mono text-[#2D2926]/50 truncate">{route.url}</p>
+        <p className="text-content font-mono text-[#2D2926]/50 truncate">{route.url}</p>
         <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
           {route.methods.length > 0
             ? route.methods.map(m => <MethodBadge key={m} method={m} />)
-            : <span className="text-xs text-[#2D2926]/25">שיטה לא ידועה</span>
+            : <span className="text-content text-[#2D2926]/25">שיטה לא ידועה</span>
           }
         </div>
       </div>
@@ -288,7 +288,7 @@ function SectionLabel({ children, action }: { children: React.ReactNode; action?
 
 function CategoryLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-bold text-[#8D775F] uppercase tracking-wider mb-2 px-0.5">
+    <p className="text-content font-bold text-[#8D775F] uppercase tracking-wider mb-2 px-0.5">
       {children}
     </p>
   );
@@ -553,11 +553,11 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
           <div className="flex items-center gap-3 mb-3.5">
             <Wrench size={16} strokeWidth={1.5} className="text-[#8D775F] shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#2D2926]/30 leading-none">בניין איתן</p>
+              <p className="text-content font-bold tracking-[0.2em] uppercase text-[#2D2926]/30 leading-none">בניין איתן</p>
               <h1 className="text-[0.95rem] font-bold text-[#2D2926] leading-none mt-0.5">מרכז שליטה</h1>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#2D2926]/40">{author === "Hanan" ? "חנן" : author === "Moti" ? "מוטי" : (adminName ?? "מנהל")}</span>
+              <span className="text-content text-[#2D2926]/40">{author === "Hanan" ? "חנן" : author === "Moti" ? "מוטי" : (adminName ?? "מנהל")}</span>
               <ShieldCheck size={12} strokeWidth={1.5} className="text-[#8D775F]/50" />
               <button
                 onClick={handleLogout}
@@ -602,7 +602,7 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
               !q ? (
                 <button
                   onClick={() => setEditQuick(v => !v)}
-                  className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full transition-colors
+                  className={`flex items-center gap-1 text-content font-medium px-2.5 py-1 rounded-full transition-colors
                     ${editQuick
                       ? "bg-[#8D775F] text-white"
                       : "text-[#2D2926]/40 hover:text-[#8D775F] hover:bg-[#8D775F]/10"}`}>
@@ -680,7 +680,7 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
           <SectionLabel action={
             <button
               onClick={openNewNote}
-              className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#8D775F] text-white hover:bg-[#7A6451] transition-colors inline-flex items-center gap-1"
+              className="text-content font-medium px-2.5 py-1 rounded-full bg-[#8D775F] text-white hover:bg-[#7A6451] transition-colors inline-flex items-center gap-1"
             >
               <Plus size={11} strokeWidth={2.5} /> פתקית
             </button>
@@ -692,7 +692,7 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
             <div className="bg-white border-2 border-[#8D775F]/40 rounded-lg p-4 mb-4 space-y-3">
               <div className="flex items-center gap-2 mb-1">
                 <StickyNote size={14} className="text-[#8D775F]" />
-                <p className="text-xs font-bold text-[#2D2926]">{editingNoteId ? "ערוך פתקית" : "פתקית חדשה"}</p>
+                <p className="text-content font-bold text-[#2D2926]">{editingNoteId ? "ערוך פתקית" : "פתקית חדשה"}</p>
               </div>
               <input
                 type="text"
@@ -720,21 +720,21 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
                 </p>
               )}
               <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 text-xs cursor-pointer">
+                <label className="flex items-center gap-2 text-content cursor-pointer">
                   <input type="checkbox" checked={draftPinned} onChange={e => setDraftPinned(e.target.checked)} className="accent-[#8D775F]" />
                   <span className="text-[#2D2926]/70">הצמד למעלה</span>
                 </label>
                 <div className="flex gap-2">
                   <button
                     onClick={closeNoteForm}
-                    className="text-xs px-3 py-1.5 border border-[#E0DFD9] text-[#2D2926]/60 hover:border-[#8D775F] transition-colors"
+                    className="text-content px-3 py-1.5 border border-[#E0DFD9] text-[#2D2926]/60 hover:border-[#8D775F] transition-colors"
                   >
                     ביטול
                   </button>
                   <button
                     onClick={saveNote}
                     disabled={!draftTitle.trim() || noteSaving}
-                    className="text-xs px-3 py-1.5 bg-[#8D775F] text-white hover:bg-[#7A6451] disabled:opacity-40 transition-colors inline-flex items-center gap-1"
+                    className="text-content px-3 py-1.5 bg-[#8D775F] text-white hover:bg-[#7A6451] disabled:opacity-40 transition-colors inline-flex items-center gap-1"
                   >
                     {noteSaving ? <><Loader2 size={11} className="animate-spin" /> שומר…</> : "שמור"}
                   </button>
@@ -749,7 +749,7 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
             <p className="text-[#2D2926]/30 text-sm py-3">
               אין עדיין פתקיות. לחץ "+ פתקית" להוסיף רמזים לחשבונות, 2FA, וכל מה ששווה לזכור.
               <br />
-              <span className="text-xs text-[#2D2926]/40">⚠ לא לאחסן סיסמאות כאן — השתמש ב-password manager.</span>
+              <span className="text-content text-[#2D2926]/40">⚠ לא לאחסן סיסמאות כאן — השתמש ב-password manager.</span>
             </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
@@ -778,7 +778,7 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
                     </div>
                   </div>
                   {n.body && (
-                    <p className="text-xs text-[#2D2926]/60 leading-relaxed whitespace-pre-wrap break-words">
+                    <p className="text-content text-[#2D2926]/60 leading-relaxed whitespace-pre-wrap break-words">
                       {n.body}
                     </p>
                   )}
@@ -793,7 +793,7 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
           <SectionLabel action={
             <button
               onClick={() => handleApiToggle(!showApi)}
-              className={`text-xs font-medium px-2.5 py-1 rounded-full transition-colors
+              className={`text-content font-medium px-2.5 py-1 rounded-full transition-colors
                 ${showApi
                   ? "bg-[#8D775F] text-white"
                   : "text-[#2D2926]/40 hover:text-[#8D775F] hover:bg-[#8D775F]/10"}`}>
@@ -822,7 +822,7 @@ export default function HubClient({ uiRoutes, apiRoutes, externalLinks }: HubCli
           )}
         </section>
 
-        <p className="text-center text-xs text-[#2D2926]/20 pt-2 pb-6">
+        <p className="text-center text-content text-[#2D2926]/20 pt-2 pb-6">
           /admin/hub · {uiRoutes.length} כלים · {apiRoutes.length} ממשקים
         </p>
       </div>

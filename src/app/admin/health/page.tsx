@@ -68,14 +68,14 @@ function CheckCard({ r }: { r: CheckResult }) {
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-semibold text-white/90">{r.name}</p>
           {r.ms !== undefined && (
-            <span className={`flex items-center gap-1 text-[0.75rem] px-1.5 py-0.5 ${r.ms < 500 ? "bg-emerald-500/10 text-emerald-400" : r.ms < 1500 ? "bg-amber-500/10 text-amber-400" : "bg-red-500/10 text-red-400"}`}>
+            <span className={`flex items-center gap-1 text-caption px-1.5 py-0.5 ${r.ms < 500 ? "bg-emerald-500/10 text-emerald-400" : r.ms < 1500 ? "bg-amber-500/10 text-amber-400" : "bg-red-500/10 text-red-400"}`}>
               <Clock size={9} /> {r.ms}ms
             </span>
           )}
         </div>
-        <p className="text-xs text-white/40 mt-0.5">{r.detail}</p>
+        <p className="text-content text-white/40 mt-0.5">{r.detail}</p>
         {r.fix && (
-          <div className="mt-2 flex items-start gap-1.5 text-[0.68rem] text-amber-300/80 bg-amber-500/[0.06] border border-amber-500/15 px-2.5 py-1.5">
+          <div className="mt-2 flex items-start gap-1.5 text-caption text-amber-300/80 bg-amber-500/[0.06] border border-amber-500/15 px-2.5 py-1.5">
             <span className="shrink-0 mt-px">⚑</span>
             <span>{r.fix}</span>
           </div>
@@ -93,9 +93,9 @@ function SectionBlock({ sectionKey, results }: { sectionKey: string; results: Ch
     <div>
       <div className="flex items-center gap-2 mb-2 px-1">
         <span className="text-white/30">{meta?.icon}</span>
-        <h2 className="text-[0.75rem] font-bold tracking-[0.2em] uppercase text-white/35">{meta?.label ?? sectionKey}</h2>
-        {failed > 0 && <span className="text-[0.58rem] px-1.5 py-0.5 bg-red-500/15 text-red-400 font-semibold">{failed} שגיאה</span>}
-        {warned > 0 && <span className="text-[0.58rem] px-1.5 py-0.5 bg-amber-500/15 text-amber-400 font-semibold">{warned} אזהרה</span>}
+        <h2 className="text-caption font-bold tracking-[0.2em] uppercase text-white/35">{meta?.label ?? sectionKey}</h2>
+        {failed > 0 && <span className="text-caption px-1.5 py-0.5 bg-red-500/15 text-red-400 font-semibold">{failed} שגיאה</span>}
+        {warned > 0 && <span className="text-caption px-1.5 py-0.5 bg-amber-500/15 text-amber-400 font-semibold">{warned} אזהרה</span>}
       </div>
       <div className="space-y-1.5">
         {results.map(r => <CheckCard key={r.id} r={r} />)}
@@ -236,15 +236,15 @@ export default function HealthPage() {
         <div className="flex items-center gap-3">
           <Activity size={18} strokeWidth={1.5} className="text-accent" />
           <div>
-            <p className="text-[0.58rem] font-bold tracking-[0.2em] uppercase text-white/30">בניין איתן</p>
+            <p className="text-caption font-bold tracking-[0.2em] uppercase text-white/30">בניין איתן</p>
             <h1 className="text-sm font-bold text-white/90 leading-none">בדיקת מערכת</h1>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/he" className="flex items-center gap-1.5 text-[0.68rem] text-white/25 hover:text-white/60 transition-colors">
+          <Link href="/he" className="flex items-center gap-1.5 text-caption text-white/25 hover:text-white/60 transition-colors">
             <Home size={12} strokeWidth={1.5} /> דף הבית
           </Link>
-          <Link href="/admin" className="flex items-center gap-1.5 text-[0.68rem] text-white/25 hover:text-accent transition-colors">
+          <Link href="/admin" className="flex items-center gap-1.5 text-caption text-white/25 hover:text-accent transition-colors">
             <ChevronLeft size={13} strokeWidth={1.5} /> ממשק ניהול
           </Link>
         </div>
@@ -260,7 +260,7 @@ export default function HealthPage() {
               : <Power     size={20} className="text-emerald-400 shrink-0" />}
             <div>
               <p className="text-sm font-bold">{maintenance ? "מצב תחזוקה — פעיל" : "האתר פעיל"}</p>
-              <p className="text-[0.75rem] text-white/35 mt-0.5">
+              <p className="text-caption text-white/35 mt-0.5">
                 {maintenance ? "כל הדפים הציבוריים מנותבים לדף תחזוקה" : "הדפים הציבוריים נגישים למבקרים"}
               </p>
             </div>
@@ -268,7 +268,7 @@ export default function HealthPage() {
           <button
             onClick={toggleMaintenance}
             disabled={maintLoading || maintenance === null}
-            className={`shrink-0 px-4 py-2 text-xs font-bold tracking-wide uppercase transition-colors disabled:opacity-40 disabled:cursor-not-allowed border ${maintenance ? "border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10" : "border-amber-500/40 text-amber-400 hover:bg-amber-500/10"}`}
+            className={`shrink-0 px-4 py-2 text-content font-bold tracking-wide uppercase transition-colors disabled:opacity-40 disabled:cursor-not-allowed border ${maintenance ? "border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10" : "border-amber-500/40 text-amber-400 hover:bg-amber-500/10"}`}
           >
             {maintLoading ? <Loader2 size={13} className="animate-spin" /> : maintenance ? "הפעל אתר" : "הפעל תחזוקה"}
           </button>
@@ -278,11 +278,11 @@ export default function HealthPage() {
         <div className="border border-white/8 bg-white/[0.02] px-5 py-4 space-y-3">
           <div className="flex items-center gap-2">
             <ShieldCheck size={14} strokeWidth={1.5} className="text-white/30" />
-            <p className="text-[0.75rem] font-bold tracking-[0.18em] uppercase text-white/35">קודי War Room</p>
+            <p className="text-caption font-bold tracking-[0.18em] uppercase text-white/35">קודי War Room</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <label className="text-[0.75rem] text-white/40 shrink-0">חנן</label>
+              <label className="text-caption text-white/40 shrink-0">חנן</label>
               <input
                 type="text" inputMode="numeric" maxLength={8} value={pinHanan}
                 onChange={e => { setPinHanan(e.target.value.replace(/\D/g, "")); setPinMsg(null); }}
@@ -290,7 +290,7 @@ export default function HealthPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-[0.75rem] text-white/40 shrink-0">מוטי</label>
+              <label className="text-caption text-white/40 shrink-0">מוטי</label>
               <input
                 type="text" inputMode="numeric" maxLength={8} value={pinMoti}
                 onChange={e => { setPinMoti(e.target.value.replace(/\D/g, "")); setPinMsg(null); }}
@@ -300,13 +300,13 @@ export default function HealthPage() {
             <button
               onClick={saveExecPins}
               disabled={pinSaving || !pinHanan.trim() || !pinMoti.trim()}
-              className="px-4 py-1.5 text-xs font-bold tracking-wide border border-amber-400/30 text-amber-400 hover:bg-amber-400/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-1.5 text-content font-bold tracking-wide border border-amber-400/30 text-amber-400 hover:bg-amber-400/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {pinSaving ? <Loader2 size={12} className="animate-spin" /> : "שמור PINs"}
             </button>
           </div>
           {pinMsg && (
-            <p className={`text-[0.75rem] ${pinMsg.ok ? "text-emerald-400" : "text-red-400"}`}>
+            <p className={`text-caption ${pinMsg.ok ? "text-emerald-400" : "text-red-400"}`}>
               {pinMsg.ok ? "✓" : "✗"} {pinMsg.text}
             </p>
           )}
@@ -334,7 +334,7 @@ export default function HealthPage() {
           </div>
 
           {checkedAt && (
-            <p className="text-[0.75rem] text-white/20 tabular-nums">
+            <p className="text-caption text-white/20 tabular-nums">
               נבדק: {new Date(checkedAt).toLocaleString("he-IL")}
             </p>
           )}
@@ -344,7 +344,7 @@ export default function HealthPage() {
         {authError && (
           <div className="border border-red-500/30 bg-red-500/5 px-5 py-4 text-center">
             <p className="text-sm text-red-400 font-semibold">לא מחובר כמנהל</p>
-            <Link href="/admin" className="text-xs text-white/40 hover:text-accent mt-1 inline-block">→ כניסה לממשק ניהול</Link>
+            <Link href="/admin" className="text-content text-white/40 hover:text-accent mt-1 inline-block">→ כניסה לממשק ניהול</Link>
           </div>
         )}
 
@@ -358,7 +358,7 @@ export default function HealthPage() {
                 {warned > 0 && ` · ${warned} אזהרות`}
               </p>
             </div>
-            <div className="flex items-center gap-4 text-[0.75rem]">
+            <div className="flex items-center gap-4 text-caption">
               <span className="text-emerald-400">{passed} תקין</span>
               {warned > 0 && <span className="text-amber-400">{warned} אזהרה</span>}
               {failed > 0 && <span className="text-red-400">{failed} שגיאה</span>}
@@ -371,9 +371,9 @@ export default function HealthPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 px-1">
               <Zap size={14} strokeWidth={1.5} className="text-accent/60" />
-              <h2 className="text-[0.75rem] font-bold tracking-[0.2em] uppercase text-white/35">בדיקת נוכחות חיה</h2>
+              <h2 className="text-caption font-bold tracking-[0.2em] uppercase text-white/35">בדיקת נוכחות חיה</h2>
               {attOk !== null && (
-                <span className={`text-[0.58rem] px-1.5 py-0.5 font-semibold ${attOk ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
+                <span className={`text-caption px-1.5 py-0.5 font-semibold ${attOk ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
                   {attOk ? "תקין" : "נכשל"}
                 </span>
               )}
@@ -386,12 +386,12 @@ export default function HealthPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-xs font-semibold text-white/85">{s.name}</p>
-                    <span className={`text-[0.58rem] px-1.5 py-0.5 ${s.ms < 500 ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
+                    <p className="text-content font-semibold text-white/85">{s.name}</p>
+                    <span className={`text-caption px-1.5 py-0.5 ${s.ms < 500 ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
                       {s.ms}ms
                     </span>
                   </div>
-                  <p className="text-[0.68rem] text-white/35 mt-0.5">{s.detail}</p>
+                  <p className="text-caption text-white/35 mt-0.5">{s.detail}</p>
                 </div>
               </div>
             ))}

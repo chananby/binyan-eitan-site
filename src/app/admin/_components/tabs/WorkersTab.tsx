@@ -223,7 +223,7 @@ export default function WorkersTab(p: Props) {
         <button
           onClick={exportStaffReport}
           disabled={exporting}
-          className="inline-flex items-center gap-1.5 border border-accent text-accent px-4 py-2 text-xs font-semibold tracking-wider uppercase hover:bg-accent/[0.08] disabled:opacity-40 transition-colors"
+          className="inline-flex items-center gap-1.5 border border-accent text-accent px-4 py-2 text-content font-semibold tracking-wider uppercase hover:bg-accent/[0.08] disabled:opacity-40 transition-colors"
           title='ייצוא דוח עובדים מלא ל-XLSX (פרופיל + 3 חודשי פעילות)'
         >
           {exporting
@@ -355,7 +355,7 @@ export default function WorkersTab(p: Props) {
             </Field>
           )}
           <Btn loading={p.addLoading}>הוסף עובד</Btn>
-          {p.addMsg && <p className={`text-xs ${p.addMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{p.addMsg}</p>}
+          {p.addMsg && <p className={`text-content ${p.addMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{p.addMsg}</p>}
         </form>
         )}
       </Card>
@@ -363,7 +363,7 @@ export default function WorkersTab(p: Props) {
       <Card>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-heading text-base font-bold">עובדים פעילים ({activeStaff.length})</h2>
-          <button onClick={p.onReload} className="flex items-center gap-1 text-xs text-charcoal/70 hover:text-accent transition-colors">
+          <button onClick={p.onReload} className="flex items-center gap-1 text-content text-charcoal/70 hover:text-accent transition-colors">
             <RefreshCw size={12} strokeWidth={1.5} /> רענן
           </button>
         </div>
@@ -381,7 +381,7 @@ export default function WorkersTab(p: Props) {
             className="w-full flex items-center justify-between hover:opacity-80 transition-opacity"
             aria-expanded={inactiveOpen}
           >
-            <h2 className="font-heading text-base font-bold text-charcoal/60">
+            <h2 className="font-heading text-base font-bold text-muted">
               מושבתים ({inactiveStaff.length})
             </h2>
             {inactiveOpen
@@ -533,10 +533,10 @@ function renderStaffRow(
             <input value={p.editPin} onChange={e => p.setEditPin(e.target.value.replace(/\D/g, "").slice(0, 8))} type="text" inputMode="numeric" maxLength={8} placeholder="4–8 ספרות" dir="ltr" className={INPUT} />
           </Field>
         )}
-        {p.editMsg && <p className="text-xs text-red-500">{p.editMsg}</p>}
+        {p.editMsg && <p className="text-content text-red-500">{p.editMsg}</p>}
         <div className="flex gap-2">
-          <button type="submit" disabled={p.editLoading} className="flex-1 bg-accent py-2 text-xs font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">{p.editLoading ? "שומר..." : "שמור"}</button>
-          <button type="button" onClick={() => p.setEditingId(null)} className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/65 hover:border-accent transition-colors">ביטול</button>
+          <button type="submit" disabled={p.editLoading} className="flex-1 bg-accent py-2 text-content font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">{p.editLoading ? "שומר..." : "שמור"}</button>
+          <button type="button" onClick={() => p.setEditingId(null)} className="flex-1 border border-charcoal/20 py-2 text-content text-muted hover:border-accent transition-colors">ביטול</button>
         </div>
         {/* Per-month rate history + "add new rate" — inserted as a sibling
             block so its own fetch state is isolated from the edit form's
@@ -564,7 +564,7 @@ function renderStaffRow(
           )}
           {s.name}
           {s.label && (
-            <span className="font-body text-[0.6rem] text-charcoal/65 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[80px] truncate">{s.label}</span>
+            <span className="font-body text-caption text-muted px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[80px] truncate">{s.label}</span>
           )}
           {/* Non-Hebrew workers get a visible language flag + code so the
               admin sees at a glance who is on a foreign-language portal
@@ -573,14 +573,14 @@ function renderStaffRow(
               row uncluttered. */}
           {isWorkerLangCode(s.language) && s.language !== "he" && (
             <span
-              className="font-body text-[0.6rem] text-charcoal/70 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 tabular-nums"
+              className="font-body text-caption text-charcoal/70 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 tabular-nums"
               title={`שפת פורטל: ${WORKER_LANG_LABEL_HE[s.language]}`}
             >
               {WORKER_LANG_FLAGS[s.language]} {s.language.toUpperCase()}
             </span>
           )}
         </p>
-        <p className="text-xs text-charcoal/70 tabular-nums" dir="ltr">{s.phone}</p>
+        <p className="text-content text-charcoal/70 tabular-nums" dir="ltr">{s.phone}</p>
         {(s.hourly_rate || s.daily_rate) && (
           <p className="text-sm text-accent-dark">
             {s.hourly_rate ? `₪${s.hourly_rate}/ש׳` : ""}{s.hourly_rate && s.daily_rate ? " · " : ""}{s.daily_rate ? `₪${s.daily_rate}/יום` : ""}
@@ -590,17 +590,17 @@ function renderStaffRow(
       <div className="flex flex-col items-end gap-1 shrink-0">
         <span className="text-sm text-charcoal/70">{s.role}</span>
         {s.role === "ממונה" && (
-          <span className={`text-xs px-1.5 py-0.5 ${s.has_pin ? "bg-accent/10 text-accent" : "bg-red-50 text-red-400"}`}>
+          <span className={`text-content px-1.5 py-0.5 ${s.has_pin ? "bg-accent/10 text-accent" : "bg-red-50 text-red-400"}`}>
             {s.has_pin ? "PIN מוגדר" : "ללא PIN"}
           </span>
         )}
       </div>
-      <span className={`text-[0.75rem] px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/70"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
-      <button onClick={() => p.onStartEdit(s)} className="text-xs border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">ערוך</button>
+      <span className={`text-caption px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/70"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
+      <button onClick={() => p.onStartEdit(s)} className="text-content border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">ערוך</button>
       {!isInactive && (
         <button
           onClick={() => p.onViewHistory(s.id)}
-          className="text-xs border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0 flex items-center gap-1"
+          className="text-content border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0 flex items-center gap-1"
           aria-label={`היסטוריית ${s.name}`}
         >
           <History size={11} strokeWidth={1.5} /> היסטוריה
@@ -610,18 +610,18 @@ function renderStaffRow(
       {!isInactive && s.role === "ממונה" && (
         <button
           onClick={() => p.onViewAs(s.id)}
-          className="text-xs border border-accent/30 text-accent px-2.5 py-1 hover:bg-accent hover:text-bone transition-colors shrink-0 flex items-center gap-1"
+          className="text-content border border-accent/30 text-accent px-2.5 py-1 hover:bg-accent hover:text-bone transition-colors shrink-0 flex items-center gap-1"
           aria-label={`צפה בתור ${s.name}`}
         >
           <Eye size={11} strokeWidth={1.5} /> צפה בתור
         </button>
       )}
-      <button onClick={() => p.onOpenVacation(s.id)} className="text-xs border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">חופשה</button>
-      <button onClick={() => p.onToggleActive(s.id, s.active)} className="text-xs border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{s.active ? "השבת" : "הפעל"}</button>
+      <button onClick={() => p.onOpenVacation(s.id)} className="text-content border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">חופשה</button>
+      <button onClick={() => p.onToggleActive(s.id, s.active)} className="text-content border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">{s.active ? "השבת" : "הפעל"}</button>
       {isInactive && (
         <button
           onClick={() => askDelete(s)}
-          className="text-xs border border-red-200 text-red-500 px-2.5 py-1 hover:border-red-400 hover:bg-red-50 transition-colors shrink-0 flex items-center gap-1"
+          className="text-content border border-red-200 text-red-500 px-2.5 py-1 hover:border-red-400 hover:bg-red-50 transition-colors shrink-0 flex items-center gap-1"
           aria-label={`מחק את ${s.name}`}
         >
           <Trash2 size={11} strokeWidth={1.5} /> מחק
@@ -655,7 +655,7 @@ function DeleteConfirmModal({
         <p className="text-sm text-charcoal/70 leading-relaxed mb-3">
           להקלדת שם העובד <span className="font-semibold text-charcoal">&quot;{worker.name}&quot;</span> באופן מדויק כדי לאשר.
         </p>
-        <p className="text-xs text-charcoal/65 leading-relaxed mb-3">
+        <p className="text-content text-muted leading-relaxed mb-3">
           העובד יוסר מרשימת הצוות. רשומות שעות העבודה שלו יישמרו לצורכי דוחות וארכיון.
         </p>
         <input
@@ -670,7 +670,7 @@ function DeleteConfirmModal({
             type="button"
             onClick={onConfirm}
             disabled={!canConfirm}
-            className="flex-1 bg-red-500 py-2 text-xs font-semibold text-bone hover:bg-red-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="flex-1 bg-red-500 py-2 text-content font-semibold text-bone hover:bg-red-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? "מוחק..." : "מחק עובד"}
           </button>
@@ -678,7 +678,7 @@ function DeleteConfirmModal({
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="flex-1 border border-charcoal/20 py-2 text-xs text-charcoal/60 hover:border-accent transition-colors"
+            className="flex-1 border border-charcoal/20 py-2 text-content text-muted hover:border-accent transition-colors"
           >
             ביטול
           </button>

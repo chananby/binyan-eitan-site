@@ -53,6 +53,13 @@ module.exports = {
           DEFAULT: 'rgba(243, 242, 238, 0.88)',
           border: 'rgba(45, 41, 38, 0.06)',
         },
+        // Muted body text — for secondary copy that is genuinely lower-
+        // priority (timestamps, helper hints, footnotes). Replaces the
+        // text-charcoal/40 — /65 family that was failing or borderline at
+        // WCAG AA on the bone page bg. #5F5B58 is charcoal blended ~75%
+        // toward bone: contrast vs bone ≈ 5.7:1 (comfortable AA), still
+        // clearly recessed from full-charcoal primary text.
+        muted: '#5F5B58',
         // Math App — blue brand palette
         brand: {
           50:  '#eff6ff',
