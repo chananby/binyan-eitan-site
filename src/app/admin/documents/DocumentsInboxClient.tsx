@@ -28,6 +28,7 @@ function buildDocQuery(f: DocFilters, offset: number, limit: number): string {
   if (f.category)   p.set("category", f.category);
   if (f.vendor_id)  p.set("vendor_id", f.vendor_id);
   if (f.project_id) p.set("project_id", f.project_id);
+  if (f.no_project) p.set("no_project", "true");
   if (f.date_from)  p.set("date_from", f.date_from);
   if (f.date_to)    p.set("date_to", f.date_to);
   if (f.duplicates_only) p.set("duplicates_only", "true");
@@ -48,6 +49,7 @@ function buildExportQuery(f: DocFilters): string {
   if (f.category)   p.set("category", f.category);
   if (f.vendor_id)  p.set("vendor_id", f.vendor_id);
   if (f.project_id) p.set("project_id", f.project_id);
+  if (f.no_project) p.set("no_project", "true");
   if (f.date_from)  p.set("date_from", f.date_from);
   if (f.date_to)    p.set("date_to", f.date_to);
   if (f.duplicates_only) p.set("duplicates_only", "true");
@@ -72,6 +74,7 @@ export default function DocumentsInboxClient() {
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [monthApproved, setMonthApproved] = useState<number | null>(null);
   const [duplicateCount, setDuplicateCount] = useState<number | null>(null);
+  const [unlinkedCount, setUnlinkedCount] = useState<number | null>(null);
   const [filteredCount, setFilteredCount] = useState<number | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
 
@@ -115,6 +118,11 @@ export default function DocumentsInboxClient() {
       .catch(() => {});
     fetch("/api/admin/documents?duplicates_only=true&limit=500", { cache: "no-store" })
       .then(r => r.json()).then(d => setDuplicateCount((d.documents ?? []).length)).catch(() => {});
+    // Unlinked-receipts count — the banner above the list reads off this
+    // so the contractor knows how big the backfill backlog is. The same
+    // value drives the badge inside the banner's CTA button.
+    fetch("/api/admin/documents?no_project=true&limit=500", { cache: "no-store" })
+      .then(r => r.json()).then(d => setUnlinkedCount((d.documents ?? []).length)).catch(() => {});
   }, []);
 
   useEffect(() => { if (auth === "admin") loadStats(); }, [auth, loadStats]);
@@ -262,6 +270,36 @@ export default function DocumentsInboxClient() {
           </a>
         </div>
 
+        {/* Unlinked-receipts banner — bridges the "project_id missing"
+            gap that blocks per-project costs. Shown only when there
+            actually ARE unlinked docs (otherwise just noise), and
+            hidden again once the no_project filter is active (the
+            user already chose to look at them). The CTA flips the
+            filter on; existing filters are cleared so the view is
+            "just the unassigned set" without leftover narrowing. */}
+        {unlinkedCount != null && unlinkedCount > 0 && filters.no_project !== "1" && (
+          <button
+            type="button"
+            onClick={() => setFilters({ ...EMPTY_FILTERS, no_project: "1" })}
+            className="w-full flex items-center justify-between gap-3 bg-amber-50 border border-amber-300 rounded-md px-4 py-3 hover:bg-amber-100 transition-colors text-start"
+          >
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <AlertCircle size={16} className="text-amber-700 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-amber-900">
+                  {unlinkedCount} {unlinkedCount === 1 ? "אסמכתא ללא פרויקט" : "אסמכתאות ללא פרויקט"}
+                </p>
+                <p className="text-xs text-amber-800">
+                  שיוך פרויקט חשוב לחישוב הוצאות פר-פרויקט. סנן אותן עכשיו ושייך מהכרטיס.
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-semibold bg-amber-200 text-amber-900 border border-amber-400 px-2 py-1 rounded shrink-0 whitespace-nowrap">
+              סנן ושייך ←
+            </span>
+          </button>
+        )}
+
         <DocumentFilters filters={filters} setFilters={setFilters} vendors={vendors} projects={projects} duplicateCount={duplicateCount} />
 
         {error && (
@@ -281,7 +319,7 @@ export default function DocumentsInboxClient() {
 
         {!loading && docs.length > 0 && (
           <div className="space-y-2">
-            {docs.map(d => <DocumentCard key={d.id} doc={d} onChanged={refreshAfterUpload} />)}
+            {docs.map(d => <DocumentCard key={d.id} doc={d} projects={projects} onChanged={refreshAfterUpload} />)}
             {hasMore && (
               <button onClick={loadMore} className="w-full py-2.5 text-sm font-semibold text-[#8D775F] border border-[#8D775F]/30 rounded-md hover:bg-[#8D775F]/5">
                 טען עוד

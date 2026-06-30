@@ -18,6 +18,10 @@ export interface DocFilters {
   category: string;
   vendor_id: string;
   project_id: string;
+  /** "1" = only docs with project_id IS NULL (the unlinked-receipts
+   *  backfill view). Mutually exclusive with project_id; the server
+   *  honours no_project first if both arrive. */
+  no_project: string;
   date_from: string;
   date_to: string;
   q: string;
@@ -26,6 +30,7 @@ export interface DocFilters {
 
 export const EMPTY_FILTERS: DocFilters = {
   status: "", doc_type: "", direction: "", category: "", vendor_id: "", project_id: "",
+  no_project: "",
   date_from: "", date_to: "", q: "", duplicates_only: "",
 };
 

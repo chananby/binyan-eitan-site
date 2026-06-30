@@ -4,7 +4,11 @@
 //   line 1: vendor name + bold amount
 //   line 2: doc-type label · date · project
 //   + a status chip (pending / approved / rejected / extraction-failed)
-// The whole card links to the detail screen.
+//   + an inline project-assign bar (PR 4 of the unification work)
+//
+// The link to the detail screen wraps only the upper content area —
+// the project bar is a sibling so the inline <select> can't bubble a
+// click into the navigation.
 
 import Link from "next/link";
 import { AlertTriangle, Building2, Camera } from "lucide-react";
@@ -12,54 +16,80 @@ import {
   DOC_TYPE_LABELS, statusChip, fmtCurrency, fmtDate, displayVendor, type DocRow,
 } from "./labels";
 import DuplicateChip from "./DuplicateChip";
+import DocumentProjectAssignBar from "./DocumentProjectAssignBar";
+import type { ProjectOption } from "./ProjectSelect";
 
-export default function DocumentCard({ doc, onChanged }: { doc: DocRow; onChanged?: () => void }) {
+export default function DocumentCard({
+  doc,
+  projects,
+  onChanged,
+}: {
+  doc: DocRow;
+  projects?: ProjectOption[];
+  onChanged?: () => void;
+}) {
   const chip = statusChip(doc);
   // Field upload (foreman drop-box) → small camera chip with the foreman name.
   const fieldUpload = doc.uploaded_by?.startsWith("foreman:")
     ? doc.uploaded_by.slice("foreman:".length)
     : null;
+
+  // The project-assign bar is opt-in: callers that don't pass `projects`
+  // (e.g. read-only contexts) get the plain card just like before.
+  const showProjectBar = !!projects;
+
   return (
-    <Link
-      href={`/admin/documents/${doc.id}`}
-      className="block bg-white border border-[#2D2926]/10 rounded-md shadow-sm px-4 py-3 hover:border-[#8D775F]/50 transition-colors"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-semibold text-[#2D2926] truncate">{displayVendor(doc)}</p>
-            <span className="shrink-0 font-mono font-bold text-[#2D2926]">
-              {fmtCurrency(doc.total_amount, doc.currency ?? "ILS")}
-            </span>
-          </div>
-          <div className="mt-1 flex items-center gap-2 flex-wrap text-xs text-[#2D2926]/60">
-            <span>{DOC_TYPE_LABELS[doc.doc_type ?? ""] ?? "—"}</span>
-            <span>·</span>
-            <span className="tabular-nums">{fmtDate(doc.doc_date)}</span>
-            {doc.project?.name && (
-              <>
-                <span>·</span>
-                <span className="inline-flex items-center gap-0.5"><Building2 size={11} />{doc.project.name}</span>
-              </>
-            )}
+    <div className="bg-white border border-[#2D2926]/10 rounded-md shadow-sm hover:border-[#8D775F]/50 transition-colors overflow-hidden">
+      <Link
+        href={`/admin/documents/${doc.id}`}
+        className="block px-4 py-3"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-[#2D2926] truncate">{displayVendor(doc)}</p>
+              <span className="shrink-0 font-mono font-bold text-[#2D2926]">
+                {fmtCurrency(doc.total_amount, doc.currency ?? "ILS")}
+              </span>
+            </div>
+            <div className="mt-1 flex items-center gap-2 flex-wrap text-xs text-[#2D2926]/60">
+              <span>{DOC_TYPE_LABELS[doc.doc_type ?? ""] ?? "—"}</span>
+              <span>·</span>
+              <span className="tabular-nums">{fmtDate(doc.doc_date)}</span>
+              {doc.project?.name && (
+                <>
+                  <span>·</span>
+                  <span className="inline-flex items-center gap-0.5"><Building2 size={11} />{doc.project.name}</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-      <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-        <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold ${chip.className}`}>
-          {chip.warn && <AlertTriangle size={11} />}
-          {chip.label}
-        </span>
-        {fieldUpload && (
-          <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-[#8D775F]/10 text-[#8D775F]">
-            <Camera size={11} />{fieldUpload}
+        <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+          <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold ${chip.className}`}>
+            {chip.warn && <AlertTriangle size={11} />}
+            {chip.label}
           </span>
-        )}
-        {/* Actionable everywhere: opens the compare dialog (vs the suspected
-            original) with delete / clear-flag actions. onChanged refreshes the
-            inbox list after a resolution. */}
-        <DuplicateChip doc={doc} onDeleted={onChanged} onCleared={onChanged} />
-      </div>
-    </Link>
+          {fieldUpload && (
+            <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-[#8D775F]/10 text-[#8D775F]">
+              <Camera size={11} />{fieldUpload}
+            </span>
+          )}
+          {/* Actionable everywhere: opens the compare dialog (vs the suspected
+              original) with delete / clear-flag actions. onChanged refreshes the
+              inbox list after a resolution. */}
+          <DuplicateChip doc={doc} onDeleted={onChanged} onCleared={onChanged} />
+        </div>
+      </Link>
+
+      {showProjectBar && (
+        <DocumentProjectAssignBar
+          docId={doc.id}
+          currentProjectId={doc.project_id ?? null}
+          projects={projects!}
+          onChanged={onChanged}
+        />
+      )}
+    </div>
   );
 }

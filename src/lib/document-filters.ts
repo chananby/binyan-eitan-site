@@ -13,6 +13,12 @@ export interface DocContentFilters {
   category: string | null;
   vendor_id: string | null;
   project_id: string | null;
+  /** "show me documents that aren't linked to any project". Drives the
+   *  unlinked-receipts banner — until project_id coverage climbs out of
+   *  the 3% basement, the contractor needs a way to see exactly which
+   *  receipts are still unassigned. Mutually exclusive with project_id;
+   *  if both are sent, no_project wins (defensive). */
+  no_project: boolean;
   duplicates_only: boolean;
   q: string | null;
 }
@@ -24,6 +30,7 @@ export function readDocContentFilters(sp: URLSearchParams): DocContentFilters {
     category:        sp.get("category")?.trim()   || null,
     vendor_id:       sp.get("vendor_id")?.trim()  || null,
     project_id:      sp.get("project_id")?.trim() || null,
+    no_project:      sp.get("no_project") === "true",
     duplicates_only: sp.get("duplicates_only") === "true",
     q:               sp.get("q")?.trim()          || null,
   };
@@ -33,6 +40,7 @@ export function readDocContentFilters(sp: URLSearchParams): DocContentFilters {
 // client type while still being satisfied structurally by a real query.
 export interface FilterableQuery {
   eq(col: string, val: unknown): FilterableQuery;
+  is(col: string, val: unknown): FilterableQuery;
   not(col: string, op: string, val: unknown): FilterableQuery;
   or(filters: string): FilterableQuery;
 }
@@ -45,7 +53,10 @@ export function applyDocContentFilters<Q extends FilterableQuery>(query: Q, f: D
   if (f.direction)       q = q.eq("direction", f.direction);
   if (f.category)        q = q.eq("category", f.category);
   if (f.vendor_id)       q = q.eq("vendor_id", f.vendor_id);
-  if (f.project_id)      q = q.eq("project_id", f.project_id);
+  // no_project wins over project_id if both are set — pulling unlinked
+  // docs is an explicit action the user took on purpose.
+  if (f.no_project)      q = q.is("project_id", null);
+  else if (f.project_id) q = q.eq("project_id", f.project_id);
   if (f.duplicates_only) q = q.not("possible_duplicate_of", "is", null);
   if (f.q) {
     const pat = `%${f.q}%`;
