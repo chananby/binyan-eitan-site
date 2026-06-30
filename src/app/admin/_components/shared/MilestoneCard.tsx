@@ -89,7 +89,7 @@ export default function MilestoneCard(p: Props) {
     future: {
       card: "bg-bone/40 border-charcoal/20",
       badge: "bg-charcoal/[0.08] text-charcoal/80 border-charcoal/25",
-      badgeText: "עתידי",
+      badgeText: "טרם הגיע",
     },
     "due-unpaid": {
       card: "bg-red-50 border-red-300",
@@ -292,12 +292,12 @@ export default function MilestoneCard(p: Props) {
             <>
               <button onClick={openPay} disabled={p.busy}
                 className="text-sm font-semibold bg-accent text-bone px-3 py-1.5 rounded hover:bg-accent-dark disabled:opacity-40">
-                {variant === "due-partial" ? "עדכן תשלום" : "רשום תשלום"}
+                {variant === "due-partial" ? "עדכן סכום שהתקבל" : "קיבלתי תשלום"}
               </button>
               <button onClick={() => p.onTransition(p.milestone.id, "future")} disabled={p.busy}
-                title="החזר לעתידי" aria-label="החזר לעתידי"
+                title="בטל סימון" aria-label="בטל סימון"
                 className="text-sm border border-charcoal/30 text-charcoal/80 px-3 py-1.5 rounded hover:border-accent flex items-center gap-1">
-                <RotateCcw size={12} /> החזר לעתידי
+                <RotateCcw size={12} /> בטל סימון
               </button>
             </>
           )}

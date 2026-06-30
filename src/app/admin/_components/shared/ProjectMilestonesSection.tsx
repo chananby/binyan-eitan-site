@@ -294,7 +294,7 @@ export default function ProjectMilestonesSection({ projectId }: { projectId: str
           {data && data.milestones.length > 0 && (
             <div className="border-t border-charcoal/20 pt-2 mt-1 text-xs space-y-0.5">
               <div className="flex justify-between tabular-nums">
-                <span className="text-charcoal/75">מתוכנן</span>
+                <span className="text-charcoal/75">סך הפרויקט</span>
                 <span className="font-semibold text-charcoal">{fmt(num(data.totals.planned))}</span>
               </div>
               <div className="flex justify-between tabular-nums">
@@ -306,7 +306,7 @@ export default function ProjectMilestonesSection({ projectId }: { projectId: str
                 <span className="font-bold text-red-700">{fmt(num(data.totals.due))}</span>
               </div>
               <div className="flex justify-between tabular-nums">
-                <span className="text-charcoal/75">סך פתוח (עתידי+מוכן)</span>
+                <span className="text-charcoal/75">סך פתוח (טרם הגיע + מוכן)</span>
                 <span className="font-semibold text-charcoal/85">{fmt(num(data.totals.outstanding))}</span>
               </div>
             </div>
