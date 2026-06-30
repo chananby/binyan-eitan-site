@@ -14,7 +14,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Building2, Camera, Eye } from "lucide-react";
+import { AlertTriangle, Building2, Camera, Eye, RefreshCw, Loader2 } from "lucide-react";
 import {
   DOC_TYPE_LABELS, statusChip, fmtCurrency, fmtDate, displayVendor, type DocRow,
 } from "./labels";
@@ -41,6 +41,30 @@ export default function DocumentCard({
   // Lightbox state — mounted only while open so the /file fetch is
   // lazy and a list of 90+ cards doesn't preload anything.
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  // Manual recovery for a row whose decoupled extraction never fired or
+  // crashed mid-way (the indigo "ממתין לחילוץ" chip). Resume-on-load and the
+  // 10-minute cron should usually rescue these on their own; this button is
+  // the explicit, no-wait option. The extract endpoint is idempotent — a
+  // second click while one is in-flight just overlays the same row.
+  const [retrying, setRetrying] = useState(false);
+  const isStuckOnExtraction =
+    doc.extraction_status === "pending" &&
+    doc.status !== "approved" &&
+    doc.status !== "rejected";
+  async function retryExtract(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (retrying) return;
+    setRetrying(true);
+    try {
+      await fetch(`/api/admin/documents/${doc.id}/extract`, { method: "POST" });
+    } catch { /* swallowed — the chip will reflect the next list refresh */ }
+    finally {
+      setRetrying(false);
+      onChanged?.();
+    }
+  }
 
   // The project-assign bar is opt-in: callers that don't pass `projects`
   // (e.g. read-only contexts) get the plain card just like before.
@@ -78,6 +102,22 @@ export default function DocumentCard({
             {chip.warn && <AlertTriangle size={11} />}
             {chip.label}
           </span>
+          {isStuckOnExtraction && (
+            <button
+              type="button"
+              onClick={retryExtract}
+              onMouseDown={(e) => e.stopPropagation()}
+              disabled={retrying}
+              className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold border border-indigo-300 text-indigo-700 bg-white hover:bg-indigo-50 disabled:opacity-50 transition-colors"
+              title="הפעל מחדש את חילוץ ה-AI עבור המסמך"
+              aria-label="המשך עיבוד"
+            >
+              {retrying
+                ? <Loader2 size={11} className="animate-spin" />
+                : <RefreshCw size={11} />}
+              המשך עיבוד
+            </button>
+          )}
           {fieldUpload && (
             <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-[#8D775F]/10 text-[#8D775F]">
               <Camera size={11} />{fieldUpload}

@@ -192,29 +192,41 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 
-  const adminId = getAdminIdFromRequest(req);
-  const uploaded_by = await resolveAdminLabel(supabase, adminId);
+  // From here on the bucket already holds the file, so EVERY exit path must
+  // either persist the DB row OR remove that file — otherwise we leak an
+  // orphan to storage that nobody will reap. The previous version handled
+  // only `insertErr` (insert returning a Supabase error); a thrown exception
+  // in resolveAdminLabel or in the insert call itself would bypass it. The
+  // try/catch closes that gap by ensuring the rollback fires regardless of
+  // how this block fails.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let row: any;
+  try {
+    const adminId = getAdminIdFromRequest(req);
+    const uploaded_by = await resolveAdminLabel(supabase, adminId);
 
-  const { data: row, error: insertErr } = await supabase
-    .from("financial_documents")
-    .insert({
-      storage_path:      path,
-      original_filename: originalFilename,
-      mime_type:         declaredType,
-      file_size:         file.size,
-      file_hash:         fileHash,
-      uploaded_by,
-      extraction_status: "pending",
-      status:            "pending",
-    })
-    .select(LIST_COLUMNS)
-    .single();
+    const { data: inserted, error: insertErr } = await supabase
+      .from("financial_documents")
+      .insert({
+        storage_path:      path,
+        original_filename: originalFilename,
+        mime_type:         declaredType,
+        file_size:         file.size,
+        file_hash:         fileHash,
+        uploaded_by,
+        extraction_status: "pending",
+        status:            "pending",
+      })
+      .select(LIST_COLUMNS)
+      .single();
 
-  if (insertErr) {
-    // Roll the bucket write back so we never have an orphan object.
-    console.error("[admin/documents POST] DB insert failed, rolling back upload:", insertErr);
+    if (insertErr) throw insertErr;
+    row = inserted;
+  } catch (e) {
+    console.error("[admin/documents POST] DB insert failed, rolling back upload:", e);
     try { await supabase.storage.from(BUCKET).remove([path]); } catch { /* best effort */ }
-    return NextResponse.json({ error: insertErr.message }, { status: 500 });
+    const msg = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 
   // "החלף": now that the replacement is safely stored, soft-delete the old doc.

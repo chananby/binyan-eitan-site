@@ -82,6 +82,12 @@ export default function DocumentsInboxClient() {
   const [approveCands, setApproveCands] = useState<DocRow[] | null>(null);
   const [approveBusy, setApproveBusy] = useState(false);
 
+  // Resume-on-load: a quiet count surfaced under the upload card while the
+  // server-side resume sweep is in flight. Null = idle (banner hidden).
+  // Cleared back to null when the sweep finishes, so the chrome only appears
+  // when there's actually work to wait on.
+  const [resumeInFlight, setResumeInFlight] = useState<number | null>(null);
+
   // ── Auth probe ─────────────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
@@ -128,6 +134,39 @@ export default function DocumentsInboxClient() {
   }, []);
 
   useEffect(() => { if (auth === "admin") loadStats(); }, [auth, loadStats]);
+
+  // Resume-on-load: once the admin lands, kick off the server-side sweep that
+  // re-fires extract for rows whose decoupled extraction never completed
+  // (e.g. tab closed mid-batch). Runs in the background and never blocks the
+  // page — the banner below is the only signal. When the sweep returns, we
+  // refresh the stats + list so the indigo "ממתין לחילוץ" chips disappear.
+  // The 10-minute Vercel cron is the wider safety net; this just shortcuts
+  // the latency for the admin who comes back to the screen.
+  useEffect(() => {
+    if (auth !== "admin") return;
+    let cancelled = false;
+    (async () => {
+      try {
+        // Probe call — keeps the banner hidden when there's nothing to do.
+        // The endpoint runs synchronously: it returns after it's done firing
+        // extract for each picked row, so we surface the count up-front,
+        // then clear when the response lands.
+        const probe = await fetch("/api/admin/documents?status=pending&limit=20", { cache: "no-store" })
+          .then(r => r.json()).catch(() => ({ documents: [] }));
+        const stuck = (probe.documents as DocRow[] | undefined ?? [])
+          .filter(d => d.extraction_status === "pending");
+        if (cancelled || stuck.length === 0) return;
+        setResumeInFlight(stuck.length);
+        await fetch("/api/admin/documents/resume-pending", { method: "POST" })
+          .catch(() => { /* swallowed — cron will eventually pick these up */ });
+        if (cancelled) return;
+        setResumeInFlight(null);
+        loadStats();
+        setFilters(f => ({ ...f })); // re-trigger the list effect
+      } catch { /* best-effort — banner stays hidden */ }
+    })();
+    return () => { cancelled = true; };
+  }, [auth, loadStats]);
 
   // ── List (debounced on filters) ────────────────────────────────────────────
   useEffect(() => {
@@ -221,6 +260,17 @@ export default function DocumentsInboxClient() {
 
       <main className="max-w-3xl mx-auto px-4 py-4 space-y-4">
         <DocumentUploader onUploaded={refreshAfterUpload} />
+
+        {/* Resume-on-load whisper. Surfaces only while the background sweep is
+            mid-flight (resumeInFlight != null). Indigo to match the row-level
+            "ממתין לחילוץ" chip in DocumentCard, soft styling so it reads as an
+            FYI and not as an error. Disappears the moment the sweep returns. */}
+        {resumeInFlight != null && (
+          <div className="flex items-center gap-2 bg-indigo-50 border border-indigo-200 text-indigo-800 px-3 py-2 rounded-md text-sm">
+            <Loader2 size={14} className="animate-spin shrink-0" />
+            <span>ממשיך עיבוד של {resumeInFlight} {resumeInFlight === 1 ? "מסמך" : "מסמכים"}...</span>
+          </div>
+        )}
 
         {/* Status bar */}
         <div className="grid grid-cols-2 gap-3">
