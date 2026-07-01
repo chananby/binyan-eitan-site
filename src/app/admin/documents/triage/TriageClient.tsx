@@ -105,7 +105,10 @@ export default function TriageClient() {
   // a clear win until usage proves otherwise.
   const activeSites = projects
     .filter(p => p.project_type !== "overhead")
-    .filter(p => p.status === "active" || p.status === "planning" || p.status == null)
+    // Post-unification the only "active-tier" status is 'active'; a null
+    // still counts as active for safety (unknown/legacy rows shouldn't
+    // silently disappear from the picker).
+    .filter(p => p.status === "active" || p.status == null)
     .slice(0, 5);
   const overheadChip = projects.find(p => p.project_type === "overhead");
 

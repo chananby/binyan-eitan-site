@@ -23,7 +23,21 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
 
   // Only allow updating known fields
   const update: Record<string, unknown> = {};
-  if (body.status     !== undefined) update.status     = body.status;
+  // Status is now constrained to {active, inactive} at the DB layer too
+  // (unify-project-status migration). Validate at the API so a bad
+  // curl/direct call returns a friendly 400 instead of a raw Postgres
+  // constraint error. The legacy 'planning' value is deliberately not
+  // accepted here — that state was folded into 'active'.
+  if (body.status !== undefined) {
+    const allowedStatuses = ["active", "inactive"];
+    if (!allowedStatuses.includes(body.status)) {
+      return NextResponse.json(
+        { error: `סטטוס לא תקין. הערכים המותרים: ${allowedStatuses.join(", ")}` },
+        { status: 400 },
+      );
+    }
+    update.status = body.status;
+  }
   if (body.name       !== undefined) update.name       = body.name?.trim() || null;
   if (body.foreman_id !== undefined) update.foreman_id = body.foreman_id || null;
   if (body.address    !== undefined) update.address    = body.address?.trim() || null;

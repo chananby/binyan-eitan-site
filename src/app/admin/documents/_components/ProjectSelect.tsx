@@ -21,7 +21,12 @@ export interface ProjectOption {
   project_type?: string | null;
 }
 
-const ACTIVE_STATUSES = new Set(["active", "planning"]);
+// Post-unification only 'active' counts as active for grouping purposes.
+// The legacy 'planning' bucket was folded into 'active' — see the
+// unify-project-status PR + the DB CHECK on projects.status. Keeping the
+// Set (rather than a literal comparison) so this scales if a third
+// active-tier status ever comes back.
+const ACTIVE_STATUSES = new Set(["active"]);
 
 export default function ProjectSelect({ value, onChange, projects, emptyLabel, className }: {
   value: string;

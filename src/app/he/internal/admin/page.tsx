@@ -10,11 +10,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// Canonical status vocabulary is {active, inactive}. 'completed' and
+// 'paused' are kept as best-effort labels so any pre-unification legacy
+// row still renders a friendly chip rather than the raw enum string.
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  active:    { label: "פעיל",   color: "bg-green-100 text-green-700 border-green-200" },
-  planning:  { label: "תכנון",  color: "bg-sky-100 text-sky-700 border-sky-200" },
-  completed: { label: "הושלם", color: "bg-charcoal/10 text-charcoal/65 border-charcoal/10" },
-  paused:    { label: "מושהה", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  active:    { label: "פעיל",    color: "bg-green-100 text-green-700 border-green-200" },
+  inactive:  { label: "לא פעיל", color: "bg-charcoal/10 text-charcoal/65 border-charcoal/10" },
+  completed: { label: "הושלם",   color: "bg-charcoal/10 text-charcoal/65 border-charcoal/10" },
+  paused:    { label: "מושהה",   color: "bg-amber-100 text-amber-700 border-amber-200" },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -51,14 +54,16 @@ export default async function AdminProjectsPage() {
 
   const { projects, error } = await getProjects();
 
+  // Post-unification the status vocabulary is {active, inactive}. 'planning'
+  // was folded into 'active' — see the unify-project-status migration. The
+  // 'completed'/'other' buckets are kept intact so any legacy rows with a
+  // pre-unification status still surface here rather than silently vanish.
   const active    = projects.filter((p) => p.status === "active");
-  const planning  = projects.filter((p) => p.status === "planning");
   const completed = projects.filter((p) => p.status === "completed");
-  const other     = projects.filter((p) => !["active", "planning", "completed"].includes(p.status));
+  const other     = projects.filter((p) => !["active", "completed"].includes(p.status));
 
   const sections = [
     { label: "פרויקטים פעילים", items: active },
-    { label: "בתכנון",           items: planning },
     { label: "הושלמו",           items: completed },
     { label: "אחר",              items: other },
   ].filter((s) => s.items.length > 0);
