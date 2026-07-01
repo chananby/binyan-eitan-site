@@ -85,6 +85,28 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     return NextResponse.json({ error: "אין שדות לעדכון" }, { status: 400 });
   }
 
+  // Guard the "single OR split, never both" invariant. If the caller is
+  // trying to set a non-null project_id, refuse when this doc already has
+  // live splits — that would double-count the money in every rollup that
+  // sums both sources. To assign a single project the admin must clear
+  // splits first (DELETE /splits) or reassign via POST /splits with the
+  // single row they want.
+  if ("project_id" in update && update.project_id != null) {
+    const supabase = createServerClient();
+    const { data: liveSplits } = await supabase
+      .from("document_project_splits")
+      .select("id")
+      .eq("document_id", id)
+      .is("deleted_at", null)
+      .limit(1);
+    if (liveSplits && liveSplits.length > 0) {
+      return NextResponse.json(
+        { error: "מסמך זה מפוצל בין כמה פרויקטים. בטל את הפיצול לפני שיוך לפרויקט יחיד." },
+        { status: 409 },
+      );
+    }
+  }
+
   // Keep amount_ils authoritative on a full amount save: an ILS doc always
   // mirrors total_amount; a foreign doc keeps the admin-entered shekel value.
   // Partial PATCHes (status flip, clear-flag) don't carry currency+total, so

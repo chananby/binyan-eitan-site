@@ -23,12 +23,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Loader2, Inbox, ChevronRight, SkipForward, RotateCcw,
-  AlertCircle, ArrowRight, Building2, Briefcase, CheckCircle2,
 } from "lucide-react";
 import DocumentPreviewArea from "../_components/DocumentPreviewArea";
-import ProjectSelect, { type ProjectOption } from "../_components/ProjectSelect";
+import { type ProjectOption } from "../_components/ProjectSelect";
 import { displayVendor, fmtCurrency, fmtDate, type DocRow } from "../_components/labels";
 import DocSummaryCard from "./DocSummaryCard";
+import DocumentSplitPanel from "./DocumentSplitPanel";
+import TriageDoneScreen from "./TriageDoneScreen";
+import TriagePickerCard from "./TriagePickerCard";
 // Reuse the toast from the review screen — same look, same 6 s timer, same
 // keyed-remount-per-action lifecycle. The fixed position floats above the
 // progress bar without colliding (z-60 + position:fixed take it out of flow).
@@ -62,6 +64,10 @@ export default function TriageClient() {
   /** Docs the admin actually assigned (not skipped) — drives the end-state
    *  count. Skip just bumps idx without adding here. */
   const [assignedIds, setAssignedIds] = useState<Set<string>>(new Set());
+  /** Split-mode toggle — flips the side panel between chips + picker and
+   *  the DocumentSplitPanel editor. Reset to false on every doc advance
+   *  so the next doc always opens on the default (single-assign) surface. */
+  const [splitMode, setSplitMode] = useState(false);
 
   // ── Auth probe ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -86,7 +92,22 @@ export default function TriageClient() {
         ]);
         if (cancelled) return;
         if (docsRes.error) { setError(docsRes.error); return; }
-        setQueue(docsRes.documents ?? []);
+        const rawDocs: DocRow[] = docsRes.documents ?? [];
+
+        // Drop already-split docs — they have project_id=NULL (so
+        // no_project=true matched them) but the admin already dealt with
+        // them via splits. Client-side filter; if the split table grows
+        // large we'll add a server-side flag.
+        let filtered = rawDocs;
+        try {
+          const splitIds = await fetch("/api/admin/documents/split-doc-ids", { cache: "no-store" })
+            .then(r => (r.ok ? r.json() : { ids: [] }))
+            .then(d => new Set<string>(d.ids ?? []));
+          filtered = rawDocs.filter(d => !splitIds.has(d.id));
+        } catch { /* best-effort */ }
+
+        if (cancelled) return;
+        setQueue(filtered);
         setProjects(projsRes.projects ?? []);
       } catch (e) {
         if (!cancelled) setError(String(e));
@@ -154,16 +175,58 @@ export default function TriageClient() {
     }
   }, [queue, idx, savingId]);
 
+  // Multi-project split save. Same optimistic-advance shape as `assign`,
+  // pointed at the /splits endpoint instead of the direct PATCH. Undo
+  // isn't wired for splits (rollback is a click on "בטל פיצול" from a
+  // future PR that lets the admin re-enter the split editor) — the queue
+  // still advances so a bad save doesn't strand the admin on the doc.
+  const saveSplit = useCallback(async (
+    splits: { project_id: string; amount: number }[],
+  ) => {
+    const cur = queue[idx];
+    if (!cur || savingId) return;
+    setSavingId(cur.id);
+    setError(null);
+    setIdx(i => i + 1);
+    setAssignedIds(prev => new Set(prev).add(cur.id));
+    setUndoEntry(null);                        // splits have no toast-undo yet
+    setSplitMode(false);                       // next doc opens on the default surface
+    try {
+      const res = await fetch(`/api/admin/documents/${cur.id}/splits`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ splits }),
+      });
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}));
+        setError(`שמירת הפיצול נכשלה: ${b.error ?? res.status}`);
+        // Rollback: caller is back on the doc, splits weren't persisted.
+        setAssignedIds(prev => { const n = new Set(prev); n.delete(cur.id); return n; });
+        setIdx(i => Math.max(0, i - 1));
+        setSplitMode(true);                    // reopen the editor to fix
+      }
+    } catch (e) {
+      setError(`שמירת הפיצול נכשלה: ${String(e)}`);
+      setAssignedIds(prev => { const n = new Set(prev); n.delete(cur.id); return n; });
+      setIdx(i => Math.max(0, i - 1));
+      setSplitMode(true);
+    } finally {
+      setSavingId(null);
+    }
+  }, [queue, idx, savingId]);
+
   const skip = useCallback(() => {
     if (idx >= queue.length) return;
     setIdx(i => i + 1);
     setUndoEntry(null);                 // skip doesn't queue an undo
+    setSplitMode(false);                // reset for the next doc
   }, [idx, queue.length]);
 
   const back = useCallback(() => {
     if (idx === 0) return;
     setIdx(i => i - 1);
     setUndoEntry(null);
+    setSplitMode(false);
   }, [idx]);
 
   // Undo: only handles the last-assigned doc. Steps idx back to that doc,
@@ -222,29 +285,8 @@ export default function TriageClient() {
         )}
       </header>
 
-      {/* End state */}
-      {done && (
-        <main className="flex-1 flex flex-col items-center justify-center text-center px-6 py-16">
-          <CheckCircle2 size={64} strokeWidth={1.5} className="text-emerald-600 mb-6" />
-          <h1 className="font-heading text-2xl font-bold text-charcoal mb-2">סיימת!</h1>
-          <p className="text-body text-muted mb-2">
-            {assignedIds.size === 0
-              ? "אף מסמך לא שויך בסבב הזה."
-              : <>שייכת <span className="font-bold text-charcoal">{assignedIds.size}</span> {assignedIds.size === 1 ? "מסמך" : "מסמכים"} מתוך {total}.</>}
-          </p>
-          {total - assignedIds.size > 0 && (
-            <p className="text-caption text-muted mb-6">
-              {total - assignedIds.size} {total - assignedIds.size === 1 ? "מסמך נשאר" : "מסמכים נשארו"} בלי שיוך — תוכל לחזור אליהם בסבב הבא.
-            </p>
-          )}
-          <Link
-            href="/admin/documents"
-            className="inline-flex items-center gap-2 bg-accent text-bone px-5 py-2.5 rounded-md text-content font-semibold hover:bg-accent-dark transition-colors"
-          >
-            <ArrowRight size={16} /> חזרה לרשימת האסמכתאות
-          </Link>
-        </main>
-      )}
+      {/* End state — extracted so this file stays under the size ceiling. */}
+      {done && <TriageDoneScreen total={total} assignedCount={assignedIds.size} />}
 
       {/* Main work area */}
       {cur && (
@@ -279,59 +321,30 @@ export default function TriageClient() {
           <aside className="w-full lg:w-80 shrink-0 flex flex-col gap-3">
             <DocSummaryCard doc={cur} />
 
-            {/* Project picker */}
-            <div className="bg-white border border-charcoal/10 rounded-md shadow-[0_1px_3px_rgba(45,41,38,0.06),0_1px_2px_rgba(45,41,38,0.04)] p-4 space-y-3">
-              <p className="text-caption text-muted">שייך לפרויקט</p>
-
-              {/* Quick-pick chips */}
-              {(activeSites.length > 0 || overheadChip) && (
-                <div className="flex flex-wrap gap-1.5">
-                  {activeSites.map(p => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => assign(p.id)}
-                      disabled={!!savingId}
-                      className="inline-flex items-center gap-1 text-caption font-semibold border border-accent/40 text-accent bg-white px-2.5 py-1 rounded hover:bg-accent/5 disabled:opacity-40 transition-colors"
-                      title={`שייך ל-${p.name}`}
-                    >
-                      <Building2 size={11} strokeWidth={2} /> {p.name}
-                    </button>
-                  ))}
-                  {overheadChip && (
-                    <button
-                      type="button"
-                      onClick={() => assign(overheadChip.id)}
-                      disabled={!!savingId}
-                      className="inline-flex items-center gap-1 text-caption font-semibold border border-charcoal/30 text-charcoal bg-bone/40 px-2.5 py-1 rounded hover:bg-bone disabled:opacity-40 transition-colors"
-                      title="שייך לתקורות (הוצאות כלליות)"
-                    >
-                      <Briefcase size={11} strokeWidth={2} /> תקורות
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Full dropdown — for any project not in the quick chips */}
-              <ProjectSelect
-                value=""
-                onChange={(v) => v && assign(v)}
+            {/* Split-mode swaps out the single-project picker for the
+                DocumentSplitPanel. Both surfaces call the same optimistic
+                advance flow — the only difference is the endpoint (PATCH
+                { project_id } vs POST /splits) and the payload shape. */}
+            {splitMode ? (
+              <DocumentSplitPanel
+                docTotal={cur.amount_ils ?? cur.total_amount ?? null}
                 projects={projects}
-                emptyLabel="— או בחר מתוך הרשימה המלאה —"
-                className="w-full text-content border border-charcoal/25 bg-white px-3 py-2 rounded focus:border-accent focus:outline-none disabled:opacity-40"
+                saving={savingId === cur.id}
+                onSave={(splits) => saveSplit(splits)}
+                onCancel={() => { setSplitMode(false); setError(null); }}
+                error={error}
               />
-
-              {savingId && (
-                <p className="flex items-center gap-1.5 text-caption text-muted">
-                  <Loader2 size={11} className="animate-spin" /> שומר…
-                </p>
-              )}
-              {error && (
-                <p className="flex items-center gap-1.5 text-caption text-red-600 font-semibold">
-                  <AlertCircle size={11} /> {error}
-                </p>
-              )}
-            </div>
+            ) : (
+              <TriagePickerCard
+                activeSites={activeSites}
+                overheadChip={overheadChip}
+                allProjects={projects}
+                savingId={savingId}
+                error={error}
+                onAssign={assign}
+                onEnterSplitMode={() => { setSplitMode(true); setError(null); }}
+              />
+            )}
 
             {/* Action row */}
             <div className="flex gap-2">

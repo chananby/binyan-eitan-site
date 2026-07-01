@@ -89,6 +89,22 @@ export default function DocumentsInboxClient() {
   // when there's actually work to wait on.
   const [resumeInFlight, setResumeInFlight] = useState<number | null>(null);
 
+  // Set of doc_ids that currently have LIVE splits — swaps the single-
+  // project chip on the card for a "מפוצל" badge and (soon) opens the
+  // split editor on click instead of the single-project picker. Fetched
+  // once on admin-auth and refreshed alongside the doc list; a fresh
+  // upload or approval doesn't invalidate it so we skip re-fetching there.
+  const [splitDocIds, setSplitDocIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (auth !== "admin") return;
+    let cancelled = false;
+    fetch("/api/admin/documents/split-doc-ids", { cache: "no-store" })
+      .then(r => (r.ok ? r.json() : { ids: [] }))
+      .then(d => { if (!cancelled) setSplitDocIds(new Set(d.ids ?? [])); })
+      .catch(() => { /* leave as empty set — worst case the chip renders per project_id */ });
+    return () => { cancelled = true; };
+  }, [auth]);
+
   // ── Auth probe ─────────────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
@@ -413,7 +429,15 @@ export default function DocumentsInboxClient() {
 
           {docs.length > 0 && (
             <div className="space-y-2">
-              {docs.map(d => <DocumentCard key={d.id} doc={d} projects={projects} onChanged={refreshAfterUpload} />)}
+              {docs.map(d => (
+                <DocumentCard
+                  key={d.id}
+                  doc={d}
+                  projects={projects}
+                  onChanged={refreshAfterUpload}
+                  hasSplits={splitDocIds.has(d.id)}
+                />
+              ))}
               {hasMore && (
                 <button onClick={loadMore} className="w-full py-2.5 text-sm font-semibold text-[#8D775F] border border-[#8D775F]/30 rounded-md hover:bg-[#8D775F]/5">
                   טען עוד

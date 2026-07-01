@@ -14,7 +14,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Building2, Camera, Eye, RefreshCw, Loader2 } from "lucide-react";
+import { AlertTriangle, Building2, Camera, Eye, RefreshCw, Loader2, Scissors } from "lucide-react";
 import {
   DOC_TYPE_LABELS, statusChip, fmtCurrency, fmtDate, displayVendor, type DocRow,
 } from "./labels";
@@ -27,10 +27,17 @@ export default function DocumentCard({
   doc,
   projects,
   onChanged,
+  hasSplits = false,
 }: {
   doc: DocRow;
   projects?: ProjectOption[];
   onChanged?: () => void;
+  /** Parent-computed flag. True when this document has one or more LIVE
+   *  rows in document_project_splits. Suppresses the single-project chip
+   *  (project_id is NULL when a doc is split) and swaps in the "מפוצל"
+   *  indicator so admins see instantly that clicking through will open a
+   *  split editor rather than a single-project picker. */
+  hasSplits?: boolean;
 }) {
   const chip = statusChip(doc);
   // Field upload (foreman drop-box) → small camera chip with the foreman name.
@@ -88,7 +95,17 @@ export default function DocumentCard({
               <span>{DOC_TYPE_LABELS[doc.doc_type ?? ""] ?? "—"}</span>
               <span>·</span>
               <span className="tabular-nums">{fmtDate(doc.doc_date)}</span>
-              {doc.project?.name && (
+              {hasSplits ? (
+                <>
+                  <span>·</span>
+                  <span
+                    className="inline-flex items-center gap-0.5 text-accent-dark font-semibold"
+                    title="מסמך זה מפוצל בין כמה פרויקטים"
+                  >
+                    <Scissors size={11} /> מפוצל
+                  </span>
+                </>
+              ) : doc.project?.name && (
                 <>
                   <span>·</span>
                   <span className="inline-flex items-center gap-0.5"><Building2 size={11} />{doc.project.name}</span>
