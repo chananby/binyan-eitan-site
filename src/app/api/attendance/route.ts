@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../lib/supabase";
 import { israelDayStartISO } from "../../../lib/israel-time";
-import { hasOpenRecord } from "../../../lib/attendance-logic";
+import { hasOpenRecord, openEntryCount } from "../../../lib/attendance-logic";
 import { getWorkerStaffIdFromRequest } from "../../../lib/admin-auth";
 import { checkRateLimit } from "../../../lib/rate-limit";
 
@@ -151,6 +151,33 @@ export async function POST(req: NextRequest) {
       .gte("clock_at", todayStart);
     if (hasOpenRecord(todays ?? [], todayStart)) {
       return NextResponse.json({ success: false, error: "already_clocked_in" }, { status: 409 });
+    }
+  }
+
+  // Symmetric guard for OUT (B3): a clock-out with no matching open entry
+  // within the last 24h is rejected. The window covers night shifts + the
+  // morning-after "forgot to close" case (in at 23:00 yesterday → out at
+  // 08:00 today is 9h back — well within 24h). Older orphans must go
+  // through admin correction, not through a random OUT click that would
+  // silently close the wrong shift and produce a bad paycheck.
+  if (normalizedAction === "out") {
+    const cutoffISO = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    const { data: recent } = await supabase
+      .from("attendance")
+      .select("action, clock_at")
+      .is("deleted_at", null)
+      .eq("staff_id", staff.id)
+      .in("action", ["in", "כניסה", "out", "יציאה"])
+      .gte("clock_at", cutoffISO);
+    if (openEntryCount(recent ?? [], cutoffISO) === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "no_open_entry_to_close",
+          message: "אין כניסה פתוחה לסגירה. אם צריך תיקון, פנה למנהל.",
+        },
+        { status: 409 },
+      );
     }
   }
 

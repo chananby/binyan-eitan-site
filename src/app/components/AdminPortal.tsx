@@ -15,6 +15,7 @@ import {
   AlertCircle, DollarSign, Target,
   ChevronLeft, Grid3x3, Download, Plus,
   UserCog, Clock, MapPin, UserX, FileText, Inbox, Users, Coins,
+  AlertTriangle,
 } from "lucide-react";
 import { Card } from "../admin/_components/shared/Card";
 import AttentionPanel, { type AttentionItem } from "../admin/_components/shared/AttentionPanel";
@@ -390,6 +391,15 @@ export default function AdminPortal() {
   // AttentionPanel reads it; the per-row mutation handlers live in
   // useAdminAttendance below.
   const [pendingRecords,   setPendingRecords]   = useState<AttendanceRecord[]>([]);
+  // Orphan clock-ins from prior days (B1 signal path). Populated from
+  // /api/admin/attendance/stale-opens; drives an AttentionPanel row. Same
+  // scoping shape as pendingRecords, so refetches ride along in the same
+  // useEffects and auto-refresh loops.
+  const [staleOpens, setStaleOpens] = useState<Array<{
+    staff_id: string; staff_name: string;
+    project_id: string | null; project_name: string | null;
+    clock_at: string; day_ymd: string;
+  }>>([]);
   const [pendingLoading,   setPendingLoading]   = useState(false);
   const [pendingErr,       setPendingErr]       = useState<string | null>(null);
 
@@ -732,7 +742,7 @@ export default function AdminPortal() {
     // Load on admin auth so the Attendance tab's red badge is accurate from
     // any starting tab. Also reload when the user opens Attendance to catch
     // anything created in the last 2 min between auto-refreshes.
-    if (authState === "admin") { loadPending(); loadCorrectionRequests(); loadJoinRequests(); loadCollections(); }
+    if (authState === "admin") { loadPending(); loadCorrectionRequests(); loadJoinRequests(); loadCollections(); loadStaleOpens(); }
   }, [authState, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-refresh attendance every 60 s ────────────────────────────────────
@@ -755,7 +765,7 @@ export default function AdminPortal() {
       if (document.visibilityState !== "visible") return;
       if (!AUTO_TABS.includes(autoTabRef.current)) return;
       if (autoTabRef.current === "attendance" && authState === "admin") {
-        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens()]);
       } else {
         await loadData(authState as "admin" | "foreman");
       }
@@ -854,6 +864,20 @@ export default function AdminPortal() {
     finally { setPendingLoading(false); }
   }
 
+  // Orphan-open sweep for the AttentionPanel. Silent failure — the panel
+  // just doesn't show the row rather than surfacing a red error, matching
+  // how the other "hygiene" signals here behave.
+  async function loadStaleOpens() {
+    try {
+      const res = await fetch("/api/admin/attendance/stale-opens");
+      if (!res.ok) return;
+      const d = await res.json();
+      setStaleOpens(d.items ?? []);
+    } catch {
+      // Non-critical
+    }
+  }
+
   async function loadJoinRequests() {
     setJoinRequestsLoading(true); setJoinRequestsErr(null);
     try {
@@ -930,7 +954,7 @@ export default function AdminPortal() {
       }
       setCorrectionRequests((cur) => cur.filter((r) => r.id !== id));
       if (status === "approved") {
-        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens()]);
       }
       return true;
     } catch {
@@ -948,7 +972,7 @@ export default function AdminPortal() {
       if (tab === "expenses")                               { await loadMaterials(); setLastRefreshed(new Date()); }
       else if (tab === "income")                            { await loadIncome();    setLastRefreshed(new Date()); }
       else if (tab === "attendance" && authState === "admin")
-        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens()]);
       else if (tab === "join_requests" && authState === "admin")
         await loadJoinRequests();
       else if (tab === "collections" && authState === "admin")
@@ -1319,6 +1343,14 @@ export default function AdminPortal() {
       // missing-today panel beneath it), regardless of where the last
       // attendance-tab visit left them.
       onClick: () => { setAttendanceSubTab("live"); goToTab("attendance"); },
+    },
+    {
+      key: "stale-opens",
+      icon: <AlertTriangle size={14} strokeWidth={1.5} />,
+      label: "כניסות פתוחות מימים קודמים",
+      count: staleOpens.length,
+      severity: "medium",
+      onClick: () => goToTab("attendance"),
     },
     {
       key: "no-gps",

@@ -125,6 +125,16 @@ function hasReadinessIssue(t: Task): boolean {
   return !t.material_ready || !t.sub_confirmed || !t.equipment_on_site;
 }
 
+// Israel-local "DD/MM HH:MM" for the orphan-open panel — same shape the
+// rest of this portal uses (e.g. entry_time above). Kept as a pure fn so
+// the stale-opens JSX doesn't get any inline Date arithmetic.
+function fmtDayHM(iso: string): string {
+  const d = new Date(iso);
+  const ymd = d.toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit" });
+  const hm  = d.toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" });
+  return `${ymd} ${hm}`;
+}
+
 function milestoneProgress(ms: Milestone, tasks: Task[]): number {
   const msTasks = tasks.filter(t => t.milestone_id === ms.id);
   if (!msTasks.length) return 0;
@@ -153,6 +163,14 @@ export default function ForemanPortal({
   const [onSite,     setOnSite]     = useState<OnSiteEntry[]>([]);
   const [pending,    setPending]    = useState<PendingRecord[]>([]);
   const [allStaff,   setAllStaff]   = useState<StaffEntry[]>([]);
+  // Orphan clock-ins from prior days (B1 signal). Scoped to this
+  // foreman's own projects — filtered client-side to match the pending
+  // pattern. If it grows, consider refactor into a shared hook.
+  const [staleOpens, setStaleOpens] = useState<Array<{
+    staff_id: string; staff_name: string;
+    project_id: string | null; project_name: string | null;
+    clock_at: string; day_ymd: string;
+  }>>([]);
   const [arrivedTodayIds, setArrivedTodayIds] = useState<Set<string>>(new Set());
   const [weeklyBurn, setWeeklyBurn] = useState(0);
   const [dataLoading, setDataLoading] = useState(false);
@@ -217,7 +235,7 @@ export default function ForemanPortal({
   const loadDashboard = useCallback(async (projectId: string) => {
     setDataLoading(true);
     try {
-      const [attRes, matRes, tasksRes, msRes, logRes, pendingRes, staffRes] = await Promise.allSettled([
+      const [attRes, matRes, tasksRes, msRes, logRes, pendingRes, staffRes, staleRes] = await Promise.allSettled([
         fetch("/api/admin/attendance/today"),
         fetch(`/api/admin/materials?project_id=${projectId}`),
         fetch(`/api/admin/tasks?project_id=${projectId}`),
@@ -225,6 +243,7 @@ export default function ForemanPortal({
         fetch(`/api/admin/daily-reports?project_id=${projectId}&date=${today}`),
         fetch("/api/admin/attendance/pending"),
         fetch("/api/admin/staff"),
+        fetch("/api/admin/attendance/stale-opens"),
       ]);
 
       // On-site workers (this project only, last action = in)
@@ -263,6 +282,20 @@ export default function ForemanPortal({
       if (pendingRes.status === "fulfilled" && pendingRes.value.ok) {
         const d = await pendingRes.value.json();
         setPending((d.records ?? []).filter((r: PendingRecord) => r.project?.id === projectId));
+      }
+
+      // Orphan clock-ins from previous days. The endpoint already scopes
+      // to foreman-owned projects server-side; still filter by projectId
+      // client-side so switching the active project view is instant and
+      // doesn't leak orphans from a sibling project.
+      if (staleRes.status === "fulfilled" && staleRes.value.ok) {
+        const d = await staleRes.value.json();
+        type StaleItem = {
+          staff_id: string; staff_name: string;
+          project_id: string | null; project_name: string | null;
+          clock_at: string; day_ymd: string;
+        };
+        setStaleOpens((d.items ?? []).filter((i: StaleItem) => i.project_id === projectId));
       }
 
       // Staff list (for missing-workers calculation)
@@ -888,6 +921,27 @@ export default function ForemanPortal({
                 ))
               )}
             </div>
+
+            {/* ── Orphan opens from previous days (B1 signal) ─────────── */}
+            {staleOpens.length > 0 && (
+              <div className="space-y-2">
+                <p className="font-heading text-sm font-bold text-amber-700 flex items-center gap-1.5">
+                  <AlertTriangle size={14} strokeWidth={2} />
+                  כניסות פתוחות מימים קודמים ({staleOpens.length})
+                </p>
+                <div className="bg-amber-50 border border-amber-200 divide-y divide-amber-100">
+                  {staleOpens.map(s => (
+                    <div key={`${s.staff_id}|${s.day_ymd}`} className="px-4 py-2.5">
+                      <p className="text-sm font-semibold text-amber-900">{s.staff_name}</p>
+                      <p className="text-caption text-amber-700 mt-0.5">
+                        כניסה מ-{fmtDayHM(s.clock_at)}
+                        {s.project_name ? ` · ${s.project_name}` : ""}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* ── Didn't clock in today ───────────────────────────────── */}
             {(() => {
