@@ -4,6 +4,10 @@ import { israelDayStartISO } from "../../../lib/israel-time";
 import { hasOpenRecord, openEntryCount } from "../../../lib/attendance-logic";
 import { getWorkerStaffIdFromRequest } from "../../../lib/admin-auth";
 import { checkRateLimit } from "../../../lib/rate-limit";
+import {
+  loadAttendanceEnforcementSettings,
+  israelMonthStartISO,
+} from "../../../lib/attendance-settings";
 
 export const runtime = "nodejs";
 
@@ -212,6 +216,57 @@ export async function POST(req: NextRequest) {
       }
     } catch (e) {
       console.warn("[attendance] distance calc failed:", e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  // ── Location enforcement ────────────────────────────────────────────────
+  // This endpoint serves web workers only — Twilio clocks go through
+  // /api/twilio/voice/* and admin manual entry through /api/admin/
+  // attendance/manual, so no source guard is needed here to exempt them.
+  // The enforcement rules only apply when `distance_from_project_m` was
+  // populated above (project chosen + project has lat/lng). Missing
+  // distance = we don't know how far the worker is, so we don't reject —
+  // the row still records lat/lng and the admin can review.
+  const dist = attendancePayload.distance_from_project_m as number | undefined;
+  if (dist != null) {
+    const enf = await loadAttendanceEnforcementSettings(supabase);
+    if (enf.enforce && dist > enf.radiusMeters) {
+      if (normalizedAction === "in") {
+        // Hard block on clock-in — the worker is not at the site.
+        // 403 (not 409) so clients can branch on "you can't do this
+        // here" vs "you already did it".
+        return NextResponse.json(
+          { success: false, error: "gps_out_of_range" },
+          { status: 403 },
+        );
+      }
+      // Clock-out over the radius: counted as a "remote exit". Allowed
+      // up to the monthly cap; blocked with 409 after that. Same
+      // Israel-local month window the payroll routes use.
+      const monthStart = israelMonthStartISO();
+      const { count: remoteExitCount, error: countErr } = await supabase
+        .from("attendance")
+        .select("id", { count: "exact", head: true })
+        .eq("staff_id", staff.id)
+        .is("deleted_at", null)
+        .in("action", ["out", "יציאה"])
+        .gte("clock_at", monthStart)
+        .gt("distance_from_project_m", enf.radiusMeters);
+      if (countErr) {
+        logSupabaseError("remote-exit count", countErr);
+        return NextResponse.json(
+          { success: false, error: `remote_exit_count_failed: ${countErr.message}` },
+          { status: 500 },
+        );
+      }
+      if ((remoteExitCount ?? 0) >= enf.monthlyRemoteExitCap) {
+        return NextResponse.json(
+          { success: false, error: "monthly_remote_exit_cap_reached" },
+          { status: 409 },
+        );
+      }
+      // Under the cap → let the out through; the row's distance value
+      // is the mark of "remote exit" in the data, no extra flag needed.
     }
   }
 

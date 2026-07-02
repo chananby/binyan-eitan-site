@@ -44,10 +44,14 @@ export default function AttendanceReportMistake(p: {
       if (res.status === 429) { setErr(t.corrTooMany); }
       else if (res.status === 409) { setErr(t.corrAlreadyOpen); }
       else if (res.status === 403) { setErr(t.corrOutOfWindow); }
-      else {
-        const b = await res.json().catch(() => ({}));
-        setErr(b.error ?? t.corrGeneric);
-      }
+      else if (res.status === 404) { setErr(t.corrRecordNotFound); }
+      else if (res.status === 410) { setErr(t.corrRecordDeleted); }
+      // Any other status falls through to the localized generic error —
+      // deliberately NOT surfacing b.error, which the corrections
+      // endpoint currently returns in Hebrew (see worker/corrections/
+      // route.ts). Leaking that Hebrew to a Russian/Sinhala/Chinese/
+      // Hindi worker would defeat the whole i18n layer.
+      else { setErr(t.corrGeneric); }
     } catch {
       setErr(t.corrGeneric);
     } finally {

@@ -270,12 +270,25 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       } else if (data.error === "already_clocked_in") {
         feedback.error();
         setErrorMsg(T[lang].alreadyClockedIn); setStep("error");
+      } else if (data.error === "no_open_entry_to_close") {
+        feedback.error();
+        setErrorMsg(T[lang].noOpenEntryToClose); setStep("error");
+      } else if (data.error === "gps_out_of_range") {
+        feedback.error();
+        setErrorMsg(T[lang].gpsOutOfRange); setStep("error");
+      } else if (data.error === "monthly_remote_exit_cap_reached") {
+        feedback.error();
+        setErrorMsg(T[lang].monthlyRemoteExitCap); setStep("error");
       } else if (res.status === 429) {
         feedback.error();
         setErrorMsg(T[lang].tooManyAttempts); setStep("error");
       } else {
         feedback.error();
-        setErrorMsg(data.error ?? T[lang].unknownError); setStep("error");
+        // Never surface data.error directly — backend may return Hebrew
+        // in some paths (see attendance/route.ts comments); a localized
+        // "unknown error" is safer for non-Hebrew workers than leaking
+        // the raw message.
+        setErrorMsg(T[lang].unknownError); setStep("error");
       }
     } catch { feedback.error(); setErrorMsg(T[lang].unknownError); setStep("error"); }
   }, [coords, workerName, selectedProjectId, lang, feedback]);

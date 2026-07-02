@@ -99,6 +99,28 @@ export interface ScreenStrings {
   // — points unknown workers to the public /he/join form so they can ask
   // to be added to the staff list instead of getting stuck on this screen.
   joinCta: string;
+  // Clock-out was rejected because the worker has no open clock-in
+  // within the last 24h — the B3 guard. Backend returns error code
+  // "no_open_entry_to_close"; the frontend must localize before showing.
+  noOpenEntryToClose: string;
+  // Clock-in was rejected because the worker is farther than the
+  // enforcement radius from the site (attendance_gps_enforce_radius_m).
+  // Backend returns error code "gps_out_of_range".
+  gpsOutOfRange: string;
+  // Clock-out was rejected because the worker has already used up their
+  // monthly quota of remote clock-outs (attendance_remote_exit_monthly_cap).
+  // Backend returns error code "monthly_remote_exit_cap_reached".
+  monthlyRemoteExitCap: string;
+  // Correction submission targeted a record that no longer exists (404)
+  // — usually because the admin cleaned it up while the worker's history
+  // screen was still open. Distinct from corrRecordDeleted, which is
+  // the softer 410 (record is soft-deleted, was still known moments ago).
+  corrRecordNotFound: string;
+  // Correction submission targeted a record that was just soft-deleted
+  // by an admin (410). Same UX intent as corrRecordNotFound — the row
+  // is gone, contact the manager — but a friendlier phrasing since it
+  // often reflects a legitimate admin action rather than a lost record.
+  corrRecordDeleted: string;
 }
 
 const HE: ScreenStrings = {
@@ -191,6 +213,11 @@ const HE: ScreenStrings = {
   corrOutOfWindow: "ניתן לדווח על טעות רק לרשומות מהחודש הנוכחי או הקודם.",
   corrGeneric: "שגיאה — נסה שוב.",
   joinCta: "עובד חדש? בקש הצטרפות",
+  noOpenEntryToClose: "אין כניסה פתוחה לסגירה. אם צריך תיקון, פנה למנהל.",
+  gpsOutOfRange: "אתה מחוץ לטווח האתר. יש להחתים מהאתר. אם יש בעיה, פנה למנהל.",
+  monthlyRemoteExitCap: "הגעת למכסת היציאות מרחוק החודש. פנה למנהל.",
+  corrRecordNotFound: "הרשומה לא נמצאה. פנה למנהל.",
+  corrRecordDeleted: "הרשומה נמחקה. פנה למנהל.",
 };
 
 const RU: ScreenStrings = {
@@ -283,6 +310,11 @@ const RU: ScreenStrings = {
   corrOutOfWindow: "Можно отправить запрос только за текущий или предыдущий месяц.",
   corrGeneric: "Ошибка — попробуйте снова.",
   joinCta: "Новый сотрудник? Подать заявку",
+  noOpenEntryToClose: "Нет открытого прихода для закрытия. Если нужна коррекция — обратитесь к менеджеру.",
+  gpsOutOfRange: "Вы находитесь вне зоны объекта. Пожалуйста, отметьтесь на объекте. Если возникла проблема — обратитесь к менеджеру.",
+  monthlyRemoteExitCap: "Вы исчерпали месячный лимит удалённых отметок ухода. Обратитесь к менеджеру.",
+  corrRecordNotFound: "Запись не найдена. Обратитесь к менеджеру.",
+  corrRecordDeleted: "Эта запись была удалена. Обратитесь к менеджеру.",
 };
 
 const EN: ScreenStrings = {
@@ -375,6 +407,11 @@ const EN: ScreenStrings = {
   corrOutOfWindow: "You can only report a mistake for records from the current or previous month.",
   corrGeneric: "Error — try again.",
   joinCta: "New worker? Request to join",
+  noOpenEntryToClose: "No open clock-in to close. Contact the manager if a correction is needed.",
+  gpsOutOfRange: "You're outside the site's range. Please clock in from the site. If there's a problem, contact the manager.",
+  monthlyRemoteExitCap: "You've reached this month's remote clock-out limit. Contact the manager.",
+  corrRecordNotFound: "Record not found. Contact the manager.",
+  corrRecordDeleted: "This record has been deleted. Contact the manager.",
 };
 
 const SI: ScreenStrings = {
@@ -467,6 +504,11 @@ const SI: ScreenStrings = {
   corrOutOfWindow: "වත්මන් හෝ පෙර මාසයේ වාර්තා සඳහා පමණක් වැරැද්දක් වාර්තා කළ හැක.",
   corrGeneric: "දෝෂයක් — නැවත උත්සාහ කරන්න.",
   joinCta: "නව සේවකයෙක්ද? එක්වීමට ඉල්ලීමක් කරන්න",
+  noOpenEntryToClose: "වසා දැමීමට විවෘත ඇතුළු වීමක් නැත. නිවැරදි කිරීමක් අවශ්‍ය නම් — කළමනාකරු අමතන්න.",
+  gpsOutOfRange: "ඔබ ස්ථානයේ පරාසයෙන් පිටත සිටී. කරුණාකර ස්ථානයේ සිට සටහන් කරන්න. ගැටලුවක් ඇත්නම් කළමනාකරු අමතන්න.",
+  monthlyRemoteExitCap: "ඔබ මෙම මාසයේ දුරස්ථ පිටවීමේ සීමාව සම්පූර්ණ කර ඇත. කළමනාකරු අමතන්න.",
+  corrRecordNotFound: "වාර්තාව හමු නොවීය. කළමනාකරු අමතන්න.",
+  corrRecordDeleted: "මෙම වාර්තාව මකා දමා ඇත. කළමනාකරු අමතන්න.",
 };
 
 const ZH: ScreenStrings = {
@@ -559,6 +601,11 @@ const ZH: ScreenStrings = {
   corrOutOfWindow: "只能报告本月或上月记录中的错误。",
   corrGeneric: "错误 — 请重试。",
   joinCta: "新员工？申请加入",
+  noOpenEntryToClose: "没有可关闭的上班打卡记录。如需更正，请联系管理员。",
+  gpsOutOfRange: "您在工地范围之外。请从工地打卡。如有问题，请联系管理员。",
+  monthlyRemoteExitCap: "您已达到本月远程下班打卡的上限。请联系管理员。",
+  corrRecordNotFound: "未找到记录。请联系管理员。",
+  corrRecordDeleted: "此记录已被删除。请联系管理员。",
 };
 
 const HI: ScreenStrings = {
@@ -651,6 +698,11 @@ const HI: ScreenStrings = {
   corrOutOfWindow: "आप केवल वर्तमान या पिछले महीने के रिकॉर्ड की गलती रिपोर्ट कर सकते हैं।",
   corrGeneric: "त्रुटि — पुनः प्रयास करें।",
   joinCta: "नया कर्मचारी? शामिल होने का अनुरोध करें",
+  noOpenEntryToClose: "बंद करने के लिए कोई खुला प्रवेश नहीं है। यदि सुधार चाहिए — प्रबंधक से संपर्क करें।",
+  gpsOutOfRange: "आप स्थल की सीमा के बाहर हैं। कृपया स्थल से उपस्थिति दर्ज करें। यदि कोई समस्या हो, प्रबंधक से संपर्क करें।",
+  monthlyRemoteExitCap: "आप इस महीने की दूरस्थ निकास सीमा तक पहुँच गए हैं। प्रबंधक से संपर्क करें।",
+  corrRecordNotFound: "रिकॉर्ड नहीं मिला। प्रबंधक से संपर्क करें।",
+  corrRecordDeleted: "यह रिकॉर्ड हटा दिया गया है। प्रबंधक से संपर्क करें।",
 };
 
 export const T: Record<Lang, ScreenStrings> = {

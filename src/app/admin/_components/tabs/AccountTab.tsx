@@ -21,6 +21,22 @@ type Props = {
   farThresholdMsg:      string;
   onSaveFarThreshold:   () => void | Promise<void>;
 
+  // System settings: location enforcement (radius + monthly remote-exit cap + master switch).
+  // These are ENFORCEMENT thresholds — the far-threshold above is a VISUAL warning only. The
+  // two layers are intentionally separate: an admin can keep a tight 50m visual chip while
+  // enforcement kicks in only above 100m. attendance-settings.ts explains the model.
+  gpsEnforce:               boolean;
+  setGpsEnforce:            (v: boolean) => void;
+  gpsEnforceRadius:         number;
+  gpsEnforceRadiusInput:    string;
+  setGpsEnforceRadiusInput: (v: string) => void;
+  remoteExitCap:            number;
+  remoteExitCapInput:       string;
+  setRemoteExitCapInput:    (v: string) => void;
+  gpsEnforceSaving:         boolean;
+  gpsEnforceMsg:            string;
+  onSaveGpsEnforcement:     () => void | Promise<void>;
+
   // Change-password form
   pwCurrent:   string;
   setPwCurrent: (v: string) => void;
@@ -37,6 +53,10 @@ export default function AccountTab({
   adminEmail, adminName,
   farThresholdM, farThresholdInput, setFarThresholdInput,
   farThresholdSaving, farThresholdMsg, onSaveFarThreshold,
+  gpsEnforce, setGpsEnforce,
+  gpsEnforceRadius, gpsEnforceRadiusInput, setGpsEnforceRadiusInput,
+  remoteExitCap,    remoteExitCapInput,    setRemoteExitCapInput,
+  gpsEnforceSaving, gpsEnforceMsg, onSaveGpsEnforcement,
   pwCurrent, setPwCurrent,
   pwNew,     setPwNew,
   pwConfirm, setPwConfirm,
@@ -82,6 +102,71 @@ export default function AccountTab({
             <p className={`text-xs mt-2 ${farThresholdMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{farThresholdMsg}</p>
           )}
         </Field>
+      </Card>
+
+      <Card title="הגדרות מערכת — אכיפת מיקום">
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 select-none">
+            <input
+              type="checkbox"
+              checked={gpsEnforce}
+              onChange={(e) => setGpsEnforce(e.target.checked)}
+              className="accent-accent"
+            />
+            <span className="text-sm font-semibold text-charcoal">אכיפת מיקום פעילה</span>
+          </label>
+          <p className="text-[0.62rem] text-charcoal/70 leading-relaxed">
+            כשמופעל: כניסה מעל הרדיוס תיחסם, יציאה מעל הרדיוס תיספר מול תקרה חודשית.
+            כשמכובה: המרחק עדיין נרשם על השורה, אבל אף החתמה לא נחסמת — מתג חירום
+            אם מתגלה שהרדיוס צר מדי.
+          </p>
+
+          <Field label="רדיוס אכיפה (מטרים)">
+            <input
+              type="number"
+              min={0}
+              step={10}
+              value={gpsEnforceRadiusInput}
+              onChange={(e) => setGpsEnforceRadiusInput(e.target.value)}
+              className={INPUT}
+              dir="ltr"
+              disabled={gpsEnforceSaving}
+            />
+            <p className="text-[0.62rem] text-charcoal/70 mt-1.5 leading-relaxed">
+              מרחק מקסימלי בין העובד לאתר כדי לאפשר החתמת כניסה. סף האזהרה הוויזואלי
+              (הצ&apos;יפ האדום) הוא הגדרה נפרדת ויכול להיות צר יותר.
+            </p>
+          </Field>
+
+          <Field label="תקרת יציאות מרחוק לחודש">
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={remoteExitCapInput}
+              onChange={(e) => setRemoteExitCapInput(e.target.value)}
+              className={INPUT}
+              dir="ltr"
+              disabled={gpsEnforceSaving}
+            />
+            <p className="text-[0.62rem] text-charcoal/70 mt-1.5 leading-relaxed">
+              מעל הרדיוס = &quot;יציאה מרחוק&quot;. עד המכסה יעברו; מעליה יחסמו עם 409.
+            </p>
+          </Field>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onSaveGpsEnforcement}
+              disabled={gpsEnforceSaving}
+              className="bg-accent text-bone px-3 py-2 text-xs font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors"
+            >
+              {gpsEnforceSaving ? "שומר..." : "שמור"}
+            </button>
+            {gpsEnforceMsg && (
+              <p className={`text-xs ${gpsEnforceMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{gpsEnforceMsg}</p>
+            )}
+          </div>
+        </div>
       </Card>
 
       <Card title="שנה סיסמה">

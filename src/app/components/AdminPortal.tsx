@@ -348,6 +348,18 @@ export default function AdminPortal() {
   const [farThresholdSaving,   setFarThresholdSaving]   = useState(false);
   const [farThresholdMsg,      setFarThresholdMsg]      = useState("");
 
+  // Location enforcement (system settings). Independent of the visual
+  // far threshold above — see attendance-settings.ts for the 2-tier model.
+  // Defaults mirror the code-level fallbacks so an unset settings row
+  // still surfaces coherent values in the UI while the admin dials them in.
+  const [gpsEnforce,            setGpsEnforce]            = useState<boolean>(false);
+  const [gpsEnforceRadius,      setGpsEnforceRadius]      = useState<number>(100);
+  const [gpsEnforceRadiusInput, setGpsEnforceRadiusInput] = useState<string>("100");
+  const [remoteExitCap,         setRemoteExitCap]         = useState<number>(3);
+  const [remoteExitCapInput,    setRemoteExitCapInput]    = useState<string>("3");
+  const [gpsEnforceSaving,      setGpsEnforceSaving]      = useState(false);
+  const [gpsEnforceMsg,         setGpsEnforceMsg]         = useState("");
+
   // Expenses UI
   // Expenses add form — state + handler in useExpensesForm. matFilter
   // stays here because loadMaterials() depends on it (and re-fires from
@@ -722,6 +734,23 @@ export default function AdminPortal() {
           if (!isNaN(n) && n >= 0) {
             setFarThresholdM(n);
             setFarThresholdInput(String(n));
+          }
+          // Location enforcement — read every setting independently so
+          // one missing key doesn't shadow the others. Same numeric-parse
+          // discipline as the far-threshold above.
+          const rawEnforce = d?.settings?.["attendance_gps_enforce"];
+          if (typeof rawEnforce === "string") setGpsEnforce(rawEnforce === "on");
+          const rawRadius = d?.settings?.["attendance_gps_enforce_radius_m"];
+          const nRadius = parseInt(rawRadius, 10);
+          if (!isNaN(nRadius) && nRadius > 0) {
+            setGpsEnforceRadius(nRadius);
+            setGpsEnforceRadiusInput(String(nRadius));
+          }
+          const rawCap = d?.settings?.["attendance_remote_exit_monthly_cap"];
+          const nCap = parseInt(rawCap, 10);
+          if (!isNaN(nCap) && nCap > 0) {
+            setRemoteExitCap(nCap);
+            setRemoteExitCapInput(String(nCap));
           }
         })
         .catch(() => {});
@@ -1174,6 +1203,39 @@ export default function AdminPortal() {
       else        { setFarThresholdMsg("שגיאה בשמירה"); }
     } catch (err) { setFarThresholdMsg("שגיאת רשת: " + String(err)); }
     finally { setFarThresholdSaving(false); }
+  }
+
+  // Save the three location-enforcement settings in a single request
+  // (radius, cap, enforce switch). Bundled so a flip-and-tune ends up
+  // atomic from the admin's point of view — one confirmation, one
+  // "נשמר" message.
+  async function saveGpsEnforcement() {
+    setGpsEnforceSaving(true); setGpsEnforceMsg("");
+    try {
+      const radius = parseInt(gpsEnforceRadiusInput, 10);
+      const cap    = parseInt(remoteExitCapInput, 10);
+      if (isNaN(radius) || radius <= 0) { setGpsEnforceMsg("רדיוס חייב להיות מספר חיובי במטרים"); return; }
+      if (isNaN(cap)    || cap    <= 0) { setGpsEnforceMsg("תקרת יציאות מרחוק חייבת להיות מספר חיובי");   return; }
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pairs: [
+            { key: "attendance_gps_enforce",              value: gpsEnforce ? "on" : "off" },
+            { key: "attendance_gps_enforce_radius_m",     value: String(radius) },
+            { key: "attendance_remote_exit_monthly_cap",  value: String(cap) },
+          ],
+        }),
+      });
+      if (res.ok) {
+        setGpsEnforceRadius(radius);
+        setRemoteExitCap(cap);
+        setGpsEnforceMsg("✓ נשמר");
+      } else {
+        setGpsEnforceMsg("שגיאה בשמירה");
+      }
+    } catch (err) { setGpsEnforceMsg("שגיאת רשת: " + String(err)); }
+    finally { setGpsEnforceSaving(false); }
   }
 
   // ── Income CRUD ────────────────────────────────────────────────────────────
@@ -1836,6 +1898,17 @@ export default function AdminPortal() {
             farThresholdSaving={farThresholdSaving}
             farThresholdMsg={farThresholdMsg}
             onSaveFarThreshold={saveFarThreshold}
+            gpsEnforce={gpsEnforce}
+            setGpsEnforce={setGpsEnforce}
+            gpsEnforceRadius={gpsEnforceRadius}
+            gpsEnforceRadiusInput={gpsEnforceRadiusInput}
+            setGpsEnforceRadiusInput={setGpsEnforceRadiusInput}
+            remoteExitCap={remoteExitCap}
+            remoteExitCapInput={remoteExitCapInput}
+            setRemoteExitCapInput={setRemoteExitCapInput}
+            gpsEnforceSaving={gpsEnforceSaving}
+            gpsEnforceMsg={gpsEnforceMsg}
+            onSaveGpsEnforcement={saveGpsEnforcement}
             pwCurrent={pwCurrent} setPwCurrent={setPwCurrent}
             pwNew={pwNew}         setPwNew={setPwNew}
             pwConfirm={pwConfirm} setPwConfirm={setPwConfirm}
