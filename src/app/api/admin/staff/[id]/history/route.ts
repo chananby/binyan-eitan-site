@@ -77,13 +77,19 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     }
   }
 
-  // Widen the attendance window by ±3 days so a clock that crossed midnight
-  // in a fringe timezone still maps to the correct work day client-side.
-  // The aggregator filters back to [from, to] on the Israel-local YMD.
+  // Widen the attendance window by ±35 days on created_at so retroactive
+  // backfills (rows inserted a month+ after the shift they belong to) are
+  // still pulled from SQL — the C1 family of bugs. ±3 days was enough for
+  // TZ edges but silently dropped every backfilled shift; 35 covers a full
+  // calendar month + slack for late-of-month entries.
+  // aggregateWorkerHistory filters back to [from, to] on the Israel-local
+  // YMD of workDate (clock_at ?? created_at), so widening the SQL doesn't
+  // widen the output — it only stops SQL from cutting off legitimate rows
+  // before the aggregator can see them.
   const widenedFrom = new Date(`${from}T12:00:00Z`);
-  widenedFrom.setUTCDate(widenedFrom.getUTCDate() - 3);
+  widenedFrom.setUTCDate(widenedFrom.getUTCDate() - 35);
   const widenedTo = new Date(`${to}T12:00:00Z`);
-  widenedTo.setUTCDate(widenedTo.getUTCDate() + 3);
+  widenedTo.setUTCDate(widenedTo.getUTCDate() + 35);
 
   const [attResult, vacResult] = await Promise.all([
     supabase

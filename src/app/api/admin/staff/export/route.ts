@@ -129,11 +129,23 @@ export async function GET(req: NextRequest) {
   const windowStart = threeMonthsAgoYMD();
   const todayYmd    = israelTodayYMD();
 
+  // Widen the SQL lower bound by 35 days so retroactive backfills — rows
+  // whose created_at is BEFORE windowStart but whose clock_at (the real
+  // workDate) is inside the 3-month window — are still fetched. Without
+  // this the C1-family cut kicks in and legitimate old rows disappear
+  // from the report. aggregateAttendance already gates on Israel-local
+  // workDate via `monthPrefix.startsWith`, so a row pulled in by the
+  // widened window but whose workDate is truly older than the 3 months
+  // still gets dropped during aggregation — the window doesn't leak.
+  const queryWindow = new Date(`${windowStart}T12:00:00Z`);
+  queryWindow.setUTCDate(queryWindow.getUTCDate() - 35);
+  const queryWindowStart = queryWindow.toISOString().slice(0, 10);
+
   const { data: attData } = await supabase
     .from("attendance")
     .select("staff_id, action, clock_at, created_at")
     .is("deleted_at", null)
-    .gte("created_at", israelDayStartISO(windowStart));
+    .gte("created_at", israelDayStartISO(queryWindowStart));
 
   // Aggregation reuses the same helper that drives /api/admin/payroll/* so
   // days/hours math is byte-identical to the pay slips the accountant sees.
