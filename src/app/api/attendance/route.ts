@@ -220,6 +220,19 @@ export async function POST(req: NextRequest) {
     .insert(attendancePayload);
 
   if (insertError) {
+    // 23505 = unique_violation on attendance_staff_action_clockat_unique.
+    // The app-layer guard already ran but a concurrent request slipped
+    // through the TOCTOU window (B2 race): both requests read 0 opens,
+    // both stamped clock_at, both tried to insert; the DB caught it.
+    // Surface as a friendly 409 — same shape as the "already_clocked_in"
+    // response the guard produces for the same-day case above, so
+    // clients don't need a second branch.
+    if ((insertError as { code?: string }).code === "23505") {
+      return NextResponse.json(
+        { success: false, error: "already_clocked_in" },
+        { status: 409 },
+      );
+    }
     logSupabaseError("attendance insert", insertError);
     return NextResponse.json(
       { success: false, error: `attendance_insert_failed: ${insertError.message}` },
