@@ -1,21 +1,26 @@
 "use client";
 
-// Split-mode editor for the triage screen. Renders N rows of
-// [ProjectSelect | ILS amount input | remove ×] plus a live totals
-// summary. Kept as its own file so TriageClient stays under the 400-line
-// project ceiling.
+// Shared split-mode editor for a single financial document. Renders N rows
+// of [ProjectSelect | ILS amount input | remove ×] plus a live totals
+// summary (assigned / remainder, with amber warning on shortfall and red
+// on over-allocation). Lives in _components/ so both consumers can reach
+// it: the triage flow (TriageClient) uses it inline on the unassigned
+// queue, and DocumentPreviewDialog uses it retroactively on an already-
+// assigned doc.
 //
-// Empty-state safeguard: never surfaces the empty splits list to the
+// Empty-state safeguard: never surfaces an empty splits list to the
 // server. Save button stays disabled until at least one row is filled
 // (project + positive amount). Zero-remainder isn't required — a partial
 // assignment (some money left over) is a valid save; the panel just warns.
 //
-// The parent owns queue advance + undo — this component's onSave and
-// onCancel are pure callbacks with a validated splits payload.
+// The parent owns network + navigation — onSave and onCancel are pure
+// callbacks with a validated splits payload. When the parent wants to
+// edit an existing split (rather than start empty), it seeds the initial
+// rows via `initialSplits`.
 
 import { useState } from "react";
 import { Plus, Trash2, Loader2, AlertCircle } from "lucide-react";
-import ProjectSelect, { type ProjectOption } from "../_components/ProjectSelect";
+import ProjectSelect, { type ProjectOption } from "./ProjectSelect";
 
 export interface SplitDraft {
   key: string;              // stable React key across re-orders

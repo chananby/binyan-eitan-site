@@ -28,7 +28,7 @@ import DocumentPreviewArea from "../_components/DocumentPreviewArea";
 import { type ProjectOption } from "../_components/ProjectSelect";
 import { displayVendor, fmtCurrency, fmtDate, type DocRow } from "../_components/labels";
 import DocSummaryCard from "./DocSummaryCard";
-import DocumentSplitPanel from "./DocumentSplitPanel";
+import DocumentSplitPanel from "../_components/DocumentSplitPanel";
 import TriageDoneScreen from "./TriageDoneScreen";
 import TriagePickerCard from "./TriagePickerCard";
 // Reuse the toast from the review screen — same look, same 6 s timer, same
