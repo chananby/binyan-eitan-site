@@ -42,10 +42,9 @@
 - **סוגי מסמכים "תקורות"** — `project_type='overhead'` שכולל את "בניין איתן" כיעד.
 - **AI חילוץ מסמך + resume-on-load + cron backstop יומי** — חסינות להעלאה.
 - **DocumentsInbox** — סינון, יצוא ZIP, תצוגה מקדימה inline, בורר פרויקט inline.
-- **סטטוס פרויקט אחיד — active/inactive בלבד.** כל השורות בטבלה עם ערך תקני
-  (`active` / `inactive`). ⚠ סטטוס ה-CHECK constraint של
-  `20260701_projects_status_unify.sql` לא ניתן לאימות מהנתונים בלבד — אולי הורץ,
-  אולי לא. אם לא — הרץ ידנית ב-Supabase.
+- **סטטוס פרויקט אחיד — active/inactive בלבד.** מיגרציה
+  `20260701_projects_status_unify.sql` הורצה (אומת: `projects_status_check`
+  קיים ב-`pg_constraint`).
 
 ### שכבה 2 — הצגה כספית
 - **📊 מאזן חודשי** בדשבורד — הכנסות/הוצאות/יתרה + מגמת 6 חודשים.
@@ -106,14 +105,8 @@
 
 ## בתהליך / פתוח
 
-- **סטטוס CHECK על `projects.status`** — לא ניתן לאמת מהנתונים.
-  כדי לדעת בוודאות, הרץ ב-Supabase SQL Editor:
-  ```sql
-  SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint
-  WHERE conrelid = 'projects'::regclass AND contype = 'c';
-  ```
-  אם מופיע `status = ANY (ARRAY['active','inactive'])` — קיים. אם לא — הרץ
-  את `20260701_projects_status_unify.sql`.
+_(ריק — כל המיגרציות הידניות שהיו ממתינות אומתו כמוחלות. פריטי החלטה עתידית
+עברו ל"החלטות שננעלו — בתור לבנייה" למטה.)_
 
 ---
 
