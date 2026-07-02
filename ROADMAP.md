@@ -53,6 +53,12 @@
 ### מערכת גבייה (Layer 2 חלקי)
 - **payment_milestones** — schema + CRUD + accordion פר-פרויקט + כרטיס גבייה גלובלי.
 
+### נוכחות + שכר (משפחת A/C)
+- **A1 — join-request** (`/api/join-request`) בדקה רק כפילות ב-`join_requests`
+  אך לא ב-`staff`, כך שעובד קיים היה יכול לשלוח בקשה חדשה שתגיע לתור האדמין.
+  תוקן: SELECT ל-staff עם `phoneVariants` (אותו דפוס של `worker/identify`)
+  לפני ה-INSERT; אם קיים → `409` עם הודעה "המספר כבר רשום במערכת". commit `0c09faf`.
+
 ### נוכחות + שכר (משפחת C1)
 - **C1 — payroll routes** (`/api/admin/payroll` + `/api/admin/payroll/export`)
   סוננו לפי `created_at` → 32 שורות backfill חודשי נחתכו מהתלוש. תוקן: סינון
@@ -81,8 +87,7 @@
 
 ## בתהליך / פתוח
 
-- **באגי נוכחות פתוחים (משפחת A/B)** — זוהו באודיט אך לא תוקנו:
-  - A1: `/api/join-request` לא בודק staff על טלפון קיים.
+- **באגי נוכחות פתוחים (משפחת B)** — זוהו באודיט אך לא תוקנו:
   - B1: guard כניסה יומי בלבד — כניסה פתוחה מאתמול לא נתפסת.
   - B2: race condition ללא UNIQUE ב-DB.
   - B3: אין guard על יציאה ללא כניסה תואמת.
