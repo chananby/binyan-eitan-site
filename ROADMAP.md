@@ -54,6 +54,13 @@
 - **payment_milestones** — schema + CRUD + accordion פר-פרויקט + כרטיס גבייה גלובלי.
 
 ### נוכחות + שכר (משפחת A/B/C)
+- **B2 — race condition בכניסה כפולה** נסגר ברמת ה-DB. UNIQUE partial index
+  על `(staff_id, action, clock_at) WHERE deleted_at IS NULL` (`20260702_attendance_race_unique.sql`).
+  התיקון הצריך ניקוי מקדים של 6 שורות כפולות היסטוריות (5 קבוצות התנגשות,
+  כולן `is_manual=true` — למעשה double-submit של טופס האדמין, לא race של
+  עובד) דרך `20260702_attendance_race_dedup.sql` — soft-delete עם audit trail
+  (`edited_by='system:B2-race-dedup'`). ה-endpoint מזהה `23505` על ה-INSERT
+  ומחזיר `409 already_clocked_in` באותה חתימה כמו ה-guard של אפליקציה. commit `3e79c47`.
 - **A1 — join-request** (`/api/join-request`) בדקה רק כפילות ב-`join_requests`
   אך לא ב-`staff`, כך שעובד קיים היה יכול לשלוח בקשה חדשה שתגיע לתור האדמין.
   תוקן: SELECT ל-staff עם `phoneVariants` (אותו דפוס של `worker/identify`)
@@ -97,8 +104,6 @@
 
 ## בתהליך / פתוח
 
-- **באגי נוכחות פתוחים** — נותר B2 בלבד:
-  - B2: race condition ללא UNIQUE ב-DB.
 - **חוב טכני — ForemanPortal.tsx** חצה 1,344 שורות. מוצע פיצול של `site`
   tab ל-`SiteOnSitePanel` / `SiteStaleOpensPanel` / `SiteMissingTodayPanel` /
   `SitePendingPanel`. refactor נפרד.
