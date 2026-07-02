@@ -53,6 +53,16 @@
 ### מערכת גבייה (Layer 2 חלקי)
 - **payment_milestones** — schema + CRUD + accordion פר-פרויקט + כרטיס גבייה גלובלי.
 
+### נוכחות + שכר (משפחת C1)
+- **C1 — payroll routes** (`/api/admin/payroll` + `/api/admin/payroll/export`)
+  סוננו לפי `created_at` → 32 שורות backfill חודשי נחתכו מהתלוש. תוקן: סינון
+  לפי `clock_at` (workDate) — commit `4e2200b`. אימות ייצור: ~₪4,897 חוב אמיתי
+  נחשף לתשלום + 3 עובדים עם תלוש שגוי-חודש (zero-sum, דורש תלוש מתקן).
+- **C2/C3 — display reports** (`/api/admin/staff/[id]/history` + `/api/admin/staff/export`)
+  אותה משפחה, גישה אחרת: הרחבת ה-widening על `created_at` ל-±35 יום, הישענות
+  על סינון workDate שכבר בקוד. commit `e98083c`. אימות: י.ח.ברמן, מאי 2026
+  עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
+
 ### תשתית וחוויית משתמש
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
@@ -71,6 +81,11 @@
 
 ## בתהליך / פתוח
 
+- **באגי נוכחות פתוחים (משפחת A/B)** — זוהו באודיט אך לא תוקנו:
+  - A1: `/api/join-request` לא בודק staff על טלפון קיים.
+  - B1: guard כניסה יומי בלבד — כניסה פתוחה מאתמול לא נתפסת.
+  - B2: race condition ללא UNIQUE ב-DB.
+  - B3: אין guard על יציאה ללא כניסה תואמת.
 - **פיצול חשבונית מחוץ לטריאז'** — חקירה הושלמה, הצעה מוכנה
   (`DocumentSplitDialog` + הרחבת `DocumentProjectAssignBar` + כפתור ב-ReviewForm),
   לא נבנה. ~115 שורות, 5 קבצים. ממתין להחלטה.
