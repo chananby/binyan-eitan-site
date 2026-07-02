@@ -38,12 +38,14 @@
   chips פרויקטים פעילים + תקורות, undo toast.
 - **גישה קבועה לטריאז'** — כניסה מ-Hub, מ-baner באינבוקס, ובמצב מסונן.
 - **פיצול חשבונית בין פרויקטים** — endpoint + UI טריאז' + rollup מודע-splits.
-  ⚠ **המיגרציה `20260701_document_project_splits.sql` ממתינה להרצה ידנית ב-Supabase.**
+  מיגרציה `20260701_document_project_splits.sql` הורצה (אומת: הטבלה קיימת).
 - **סוגי מסמכים "תקורות"** — `project_type='overhead'` שכולל את "בניין איתן" כיעד.
 - **AI חילוץ מסמך + resume-on-load + cron backstop יומי** — חסינות להעלאה.
 - **DocumentsInbox** — סינון, יצוא ZIP, תצוגה מקדימה inline, בורר פרויקט inline.
-- **סטטוס פרויקט אחיד — active/inactive בלבד.**
-  ⚠ **המיגרציה `20260701_projects_status_unify.sql` (CHECK constraint) ממתינה להרצה ידנית.**
+- **סטטוס פרויקט אחיד — active/inactive בלבד.** כל השורות בטבלה עם ערך תקני
+  (`active` / `inactive`). ⚠ סטטוס ה-CHECK constraint של
+  `20260701_projects_status_unify.sql` לא ניתן לאימות מהנתונים בלבד — אולי הורץ,
+  אולי לא. אם לא — הרץ ידנית ב-Supabase.
 
 ### שכבה 2 — הצגה כספית
 - **📊 מאזן חודשי** בדשבורד — הכנסות/הוצאות/יתרה + מגמת 6 חודשים.
@@ -104,7 +106,14 @@
 
 ## בתהליך / פתוח
 
-- **2 מיגרציות ידניות ממתינות ב-Supabase** — ראה סימוני ⚠ למעלה.
+- **סטטוס CHECK על `projects.status`** — לא ניתן לאמת מהנתונים.
+  כדי לדעת בוודאות, הרץ ב-Supabase SQL Editor:
+  ```sql
+  SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint
+  WHERE conrelid = 'projects'::regclass AND contype = 'c';
+  ```
+  אם מופיע `status = ANY (ARRAY['active','inactive'])` — קיים. אם לא — הרץ
+  את `20260701_projects_status_unify.sql`.
 
 ---
 
