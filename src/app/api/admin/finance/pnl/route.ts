@@ -59,6 +59,7 @@ export async function GET(req: NextRequest) {
     .from("financial_documents")
     .select("doc_date, direction, amount_ils, status")
     .is("deleted_at", null)
+    .is("linked_document_id", null)  // exclude evidence — primary carries the count
     .eq("status", "approved")
     .in("direction", ["income", "expense"])
     .gte("doc_date", since);

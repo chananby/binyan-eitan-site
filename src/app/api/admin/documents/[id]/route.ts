@@ -40,6 +40,7 @@ const EDITABLE_FIELDS = [
   "notes",
   "status",
   "possible_duplicate_of",  // settable to null to clear a "not a duplicate" flag
+  "linked_document_id",     // invoice ↔ payment cross-reference; null = primary, uuid = evidence
 ] as const;
 
 const RETURN_COLUMNS = DOCUMENT_COLUMNS;

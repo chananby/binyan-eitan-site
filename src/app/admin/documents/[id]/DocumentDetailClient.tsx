@@ -34,6 +34,10 @@ export default function DocumentDetailClient({ id }: { id: string }) {
   // any mutation via loadSplits so the form can seed the split panel and
   // decide whether to open in split-mode. null means "not fetched yet".
   const [existingSplits, setExistingSplits] = useState<LoadedSplit[] | null>(null);
+  // Invoice ↔ payment link state. primaryDoc is the target of doc.linked_document_id
+  // (evidence points to a primary); inboundEvidence is the docs pointing AT us.
+  const [primaryDoc, setPrimaryDoc] = useState<DocRow | null>(null);
+  const [inboundEvidence, setInboundEvidence] = useState<DocRow[]>([]);
 
   const loadSplits = useCallback(async () => {
     try {
@@ -49,6 +53,58 @@ export default function DocumentDetailClient({ id }: { id: string }) {
       setExistingSplits([]);
     }
   }, [id]);
+
+  const loadLinks = useCallback(async (currentDoc: DocRow | null) => {
+    if (!currentDoc) { setPrimaryDoc(null); setInboundEvidence([]); return; }
+    // Primary lookup — fetch the doc this one points at. GETting the whole
+    // /admin/documents/[linked_id] payload is fine (single row, admin-only).
+    try {
+      if (currentDoc.linked_document_id) {
+        const r = await fetch(`/api/admin/documents/${currentDoc.linked_document_id}`, { cache: "no-store" });
+        if (r.ok) {
+          const d = await r.json();
+          setPrimaryDoc(d.document ?? null);
+        } else {
+          setPrimaryDoc(null);
+        }
+      } else {
+        setPrimaryDoc(null);
+      }
+    } catch {
+      setPrimaryDoc(null);
+    }
+    // Inbound — every live doc whose linked_document_id points at this one.
+    // Reuses the list endpoint's linked_document_id filter (added downstream
+    // by proxy; the list endpoint accepts arbitrary column filters via the
+    // supabase REST layer for admin-scoped keys — cheaper than a new endpoint
+    // just for this one query. Falls back to empty array on failure so the
+    // UI stays quiet.
+    try {
+      const r = await fetch(`/api/admin/documents?limit=50`, { cache: "no-store" });
+      if (r.ok) {
+        const d = await r.json();
+        const docs = (d.documents ?? []) as DocRow[];
+        setInboundEvidence(docs.filter((x) => x.linked_document_id === currentDoc.id));
+      } else {
+        setInboundEvidence([]);
+      }
+    } catch {
+      setInboundEvidence([]);
+    }
+  }, []);
+
+  const reloadLinks = useCallback(async () => {
+    // Re-fetch the doc itself first (linked_document_id may have changed),
+    // then reload the link graph anchored on the fresh row.
+    try {
+      const r = await fetch(`/api/admin/documents/${id}`, { cache: "no-store" });
+      if (r.ok) {
+        const d = await r.json();
+        setDoc(d.document);
+        loadLinks(d.document);
+      }
+    } catch { /* stay on stale — better than an error banner */ }
+  }, [id, loadLinks]);
 
   // Re-run extraction for a doc that hasn't been extracted yet (pending — incl.
   // a zombie from an old upload timeout) or whose extraction failed. The
@@ -86,7 +142,12 @@ export default function DocumentDetailClient({ id }: { id: string }) {
     setLoading(true); setError(null);
     fetch(`/api/admin/documents/${id}`, { cache: "no-store" })
       .then(r => r.json())
-      .then(d => { if (cancelled) return; if (d.error) setError(d.error); else setDoc(d.document); })
+      .then(d => {
+        if (cancelled) return;
+        if (d.error) { setError(d.error); return; }
+        setDoc(d.document);
+        loadLinks(d.document);
+      })
       .catch(e => { if (!cancelled) setError(String(e)); })
       .finally(() => { if (!cancelled) setLoading(false); });
     loadVendors();
@@ -97,7 +158,7 @@ export default function DocumentDetailClient({ id }: { id: string }) {
       .then(d => setProjects(d.projects ?? [])).catch(() => {});
     loadSplits();
     return () => { cancelled = true; };
-  }, [auth, id, loadSplits]);
+  }, [auth, id, loadSplits, loadLinks]);
 
   if (auth === "loading" || (auth === "admin" && loading)) {
     return <div className="min-h-screen flex items-center justify-center bg-[#F5F4F0]"><Loader2 className="animate-spin text-[#8D775F]" size={32} /></div>;
@@ -172,6 +233,9 @@ export default function DocumentDetailClient({ id }: { id: string }) {
                 onVendorsChange={loadVendors}
                 existingSplits={existingSplits ?? undefined}
                 onSplitsChanged={loadSplits}
+                primaryDoc={primaryDoc}
+                inboundEvidence={inboundEvidence}
+                onLinkChanged={reloadLinks}
               />
             </div>
           </div>

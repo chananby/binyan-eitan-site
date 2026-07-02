@@ -16,6 +16,8 @@ import { isIls } from "../../../../lib/document-classify";
 import ProjectSelect, { type ProjectOption } from "../_components/ProjectSelect";
 import DocumentSplitPanel from "../_components/DocumentSplitPanel";
 import { useDocumentSplits } from "../_components/useDocumentSplits";
+import DocumentLinkSection from "../_components/DocumentLinkSection";
+import type { DocRow as DocRowType } from "../_components/labels";
 
 interface Opt { id: string; name: string }
 
@@ -32,6 +34,7 @@ function numOrNull(v: string): number | null {
 export default function DocumentReviewForm({
   doc, vendors, projects, onVendorsChange, onAfterAction,
   existingSplits, onSplitsChanged,
+  primaryDoc, inboundEvidence, onLinkChanged,
 }: {
   doc: DocRow;
   vendors: Opt[];
@@ -47,6 +50,13 @@ export default function DocumentReviewForm({
   // Empty array = wired but this doc has no live splits.
   existingSplits?: ReadonlyArray<{ project_id: string; amount: number }>;
   onSplitsChanged?: () => void;
+  // Cross-document linking state. Same pattern as splits — undefined = parent
+  // isn't wired (review queue), so the link section stays hidden. Present but
+  // both null/empty = wired and the doc has no links yet (section shows the
+  // "קשר למסמך אחר" trigger).
+  primaryDoc?: DocRowType | null;
+  inboundEvidence?: ReadonlyArray<DocRowType>;
+  onLinkChanged?: () => void;
 }) {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -319,6 +329,20 @@ export default function DocumentReviewForm({
             </button>
           )}
         </div>
+      )}
+
+      {/* Invoice ↔ payment linking. Only rendered when the parent wired
+          the linking props (detail view does; review queue does not).
+          The section handles its own PATCH; the parent re-fetches via
+          onLinkChanged so the chip state reflects the latest state
+          without a page reload. */}
+      {onLinkChanged !== undefined && (
+        <DocumentLinkSection
+          doc={doc}
+          primaryDoc={primaryDoc ?? null}
+          inboundEvidence={[...(inboundEvidence ?? [])]}
+          onLinkChanged={onLinkChanged}
+        />
       )}
 
       <div>

@@ -48,6 +48,13 @@ export async function GET(req: NextRequest) {
       .from("financial_documents")
       .select("id, project_id, direction, status, amount_ils")
       .is("deleted_at", null)
+      // linked_document_id set → this row is evidence for another doc's
+      // transaction (bank transfer paying an invoice, receipt for an
+      // invoice, …). The primary is what gets counted; the evidence
+      // hangs on for the paper trail. Filtering here also drops any
+      // splits whose parent is evidence — groupExpensesByProject silently
+      // skips split rows whose document_id isn't in the docs slice.
+      .is("linked_document_id", null)
       .eq("direction", "expense")
       .in("status", ["approved", "pending"]),
     supabase

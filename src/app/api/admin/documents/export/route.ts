@@ -26,14 +26,15 @@ const BUCKET = "financial-documents";
 const SELECT =
   "id, storage_path, mime_type, status, doc_type, direction, vendor_name_raw, " +
   "doc_number, doc_date, amount_before_vat, vat_amount, total_amount, currency, amount_ils, " +
-  "category, created_at, vendor:vendor_id(name), project:project_id(name)";
+  "category, linked_document_id, created_at, vendor:vendor_id(name), project:project_id(name)";
 
 interface ExportDoc {
   id: string; storage_path: string; mime_type: string | null; status: string;
   doc_type: string | null; direction: string | null; vendor_name_raw: string | null;
   doc_number: string | null; doc_date: string | null;
   amount_before_vat: number | null; vat_amount: number | null; total_amount: number | null;
-  currency: string | null; amount_ils: number | null; category: string | null; created_at: string;
+  currency: string | null; amount_ils: number | null; category: string | null;
+  linked_document_id: string | null; created_at: string;
   vendor: { name: string } | null; project: { name: string } | null;
 }
 
@@ -169,8 +170,14 @@ export async function GET(req: NextRequest) {
 
     // Totals sum amount_ils (unified shekel), not the raw total_amount which
     // may be in a foreign currency. Per-row columns still show the original.
-    if (d.direction === "expense") expenses += d.amount_ils ?? 0;
-    if (d.direction === "income")  income   += d.amount_ils ?? 0;
+    // Evidence rows (linked_document_id set) are excluded from the totals
+    // so an invoice + its bank-transfer receipt don't count as ₪X twice —
+    // but they DO still ship in the ZIP + CSV as their own rows for the
+    // accountant's paper trail.
+    if (d.linked_document_id == null) {
+      if (d.direction === "expense") expenses += d.amount_ils ?? 0;
+      if (d.direction === "income")  income   += d.amount_ils ?? 0;
+    }
 
     rows.push([
       effDate(d),

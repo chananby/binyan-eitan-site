@@ -31,6 +31,11 @@ export interface DocRow {
   uploaded_by?: string | null;
   file_hash?: string | null;
   possible_duplicate_of?: string | null;
+  // Cross-reference to a "primary" doc when this row is evidence for
+  // the same transaction (e.g. bank transfer that pays an invoice).
+  // Evidence rows are excluded from every expense/income aggregate to
+  // avoid double-counting.
+  linked_document_id?: string | null;
   confidence?: string | null;   // high | medium | low
   created_at: string;
   vendor: { name: string } | null;
