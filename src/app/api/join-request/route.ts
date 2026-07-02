@@ -25,6 +25,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../lib/supabase";
 import { checkRateLimit, clientIp } from "../../../lib/rate-limit";
 import { validateJoinRequest } from "../../../lib/join-requests-validate";
+import { phoneVariants } from "../../../lib/phone";
 
 export const runtime = "nodejs";
 
@@ -60,6 +61,31 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = createServerClient();
+
+  // Guard against an already-onboarded worker resubmitting the join form.
+  // Without this the request lands in the admin queue and only gets caught
+  // by manual triage. Same phoneVariants() expansion the worker-identify
+  // lookup uses, so the match is consistent with how the row was stored
+  // (legacy formats, Sri Lanka intl, etc.) — never invent a new pattern
+  // here; the two flows must agree on "same phone".
+  const { data: existingStaff, error: staffLookupErr } = await supabase
+    .from("staff")
+    .select("id")
+    .in("phone", phoneVariants(result.data.phone))
+    .eq("active", true)
+    .is("deleted_at", null)
+    .limit(1);
+  if (staffLookupErr) {
+    console.error("[join-request POST] staff lookup", JSON.stringify(staffLookupErr));
+    return NextResponse.json({ ok: false, error: "שגיאה בשמירת הבקשה" }, { status: 500 });
+  }
+  if (existingStaff && existingStaff.length > 0) {
+    return NextResponse.json(
+      { ok: false, error: "המספר כבר רשום במערכת. אם צריך עדכון, פנה למנהל." },
+      { status: 409 },
+    );
+  }
+
   const { error } = await supabase
     .from("join_requests")
     .insert({
