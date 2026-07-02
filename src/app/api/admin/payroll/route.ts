@@ -101,14 +101,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ month, rows: [] });
   }
 
-  // Attendance — widen by 1 day on each side to catch timezone edges
+  // Attendance — filter by the WORK timestamp (clock_at), not the INSERT
+  // timestamp (created_at). Prior to this fix the range was on created_at,
+  // which silently dropped every retroactively-inserted row (manual
+  // backfills for a past month done after that month closed) from payroll
+  // — 32 such rows were live in the production DB, contributing zero to
+  // the paycheck of the workers they belonged to.
+  // clock_at IS NULL rows are absence markers (vacation / sick) that live
+  // in vacation_days and don't earn hours; excluding them from payroll's
+  // attendance feed is intentional.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let attQuery: any = supabase
     .from("attendance")
     .select("staff_id, action, clock_at, created_at, project_id")
     .is("deleted_at", null)
-    .gte("created_at", israelDayStartISO(monthStart))
-    .lt("created_at", israelDayStartISO(nextMonth));
+    .gte("clock_at", israelDayStartISO(monthStart))
+    .lt("clock_at", israelDayStartISO(nextMonth));
   if (staffId) attQuery = attQuery.eq("staff_id", staffId);
   const { data: attData, error: attErr } = await attQuery;
   if (attErr) {

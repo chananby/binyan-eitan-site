@@ -96,13 +96,18 @@ export async function GET(req: NextRequest) {
   if (staffErr) return NextResponse.json({ error: staffErr.message }, { status: 500 });
   const staff = (staffData ?? []) as StaffRow[];
 
+  // Filter by clock_at (the WORK timestamp) to match the JSON /payroll
+  // route — see the long comment there. Filtering by created_at silently
+  // dropped retroactively-inserted rows from the XLSX the accountant saw,
+  // producing under-payment. Same rule: absence markers with clock_at=NULL
+  // live in vacation_days and aren't part of this attendance feed.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let attQuery: any = supabase
     .from("attendance")
     .select("staff_id, action, clock_at, created_at")
     .is("deleted_at", null)
-    .gte("created_at", israelDayStartISO(monthStart))
-    .lt("created_at", israelDayStartISO(nextMonth));
+    .gte("clock_at", israelDayStartISO(monthStart))
+    .lt("clock_at", israelDayStartISO(nextMonth));
   if (staffId) attQuery = attQuery.eq("staff_id", staffId);
   const { data: attData } = await attQuery;
 
