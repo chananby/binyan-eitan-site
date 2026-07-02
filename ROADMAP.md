@@ -53,11 +53,21 @@
 ### מערכת גבייה (Layer 2 חלקי)
 - **payment_milestones** — schema + CRUD + accordion פר-פרויקט + כרטיס גבייה גלובלי.
 
-### נוכחות + שכר (משפחת A/C)
+### נוכחות + שכר (משפחת A/B/C)
 - **A1 — join-request** (`/api/join-request`) בדקה רק כפילות ב-`join_requests`
   אך לא ב-`staff`, כך שעובד קיים היה יכול לשלוח בקשה חדשה שתגיע לתור האדמין.
   תוקן: SELECT ל-staff עם `phoneVariants` (אותו דפוס של `worker/identify`)
   לפני ה-INSERT; אם קיים → `409` עם הודעה "המספר כבר רשום במערכת". commit `0c09faf`.
+- **B1 — כניסות פתוחות מימים קודמים** צפו כאנומליה בשני הפורטלים במקום לחסום
+  את העובד. endpoint חדש `GET /api/admin/attendance/stale-opens` (חלון קפדני
+  `[now-72h, todayStart)`, אגרגציה שרתית פר-(staff × YMD), foreman-scoped
+  ל-`projects.foreman_id`). ה-guard של `in` לא נגעו — כפילות באותו יום עדיין
+  נחסמת. AttentionPanel חדש באדמין (severity medium) + פאנל amber ב-`site`
+  tab של מנהל העבודה. commit `43c711e`.
+- **B3 — יציאה בלי כניסה פתוחה** מוחזרת עם `409 no_open_entry_to_close`
+  והודעה "אין כניסה פתוחה לסגירה. אם צריך תיקון, פנה למנהל." cutoff 24h —
+  מספיק לסגירת night shift ו"בוקר-אחרי", לא מאפשר סגירה מקרית של יתום ישן
+  שיפגע בתלוש. commit `43c711e`.
 
 ### נוכחות + שכר (משפחת C1)
 - **C1 — payroll routes** (`/api/admin/payroll` + `/api/admin/payroll/export`)
@@ -87,10 +97,11 @@
 
 ## בתהליך / פתוח
 
-- **באגי נוכחות פתוחים (משפחת B)** — זוהו באודיט אך לא תוקנו:
-  - B1: guard כניסה יומי בלבד — כניסה פתוחה מאתמול לא נתפסת.
+- **באגי נוכחות פתוחים** — נותר B2 בלבד:
   - B2: race condition ללא UNIQUE ב-DB.
-  - B3: אין guard על יציאה ללא כניסה תואמת.
+- **חוב טכני — ForemanPortal.tsx** חצה 1,344 שורות. מוצע פיצול של `site`
+  tab ל-`SiteOnSitePanel` / `SiteStaleOpensPanel` / `SiteMissingTodayPanel` /
+  `SitePendingPanel`. refactor נפרד.
 - **פיצול חשבונית מחוץ לטריאז'** — חקירה הושלמה, הצעה מוכנה
   (`DocumentSplitDialog` + הרחבת `DocumentProjectAssignBar` + כפתור ב-ReviewForm),
   לא נבנה. ~115 שורות, 5 קבצים. ממתין להחלטה.
