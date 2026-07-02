@@ -45,6 +45,7 @@ export default function DocumentSplitPanel({
   onSave,
   onCancel,
   error,
+  initialSplits,
 }: {
   /** Doc's total in ILS. Displayed as source-of-truth; null renders as "—". */
   docTotal: number | null;
@@ -53,13 +54,28 @@ export default function DocumentSplitPanel({
   onSave: (splits: { project_id: string; amount: number }[]) => void;
   onCancel: () => void;
   error: string | null;
+  /** Existing splits to edit. When present and non-empty, the panel opens
+   *  with those rows filled in instead of the default two-empty pattern.
+   *  Undefined / empty → same behaviour the triage flow gets today. */
+  initialSplits?: ReadonlyArray<{ project_id: string; amount: number }>;
 }) {
-  // Start with two empty rows — that's the typical minimum for a split
-  // (three rows are also common; the "+" button is one tap away).
-  const [rows, setRows] = useState<SplitDraft[]>(() => [
-    { key: newKey(), project_id: "", amount: "" },
-    { key: newKey(), project_id: "", amount: "" },
-  ]);
+  // Start with initialSplits if the parent seeded them (retroactive-edit
+  // path from DocumentPreviewDialog); otherwise two empty rows — the
+  // minimum a first-time split ever needs (three is common; the '+'
+  // button is one tap away).
+  const [rows, setRows] = useState<SplitDraft[]>(() => {
+    if (initialSplits && initialSplits.length > 0) {
+      return initialSplits.map((s) => ({
+        key: newKey(),
+        project_id: s.project_id,
+        amount: String(s.amount),
+      }));
+    }
+    return [
+      { key: newKey(), project_id: "", amount: "" },
+      { key: newKey(), project_id: "", amount: "" },
+    ];
+  });
 
   function updateRow(i: number, patch: Partial<SplitDraft>) {
     setRows((prev) => prev.map((r, k) => (k === i ? { ...r, ...patch } : r)));

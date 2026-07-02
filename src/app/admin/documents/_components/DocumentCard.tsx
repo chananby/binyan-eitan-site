@@ -174,6 +174,7 @@ export default function DocumentCard({
         <DocumentPreviewDialog
           doc={doc}
           projects={projects}
+          hasSplits={hasSplits}
           onChanged={onChanged}
           onClose={() => setPreviewOpen(false)}
         />

@@ -90,20 +90,22 @@ export default function DocumentsInboxClient() {
   const [resumeInFlight, setResumeInFlight] = useState<number | null>(null);
 
   // Set of doc_ids that currently have LIVE splits — swaps the single-
-  // project chip on the card for a "מפוצל" badge and (soon) opens the
-  // split editor on click instead of the single-project picker. Fetched
-  // once on admin-auth and refreshed alongside the doc list; a fresh
-  // upload or approval doesn't invalidate it so we skip re-fetching there.
+  // project chip on the card for a "מפוצל" badge and drives the initial
+  // mode of DocumentPreviewDialog's footer. Extracted into a callable
+  // loader so refreshAfterUpload can also invalidate it — a split save
+  // or clear from the preview dialog needs to be reflected on the card
+  // immediately without a full page refresh.
   const [splitDocIds, setSplitDocIds] = useState<Set<string>>(new Set());
-  useEffect(() => {
-    if (auth !== "admin") return;
-    let cancelled = false;
+  const loadSplitDocIds = useCallback(() => {
     fetch("/api/admin/documents/split-doc-ids", { cache: "no-store" })
       .then(r => (r.ok ? r.json() : { ids: [] }))
-      .then(d => { if (!cancelled) setSplitDocIds(new Set(d.ids ?? [])); })
-      .catch(() => { /* leave as empty set — worst case the chip renders per project_id */ });
-    return () => { cancelled = true; };
-  }, [auth]);
+      .then(d => setSplitDocIds(new Set(d.ids ?? [])))
+      .catch(() => { /* leave as-is — worst case the chip renders per project_id */ });
+  }, []);
+  useEffect(() => {
+    if (auth !== "admin") return;
+    loadSplitDocIds();
+  }, [auth, loadSplitDocIds]);
 
   // ── Auth probe ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -220,7 +222,11 @@ export default function DocumentsInboxClient() {
   const refreshAfterUpload = useCallback(() => {
     loadStats();
     setFilters(f => ({ ...f })); // re-trigger the list effect
-  }, [loadStats]);
+    // A split save / clear from DocumentPreviewDialog also flows through
+    // this callback — refetch splitDocIds so the "🔀 מפוצל" badge on
+    // the affected card reflects reality on the next paint.
+    loadSplitDocIds();
+  }, [loadStats, loadSplitDocIds]);
 
   // "Approve all high-confidence": pull pending, keep only clean high-confidence
   // docs, and open the (non-blind) confirm dialog.
