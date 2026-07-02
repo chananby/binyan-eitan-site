@@ -67,6 +67,20 @@
 - **payment_milestones** — schema + CRUD + accordion פר-פרויקט + כרטיס גבייה גלובלי.
 
 ### נוכחות + שכר (משפחת A/B/C)
+- **אכיפת מיקום בהחתמה** — מודל 2-tier נפרד מהחיווי הוויזואלי הקיים:
+  `attendance_gps_enforce_radius_m=100` (אכיפה) + `attendance_far_threshold_m=50`
+  (chip אדום, נשמר כפי שהיה). כניסה מעל הרדיוס → 403 `gps_out_of_range`. יציאה
+  מעל הרדיוס → נספרת מול תקרה חודשית `attendance_remote_exit_monthly_cap=3`;
+  מעל התקרה → 409 `monthly_remote_exit_cap_reached`. מתג חירום
+  `attendance_gps_enforce="on"/"off"` — כשמכובה, המרחק עדיין נרשם על השורה.
+  Twilio + admin manual entry על endpoints נפרדים → פטורים ארכיטקטונית. UI
+  להגדרות ב-`/admin` → tab חשבון. הפיצ'ר **פרוס אך אינרטי** עד שהמתג יידלק
+  ידנית ב-UI. commit `e6fe113`.
+- **i18n cleanup** במסגרת אותו סבב — 5 מפתחות חדשים × 6 שפות:
+  `noOpenEntryToClose` (B3 retro-fix — הקוד היה בייצור כבר, אבל frontend הציג
+  קוד גולמי), `gpsOutOfRange`, `monthlyRemoteExitCap`, `corrRecordNotFound`,
+  `corrRecordDeleted`. שני fallback errors הוקשחו לא לחשוף עברית מ-backend
+  לעובדים לא-עבריים. commit `e6fe113`.
 - **B2 — race condition בכניסה כפולה** נסגר ברמת ה-DB. UNIQUE partial index
   על `(staff_id, action, clock_at) WHERE deleted_at IS NULL` (`20260702_attendance_race_unique.sql`).
   התיקון הצריך ניקוי מקדים של 6 שורות כפולות היסטוריות (5 קבוצות התנגשות,
@@ -123,6 +137,16 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
 ---
 
 ## החלטות שננעלו — בתור לבנייה
+
+### אכיפת מיקום — הדלקה + follow-ups
+- **הפעלה בפועל:** דורש כתיבת `attendance_gps_enforce="on"` ב-`settings`
+  (דרך `/admin` → tab חשבון → כרטיס "אכיפת מיקום" → סמן + שמור).
+  ההיסטוריה מראה 25.9% מהחתמות היו נחסמות ב-radius=100 → מומלץ rollout מבוקר.
+- **אימות תרגומים SI/HI/ZH:** 15 המחרוזות שהוספתי במסגרת ה-i18n cleanup
+  הן best-effort מאוצר-מילים קיים בכל שפה. **מומלץ מעבר native-speaker לפני**
+  שעובד לא-עברי ייחסם בפועל. הפריטים הרלוונטיים ב-i18n.ts:
+  `noOpenEntryToClose` / `gpsOutOfRange` / `monthlyRemoteExitCap` /
+  `corrRecordNotFound` / `corrRecordDeleted`.
 
 ### קישור מסמכים — matcher אוטומטי (שלב 3)
 - **הבסיס** (`linked_document_id` + role גזור + סינון aggregation) פרוס בייצור.
