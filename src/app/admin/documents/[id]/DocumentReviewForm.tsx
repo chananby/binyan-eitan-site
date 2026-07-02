@@ -7,13 +7,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Check, X, Save, Trash2, Plus } from "lucide-react";
+import { Loader2, Check, X, Save, Trash2, Plus, Scissors, RotateCcw } from "lucide-react";
 import {
   DOC_TYPE_LABELS, DIRECTION_LABELS, CATEGORY_LABELS, CURRENCY_OPTIONS,
   DOC_TYPE_OPTIONS, DIRECTION_OPTIONS, CATEGORY_OPTIONS, type DocRow,
 } from "../_components/labels";
 import { isIls } from "../../../../lib/document-classify";
 import ProjectSelect, { type ProjectOption } from "../_components/ProjectSelect";
+import DocumentSplitPanel from "../_components/DocumentSplitPanel";
+import { useDocumentSplits } from "../_components/useDocumentSplits";
 
 interface Opt { id: string; name: string }
 
@@ -29,6 +31,7 @@ function numOrNull(v: string): number | null {
 
 export default function DocumentReviewForm({
   doc, vendors, projects, onVendorsChange, onAfterAction,
+  existingSplits, onSplitsChanged,
 }: {
   doc: DocRow;
   vendors: Opt[];
@@ -38,6 +41,12 @@ export default function DocumentReviewForm({
   // page leaves it unset (→ navigate to the list); the review queue passes a
   // handler that advances to the next pending document instead.
   onAfterAction?: (action: "approve" | "reject" | "delete") => void;
+  // Multi-project split state, owned by the parent (DocumentDetailClient
+  // fetches on mount + refetches on change). Undefined = parent isn't
+  // wired for splits (e.g. review queue) — the split toggle stays hidden.
+  // Empty array = wired but this doc has no live splits.
+  existingSplits?: ReadonlyArray<{ project_id: string; amount: number }>;
+  onSplitsChanged?: () => void;
 }) {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -59,6 +68,30 @@ export default function DocumentReviewForm({
   const [busy, setBusy] = useState<null | "save" | "approve" | "reject" | "delete">(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+
+  // Split toggle. Enabled only when the parent supplied the split props
+  // (splits fetched + refresh callback). hasSplits initializes splitMode
+  // so an already-split doc opens straight into the editor with its
+  // saved rows filled in; an unsplit doc opens into the single-project
+  // picker with a prominent toggle button.
+  const splitsEnabled = existingSplits !== undefined && onSplitsChanged !== undefined;
+  const hasSplits = splitsEnabled && (existingSplits?.length ?? 0) > 0;
+  const [splitMode, setSplitMode] = useState<boolean>(hasSplits);
+  const { splitSaving, splitError, resetError: resetSplitError, saveSplits, clearSplits } =
+    useDocumentSplits(doc.id, onSplitsChanged);
+
+  async function handleSaveSplits(splits: { project_id: string; amount: number }[]) {
+    const ok = await saveSplits(splits);
+    // Stay in split-mode on success — the parent's refetch will supply
+    // fresh existingSplits and the panel re-seeds on next mount if the
+    // admin toggles out and back in.
+    if (ok) setMsg("הפיצול נשמר ✓");
+  }
+
+  async function handleClearSplits() {
+    const ok = await clearSplits();
+    if (ok) setSplitMode(false);
+  }
 
   // Inline vendor creation
   const [newVendorOpen, setNewVendorOpen] = useState(false);
@@ -236,19 +269,57 @@ export default function DocumentReviewForm({
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className={LABEL}>קטגוריה</label>
-          <select value={form.category} onChange={e => set("category", e.target.value)} className={FIELD}>
-            <option value="">—</option>
-            {CATEGORY_OPTIONS.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
-          </select>
-        </div>
+      <div>
+        <label className={LABEL}>קטגוריה</label>
+        <select value={form.category} onChange={e => set("category", e.target.value)} className={FIELD}>
+          <option value="">—</option>
+          {CATEGORY_OPTIONS.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
+        </select>
+      </div>
+
+      {/* Project assignment — single-project selector by default, flips
+          into the multi-project split editor via the toggle below. When
+          the parent hasn't wired the split props (existingSplits +
+          onSplitsChanged), the toggle stays hidden — same shape as the
+          original single-select. */}
+      {!splitMode ? (
         <div>
           <label className={LABEL}>פרויקט</label>
           <ProjectSelect value={form.project_id} onChange={v => set("project_id", v)} projects={projects} emptyLabel="— ללא פרויקט —" className={FIELD} />
+          {splitsEnabled && (
+            <button
+              type="button"
+              onClick={() => { resetSplitError(); setSplitMode(true); }}
+              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 border border-[#8D775F]/40 text-[#8D775F] py-2 rounded-md text-sm font-semibold hover:bg-[#8D775F]/10"
+            >
+              <Scissors size={14} /> פצל בין פרויקטים
+            </button>
+          )}
         </div>
-      </div>
+      ) : (
+        <div className="space-y-2">
+          <label className={LABEL}>פרויקטים (פיצול)</label>
+          <DocumentSplitPanel
+            docTotal={doc.amount_ils ?? doc.total_amount ?? null}
+            projects={projects}
+            saving={splitSaving}
+            onSave={handleSaveSplits}
+            onCancel={() => { resetSplitError(); setSplitMode(hasSplits); }}
+            error={splitError}
+            initialSplits={existingSplits}
+          />
+          {hasSplits && (
+            <button
+              type="button"
+              onClick={handleClearSplits}
+              disabled={splitSaving}
+              className="w-full inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-red-700 border border-red-200 bg-white px-3 py-2 rounded-md hover:bg-red-50 disabled:opacity-40 transition-colors"
+            >
+              <RotateCcw size={13} /> בטל פיצול
+            </button>
+          )}
+        </div>
+      )}
 
       <div>
         <label className={LABEL}>תיאור</label>

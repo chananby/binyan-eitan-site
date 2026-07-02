@@ -5,7 +5,7 @@
 // the same shape as the quotes generator. Admin-gated client-side via
 // /api/admin/whoami; the API routes enforce admin independently.
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ChevronRight, Inbox, AlertCircle, RefreshCw } from "lucide-react";
@@ -16,6 +16,7 @@ import { statusChip, displayVendor, type DocRow } from "../_components/labels";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
 interface Opt { id: string; name: string; status?: string | null }
+interface LoadedSplit { project_id: string; amount: number }
 
 export default function DocumentDetailClient({ id }: { id: string }) {
   const router = useRouter();
@@ -29,6 +30,25 @@ export default function DocumentDetailClient({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
+  // Multi-project split state for this doc. Fetched on mount and after
+  // any mutation via loadSplits so the form can seed the split panel and
+  // decide whether to open in split-mode. null means "not fetched yet".
+  const [existingSplits, setExistingSplits] = useState<LoadedSplit[] | null>(null);
+
+  const loadSplits = useCallback(async () => {
+    try {
+      const r = await fetch(`/api/admin/documents/${id}/splits`, { cache: "no-store" });
+      if (!r.ok) { setExistingSplits([]); return; }
+      const d = await r.json();
+      const list: LoadedSplit[] = (d.splits ?? []).map((s: { project_id: string; amount: number | string }) => ({
+        project_id: s.project_id,
+        amount: typeof s.amount === "string" ? parseFloat(s.amount) : s.amount,
+      }));
+      setExistingSplits(list);
+    } catch {
+      setExistingSplits([]);
+    }
+  }, [id]);
 
   // Re-run extraction for a doc that hasn't been extracted yet (pending — incl.
   // a zombie from an old upload timeout) or whose extraction failed. The
@@ -75,8 +95,9 @@ export default function DocumentDetailClient({ id }: { id: string }) {
     // include=site,overhead surfaces the "תקורות" destination.
     fetch("/api/admin/projects?include=site,overhead", { cache: "no-store" }).then(r => r.json())
       .then(d => setProjects(d.projects ?? [])).catch(() => {});
+    loadSplits();
     return () => { cancelled = true; };
-  }, [auth, id]);
+  }, [auth, id, loadSplits]);
 
   if (auth === "loading" || (auth === "admin" && loading)) {
     return <div className="min-h-screen flex items-center justify-center bg-[#F5F4F0]"><Loader2 className="animate-spin text-[#8D775F]" size={32} /></div>;
@@ -144,7 +165,14 @@ export default function DocumentDetailClient({ id }: { id: string }) {
 
             {/* Form */}
             <div className="lg:col-span-2 bg-white border border-[#2D2926]/10 rounded-md shadow-sm p-4">
-              <DocumentReviewForm doc={doc} vendors={vendors} projects={projects} onVendorsChange={loadVendors} />
+              <DocumentReviewForm
+                doc={doc}
+                vendors={vendors}
+                projects={projects}
+                onVendorsChange={loadVendors}
+                existingSplits={existingSplits ?? undefined}
+                onSplitsChanged={loadSplits}
+              />
             </div>
           </div>
         )}
