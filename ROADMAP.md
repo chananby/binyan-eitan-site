@@ -43,6 +43,14 @@
   טוגל שמחליף את בורר הפרויקט הקיים. הלוגיקה המשותפת לשלושת המקומות (טריאז',
   דיאלוג האינבוקס, מסך הפרטים) חולצה ל-hook `useDocumentSplits`. עובד על **כל
   סוג מסמך כולל שכר** — budget-actual אגנוסטי לסוג המסמך. commit `acd5f1e`.
+- **קישור מסמכים חשבונית ↔ העברה** — שלבים 1+2. השדה `linked_document_id`
+  שהיה שמור בסכמה מיום ראשון (0 בשימוש) מופעל: אם מלא → המסמך evidence, לא
+  נספר; ריק → primary, נספר. תוקנו כל 3 הצרכנים (budget-actual, finance/pnl,
+  documents/export). UI חדש במסך הפרטים: dialog חיפוש (same-vendor default,
+  ±30 יום) + section 3-מצבי (evidence chip / primary-with-inbound / unlinked
+  trigger). האימות בייצור הראה שהמימוש מסיר בדיוק ₪4,010 של כפילות שזוהתה
+  ב-3 פרויקטים. **הדפוס generic ומוכן להעברה ל-SaaS** (invoice matching /
+  payment reconciliation סטנדרטי בענף). commit `5a0c9f3`.
 - **סוגי מסמכים "תקורות"** — `project_type='overhead'` שכולל את "בניין איתן" כיעד.
 - **AI חילוץ מסמך + resume-on-load + cron backstop יומי** — חסינות להעלאה.
 - **DocumentsInbox** — סינון, יצוא ZIP, תצוגה מקדימה inline, בורר פרויקט inline.
@@ -115,6 +123,12 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
 ---
 
 ## החלטות שננעלו — בתור לבנייה
+
+### קישור מסמכים — matcher אוטומטי (שלב 3)
+- **הבסיס** (`linked_document_id` + role גזור + סינון aggregation) פרוס בייצור.
+- **מה חסר:** matcher אוטומטי שמזהה זוגות invoice ↔ payment (same vendor,
+  |Δamount|≤X, |Δdate|≤Y) ומציע לאדמין באצבע לחיצה. היום הקישור ידני בלבד.
+- **סטטוס:** דחוי, הכרעה עתידית מתי לבנות.
 
 ### פיצול שכר לפי נוכחות (מסלול 2)
 - **הכוונה:** פיצול שכר של פועל בין אתרים לפי `attendance.project_id` של דיווחי
