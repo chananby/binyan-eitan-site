@@ -67,6 +67,16 @@
 - **payment_milestones** — schema + CRUD + accordion פר-פרויקט + כרטיס גבייה גלובלי.
 
 ### נוכחות + שכר (משפחת A/B/C)
+- **הפרדת החתמה ידנית** — העובד כבר לא מזין ידנית בעצמו. מסלול חדש:
+  עובד שוכח → פונה בעל-פה למנהל העבודה → מנהל העבודה מזין דרך פאנל חדש
+  ב-`site` tab של הפורטל שלו (POST `/api/admin/attendance/manual` שהורחב
+  לקבל foreman עם `project_id` נעול לפרויקטים שלו) → הרשומה נכנסת כ-
+  `status='pending' + edited_by='foreman:<name>'` → אדמין מאשר/דוחה
+  בפאנל הקיים (שם המנהל מוצג "מנהל: X" מתחת לתאריך). endpoint
+  `/api/worker/manual-entry` מחזיר `410 manual_entry_disabled`; ManualScreen
+  נמחק; כפתור "+ דיווח חסר" הוחלף בהודעת "פנה למנהל העבודה" בכל 6 השפות.
+  **59 רשומות היסטוריות של עובדים במסלול הישן לא מושפעות; 2 pending נותרו
+  לאישור אדמין כרגיל.** commit `dd5e8ff`.
 - **אכיפת מיקום בהחתמה** — מודל 2-tier נפרד מהחיווי הוויזואלי הקיים:
   `attendance_gps_enforce_radius_m=100` (אכיפה) + `attendance_far_threshold_m=50`
   (chip אדום, נשמר כפי שהיה). כניסה מעל הרדיוס → 403 `gps_out_of_range`. יציאה
@@ -142,11 +152,13 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
 - **הפעלה בפועל:** דורש כתיבת `attendance_gps_enforce="on"` ב-`settings`
   (דרך `/admin` → tab חשבון → כרטיס "אכיפת מיקום" → סמן + שמור).
   ההיסטוריה מראה 25.9% מהחתמות היו נחסמות ב-radius=100 → מומלץ rollout מבוקר.
-- **אימות תרגומים SI/HI/ZH:** 15 המחרוזות שהוספתי במסגרת ה-i18n cleanup
-  הן best-effort מאוצר-מילים קיים בכל שפה. **מומלץ מעבר native-speaker לפני**
-  שעובד לא-עברי ייחסם בפועל. הפריטים הרלוונטיים ב-i18n.ts:
-  `noOpenEntryToClose` / `gpsOutOfRange` / `monthlyRemoteExitCap` /
-  `corrRecordNotFound` / `corrRecordDeleted`.
+- **אימות תרגומים SI/HI/ZH:** 21 מחרוזות שהוספו במסגרת סבבי ה-i18n
+  האחרונים הן best-effort מאוצר-מילים קיים בכל שפה. **מומלץ מעבר
+  native-speaker לפני** שעובד לא-עברי ייתקל בהודעה בפועל. הפריטים
+  הרלוונטיים ב-i18n.ts:
+  - סבב אכיפה: `noOpenEntryToClose` / `gpsOutOfRange` /
+    `monthlyRemoteExitCap` / `corrRecordNotFound` / `corrRecordDeleted`.
+  - סבב הפרדת ידני: `askForemanForFix` / `manualEntryDisabled`.
 
 ### קישור מסמכים — matcher אוטומטי (שלב 3)
 - **הבסיס** (`linked_document_id` + role גזור + סינון aggregation) פרוס בייצור.
