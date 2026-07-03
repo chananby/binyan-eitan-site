@@ -11,6 +11,7 @@ import {
 import { useFeedback } from "../hooks/useFeedback";
 import { AutoGrowTextarea } from "./AutoGrowTextarea";
 import ForemanDocUpload from "./ForemanDocUpload";
+import ForemanManualEntryPanel from "./attendance/ForemanManualEntryPanel";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type View      = "loading" | "no_projects" | "select" | "dashboard";
@@ -961,6 +962,16 @@ export default function ForemanPortal({
                 </div>
               );
             })()}
+
+            {/* ── Manual entry (foreman-created pending row) ─────────── */}
+            {project && (
+              <ForemanManualEntryPanel
+                projectId={project.id}
+                projectName={project.name}
+                workers={allStaff}
+                onSubmitted={() => loadDashboard(project.id)}
+              />
+            )}
           </div>
         )}
 

@@ -26,7 +26,6 @@ interface Props {
   corrections: Record<string, CorrectionSummary>;
   reportingId: string | null;
   setReportingId: (v: string | null) => void;
-  onShowManual: () => void;
   onReset: () => void;
   onFetchHistory: () => void;
 }
@@ -236,11 +235,13 @@ export default function HistoryScreen(p: Props) {
         </div>
       )}
 
-      <button
-        onClick={p.onShowManual}
-        className="w-full border border-accent/40 py-3 font-body text-sm font-semibold tracking-wider text-accent hover:bg-accent/5 transition-colors duration-200">
-        + {p.t.manualBtn}
-      </button>
+      {/* The old "+ דיווח חסר" button is gone — workers no longer submit
+          manual entries themselves. The information text replaces it so
+          "what should I do if I forgot?" is answered on the surface
+          rather than leading to a dead-end control. */}
+      <p className="w-full border border-charcoal/15 bg-charcoal/[0.02] py-3 px-4 font-body text-sm text-charcoal/70 text-center">
+        {p.t.askForemanForFix}
+      </p>
       <button onClick={p.onReset}
         className="w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/65 hover:border-accent hover:text-accent transition-colors duration-200">
         {p.t.backToForm}

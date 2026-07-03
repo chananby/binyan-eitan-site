@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
-import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
+import {
+  isAdminAuthedFromRequest,
+  getRoleFromRequest,
+  getForemanStaffIdFromRequest,
+} from "../../../../../lib/admin-auth";
 import { israelWallClockToISO } from "../../../../../lib/israel-time";
 import { planManualWorkRows } from "../../../../../lib/attendance-logic";
 
@@ -11,8 +15,16 @@ type EntryType = "regular" | "overtime" | "vacation" | "sick" | "other";
 const ABSENCE_ACTION: Record<string, string> = { vacation: "חופש", sick: "מחלה", other: "אחר" };
 
 export async function POST(req: NextRequest) {
-  if (!isAdminAuthedFromRequest(req))
+  // Auth: admin (as before) OR foreman scoped to their own project.
+  // Foreman entries land as status='pending' so an admin still reviews
+  // before the hours reach payroll — different from admin's direct
+  // status='approved'. Anyone else → 401.
+  const role = getRoleFromRequest(req);
+  const isAdmin   = isAdminAuthedFromRequest(req);
+  const isForeman = !isAdmin && role === "foreman";
+  if (!isAdmin && !isForeman) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   let body: {
     staff_id?: string;
@@ -39,6 +51,38 @@ export async function POST(req: NextRequest) {
   // added later — the same shape the live web/IVR flow produces.
   if (isWork && !entry_time) return NextResponse.json({ error: "זמן כניסה נדרש" }, { status: 400 });
 
+  const supabase = createServerClient();
+
+  // Foreman gate: project_id is REQUIRED and must belong to the caller.
+  // This is the whole substance of the foreman path — without it, a
+  // foreman could insert rows attributed to any project. Admin path
+  // has no such restriction (admin can enter for any worker, any project).
+  let editedBy: string | null = null;
+  if (isForeman) {
+    const foremanStaffId = getForemanStaffIdFromRequest(req);
+    if (!foremanStaffId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!project_id?.trim()) {
+      return NextResponse.json({ error: "מנהל עבודה חייב לבחור פרויקט" }, { status: 400 });
+    }
+    const { data: proj, error: projErr } = await supabase
+      .from("projects")
+      .select("foreman_id")
+      .eq("id", project_id)
+      .maybeSingle();
+    if (projErr) return NextResponse.json({ error: projErr.message }, { status: 500 });
+    if (!proj || proj.foreman_id !== foremanStaffId) {
+      return NextResponse.json({ error: "אין הרשאה לפרויקט הזה" }, { status: 403 });
+    }
+    // Audit trail: the row was created by this foreman. The pending
+    // admin panel reads edited_by to show "מי הזין" alongside the row.
+    const { data: fm } = await supabase
+      .from("staff")
+      .select("name")
+      .eq("id", foremanStaffId)
+      .maybeSingle();
+    editedBy = `foreman:${fm?.name ?? foremanStaffId.slice(0, 8)}`;
+  }
+
   // Format matching parseLabelDateTime: "D.M.YYYY, HH:MM"
   const [y, m, d] = date.split("-");
   const dp = `${parseInt(d)}.${parseInt(m)}.${y}`;
@@ -49,10 +93,15 @@ export async function POST(req: NextRequest) {
     timestamp_label: label,
     clock_at: clockAt,
     is_manual: true,
-    status: "approved",
+    // Foreman entries stay pending until the admin reviews (same review
+    // pipeline the worker manual-entry flow used to feed). Admin's own
+    // entries continue to land directly as approved — they've already
+    // reviewed by the act of typing.
+    status: isForeman ? "pending" : "approved",
     source: "manual",
     lat: null,
     lng: null,
+    ...(editedBy   ? { edited_by: editedBy, edited_at: new Date().toISOString() } : {}),
     ...(project_id?.trim() ? { project_id } : {}),
   });
 
@@ -70,7 +119,6 @@ export async function POST(req: NextRequest) {
         ),
       ];
 
-  const supabase = createServerClient();
   const { error } = await supabase.from("attendance").insert(records);
   if (error) {
     console.error("[admin/attendance/manual]", JSON.stringify(error));

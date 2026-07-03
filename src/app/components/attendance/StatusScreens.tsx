@@ -1,12 +1,12 @@
 "use client";
 
-// Five small status/result screens bundled together — each is <50 lines
+// Four small status/result screens bundled together — each is <50 lines
 // of pure presentation and they share most of their imports:
 //   - SubmittingScreen / LocatingScreen — full-screen spinners
 //   - ErrorScreen                       — error message + try-again
 //   - SuccessScreen                     — clock-in/out confirmation with flash
-//   - ManualSuccessScreen               — manual-entry confirmation
 // State and callbacks (reset, fetchHistory) come from AttendanceForm.
+// ManualSuccessScreen was removed alongside worker-side manual entry.
 
 import { Loader2, MapPin, AlertCircle, CheckCircle, Building2 } from "lucide-react";
 import Screen from "./Screen";
@@ -106,22 +106,7 @@ export function SuccessScreen(p: Common & {
   );
 }
 
-export function ManualSuccessScreen(p: Common & { onShowHistory: () => void; onReset: () => void }) {
-  return (
-    <Screen backHref={p.backHref} backLabel={p.backLabel} lang={p.lang} onLangChange={p.onLangChange}>
-      <CheckCircle size={64} strokeWidth={1} className="text-amber-400" />
-      <div className="text-center space-y-2">
-        <p className="font-heading text-2xl font-bold text-charcoal">{p.t.manualSentTitle}</p>
-        <p className="font-body text-sm text-charcoal/65">{p.t.manualSentBody}</p>
-      </div>
-      <button onClick={p.onShowHistory}
-        className="w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/65 hover:border-accent hover:text-accent transition-colors duration-200">
-        {p.t.myHistory}
-      </button>
-      <button onClick={p.onReset}
-        className="font-body text-xs text-charcoal/30 hover:text-accent transition-colors">
-        {p.t.backToForm}
-      </button>
-    </Screen>
-  );
-}
+// ManualSuccessScreen was removed alongside worker-side manual entry —
+// there's no "your manual entry was submitted" moment anymore. Kept
+// intentionally empty here as a signpost; new consumers should go via
+// the foreman flow, not resurrect this screen.

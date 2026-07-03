@@ -121,6 +121,15 @@ export interface ScreenStrings {
   // is gone, contact the manager — but a friendlier phrasing since it
   // often reflects a legitimate admin action rather than a lost record.
   corrRecordDeleted: string;
+  // Replaces the old "+ הוסף דיווח חסר" button on the history screen
+  // now that worker-side manual entry is gone — informs the worker that
+  // forgotten clocks are corrected via the foreman.
+  askForemanForFix: string;
+  // Fallback for a legacy client that still POSTs to /api/worker/manual-
+  // entry (which now returns 410 gone). AttendanceForm no longer wires
+  // to that endpoint, but the string exists so a resurrected caller has
+  // a localized message ready.
+  manualEntryDisabled: string;
 }
 
 const HE: ScreenStrings = {
@@ -218,6 +227,8 @@ const HE: ScreenStrings = {
   monthlyRemoteExitCap: "הגעת למכסת היציאות מרחוק החודש. פנה למנהל.",
   corrRecordNotFound: "הרשומה לא נמצאה. פנה למנהל.",
   corrRecordDeleted: "הרשומה נמחקה. פנה למנהל.",
+  askForemanForFix: "שכחת החתמה? פנה למנהל העבודה.",
+  manualEntryDisabled: "הזנה ידנית עצמאית הופסקה. פנה למנהל העבודה לתיקון.",
 };
 
 const RU: ScreenStrings = {
@@ -315,6 +326,8 @@ const RU: ScreenStrings = {
   monthlyRemoteExitCap: "Вы исчерпали месячный лимит удалённых отметок ухода. Обратитесь к менеджеру.",
   corrRecordNotFound: "Запись не найдена. Обратитесь к менеджеру.",
   corrRecordDeleted: "Эта запись была удалена. Обратитесь к менеджеру.",
+  askForemanForFix: "Забыли отметиться? Обратитесь к бригадиру.",
+  manualEntryDisabled: "Самостоятельная отметка задним числом отключена. Обратитесь к бригадиру.",
 };
 
 const EN: ScreenStrings = {
@@ -412,6 +425,8 @@ const EN: ScreenStrings = {
   monthlyRemoteExitCap: "You've reached this month's remote clock-out limit. Contact the manager.",
   corrRecordNotFound: "Record not found. Contact the manager.",
   corrRecordDeleted: "This record has been deleted. Contact the manager.",
+  askForemanForFix: "Forgot to clock? Ask your foreman.",
+  manualEntryDisabled: "Self-service manual entry has been disabled. Ask your foreman to fix it.",
 };
 
 const SI: ScreenStrings = {
@@ -509,6 +524,8 @@ const SI: ScreenStrings = {
   monthlyRemoteExitCap: "ඔබ මෙම මාසයේ දුරස්ථ පිටවීමේ සීමාව සම්පූර්ණ කර ඇත. කළමනාකරු අමතන්න.",
   corrRecordNotFound: "වාර්තාව හමු නොවීය. කළමනාකරු අමතන්න.",
   corrRecordDeleted: "මෙම වාර්තාව මකා දමා ඇත. කළමනාකරු අමතන්න.",
+  askForemanForFix: "සටහන් කිරීමට අමතක වුනාද? ඔබේ ස්ථාන කළමනාකරු අමතන්න.",
+  manualEntryDisabled: "ස්වයං-සේවා අතින් සටහන් කිරීම අක්‍රිය කර ඇත. සකස් කිරීමට ස්ථාන කළමනාකරු අමතන්න.",
 };
 
 const ZH: ScreenStrings = {
@@ -606,6 +623,8 @@ const ZH: ScreenStrings = {
   monthlyRemoteExitCap: "您已达到本月远程下班打卡的上限。请联系管理员。",
   corrRecordNotFound: "未找到记录。请联系管理员。",
   corrRecordDeleted: "此记录已被删除。请联系管理员。",
+  askForemanForFix: "忘记打卡？请联系工地负责人。",
+  manualEntryDisabled: "自助手动打卡已停用。请联系工地负责人处理。",
 };
 
 const HI: ScreenStrings = {
@@ -703,6 +722,8 @@ const HI: ScreenStrings = {
   monthlyRemoteExitCap: "आप इस महीने की दूरस्थ निकास सीमा तक पहुँच गए हैं। प्रबंधक से संपर्क करें।",
   corrRecordNotFound: "रिकॉर्ड नहीं मिला। प्रबंधक से संपर्क करें।",
   corrRecordDeleted: "यह रिकॉर्ड हटा दिया गया है। प्रबंधक से संपर्क करें।",
+  askForemanForFix: "उपस्थिति दर्ज करना भूल गए? अपने साइट प्रबंधक से संपर्क करें।",
+  manualEntryDisabled: "स्व-सेवा मैन्युअल प्रविष्टि बंद कर दी गई है। सुधार के लिए साइट प्रबंधक से संपर्क करें।",
 };
 
 export const T: Record<Lang, ScreenStrings> = {

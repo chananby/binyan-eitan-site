@@ -3,7 +3,7 @@
 
 export type Step =
   | "phone" | "menu" | "locating" | "project" | "ready" | "submitting"
-  | "success" | "error" | "history" | "manual" | "manualSuccess";
+  | "success" | "error" | "history";
 
 export interface GeoCoords { lat: number; lng: number; }
 

@@ -68,6 +68,10 @@ export interface AttendanceRecord {
   lat?: string | null; lng?: string | null;
   distance_from_project_m?: number | null;
   source?: string | null;
+  // "admin:<name>" or "foreman:<name>" — set when the row was created
+  // or last touched via the manual entry flow. Surfaced in the pending
+  // approval panel so the admin knows who submitted a foreman entry.
+  edited_by?: string | null;
   staff: { id: string; name: string; phone: string; role?: string } | null;
   project: { id: string; name: string } | null;
 }

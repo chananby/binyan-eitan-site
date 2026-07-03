@@ -20,7 +20,11 @@ export async function GET(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query: any = supabase
     .from("attendance")
-    .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, source, staff:staff_id(id, name, phone, role, attendance_exempt), project:project_id(id, name)")
+    // edited_by lets the admin panel show WHO submitted a foreman-created
+    // pending row ("foreman:<name>") alongside the worker's name. Worker-
+    // submitted manual rows and legacy admin-approved rows carry a null
+    // edited_by; only foreman entries surface a label.
+    .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, source, edited_by, staff:staff_id(id, name, phone, role, attendance_exempt), project:project_id(id, name)")
     .is("deleted_at", null)
     .eq("status", "pending")
     .eq("is_manual", true)

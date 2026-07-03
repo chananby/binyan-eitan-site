@@ -39,6 +39,9 @@ export interface AttendanceRecord {
    *  Phone-call rows are surfaced with a chip so admins can see at a glance
    *  that no GPS verification backs the timestamp. */
   source?: string | null;
+  /** "foreman:<name>" on rows created by a foreman via the manual-entry
+   *  form; used by the pending panel to show WHO submitted the row. */
+  edited_by?: string | null;
   staff: { id: string; name: string; phone: string; role?: string; attendance_exempt?: boolean } | null;
   project: { id: string; name: string } | null;
 }
@@ -715,6 +718,12 @@ function PendingApprovals({
                       {r.created_at && (
                         <p className="text-caption text-charcoal/70 mt-0.5">
                           הוגש: {new Date(r.created_at).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                          {r.edited_by?.startsWith("foreman:") && (
+                            <>
+                              {" · "}
+                              <span className="text-charcoal">מנהל: {r.edited_by.slice("foreman:".length)}</span>
+                            </>
+                          )}
                         </p>
                       )}
                     </div>

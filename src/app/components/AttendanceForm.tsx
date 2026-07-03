@@ -20,9 +20,8 @@ import MenuScreen from "./attendance/MenuScreen";
 import ProjectScreen from "./attendance/ProjectScreen";
 import ReadyScreen from "./attendance/ReadyScreen";
 import HistoryScreen from "./attendance/HistoryScreen";
-import ManualScreen from "./attendance/ManualScreen";
 import {
-  SubmittingScreen, LocatingScreen, ErrorScreen, SuccessScreen, ManualSuccessScreen,
+  SubmittingScreen, LocatingScreen, ErrorScreen, SuccessScreen,
 } from "./attendance/StatusScreens";
 
 function nowLabel() {
@@ -116,13 +115,10 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     return () => { cancelled = true; };
   }, [step, identifiedStaffId]);
 
-  // ── Manual entry state (worker) ───────────────────────────────────────────
-  const [manualAction, setManualAction]   = useState<"in" | "out">("in");
-  const [manualDate, setManualDate]       = useState("");
-  const [manualTime, setManualTime]       = useState("");
-  const [manualProject, setManualProject] = useState("");
-  const [manualLoading, setManualLoading] = useState(false);
-  const [manualError, setManualError]     = useState<string | null>(null);
+  // Worker-side "manual entry" was removed — the flow is now foreman-
+  // mediated (see ForemanManualEntryPanel + backend policy in
+  // /api/admin/attendance/manual). The history screen shows the worker
+  // an "ask your foreman" note in place of the old button.
 
   // ── Project selection (worker flow) ─────────────────────────────────────
   const [projects, setProjects]                   = useState<Project[]>([]);
@@ -162,7 +158,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
 
   // ── Load worker-flow projects ─────────────────────────────────────────────
   useEffect(() => {
-    if (step !== "project" && step !== "manual") return;
+    if (step !== "project") return;
     setProjectsLoading(true);
     fetch("/api/projects").then(r => r.json()).then(d => setProjects(d.projects ?? [])).catch(() => {}).finally(() => setProjectsLoading(false));
   }, [step]);
@@ -326,28 +322,9 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     finally { setHistoryLoading(false); }
   }, [identifiedStaffId, workerName, lang]);
 
-  const submitManual = useCallback(async () => {
-    if (!identifiedStaffId) { setStep("phone"); return; }
-    if (!manualDate || !manualTime) { setManualError(T[lang].manualValidation); return; }
-    setManualLoading(true); setManualError(null);
-    try {
-      const res = await fetch("/api/worker/manual-entry", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action:     manualAction,
-          date:       manualDate,
-          time:       manualTime,
-          ...(manualProject && { project_id: manualProject }),
-        }),
-      });
-      const data = await res.json();
-      if (data.success) { setStep("manualSuccess"); }
-      else if (res.status === 401) { setManualError(T[lang].sessionExpired); setIdentifiedStaffId(null); }
-      else if (res.status === 429) { setManualError(T[lang].tooManyAttempts); }
-      else { setManualError(data.error ?? T[lang].unknownError); }
-    } catch { setManualError(T[lang].networkError); }
-    finally { setManualLoading(false); }
-  }, [identifiedStaffId, manualAction, manualDate, manualTime, manualProject, lang]);
+  // submitManual removed — worker-side manual entry is no longer allowed
+  // (the endpoint /api/worker/manual-entry now returns 410 for any client
+  // that still points at it). Forgotten clocks go through the foreman.
 
   // ── Dispatch ──────────────────────────────────────────────────────────────
   // Common props every screen receives. The per-screen components are pure
@@ -406,31 +383,10 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         corrections={corrections}
         reportingId={reportingId}
         setReportingId={setReportingId}
-        onShowManual={() => { setManualDate(new Date().toISOString().slice(0, 10)); setManualTime(""); setManualProject(""); setManualError(null); setStep("manual"); }}
         onReset={reset}
         onFetchHistory={fetchHistory}
       />
     );
-  }
-
-  if (step === "manual") {
-    return (
-      <ManualScreen {...common}
-        manualAction={manualAction}     setManualAction={setManualAction}
-        manualDate={manualDate}         setManualDate={setManualDate}
-        manualTime={manualTime}         setManualTime={setManualTime}
-        manualProject={manualProject}   setManualProject={setManualProject}
-        manualLoading={manualLoading}
-        manualError={manualError}
-        projects={projects}
-        onSubmit={submitManual}
-        onBackToHistory={() => setStep("history")}
-      />
-    );
-  }
-
-  if (step === "manualSuccess") {
-    return <ManualSuccessScreen {...common} onShowHistory={fetchHistory} onReset={reset} />;
   }
 
   if (step === "menu" && identifiedStaffId) {
@@ -441,7 +397,6 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         missingExitCount={missingExitCount}
         onStartClock={requestLocation}
         onShowHistory={fetchHistory}
-        onShowManual={() => setStep("manual")}
         onSwitchUser={switchUser}
       />
     );

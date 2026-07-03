@@ -1,9 +1,12 @@
 "use client";
 
-// Post-identify landing screen. Four worker actions: start clock,
-// view history, manual entry, switch user. The "switch user" control
-// is visually separated by a top border so it doesn't read as a fourth
-// peer action.
+// Post-identify landing screen. Three worker actions: start clock,
+// view history, switch user. The "switch user" control is visually
+// separated by a top border so it doesn't read as a fourth peer
+// action. The old "manual entry" button was removed when worker-side
+// manual entry was deprecated — forgotten clocks now go through the
+// foreman, and the missing-exit banner at the top guides the worker
+// to the history screen where the correction flow lives.
 
 import { MapPin, AlertCircle, UserRound, Clock, ChevronLeft } from "lucide-react";
 import Screen from "./Screen";
@@ -21,7 +24,6 @@ interface Props {
   missingExitCount: number;
   onStartClock: () => void;
   onShowHistory: () => void;
-  onShowManual: () => void;
   onSwitchUser: () => void;
 }
 
@@ -57,10 +59,6 @@ export default function MenuScreen(p: Props) {
         <button onClick={p.onShowHistory}
           className="w-full border border-charcoal/20 py-4 font-body text-sm font-semibold tracking-wider uppercase text-charcoal/65 hover:border-accent hover:text-accent transition-colors duration-200">
           {p.t.myHistory}
-        </button>
-        <button onClick={p.onShowManual}
-          className="w-full border border-charcoal/15 py-3 font-body text-sm text-charcoal/70 hover:border-accent hover:text-accent transition-colors duration-200">
-          {p.t.manualBtn}
         </button>
         {p.geoError && (
           <div className="flex items-start gap-2 border border-red-200 bg-red-50 px-4 py-3">
