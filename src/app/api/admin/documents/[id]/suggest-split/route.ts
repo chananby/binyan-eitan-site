@@ -1,17 +1,33 @@
 /**
  * /api/admin/documents/[id]/suggest-split — propose a per-project split
- * for a salary document, based on the linked worker's attendance in the
- * doc's calendar month.
+ * for a salary document, based on the linked worker's attendance in a
+ * specified calendar month.
+ *
+ * Month selection:
+ *   • Caller can pass `?month=YYYY-MM` to compute against any month.
+ *   • Without the query param, the default is the calendar month BEFORE
+ *     doc_date — matches how salaries actually get paid at Binyan Eitan:
+ *     the July payslip is dated 5-10 August, so July's attendance is
+ *     the correct basis. This asymmetry surprised chnn early on; the
+ *     default here plus the client's month picker (which starts on the
+ *     same "month-before-doc_date" value but lets the admin override)
+ *     mean the common case is one-click and the exceptions stay
+ *     explicit.
  *
  * Flow:
  *   1. Load the doc → need vendor_id, doc_date, amount (amount_ils or
  *      total_amount fallback).
- *   2. Load the vendor → need staff_id.
- *   3. Load that staff's attendance for the month of doc_date, widened
- *      by ±1 day (TZ edges), rows joined to project_id.
- *   4. Aggregate hours per project via the pure helper (dominant project
+ *   2. Resolve the target month from the query param OR from doc_date-1M.
+ *   3. Load the vendor → need staff_id.
+ *   4. Load that staff's APPROVED attendance for the target month,
+ *      widened by ±1 day (TZ edges), rows joined to project_id.
+ *      Pending rows (foreman-submitted, awaiting admin review) are
+ *      deliberately excluded — nothing counts toward money until an
+ *      admin has approved it. Re-run the suggestion after approvals to
+ *      pick them up.
+ *   5. Aggregate hours per project via the pure helper (dominant project
  *      of the day → firstIn/lastOut hours attributed to it).
- *   5. Turn hours into ILS amounts proportional to the doc total,
+ *   6. Turn hours into ILS amounts proportional to the doc total,
  *      residual absorbed into the largest row so the sum matches
  *      exactly.
  *
@@ -22,7 +38,10 @@
  * Error codes returned as JSON `{error, code}`:
  *   • no_vendor           — doc has no vendor_id
  *   • vendor_not_linked   — vendor exists but staff_id is null
- *   • no_doc_date         — doc has no doc_date
+ *   • no_doc_date         — doc has no doc_date (needed to seed the
+ *                            default month even when ?month is passed,
+ *                            since the client's picker starts from it)
+ *   • bad_month           — ?month= was passed but isn't a valid YYYY-MM
  *   • no_amount           — doc has no amount_ils / total_amount > 0
  *   • no_attendance       — the worker didn't clock this month
  */
@@ -42,20 +61,31 @@ function reject(code: string, message: string, status = 400) {
   return NextResponse.json({ error: message, code }, { status });
 }
 
-// "YYYY-MM-DD" → { prefix: "YYYY-MM", monthStart, monthEndExclusive }.
-// Widened by ±1 day so the DB query catches TZ edges (a clock at 23:15
-// on the last day of the month may land at UTC 20:15 on the same day but
-// serialise to a boundary that trips a naïve range filter).
-function monthWindow(docDate: string): { prefix: string; from: string; to: string } | null {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(docDate)) return null;
-  const [y, m] = docDate.split("-").map((s) => parseInt(s, 10));
+// "YYYY-MM" → { prefix, from, to }. Widened by ±1 day so the DB query
+// catches TZ edges (a clock at 23:15 on the last day of the month may
+// serialise to a boundary that trips a naïve range filter). Returns null
+// on a malformed input so the caller can 400 with a friendly code.
+function monthWindow(monthPrefix: string): { prefix: string; from: string; to: string } | null {
+  if (!/^\d{4}-\d{2}$/.test(monthPrefix)) return null;
+  const [y, m] = monthPrefix.split("-").map((s) => parseInt(s, 10));
   if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12) return null;
   const first = new Date(Date.UTC(y, m - 1, 1));
   const nextFirst = new Date(Date.UTC(y, m, 1));
-  // Widen ±1 day around the month.
   const from = new Date(first.getTime() - 86_400_000).toISOString().slice(0, 10);
   const to   = new Date(nextFirst.getTime()).toISOString().slice(0, 10);   // exclusive
   return { prefix: `${y}-${String(m).padStart(2, "0")}`, from, to };
+}
+
+// "YYYY-MM-DD" → "YYYY-MM" of the calendar month BEFORE that date.
+// Used as the default "attendance month" for a salary doc: chnn's
+// payslips are dated 5-10 of the following month, so July attendance
+// is what a doc dated 2026-08-07 should split against.
+function monthBefore(ymd: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return null;
+  const [y, m] = ymd.split("-").map((s) => parseInt(s, 10));
+  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12) return null;
+  const prev = new Date(Date.UTC(y, m - 2, 1)); // m-2 rolls Jan → prev December correctly
+  return `${prev.getUTCFullYear()}-${String(prev.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
@@ -86,8 +116,17 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       : null;
   if (docTotal == null) return reject("no_amount", "למסמך אין סכום חיובי");
 
-  const win = monthWindow(doc.doc_date);
-  if (!win) return reject("no_doc_date", "תאריך המסמך אינו תקין");
+  // Month resolution: explicit ?month=YYYY-MM overrides; default is the
+  // calendar month before doc_date (the "July payslip dated August 7"
+  // case that's the norm here). If neither yields a valid prefix, 400.
+  const monthParam = req.nextUrl.searchParams.get("month")?.trim() ?? "";
+  const targetPrefix = monthParam || monthBefore(doc.doc_date);
+  if (monthParam && !/^\d{4}-\d{2}$/.test(monthParam)) {
+    return reject("bad_month", "פורמט חודש לא תקין (נדרש YYYY-MM)");
+  }
+  if (!targetPrefix) return reject("no_doc_date", "תאריך המסמך אינו תקין");
+  const win = monthWindow(targetPrefix);
+  if (!win) return reject("bad_month", "פורמט חודש לא תקין");
 
   // 2. Load vendor → staff link.
   const { data: vendor, error: vErr } = await supabase
@@ -103,15 +142,21 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
   if (!vendor) return reject("no_vendor", "ספק לא נמצא");
   if (!vendor.staff_id) return reject("vendor_not_linked", "הספק לא מקושר לעובד");
 
-  // 3. Load staff attendance for the widened month window.
-  // clock_at range chosen so we widen ±1 day around the calendar month;
-  // the pure aggregator drops rows outside the actual month prefix.
+  // 3. Load staff APPROVED attendance for the widened month window.
+  // clock_at range widens ±1 day around the calendar month; the pure
+  // aggregator drops rows outside the actual month prefix. status is
+  // filtered to 'approved' so pending manual entries (foreman-submitted,
+  // awaiting an admin's review) never sneak into the money calculation
+  // — matches the system-wide rule that nothing counts toward payroll,
+  // budget, or splits until an admin approves it. Chnn can re-run the
+  // suggestion after approving pending rows to pick them up.
   const fromISO = `${win.from}T00:00:00Z`;
   const toISO   = `${win.to}T23:59:59Z`;
   const { data: att, error: aErr } = await supabase
     .from("attendance")
     .select("action, clock_at, created_at, project_id")
     .eq("staff_id", vendor.staff_id)
+    .eq("status", "approved")
     .is("deleted_at", null)
     .gte("clock_at", fromISO)
     .lte("clock_at", toISO);

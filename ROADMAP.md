@@ -222,11 +222,27 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
 ## החלטות שננעלו — בתור לבנייה
 
 ### פיצול שכר + תקורה — שלב ג'
-- **שלב ג' — פיצול שכר אוטומטי מנוכחות:** UI מיפוי vendor↔staff (10 שורות
-  היום; העמודה `vendors.staff_id` כבר בייצור) + endpoint שיוצר
-  `document_project_splits` אוטומטית ממפגש vendor→staff + attendance של
-  אותו חודש. שני שלביו הקודמים (א' חלוקת תקורה + ב' UI ל-`include_in_actuals`)
-  בייצור, כך שהמסלול חופשי לבנייה. ~3-4 שעות.
+- **שלב ג' — פיצול שכר אוטומטי מנוכחות:** בנוי בענף
+  `feature/stage-c-auto-salary-split` (commits `9b445bd` + שני
+  תיקונים חדשים) — **ממתין לאישור מיזוג**. מה שיש בענף:
+  - `attendance-project-shares.ts` — aggregator טהור + 12 tests (עוברים).
+  - `GET /api/admin/documents/[id]/suggest-split` — הצעה read-only, קודי
+    שגיאה מובנים (`no_vendor` / `vendor_not_linked` / `no_doc_date` /
+    `no_amount` / `no_attendance` / `bad_month`).
+  - `PATCH /api/admin/vendors/[id]` — קישור vendor↔staff.
+  - Widget "עובד מקושר" ב-`DocumentReviewForm` + פס הצעה
+    ב-`DocumentSplitPanel` + כפתור "הצע פיצול" עם בורר חודש (MonthField).
+  - **סינון `status='approved'`** — pending של מנהל עבודה לא נכנס עד
+    שהאדמין אישר (עקבי עם הכלל הכללי של המערכת).
+  - **חודש ברירת מחדל = החודש שלפני `doc_date`** — התלוש של יולי
+    נחתם 5-10 באוגוסט, אז חודש הנוכחות הנכון הוא יולי (`doc_date`-1M).
+    בורר החודש מאפשר override לחריגים.
+  - אין שינוי schema (הכל רוכב על `vendors.staff_id` משלב א').
+  - Build נקי, 367/367 tests. אימות בדגימת פרודקשן: מסמך שכר של נריה
+    שמעוני (2026-06-11) → חודש 2026-05 מזוהה כברירת מחדל, 7.63 שעות
+    מאושרות על מנחם משיב 12 → ₪847 המדויקים של התלוש.
+- **טרם נעשה:** merge ל-main + פריסה + עדכון מיפוי vendor↔staff
+  ל-10 ספקים שבפועל עובדים אצלנו (חנן, עבודה ידנית ב-UI חדש).
 
 ### קישור מסמכים — matcher אוטומטי (שלב 3)
 - **הבסיס** (`linked_document_id` + role גזור + סינון aggregation) פרוס בייצור.

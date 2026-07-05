@@ -17,6 +17,7 @@ import ProjectSelect, { type ProjectOption } from "../_components/ProjectSelect"
 import DocumentSplitPanel, { type SplitSuggestion } from "../_components/DocumentSplitPanel";
 import { useDocumentSplits } from "../_components/useDocumentSplits";
 import DocumentLinkSection from "../_components/DocumentLinkSection";
+import MonthField from "../../_components/shared/MonthField";
 import type { DocRow as DocRowType } from "../_components/labels";
 
 interface Opt { id: string; name: string }
@@ -33,6 +34,20 @@ function numOrNull(v: string): number | null {
   if (t === "") return null;
   const n = Number(t.replace(/,/g, ""));
   return Number.isFinite(n) ? n : null;
+}
+
+/** "YYYY-MM-DD" → "YYYY-MM" of the calendar month BEFORE ymd. Seeds the
+ *  month picker with the sensible default for a salary doc: chnn's
+ *  payslips are dated 5-10 of the following month, so July attendance
+ *  is what a doc dated 2026-08-07 should split against. Returns "" when
+ *  ymd is malformed — the picker no-ops in that state anyway. Mirrors
+ *  the server-side monthBefore() in suggest-split/route.ts. */
+function monthBeforeYMD(ymd: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return "";
+  const [y, m] = ymd.split("-").map((s) => parseInt(s, 10));
+  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12) return "";
+  const prev = new Date(Date.UTC(y, m - 2, 1));
+  return `${prev.getUTCFullYear()}-${String(prev.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
 export default function DocumentReviewForm({
@@ -144,18 +159,39 @@ export default function DocumentReviewForm({
     finally { setLinkingStaff(false); }
   }
 
-  // Attendance-based split suggestion. Fetched on demand — the request is
-  // free of side effects (no writes), so the button reads more like a
-  // preview than a mutation. Errors surface inline; a successful fetch
-  // seeds the split panel via its `suggestion` prop.
+  // Attendance-based split suggestion. Two-step flow:
+  //   1. Click "הצע פיצול" → opens the month picker seeded with
+  //      monthBefore(doc_date) — the July-payslip-dated-August case.
+  //   2. Confirm month → fetch runs against that month; the split
+  //      panel seeds with the result and enters split-mode.
+  // The request is free of side effects (no writes), so the button
+  // reads more like a preview than a mutation. Picker is inline (not a
+  // modal) — it's one field + two buttons; a modal would be overkill
+  // and adds a dismiss-swallow-focus edge for the schedule scroll bug
+  // that just got fixed.
   const [suggestion, setSuggestion]         = useState<SplitSuggestion | null>(null);
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [suggestError, setSuggestError]     = useState<string | null>(null);
+  const [suggestPickerOpen, setSuggestPickerOpen] = useState(false);
+  const [suggestMonth, setSuggestMonth] = useState<string>("");
+  function openSuggestPicker() {
+    // Reseed the picker on open — form.doc_date may have changed since
+    // the last suggestion. Keeps chnn from computing against a stale
+    // default after editing the date.
+    setSuggestMonth(monthBeforeYMD(form.doc_date) || "");
+    setSuggestError(null);
+    setSuggestPickerOpen(true);
+  }
   async function requestSuggestion() {
     if (suggestLoading) return;
+    if (!/^\d{4}-\d{2}$/.test(suggestMonth)) {
+      setSuggestError("בחר חודש תקין");
+      return;
+    }
     setSuggestLoading(true); setSuggestError(null);
     try {
-      const res = await fetch(`/api/admin/documents/${doc.id}/suggest-split`, { cache: "no-store" });
+      const url = `/api/admin/documents/${doc.id}/suggest-split?month=${encodeURIComponent(suggestMonth)}`;
+      const res = await fetch(url, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) {
         setSuggestError(data.error ?? "לא ניתן לחשב הצעה");
@@ -168,9 +204,11 @@ export default function DocumentReviewForm({
         proposal: data.proposal ?? [],
       });
       // Auto-enter split mode so the panel + the applied proposal are
-      // visible in one motion.
+      // visible in one motion. Close the picker so the applied
+      // suggestion is what dominates the visual area.
       resetSplitError();
       setSplitMode(true);
+      setSuggestPickerOpen(false);
     } catch (e) {
       setSuggestError(String(e));
       setSuggestion(null);
@@ -409,19 +447,53 @@ export default function DocumentReviewForm({
               <Scissors size={14} /> פצל בין פרויקטים
             </button>
           )}
-          {/* Attendance-based auto-suggest trigger. Only shown when the
-              flow is actually usable (salary category + vendor linked +
-              doc_date). Puts the panel in split mode and applies the
-              proposal in one interaction — chnn just reviews and saves. */}
-          {splitsEnabled && canSuggest && (
+          {/* Attendance-based auto-suggest — two-step:
+                Closed → single amber button that opens the picker.
+                Open   → MonthField (seeded with monthBefore(doc_date))
+                         + confirm/cancel row.
+              Only shown when the flow is usable (salary + vendor linked
+              + doc_date). */}
+          {splitsEnabled && canSuggest && !suggestPickerOpen && (
             <button
               type="button"
-              onClick={requestSuggestion}
-              disabled={suggestLoading}
-              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 border border-amber-300 bg-amber-50/80 text-amber-900 py-2 rounded-md text-sm font-semibold hover:bg-amber-100 disabled:opacity-50"
+              onClick={openSuggestPicker}
+              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 border border-amber-300 bg-amber-50/80 text-amber-900 py-2 rounded-md text-sm font-semibold hover:bg-amber-100"
             >
-              {suggestLoading ? <><Loader2 size={13} className="animate-spin" /> מחשב…</> : <><Sparkles size={13} /> הצע פיצול לפי נוכחות</>}
+              <Sparkles size={13} /> הצע פיצול לפי נוכחות
             </button>
+          )}
+          {splitsEnabled && canSuggest && suggestPickerOpen && (
+            <div className="mt-2 border border-amber-300 bg-amber-50/50 rounded-md p-2.5 space-y-2">
+              <p className="flex items-center gap-1.5 text-xs text-amber-900 font-semibold">
+                <Sparkles size={12} /> חודש הנוכחות לחישוב
+              </p>
+              {/* Default is the calendar month BEFORE doc_date — matches
+                  the July-attendance→August-payslip pattern. Admin can
+                  override for edge cases (retro payslip, partial month). */}
+              <MonthField
+                value={suggestMonth}
+                onChange={setSuggestMonth}
+                aria-label="חודש נוכחות להצעת פיצול"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={requestSuggestion}
+                  disabled={suggestLoading || !suggestMonth}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 bg-amber-500 text-white py-2 rounded-md text-sm font-semibold hover:bg-amber-600 disabled:opacity-50"
+                >
+                  {suggestLoading ? <><Loader2 size={13} className="animate-spin" /> מחשב…</> : "הצע"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSuggestPickerOpen(false); setSuggestError(null); }}
+                  disabled={suggestLoading}
+                  className="shrink-0 inline-flex items-center justify-center gap-1 border border-amber-300 bg-white text-amber-900 py-2 px-3 rounded-md text-sm font-semibold hover:bg-amber-50 disabled:opacity-50"
+                >
+                  ביטול
+                </button>
+              </div>
+            </div>
           )}
           {suggestError && (
             <p className="text-xs text-amber-800 mt-1.5 flex items-center gap-1"><X size={11} />{suggestError}</p>
