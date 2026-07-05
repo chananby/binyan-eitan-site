@@ -204,6 +204,7 @@
   הגובה קורס → הגלילה מתאפסת). עטוף עכשיו ב-`<StaleRefresh>` (אותו דפוס
   שקיים בתור האישורים ובבורד) — הרשימה הישנה נשארת + spinner קטן בזמן
   הרענון, בלי קפיצה. שינוי תצוגה בלבד — reload/loadData לא נגעו.
+  **נפרס בייצור** (commit `be4bdbe`, אימות: `x-matched-path: /admin`).
   **מוקדים נותרים לסבב הבא:** ScheduleTab (הוספת פועל יומי) + CollectionsTab.
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
