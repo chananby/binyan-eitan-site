@@ -54,6 +54,15 @@
     scroll-behavior: smooth;
     text-rendering: optimizeLegibility;
   }
+  /* Smooth scrolling reads as premium on the marketing site (anchor
+     jumps, hero-to-section transitions), but in the admin portal the
+     browser's focus-restore-scroll after every modal close becomes a
+     slow animation the operator experiences as "the page is scrolling
+     on its own". Scoped override via :has() so the marketing side stays
+     smooth and only /admin routes get instant scroll. */
+  html:has(.admin-portal) {
+    scroll-behavior: auto;
+  }
   body {
     font-family: var(--font-body);
     font-weight: 400;
