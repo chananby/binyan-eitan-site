@@ -10,7 +10,14 @@ import { useState } from "react";
 import { Loader2, Pencil } from "lucide-react";
 import type { BudgetActual } from "../../../../lib/budget-actual";
 
-export type ProjectBudgetRow = BudgetActual & { project_id: string };
+// Extends BudgetActual with the extra per-project fields added in the
+// budget-actual endpoint's overhead-allocation extension. Kept optional
+// on the type so a legacy row without the field (older cached response)
+// still satisfies TypeScript — the UI treats undefined as 0.
+export type ProjectBudgetRow = BudgetActual & {
+  project_id: string;
+  allocatedOverhead?: number;
+};
 
 function fmt(n: number | null | undefined): string {
   if (n == null) return "—";
@@ -84,8 +91,19 @@ export default function ProjectBudgetSection({ projectId, data, onSaved }: {
         <>
           <div className="flex items-center justify-between text-xs tabular-nums">
             <span className="text-charcoal/70">תקציב: <span className="font-bold text-charcoal">{data.hasBudget ? fmt(data.budget) : <span className="text-charcoal/60 font-normal">לא הוגדר</span>}</span></span>
-            <span className="text-charcoal/70">ביצוע: <span className="font-bold text-charcoal">{fmt(data.approvedExpense)}</span></span>
+            <span className="text-charcoal/70">ביצוע ישיר: <span className="font-bold text-charcoal">{fmt(data.approvedExpense)}</span></span>
           </div>
+
+          {/* Allocated overhead — separate line so admin sees the two
+              components (direct + share of central overhead) without
+              them being merged into an opaque total. Hidden when the
+              share is zero. */}
+          {(data.allocatedOverhead ?? 0) > 0 && (
+            <div className="flex items-center justify-between text-xs tabular-nums">
+              <span className="text-charcoal/70">תקורה מוקצית: <span className="font-semibold text-charcoal">{fmt(data.allocatedOverhead)}</span></span>
+              <span className="text-charcoal/70">סה&quot;כ עלות: <span className="font-bold text-charcoal">{fmt(data.approvedExpense + (data.allocatedOverhead ?? 0))}</span></span>
+            </div>
+          )}
 
           {data.hasBudget && (
             <>
