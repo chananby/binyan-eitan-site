@@ -15,7 +15,8 @@ import DuplicateChip from "../_components/DuplicateChip";
 import { statusChip, displayVendor, type DocRow } from "../_components/labels";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
-interface Opt { id: string; name: string; status?: string | null }
+interface Opt { id: string; name: string; status?: string | null; staff_id?: string | null }
+interface StaffOpt { id: string; name: string; is_freelancer?: boolean }
 interface LoadedSplit { project_id: string; amount: number }
 
 export default function DocumentDetailClient({ id }: { id: string }) {
@@ -27,6 +28,9 @@ export default function DocumentDetailClient({ id }: { id: string }) {
   const [doc, setDoc] = useState<DocRow | null>(null);
   const [vendors, setVendors] = useState<Opt[]>([]);
   const [projects, setProjects] = useState<Opt[]>([]);
+  // Staff list — used by the vendor→staff link widget in the review form
+  // and by the salary-doc auto-split suggestion. Fetched once on mount.
+  const [staff, setStaff] = useState<StaffOpt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
@@ -156,6 +160,12 @@ export default function DocumentDetailClient({ id }: { id: string }) {
     // include=site,overhead surfaces the "תקורות" destination.
     fetch("/api/admin/projects?include=site,overhead", { cache: "no-store" }).then(r => r.json())
       .then(d => setProjects(d.projects ?? [])).catch(() => {});
+    // Staff (name only — we don't need rates here; just to render the
+    // vendor→staff link picker and to attribute auto-split proposals).
+    fetch("/api/admin/staff", { cache: "no-store" }).then(r => r.json())
+      .then(d => setStaff((d.staff ?? []).map((s: { id: string; name: string; is_freelancer?: boolean }) => ({
+        id: s.id, name: s.name, is_freelancer: s.is_freelancer,
+      })))).catch(() => {});
     loadSplits();
     return () => { cancelled = true; };
   }, [auth, id, loadSplits, loadLinks]);
@@ -230,6 +240,7 @@ export default function DocumentDetailClient({ id }: { id: string }) {
                 doc={doc}
                 vendors={vendors}
                 projects={projects}
+                staff={staff}
                 onVendorsChange={loadVendors}
                 existingSplits={existingSplits ?? undefined}
                 onSplitsChanged={loadSplits}

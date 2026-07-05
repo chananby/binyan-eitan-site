@@ -7,19 +7,23 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Check, X, Save, Trash2, Plus, Scissors, RotateCcw, Archive } from "lucide-react";
+import { Loader2, Check, X, Save, Trash2, Plus, Scissors, RotateCcw, Archive, Link2, Sparkles } from "lucide-react";
 import {
   DOC_TYPE_LABELS, DIRECTION_LABELS, CATEGORY_LABELS, CURRENCY_OPTIONS,
   DOC_TYPE_OPTIONS, DIRECTION_OPTIONS, CATEGORY_OPTIONS, type DocRow,
 } from "../_components/labels";
 import { isIls } from "../../../../lib/document-classify";
 import ProjectSelect, { type ProjectOption } from "../_components/ProjectSelect";
-import DocumentSplitPanel from "../_components/DocumentSplitPanel";
+import DocumentSplitPanel, { type SplitSuggestion } from "../_components/DocumentSplitPanel";
 import { useDocumentSplits } from "../_components/useDocumentSplits";
 import DocumentLinkSection from "../_components/DocumentLinkSection";
 import type { DocRow as DocRowType } from "../_components/labels";
 
 interface Opt { id: string; name: string }
+/** Vendor option carries an optional `staff_id` — set when this vendor is
+ *  one of our own workers, which enables the salary-doc auto-split flow. */
+interface VendorOpt extends Opt { staff_id?: string | null }
+interface StaffOpt { id: string; name: string; is_freelancer?: boolean }
 
 const FIELD = "w-full border border-[#2D2926]/15 rounded-md bg-white px-3 py-2 text-sm focus:outline-none focus:border-[#8D775F]";
 const LABEL = "text-xs text-[#2D2926]/60 mb-1 block";
@@ -32,13 +36,17 @@ function numOrNull(v: string): number | null {
 }
 
 export default function DocumentReviewForm({
-  doc, vendors, projects, onVendorsChange, onAfterAction,
+  doc, vendors, projects, staff, onVendorsChange, onAfterAction,
   existingSplits, onSplitsChanged,
   primaryDoc, inboundEvidence, onLinkChanged,
 }: {
   doc: DocRow;
-  vendors: Opt[];
+  vendors: VendorOpt[];
   projects: ProjectOption[];
+  /** Staff list — enables the vendor→staff link widget + the salary-doc
+   *  auto-split suggestion. Undefined = parent didn't wire it (behaves
+   *  as if there were no staff to link, both features hidden). */
+  staff?: StaffOpt[];
   onVendorsChange: () => void;
   // Optional override for what happens after approve/reject/delete. The detail
   // page leaves it unset (→ navigate to the list); the review queue passes a
@@ -102,6 +110,79 @@ export default function DocumentReviewForm({
     const ok = await clearSplits();
     if (ok) setSplitMode(false);
   }
+
+  // Vendor → staff link. Small select right below the vendor row so the
+  // admin can annotate a salary vendor as "this is our worker X" while
+  // they're already reviewing the doc. Change PATCHes vendors/[id] and
+  // refreshes the parent's vendor list so the new link sticks across
+  // navigations. Only rendered when the parent supplied `staff` AND a
+  // vendor is currently selected.
+  const currentVendor = vendors.find((v) => v.id === form.vendor_id) ?? null;
+  const currentVendorStaffId = currentVendor?.staff_id ?? null;
+  const [linkingStaff, setLinkingStaff] = useState(false);
+  const [linkStaffError, setLinkStaffError] = useState<string | null>(null);
+  async function updateVendorStaff(nextStaffId: string) {
+    if (!currentVendor) return;
+    const patch = nextStaffId === "" ? null : nextStaffId;
+    if (patch === currentVendorStaffId) return;
+    setLinkingStaff(true); setLinkStaffError(null);
+    try {
+      const res = await fetch(`/api/admin/vendors/${currentVendor.id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ staff_id: patch }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setLinkStaffError(d.error ?? "עדכון הקישור נכשל");
+        return;
+      }
+      onVendorsChange();       // parent re-fetches → currentVendor gets the new staff_id
+      // Clear a stale suggestion; user can re-open to regenerate against the new staff.
+      setSuggestion(null);
+      setSuggestError(null);
+    } catch (e) { setLinkStaffError(String(e)); }
+    finally { setLinkingStaff(false); }
+  }
+
+  // Attendance-based split suggestion. Fetched on demand — the request is
+  // free of side effects (no writes), so the button reads more like a
+  // preview than a mutation. Errors surface inline; a successful fetch
+  // seeds the split panel via its `suggestion` prop.
+  const [suggestion, setSuggestion]         = useState<SplitSuggestion | null>(null);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [suggestError, setSuggestError]     = useState<string | null>(null);
+  async function requestSuggestion() {
+    if (suggestLoading) return;
+    setSuggestLoading(true); setSuggestError(null);
+    try {
+      const res = await fetch(`/api/admin/documents/${doc.id}/suggest-split`, { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) {
+        setSuggestError(data.error ?? "לא ניתן לחשב הצעה");
+        setSuggestion(null);
+        return;
+      }
+      setSuggestion({
+        month: data.month,
+        totalHours: data.totalHours,
+        proposal: data.proposal ?? [],
+      });
+      // Auto-enter split mode so the panel + the applied proposal are
+      // visible in one motion.
+      resetSplitError();
+      setSplitMode(true);
+    } catch (e) {
+      setSuggestError(String(e));
+      setSuggestion(null);
+    } finally { setSuggestLoading(false); }
+  }
+
+  // Show the "הצע פיצול" trigger only when the flow is actually usable:
+  // salary category (the only category this basis makes sense for), a
+  // vendor is linked to a staff row, and the doc has a date.
+  const canSuggest = form.category === "salary"
+    && currentVendorStaffId != null
+    && (form.doc_date ?? "").length > 0;
 
   // Inline vendor creation
   const [newVendorOpen, setNewVendorOpen] = useState(false);
@@ -221,6 +302,29 @@ export default function DocumentReviewForm({
         {doc.vendor_name_raw && !form.vendor_id && (
           <p className="text-xs text-[#2D2926]/45 mt-1">זוהה במסמך: {doc.vendor_name_raw}</p>
         )}
+        {/* Vendor → staff link. Kept compact: one small select right under
+            the vendor row so the mapping happens where the admin already
+            has context. Only rendered when the parent supplied `staff`
+            AND a vendor is selected. */}
+        {staff && staff.length > 0 && form.vendor_id && (
+          <div className="mt-1.5 flex items-center gap-2">
+            <Link2 size={12} className="shrink-0 text-[#8D775F]" />
+            <label className="text-xs text-[#2D2926]/60 shrink-0">עובד מקושר:</label>
+            <select
+              value={currentVendorStaffId ?? ""}
+              onChange={(e) => updateVendorStaff(e.target.value)}
+              disabled={linkingStaff}
+              className="flex-1 min-w-0 border border-[#2D2926]/15 rounded bg-white px-2 py-1 text-xs focus:outline-none focus:border-[#8D775F] disabled:opacity-50"
+            >
+              <option value="">— לא מקושר —</option>
+              {staff.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            {linkingStaff && <Loader2 size={12} className="animate-spin text-[#8D775F] shrink-0" />}
+          </div>
+        )}
+        {linkStaffError && (
+          <p className="text-xs text-red-600 mt-1">{linkStaffError}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -305,6 +409,23 @@ export default function DocumentReviewForm({
               <Scissors size={14} /> פצל בין פרויקטים
             </button>
           )}
+          {/* Attendance-based auto-suggest trigger. Only shown when the
+              flow is actually usable (salary category + vendor linked +
+              doc_date). Puts the panel in split mode and applies the
+              proposal in one interaction — chnn just reviews and saves. */}
+          {splitsEnabled && canSuggest && (
+            <button
+              type="button"
+              onClick={requestSuggestion}
+              disabled={suggestLoading}
+              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 border border-amber-300 bg-amber-50/80 text-amber-900 py-2 rounded-md text-sm font-semibold hover:bg-amber-100 disabled:opacity-50"
+            >
+              {suggestLoading ? <><Loader2 size={13} className="animate-spin" /> מחשב…</> : <><Sparkles size={13} /> הצע פיצול לפי נוכחות</>}
+            </button>
+          )}
+          {suggestError && (
+            <p className="text-xs text-amber-800 mt-1.5 flex items-center gap-1"><X size={11} />{suggestError}</p>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
@@ -317,6 +438,7 @@ export default function DocumentReviewForm({
             onCancel={() => { resetSplitError(); setSplitMode(hasSplits); }}
             error={splitError}
             initialSplits={existingSplits}
+            suggestion={suggestion ?? undefined}
           />
           {hasSplits && (
             <button

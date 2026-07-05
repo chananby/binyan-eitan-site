@@ -19,8 +19,19 @@
 // rows via `initialSplits`.
 
 import { useState } from "react";
-import { Plus, Trash2, Loader2, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import ProjectSelect, { type ProjectOption } from "./ProjectSelect";
+
+export interface SplitSuggestion {
+  /** Month this proposal covers, "YYYY-MM" — surfaced in the apply-strip
+   *  so the admin knows which month's attendance drove the split. */
+  month: string;
+  /** Total hours the linked staff clocked with a project attribution
+   *  that month. Shown alongside month for one-line context. */
+  totalHours: number;
+  /** The proposal rows, already in ILS and rounded. */
+  proposal: ReadonlyArray<{ project_id: string; project_name: string; hours: number; amount: number }>;
+}
 
 export interface SplitDraft {
   key: string;              // stable React key across re-orders
@@ -46,6 +57,7 @@ export default function DocumentSplitPanel({
   onCancel,
   error,
   initialSplits,
+  suggestion,
 }: {
   /** Doc's total in ILS. Displayed as source-of-truth; null renders as "—". */
   docTotal: number | null;
@@ -58,6 +70,11 @@ export default function DocumentSplitPanel({
    *  with those rows filled in instead of the default two-empty pattern.
    *  Undefined / empty → same behaviour the triage flow gets today. */
   initialSplits?: ReadonlyArray<{ project_id: string; amount: number }>;
+  /** Optional pre-computed proposal from /suggest-split. When present, a
+   *  small amber strip appears above the rows with an "החל הצעה" button;
+   *  clicking it replaces the local rows in one shot. The admin still
+   *  reviews before hitting "שמור פיצול" — nothing auto-saves. */
+  suggestion?: SplitSuggestion;
 }) {
   // Start with initialSplits if the parent seeded them (retroactive-edit
   // path from DocumentPreviewDialog); otherwise two empty rows — the
@@ -118,6 +135,41 @@ export default function DocumentSplitPanel({
           סה&quot;כ במסמך: <span className="font-bold text-charcoal tabular-nums">{fmtIls(docTotal)}</span>
         </p>
       </div>
+
+      {suggestion && suggestion.proposal.length > 0 && (
+        <div className="border border-amber-200 bg-amber-50/70 rounded-md p-2.5 space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="flex items-center gap-1.5 text-caption text-amber-900 font-semibold">
+              <Sparkles size={12} /> הצעה מנוכחות ({suggestion.month}, {suggestion.totalHours.toLocaleString("he-IL")} שעות)
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setRows(
+                  suggestion.proposal.map((p) => ({
+                    key: newKey(),
+                    project_id: p.project_id,
+                    amount: String(p.amount),
+                  })),
+                );
+              }}
+              className="shrink-0 inline-flex items-center gap-1 text-caption font-semibold text-amber-900 border border-amber-400/70 bg-white/80 rounded px-2 py-1 hover:bg-white transition-colors"
+            >
+              החל הצעה
+            </button>
+          </div>
+          <ul className="text-caption text-amber-900/85 space-y-0.5">
+            {suggestion.proposal.map((p) => (
+              <li key={p.project_id} className="flex justify-between gap-2">
+                <span className="truncate">{p.project_name}</span>
+                <span className="shrink-0 tabular-nums">
+                  {p.hours}h → {fmtIls(p.amount)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="space-y-2">
         {rows.map((r, i) => (

@@ -24,7 +24,10 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   let query = supabase
     .from("vendors")
-    .select("id, name, tax_id, notes, created_at")
+    // staff_id: FK to staff — set when this "vendor" is actually one of
+    // our own workers/subcontractors on payroll. Drives the salary-doc
+    // auto-split (attendance × project). Null for external suppliers.
+    .select("id, name, tax_id, notes, created_at, staff_id")
     .is("deleted_at", null)
     .order("name", { ascending: true });
 
@@ -61,7 +64,7 @@ export async function POST(req: NextRequest) {
       tax_id: body.tax_id?.trim() || null,
       notes:  body.notes?.trim()  || null,
     })
-    .select("id, name, tax_id, notes, created_at")
+    .select("id, name, tax_id, notes, created_at, staff_id")
     .single();
 
   if (error) {

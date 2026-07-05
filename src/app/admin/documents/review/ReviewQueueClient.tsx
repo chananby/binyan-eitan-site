@@ -18,7 +18,8 @@ import DocumentPreview from "../_components/DocumentPreview";
 import { useDuplicateCompare } from "../_components/useDuplicateCompare";
 
 type AuthState = "loading" | "unauthenticated" | "admin";
-interface Opt { id: string; name: string; status?: string | null }
+interface Opt { id: string; name: string; status?: string | null; staff_id?: string | null }
+interface StaffOpt { id: string; name: string; is_freelancer?: boolean }
 type UndoState = { kind: "single" | "bulk"; docs: DocRow[] };
 
 // Flagged first (more attention), clean high-confidence last.
@@ -38,6 +39,9 @@ export default function ReviewQueueClient() {
   const [total, setTotal] = useState(0);
   const [vendors, setVendors] = useState<Opt[]>([]);
   const [projects, setProjects] = useState<Opt[]>([]);
+  // Staff — enables the vendor→staff link widget + salary-doc auto-split
+  // suggestion inside the review form. Fetched alongside vendors/projects.
+  const [staff, setStaff] = useState<StaffOpt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -91,6 +95,10 @@ export default function ReviewQueueClient() {
     // include=site,overhead surfaces the "תקורות" destination.
     fetch("/api/admin/projects?include=site,overhead", { cache: "no-store" }).then(r => r.json())
       .then(d => setProjects(d.projects ?? [])).catch(() => {});
+    fetch("/api/admin/staff", { cache: "no-store" }).then(r => r.json())
+      .then(d => setStaff((d.staff ?? []).map((s: { id: string; name: string; is_freelancer?: boolean }) => ({
+        id: s.id, name: s.name, is_freelancer: s.is_freelancer,
+      })))).catch(() => {});
     return () => { cancelled = true; };
   }, [auth, loadVendors]);
 
@@ -215,6 +223,7 @@ export default function ReviewQueueClient() {
                   doc={current}
                   vendors={vendors}
                   projects={projects}
+                  staff={staff}
                   onVendorsChange={loadVendors}
                   onAfterAction={handleAfterAction}
                 />
