@@ -19,6 +19,7 @@
 import { useState } from "react";
 import { AlertCircle, BarChart2, Download, Loader2 } from "lucide-react";
 import { Card } from "./Card";
+import MonthField from "./MonthField";
 
 type DayStatus =
   | "present" | "in-progress" | "no-exit"
@@ -128,13 +129,10 @@ export default function MonthlyReportPanel() {
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-3 items-end">
         <div>
           <label className="block text-caption text-muted mb-1 font-body">חודש</label>
-          <input
-            type="month"
+          <MonthField
             value={month}
-            onChange={(e) => { setMonth(e.target.value); setData(null); }}
+            onChange={(v) => { setMonth(v); setData(null); }}
             max={currentMonth()}
-            className="w-full border border-warm-gray-light bg-bone text-charcoal text-sm px-3 py-2 focus:outline-none focus:border-accent"
-            dir="ltr"
           />
         </div>
         <button

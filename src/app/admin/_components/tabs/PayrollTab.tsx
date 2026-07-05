@@ -4,6 +4,7 @@ import { DollarSign, Loader2, AlertTriangle } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { INPUT } from "../shared/constants";
+import MonthField from "../shared/MonthField";
 import type { StaffMember, PayrollRow } from "../types";
 
 // "Does this row carry a usable rate for its employment type?" Mirrors
@@ -52,12 +53,9 @@ export default function PayrollTab(p: Props) {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Field label="חודש">
-            <input
-              type="month"
+            <MonthField
               value={p.payrollMonth}
-              onChange={e => p.setPayrollMonth(e.target.value)}
-              className={`${INPUT} text-end`}
-              dir="ltr"
+              onChange={p.setPayrollMonth}
             />
           </Field>
           <Field label="עובד (אופציונלי)">

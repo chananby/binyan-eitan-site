@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { Package, X, Loader2, AlertTriangle, Download } from "lucide-react";
+import MonthField from "../../_components/shared/MonthField";
 
 function defaultMonth(): string {
   const d = new Date();
@@ -65,8 +66,9 @@ export default function DocumentExportModal({ open, onClose }: { open: boolean; 
         </div>
 
         <label className="block text-xs text-[#2D2926]/60">חודש
-          <input type="month" value={month} onChange={e => setMonth(e.target.value)}
-            className="w-full border border-[#2D2926]/15 rounded-md px-3 py-2 text-sm mt-1 focus:outline-none focus:border-[#8D775F]" />
+          <div className="mt-1">
+            <MonthField value={month} onChange={setMonth} />
+          </div>
         </label>
 
         <label className="flex items-center gap-2 text-sm text-[#2D2926]/80">

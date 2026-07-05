@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, AlertCircle, Plus } from "lucide-react";
+import MonthField from "./MonthField";
 
 interface RateRow {
   id: string;
@@ -159,13 +160,7 @@ export default function RateManager(p: Props) {
           <div className="grid grid-cols-2 gap-2">
             <label className="flex flex-col gap-1">
               <span className="text-[0.62rem] uppercase tracking-wide text-charcoal/70">חודש תחולה</span>
-              <input
-                type="month"
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-                className="border border-charcoal/20 bg-white px-2 py-1.5 text-sm focus:outline-none focus:border-accent"
-                dir="ltr"
-              />
+              <MonthField value={month} onChange={setMonth} />
             </label>
             <label className="flex flex-col gap-1">
               <span className="text-[0.62rem] uppercase tracking-wide text-charcoal/70">סכום ({empLabel})</span>
