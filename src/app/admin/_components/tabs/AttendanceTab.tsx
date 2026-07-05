@@ -826,8 +826,7 @@ function TodayLog({
           <RefreshCw size={12} strokeWidth={1.5} /> רענן עכשיו
         </button>
       </div>
-      {dataLoading && <p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
-      {!dataLoading && attLoadErr && (
+      {attLoadErr && (
         <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded px-3 py-2.5 text-sm text-red-700 mb-3">
           <AlertCircle size={15} className="shrink-0 mt-0.5" />
           <div>
@@ -837,40 +836,55 @@ function TodayLog({
           </div>
         </div>
       )}
-      {!dataLoading && !attLoadErr && todayLogs.length === 0 && <p className="text-sm text-charcoal/70 text-center py-4">אין דיווחים היום — לחץ &quot;רענן עכשיו&quot; אם עובדים כבר דיווחו</p>}
-      {!dataLoading && todayLogs.length > 0 && (() => {
-        // Regular workers first; "exempt-from-attendance" staff (managers,
-        // global-salary roles) get a separate dimmed group at the bottom
-        // so they don't clutter the operational view — they still appear
-        // if they did clock in, just visually de-emphasized.
-        const regular = todayLogs.filter(r => !r.staff?.attendance_exempt);
-        const exempt  = todayLogs.filter(r =>  r.staff?.attendance_exempt);
-        return (
-          <>
-            {regular.length > 0 && (
-              <div className="divide-y divide-charcoal/15">
-                {regular.map(r => (
-                  <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
-                    onStartEditAtt={onStartEditAtt} onViewHistory={onViewHistory}
-                    farThresholdM={farThresholdM} dim={false} />
-                ))}
-              </div>
-            )}
-            {exempt.length > 0 && (
-              <div className="mt-4 pt-3 border-t border-charcoal/15">
-                <p className="text-content text-charcoal/70 font-semibold mb-1">פטורים מנוכחות</p>
+      {/* StaleRefresh keeps the log visible during a post-action reload
+          (edit-row / edit+approve / admin manual entry all call reload()
+          → dataLoading flips true → without this wrapper the list would
+          collapse to "טוען..." and the whole tab would jump). Same
+          pattern as the pending-queue block above. */}
+      {!attLoadErr && (
+      <StaleRefresh
+        loading={dataLoading}
+        hasContent={todayLogs.length > 0}
+        spinner={<p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
+      >
+        {todayLogs.length === 0 && (
+          <p className="text-sm text-charcoal/70 text-center py-4">אין דיווחים היום — לחץ &quot;רענן עכשיו&quot; אם עובדים כבר דיווחו</p>
+        )}
+        {todayLogs.length > 0 && (() => {
+          // Regular workers first; "exempt-from-attendance" staff (managers,
+          // global-salary roles) get a separate dimmed group at the bottom
+          // so they don't clutter the operational view — they still appear
+          // if they did clock in, just visually de-emphasized.
+          const regular = todayLogs.filter(r => !r.staff?.attendance_exempt);
+          const exempt  = todayLogs.filter(r =>  r.staff?.attendance_exempt);
+          return (
+            <>
+              {regular.length > 0 && (
                 <div className="divide-y divide-charcoal/15">
-                  {exempt.map(r => (
+                  {regular.map(r => (
                     <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
                       onStartEditAtt={onStartEditAtt} onViewHistory={onViewHistory}
-                      farThresholdM={farThresholdM} dim />
+                      farThresholdM={farThresholdM} dim={false} />
                   ))}
                 </div>
-              </div>
-            )}
-          </>
-        );
-      })()}
+              )}
+              {exempt.length > 0 && (
+                <div className="mt-4 pt-3 border-t border-charcoal/15">
+                  <p className="text-content text-charcoal/70 font-semibold mb-1">פטורים מנוכחות</p>
+                  <div className="divide-y divide-charcoal/15">
+                    {exempt.map(r => (
+                      <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
+                        onStartEditAtt={onStartEditAtt} onViewHistory={onViewHistory}
+                        farThresholdM={farThresholdM} dim />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
+      </StaleRefresh>
+      )}
     </Card>
   );
 }

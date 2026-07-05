@@ -197,6 +197,14 @@
   ב-`admin/layout.tsx` + `html:has(.admin-portal) { scroll-behavior: auto; }`
   ב-`globals.css`. הדף השיווקי נשאר smooth (עוגנים ל-Portfolio/Firm/Inquiry),
   כל `/admin/*` כבר snap-מיידי. `prefers-reduced-motion` נשאר. commit `ec9ba2d`.
+- **תיקון קפיצת todayLogs בנוכחות** — `TodayLog` השתמש ב-
+  `{!dataLoading && ...}` gate שהחליף את הרשימה ב-"טוען..." על כל
+  reload (עריכת רשומה / edit+approve / הוספה ידנית → `useAdminAttendance`
+  קוראים `reload()` → `setDataLoading(true)` באדמין → הרשימה נופלת מהעץ →
+  הגובה קורס → הגלילה מתאפסת). עטוף עכשיו ב-`<StaleRefresh>` (אותו דפוס
+  שקיים בתור האישורים ובבורד) — הרשימה הישנה נשארת + spinner קטן בזמן
+  הרענון, בלי קפיצה. שינוי תצוגה בלבד — reload/loadData לא נגעו.
+  **מוקדים נותרים לסבב הבא:** ScheduleTab (הוספת פועל יומי) + CollectionsTab.
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
   ניגודיות AA, שלושה סבבי refactor (dashboard, admin tabs, ForemanPortal).
