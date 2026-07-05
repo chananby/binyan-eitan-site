@@ -66,6 +66,13 @@
 - **📊 מאזן חודשי** בדשבורד — הכנסות/הוצאות/יתרה + מגמת 6 חודשים.
   helper טהור (`lib/finance-pnl.ts`) + endpoint `/api/admin/finance/pnl`.
 - **budget-actual פר-פרויקט** — כרטיס בכל פרויקט ב-ProjectsTab, כולל splits.
+- **חלוקת תקורה יחסית — שלב א'** (5-STEP direct-cost basis). `project_type='overhead'`
+  = תקורה (לא הקטגוריה). ההקצאה מחושבת על `direct[site]/total_direct`, כלומר
+  אין לולאה (STEP 4 קודם ל-STEP 5). מיגרציה `20260703_overhead_and_staff_link.sql`
+  הורצה: הוספה של `financial_documents.include_in_actuals` (default true) +
+  `vendors.staff_id` (nullable, לשלב ג'). ה-UI מציג "ביצוע ישיר" + "תקורה מוקצית"
+  + "סה"כ עלות" בשורות נפרדות. אימות מול יוני 2026 תואם לשקל: total_direct=₪114,995,
+  pool=₪62,901, מנחם משיב alloc=₪32,370. commit `fecf2dd`.
 
 ### מערכת גבייה (Layer 2 חלקי)
 - **payment_milestones** — schema + CRUD + accordion פר-פרויקט + כרטיס גבייה גלובלי.
@@ -186,12 +193,15 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
 
 ## החלטות שננעלו — בתור לבנייה
 
-### פיצול שכר לפי נוכחות (מסלול 2)
-- **הכוונה:** פיצול שכר של פועל בין אתרים לפי `attendance.project_id` של דיווחי
-  הנוכחות בפועל — לא ידנית פר-מסמך שכר.
-- **תלויות:** כל תשתית הנוכחות המהימנה נמצאת בייצור (חבילת אכיפת נוכחות
-  הושלמה — ראה "הושלם").
-- **סטטוס:** מוכן לתכנון פרטים.
+### פיצול שכר + תקורה — שלבים ב' ו-ג'
+- **שלב ב' — תצוגה/עריכה של `include_in_actuals`:** השדה קיים ופעיל
+  (הפילטר של budget-actual מכבד אותו), אבל אין UI לסמן/לבטל סימון פר-מסמך.
+  צריך: checkbox או toggle במסך פרטי המסמך + חיווי בטבלת ה-inbox
+  ("⊘ מוחרג מהחישוב"). ~30-60 דק' עבודה.
+- **שלב ג' — פיצול שכר אוטומטי מנוכחות:** UI מיפוי vendor↔staff (10 שורות
+  היום, גם זה בייצור על `vendors.staff_id`) + endpoint שיוצר
+  `document_project_splits` אוטומטית ממפגש vendor→staff + attendance של
+  אותו חודש. תלוי בשלב ב' (`include_in_actuals` לחריגות). ~3-4 שעות.
 
 ### קישור מסמכים — matcher אוטומטי (שלב 3)
 - **הבסיס** (`linked_document_id` + role גזור + סינון aggregation) פרוס בייצור.
