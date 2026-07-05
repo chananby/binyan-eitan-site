@@ -176,6 +176,13 @@
   הוחלף בכל 4 המופעים: MonthlyReportPanel, PayrollTab, RateManager,
   DocumentExportModal. **בדיקת חצים אנכיים במערכת נערכה במקביל — 14 מופעים,
   כולם תקינים** (10 accordion + 2 reorder, אין הפוכים). commit `7e34c61`.
+- **תיקון גלילה בלשונית שיבוץ** — `scroll-behavior: smooth` על `html`
+  ב-`globals.css` הפך את שחזור-הפוקוס אחרי סגירת `AssignCellDialog`
+  לאנימציה איטית שהמפעיל חווה כ"הדף גולל לבד אחרי כל שיבוץ" —
+  חוזר על עצמו על כל שיבוץ. Override צר: wrapper `<div class="admin-portal">`
+  ב-`admin/layout.tsx` + `html:has(.admin-portal) { scroll-behavior: auto; }`
+  ב-`globals.css`. הדף השיווקי נשאר smooth (עוגנים ל-Portfolio/Firm/Inquiry),
+  כל `/admin/*` כבר snap-מיידי. `prefers-reduced-motion` נשאר. commit `ec9ba2d`.
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
   ניגודיות AA, שלושה סבבי refactor (dashboard, admin tabs, ForemanPortal).
