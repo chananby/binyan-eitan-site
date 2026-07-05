@@ -8,8 +8,12 @@
  * clock_at (TIMESTAMPTZ) is the authoritative work timestamp.
  * timestamp_label is kept as a human-readable fallback in the DB.
  *
- * DB query is widened by ±3 days so retroactively-inserted records aren't missed;
- * in-range filtering happens in code using clock_at.
+ * DB query is widened by ±35 days on created_at so retroactive backfills
+ * (rows inserted a month+ after the shift they belong to) are still pulled
+ * from SQL — the C2/C3 family of bugs. ±3 was enough for TZ edges but
+ * silently dropped every backfilled shift; 35 covers a full calendar month
+ * + slack. In-range filtering still happens in code by clock_at so the
+ * output shape doesn't widen — the SQL just stops pre-cutting.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -93,13 +97,16 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ rows: [], summary: [], from, to });
     }
 
-    // Widen DB query by ±3 days to catch retroactively-entered records
+    // Widen DB query by ±35 days on created_at to catch retroactive
+    // backfills — same C2/C3 fix applied earlier to staff/[id]/history
+    // and staff/export. The in-code clock_at filter (workDate) still
+    // clamps output to [from, to] so the widened SQL doesn't leak.
     let query = supabase
       .from("attendance")
       .select("id, action, clock_at, created_at, staff:staff_id(id, name, phone), project:project_id(name)")
       .is("deleted_at", null)
-      .gte("created_at", dayStartISO(shiftYMD(from, -3)))
-      .lte("created_at", dayEndISO(shiftYMD(to, +3)));
+      .gte("created_at", dayStartISO(shiftYMD(from, -35)))
+      .lte("created_at", dayEndISO(shiftYMD(to, +35)));
 
     if (allowedProjectIds !== null) {
       query = query.in("project_id", allowedProjectIds);

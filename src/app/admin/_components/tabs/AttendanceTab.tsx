@@ -13,6 +13,7 @@ import { StaleRefresh } from "../shared/StaleRefresh";
 import { INPUT } from "../shared/constants";
 import DistanceFlag from "../shared/DistanceFlag";
 import CorrectionRequestsPanel, { type CorrectionRequest } from "../shared/CorrectionRequestsPanel";
+import MonthlyReportPanel from "../shared/MonthlyReportPanel";
 import WorkerHistoryPanel from "./WorkerHistoryPanel";
 import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
 import { attendanceTimeHHMM, attendanceDayTimeShort } from "../../../../lib/attendance-time";
@@ -1233,6 +1234,8 @@ export default function AttendanceTab(p: Props) {
         attReportErr={p.attReportErr}         setAttReportErr={p.setAttReportErr}
         attReportData={p.attReportData}       setAttReportData={p.setAttReportData}
       />
+
+      <MonthlyReportPanel />
 
       <ManualEntryForm
         manualOpen={p.manualOpen}             setManualOpen={p.setManualOpen}
