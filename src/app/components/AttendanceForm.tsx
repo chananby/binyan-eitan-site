@@ -12,7 +12,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useFeedback } from "../hooks/useFeedback";
-import { T, detectInitialLang, SUPPORTED_LANGS, type Lang } from "./attendance/i18n";
+import { T, detectInitialLang, SUPPORTED_LANGS, bilingualForForeman, type Lang } from "./attendance/i18n";
 import { countMissingExitDays } from "../../lib/worker-missing-exits";
 import type { Step, GeoCoords, Project, HistoryRecord, CorrectionSummary } from "./attendance/types";
 import PhoneScreen from "./attendance/PhoneScreen";
@@ -221,14 +221,14 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     setGeoError(null); setStep("locating");
     if (!navigator.geolocation) {
       feedback.error();
-      setGeoError(T[lang].geoRequired);
+      setGeoError(bilingualForForeman(lang, "geoRequired"));
       setStep("menu"); return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => { setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setStep("project"); },
       () => {
         feedback.error();
-        setGeoError(T[lang].geoRequired);
+        setGeoError(bilingualForForeman(lang, "geoRequired"));
         setStep("menu");
       },
       { timeout: 12000, enableHighAccuracy: true, maximumAge: 60000 }
@@ -271,7 +271,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         setErrorMsg(T[lang].noOpenEntryToClose); setStep("error");
       } else if (data.error === "gps_out_of_range") {
         feedback.error();
-        setErrorMsg(T[lang].gpsOutOfRange); setStep("error");
+        setErrorMsg(bilingualForForeman(lang, "gpsOutOfRange")); setStep("error");
       } else if (data.error === "monthly_remote_exit_cap_reached") {
         feedback.error();
         setErrorMsg(T[lang].monthlyRemoteExitCap); setStep("error");

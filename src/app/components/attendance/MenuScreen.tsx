@@ -63,7 +63,7 @@ export default function MenuScreen(p: Props) {
         {p.geoError && (
           <div className="flex items-start gap-2 border border-red-200 bg-red-50 px-4 py-3">
             <AlertCircle size={14} className="mt-0.5 shrink-0 text-red-400" />
-            <p className="font-body text-xs text-red-600 leading-snug">{p.geoError}</p>
+            <p className="font-body text-xs text-red-600 leading-snug whitespace-pre-line">{p.geoError}</p>
           </div>
         )}
       </div>

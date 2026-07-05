@@ -39,6 +39,7 @@ export default function ForemanManualEntryPanel({ projectId, projectName, worker
   const [date, setDate]     = useState(() => new Date().toISOString().slice(0, 10));
   const [entry, setEntry]   = useState("");
   const [exit, setExit]     = useState("");
+  const [notes, setNotes]   = useState("");
   const [saving, setSaving] = useState(false);
   const [err, setErr]       = useState<string | null>(null);
   const [msg, setMsg]       = useState<string | null>(null);
@@ -64,6 +65,11 @@ export default function ForemanManualEntryPanel({ projectId, projectName, worker
           entry_time: entry,
           ...(exit ? { exit_time: exit } : {}),
           project_id: projectId,
+          // Optional free-form note — commonly used to record why the
+          // foreman entered the row on behalf of the worker (e.g. "GPS
+          // override — worker was here"). Empty string sends nothing so
+          // edit_note stays null on the row.
+          ...(notes.trim() ? { notes: notes.trim() } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -71,7 +77,7 @@ export default function ForemanManualEntryPanel({ projectId, projectName, worker
       setMsg("ההחתמה נשלחה לאישור.");
       // Reset only the per-worker fields; keep date so the foreman can
       // enter another row for the same day quickly.
-      setStaffId(""); setEntry(""); setExit("");
+      setStaffId(""); setEntry(""); setExit(""); setNotes("");
       onSubmitted?.();
     } catch (e) {
       setErr(String(e));
@@ -168,6 +174,21 @@ export default function ForemanManualEntryPanel({ projectId, projectName, worker
           />
         </label>
       </div>
+
+      {/* Optional note — commonly a short reason ("חריגת GPS — עלי היה
+          איתי באתר"). Shown to the admin next to the pending row so they
+          can spot patterns without opening every one. */}
+      <label className="block space-y-1">
+        <span className="text-caption text-muted">סיבה / הערה (אופציונלי)</span>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={2}
+          maxLength={300}
+          placeholder="למשל: חריגת GPS — העובד היה איתי באתר"
+          className="w-full border border-charcoal/20 bg-white px-2 py-2 text-content focus:outline-none focus:border-accent resize-none"
+        />
+      </label>
 
       {err && <p className="text-caption text-red-600 flex items-center gap-1.5"><X size={11} /> {err}</p>}
 

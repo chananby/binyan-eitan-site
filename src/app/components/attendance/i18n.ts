@@ -136,7 +136,7 @@ const HE: ScreenStrings = {
   clockTitle: "שעון נוכחות",
   phonePrompt: "הזן מספר טלפון לזיהוי",
   confirmLocation: "אשר מיקום והמשך",
-  geoRequired: "חובה לאשר מיקום כדי לדווח נוכחות. אפשר גישה ל-GPS בהגדרות הדפדפן ונסה שוב, או השתמש ב\"דיווח חסר\" לאחר מכן.",
+  geoRequired: "חובה לאשר מיקום כדי לדווח נוכחות. אפשר גישה ל-GPS בהגדרות הדפדפן ונסה שוב, או פנה למנהל העבודה שיזין את ההחתמה שלך.",
   locating: "מאתר מיקום…",
   pickSite: "בחר אתר בנייה",
   pickSiteSub: "בחר את האתר שבו אתה עובד היום",
@@ -223,7 +223,7 @@ const HE: ScreenStrings = {
   corrGeneric: "שגיאה — נסה שוב.",
   joinCta: "עובד חדש? בקש הצטרפות",
   noOpenEntryToClose: "אין כניסה פתוחה לסגירה. אם צריך תיקון, פנה למנהל.",
-  gpsOutOfRange: "אתה מחוץ לטווח האתר. יש להחתים מהאתר. אם יש בעיה, פנה למנהל.",
+  gpsOutOfRange: "אתה מחוץ לטווח האתר. פנה למנהל העבודה שיזין את ההחתמה שלך מהפורטל שלו.",
   monthlyRemoteExitCap: "הגעת למכסת היציאות מרחוק החודש. פנה למנהל.",
   corrRecordNotFound: "הרשומה לא נמצאה. פנה למנהל.",
   corrRecordDeleted: "הרשומה נמחקה. פנה למנהל.",
@@ -235,7 +235,7 @@ const RU: ScreenStrings = {
   clockTitle: "Отметка о явке",
   phonePrompt: "Введите номер телефона",
   confirmLocation: "Подтвердить местоположение",
-  geoRequired: "Необходимо разрешить доступ к местоположению. Разрешите GPS в настройках браузера и попробуйте снова, или используйте «Пропущенная отметка» позже.",
+  geoRequired: "Необходимо разрешить доступ к местоположению. Разрешите GPS в настройках браузера и попробуйте снова, или попросите бригадира отметить приход за вас.",
   locating: "Определение местоположения…",
   pickSite: "Выберите объект",
   pickSiteSub: "Выберите объект, где вы работаете сегодня",
@@ -322,7 +322,7 @@ const RU: ScreenStrings = {
   corrGeneric: "Ошибка — попробуйте снова.",
   joinCta: "Новый сотрудник? Подать заявку",
   noOpenEntryToClose: "Нет открытого прихода для закрытия. Если нужна коррекция — обратитесь к менеджеру.",
-  gpsOutOfRange: "Вы находитесь вне зоны объекта. Пожалуйста, отметьтесь на объекте. Если возникла проблема — обратитесь к менеджеру.",
+  gpsOutOfRange: "Вы находитесь вне зоны объекта. Попросите бригадира отметить приход за вас со своего портала.",
   monthlyRemoteExitCap: "Вы исчерпали месячный лимит удалённых отметок ухода. Обратитесь к менеджеру.",
   corrRecordNotFound: "Запись не найдена. Обратитесь к менеджеру.",
   corrRecordDeleted: "Эта запись была удалена. Обратитесь к менеджеру.",
@@ -334,7 +334,7 @@ const EN: ScreenStrings = {
   clockTitle: "Time Clock",
   phonePrompt: "Enter phone number to identify",
   confirmLocation: "Confirm location and continue",
-  geoRequired: "Location access is required to report attendance. Allow GPS in your browser settings and try again, or use \"Missing entry\" afterward.",
+  geoRequired: "Location access is required to clock in. Allow GPS in your browser settings and try again, or ask your foreman to enter the clock-in for you.",
   locating: "Locating…",
   pickSite: "Select a construction site",
   pickSiteSub: "Select the site where you are working today",
@@ -421,7 +421,7 @@ const EN: ScreenStrings = {
   corrGeneric: "Error — try again.",
   joinCta: "New worker? Request to join",
   noOpenEntryToClose: "No open clock-in to close. Contact the manager if a correction is needed.",
-  gpsOutOfRange: "You're outside the site's range. Please clock in from the site. If there's a problem, contact the manager.",
+  gpsOutOfRange: "You're outside the site's range. Ask your foreman to enter the clock-in for you from their portal.",
   monthlyRemoteExitCap: "You've reached this month's remote clock-out limit. Contact the manager.",
   corrRecordNotFound: "Record not found. Contact the manager.",
   corrRecordDeleted: "This record has been deleted. Contact the manager.",
@@ -433,7 +433,7 @@ const SI: ScreenStrings = {
   clockTitle: "පැමිණීම් ඔරලෝසුව",
   phonePrompt: "හඳුනා ගැනීමට දුරකථන අංකය ඇතුළු කරන්න",
   confirmLocation: "ස්ථානය තහවුරු කර ඉදිරියට යන්න",
-  geoRequired: "පැමිණීම වාර්තා කිරීමට ස්ථානයට අවසර දිය යුතුය. බ්‍රවුසර සැකසුම්වල GPS වෙත අවසර දී නැවත උත්සාහ කරන්න, නැතහොත් පසුව \"අතුරුදහන් වාර්තාව\" භාවිතා කරන්න.",
+  geoRequired: "පැමිණීම වාර්තා කිරීමට ස්ථානයට අවසර අවශ්‍යයි. බ්‍රවුසර සැකසුම්වල GPS අවසර දී නැවත උත්සාහ කරන්න, නැතහොත් ඔබේ ස්ථාන කළමනාකරු ඔබ වෙනුවෙන් සටහන් කිරීමට ඉල්ලන්න.",
   locating: "ස්ථානය සොයමින්…",
   pickSite: "ඉදිකිරීම් ස්ථානයක් තෝරන්න",
   pickSiteSub: "ඔබ අද වැඩ කරන ස්ථානය තෝරන්න",
@@ -520,7 +520,7 @@ const SI: ScreenStrings = {
   corrGeneric: "දෝෂයක් — නැවත උත්සාහ කරන්න.",
   joinCta: "නව සේවකයෙක්ද? එක්වීමට ඉල්ලීමක් කරන්න",
   noOpenEntryToClose: "වසා දැමීමට විවෘත ඇතුළු වීමක් නැත. නිවැරදි කිරීමක් අවශ්‍ය නම් — කළමනාකරු අමතන්න.",
-  gpsOutOfRange: "ඔබ ස්ථානයේ පරාසයෙන් පිටත සිටී. කරුණාකර ස්ථානයේ සිට සටහන් කරන්න. ගැටලුවක් ඇත්නම් කළමනාකරු අමතන්න.",
+  gpsOutOfRange: "ඔබ ස්ථානයේ පරාසයෙන් පිටත සිටී. ඔබේ ස්ථාන කළමනාකරු ඔවුන්ගේ ද්වාරයෙන් ඔබ වෙනුවෙන් සටහන් කිරීමට ඉල්ලන්න.",
   monthlyRemoteExitCap: "ඔබ මෙම මාසයේ දුරස්ථ පිටවීමේ සීමාව සම්පූර්ණ කර ඇත. කළමනාකරු අමතන්න.",
   corrRecordNotFound: "වාර්තාව හමු නොවීය. කළමනාකරු අමතන්න.",
   corrRecordDeleted: "මෙම වාර්තාව මකා දමා ඇත. කළමනාකරු අමතන්න.",
@@ -532,7 +532,7 @@ const ZH: ScreenStrings = {
   clockTitle: "考勤打卡",
   phonePrompt: "输入电话号码进行识别",
   confirmLocation: "确认位置并继续",
-  geoRequired: "报告考勤需要位置权限。请在浏览器设置中允许 GPS 后重试，或之后使用\"缺失记录\"。",
+  geoRequired: "报告考勤需要位置权限。请在浏览器设置中允许 GPS 后重试，或请工地负责人为您登记打卡。",
   locating: "正在定位…",
   pickSite: "选择工地",
   pickSiteSub: "选择您今天工作的工地",
@@ -619,7 +619,7 @@ const ZH: ScreenStrings = {
   corrGeneric: "错误 — 请重试。",
   joinCta: "新员工？申请加入",
   noOpenEntryToClose: "没有可关闭的上班打卡记录。如需更正，请联系管理员。",
-  gpsOutOfRange: "您在工地范围之外。请从工地打卡。如有问题，请联系管理员。",
+  gpsOutOfRange: "您在工地范围之外。请工地负责人从其门户为您登记打卡。",
   monthlyRemoteExitCap: "您已达到本月远程下班打卡的上限。请联系管理员。",
   corrRecordNotFound: "未找到记录。请联系管理员。",
   corrRecordDeleted: "此记录已被删除。请联系管理员。",
@@ -631,7 +631,7 @@ const HI: ScreenStrings = {
   clockTitle: "उपस्थिति घड़ी",
   phonePrompt: "पहचान के लिए फ़ोन नंबर दर्ज करें",
   confirmLocation: "स्थान की पुष्टि करें और जारी रखें",
-  geoRequired: "उपस्थिति दर्ज करने के लिए स्थान की अनुमति आवश्यक है। ब्राउज़र सेटिंग्स में GPS की अनुमति दें और पुनः प्रयास करें, या बाद में \"छूटी हुई प्रविष्टि\" का उपयोग करें।",
+  geoRequired: "उपस्थिति दर्ज करने के लिए स्थान की अनुमति आवश्यक है। ब्राउज़र सेटिंग्स में GPS की अनुमति दें और पुनः प्रयास करें, या अपने साइट प्रबंधक से आपके लिए दर्ज करने के लिए कहें।",
   locating: "स्थान ढूँढ रहे हैं…",
   pickSite: "निर्माण स्थल चुनें",
   pickSiteSub: "वह स्थल चुनें जहाँ आप आज काम कर रहे हैं",
@@ -718,7 +718,7 @@ const HI: ScreenStrings = {
   corrGeneric: "त्रुटि — पुनः प्रयास करें।",
   joinCta: "नया कर्मचारी? शामिल होने का अनुरोध करें",
   noOpenEntryToClose: "बंद करने के लिए कोई खुला प्रवेश नहीं है। यदि सुधार चाहिए — प्रबंधक से संपर्क करें।",
-  gpsOutOfRange: "आप स्थल की सीमा के बाहर हैं। कृपया स्थल से उपस्थिति दर्ज करें। यदि कोई समस्या हो, प्रबंधक से संपर्क करें।",
+  gpsOutOfRange: "आप स्थल की सीमा के बाहर हैं। अपने साइट प्रबंधक से उनके पोर्टल से आपके लिए दर्ज करने के लिए कहें।",
   monthlyRemoteExitCap: "आप इस महीने की दूरस्थ निकास सीमा तक पहुँच गए हैं। प्रबंधक से संपर्क करें।",
   corrRecordNotFound: "रिकॉर्ड नहीं मिला। प्रबंधक से संपर्क करें।",
   corrRecordDeleted: "यह रिकॉर्ड हटा दिया गया है। प्रबंधक से संपर्क करें।",
@@ -743,4 +743,18 @@ export const T: Record<Lang, ScreenStrings> = {
 export function detectInitialLang(navigatorLanguage?: string): Lang {
   const raw = (navigatorLanguage ?? "").toLowerCase().split(/[-_]/)[0];
   return (SUPPORTED_LANGS as string[]).includes(raw) ? (raw as Lang) : "he";
+}
+
+/**
+ * For messages the worker will show to their (Hebrew-speaking) foreman —
+ * `gpsOutOfRange` and `geoRequired`. Renders the worker's language plus a
+ * Hebrew line so the worker can hand their phone to the foreman without
+ * a translation step. For Hebrew-speaking workers, returns the string as-is
+ * (no duplicate line). Callers pick the T key (currently `gpsOutOfRange`
+ * and `geoRequired`).
+ */
+export function bilingualForForeman(lang: Lang, key: "gpsOutOfRange" | "geoRequired"): string {
+  const own = T[lang][key];
+  if (lang === "he") return own;
+  return `${own}\n\n${T.he[key]}`;
 }

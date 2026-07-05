@@ -44,7 +44,7 @@ export function ErrorScreen(p: Common & { errorMsg: string | null; onReset: () =
   return (
     <Screen backHref={p.backHref} backLabel={p.backLabel} lang={p.lang} onLangChange={p.onLangChange}>
       <AlertCircle size={56} strokeWidth={1} className="text-red-400" />
-      <p className="font-body text-center text-sm text-charcoal/70 leading-relaxed max-w-xs">{p.errorMsg}</p>
+      <p className="font-body text-center text-sm text-charcoal/70 leading-relaxed max-w-xs whitespace-pre-line">{p.errorMsg}</p>
       <button onClick={p.onReset}
         className="mt-4 w-full bg-charcoal py-4 font-body text-sm font-semibold tracking-wider uppercase text-bone hover:bg-charcoal/80 transition-colors duration-200">
         {p.t.tryAgain}

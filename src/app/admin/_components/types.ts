@@ -72,6 +72,10 @@ export interface AttendanceRecord {
   // or last touched via the manual entry flow. Surfaced in the pending
   // approval panel so the admin knows who submitted a foreman entry.
   edited_by?: string | null;
+  // Free-form reason a foreman typed when submitting the row (commonly
+  // "חריגת GPS — העובד היה איתי באתר"). Rendered under edited_by in
+  // the pending panel to help the admin spot patterns.
+  edit_note?: string | null;
   staff: { id: string; name: string; phone: string; role?: string } | null;
   project: { id: string; name: string } | null;
 }

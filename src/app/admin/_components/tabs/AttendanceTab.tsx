@@ -43,6 +43,10 @@ export interface AttendanceRecord {
   /** "foreman:<name>" on rows created by a foreman via the manual-entry
    *  form; used by the pending panel to show WHO submitted the row. */
   edited_by?: string | null;
+  /** Free-form note the foreman typed at submit time. Rendered under
+   *  edited_by so the admin can scan for patterns (GPS overrides,
+   *  forgotten clocks, …) without opening each pending row. */
+  edit_note?: string | null;
   staff: { id: string; name: string; phone: string; role?: string; attendance_exempt?: boolean } | null;
   project: { id: string; name: string } | null;
 }
@@ -725,6 +729,12 @@ function PendingApprovals({
                               <span className="text-charcoal">מנהל: {r.edited_by.slice("foreman:".length)}</span>
                             </>
                           )}
+                        </p>
+                      )}
+                      {r.edit_note && (
+                        <p className="text-caption text-charcoal/70 mt-0.5">
+                          <span className="text-charcoal/50">הערה:</span>{" "}
+                          <span className="text-charcoal">{r.edit_note}</span>
                         </p>
                       )}
                     </div>

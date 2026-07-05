@@ -87,6 +87,15 @@ export async function POST(req: NextRequest) {
   const [y, m, d] = date.split("-");
   const dp = `${parseInt(d)}.${parseInt(m)}.${y}`;
 
+  // Optional free-form note ("סיבה/הערה") from the foreman panel.
+  // Written to edit_note so it surfaces next to the row in the admin
+  // pending review — used to record why the foreman entered this
+  // (commonly "חריגת GPS — העובד היה איתי באתר"). Trimmed once, then
+  // spread onto every row this request produces (both in and out for a
+  // work pair) so an admin who filters by note doesn't miss half of a
+  // shift.
+  const trimmedNote = notes?.trim();
+
   const base = (action: string, label: string, clockAt: string | null): Record<string, unknown> => ({
     staff_id,
     action,
@@ -101,7 +110,8 @@ export async function POST(req: NextRequest) {
     source: "manual",
     lat: null,
     lng: null,
-    ...(editedBy   ? { edited_by: editedBy, edited_at: new Date().toISOString() } : {}),
+    ...(editedBy    ? { edited_by: editedBy, edited_at: new Date().toISOString() } : {}),
+    ...(trimmedNote ? { edit_note: trimmedNote } : {}),
     ...(project_id?.trim() ? { project_id } : {}),
   });
 

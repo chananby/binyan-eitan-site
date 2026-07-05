@@ -21,10 +21,12 @@ export async function GET(req: NextRequest) {
   let query: any = supabase
     .from("attendance")
     // edited_by lets the admin panel show WHO submitted a foreman-created
-    // pending row ("foreman:<name>") alongside the worker's name. Worker-
-    // submitted manual rows and legacy admin-approved rows carry a null
-    // edited_by; only foreman entries surface a label.
-    .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, source, edited_by, staff:staff_id(id, name, phone, role, attendance_exempt), project:project_id(id, name)")
+    // pending row ("foreman:<name>") alongside the worker's name.
+    // edit_note carries the optional reason the foreman typed when they
+    // submitted the row — surfaces as a "הערה" line so the admin can
+    // spot patterns (GPS overrides, forgotten clocks, etc.) without
+    // opening every row.
+    .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, source, edited_by, edit_note, staff:staff_id(id, name, phone, role, attendance_exempt), project:project_id(id, name)")
     .is("deleted_at", null)
     .eq("status", "pending")
     .eq("is_manual", true)
