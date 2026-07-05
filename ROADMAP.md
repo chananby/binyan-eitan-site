@@ -80,6 +80,20 @@
   "🗄 לא נכלל בחישוב" מופיע ב-DocumentCard כשהמצב false. אין רשימת מסמכים
   פר-פרויקט במערכת היום — אם תיווסף בעתיד, ה-badge כבר במקום המשותף.
   commit `399b40c`.
+- **פיצול שכר לפי נוכחות — שלב ג' (auto-suggestion).** משפחת התקורה סגורה
+  לגמרי. Aggregator טהור [`attendance-project-shares.ts`](src/lib/attendance-project-shares.ts)
+  (12 tests) מקבץ שעות פר-פרויקט לחודש; endpoint
+  `GET /api/admin/documents/[id]/suggest-split` מציע פיצול read-only,
+  קודי שגיאה מובנים (`no_vendor`/`vendor_not_linked`/`no_doc_date`/
+  `no_amount`/`no_attendance`/`bad_month`). `PATCH /api/admin/vendors/[id]`
+  לקישור vendor↔staff; widget "עובד מקושר" inline ב-DocumentReviewForm;
+  פס הצעה ב-DocumentSplitPanel עם "החל הצעה". שני עקרונות שנעולים:
+  **`status='approved'`** — pending של מנהל עבודה לא נכנס עד אישור;
+  **חודש ברירת מחדל = `monthBefore(doc_date)`** — התלוש של יולי מתפרסם
+  5-10 באוגוסט, וה-MonthField picker מאפשר override לחריגים. אין שינוי
+  schema (רוכב על `vendors.staff_id` משלב א'). אימות פרודקשן: נריה
+  שמעוני 2026-06-11 → 2026-05 בברירת מחדל, 7.63h מאושרות על מנחם משיב 12
+  → ₪847 מדויקים. commits `cc0b05b` + `6a7bc63`.
 
 ### מערכת גבייה (Layer 2 חלקי)
 - **payment_milestones** — schema + CRUD + accordion פר-פרויקט + כרטיס גבייה גלובלי.
@@ -216,33 +230,15 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
   לעובדים (חלוקה מפורטת דווחה בסבב C1). בנוסף, 3 עובדים עם תלוש שגוי-חודש
   (zero-sum, סה"כ שנתי זהה, אבל תלוש חייב לשקף חודש עבודה) → דורש
   **תלושים מתקנים** (רלוונטי לביטוח לאומי, מס הכנסה, פנסיה).
+- **מיפוי vendor↔staff לספקים שהם עובדים** — Stage-C בייצור, אבל
+  אף `vendor` עדיין לא סומן עם `staff_id`. פעולה ידנית: פתח מסמך שכר של
+  ספק שהוא עובד → תחת בורר הספק יש dropdown "עובד מקושר" → בחר את העובד →
+  נשמר אוטומטית. מכיוון שיש ~10 ספקים שהם עובדים, זה משהו כמו רבע שעה
+  עבודה. **בלי המיפוי, כפתור "הצע פיצול לפי נוכחות" לא יופיע.**
 
 ---
 
 ## החלטות שננעלו — בתור לבנייה
-
-### פיצול שכר + תקורה — שלב ג'
-- **שלב ג' — פיצול שכר אוטומטי מנוכחות:** בנוי בענף
-  `feature/stage-c-auto-salary-split` (commits `9b445bd` + שני
-  תיקונים חדשים) — **ממתין לאישור מיזוג**. מה שיש בענף:
-  - `attendance-project-shares.ts` — aggregator טהור + 12 tests (עוברים).
-  - `GET /api/admin/documents/[id]/suggest-split` — הצעה read-only, קודי
-    שגיאה מובנים (`no_vendor` / `vendor_not_linked` / `no_doc_date` /
-    `no_amount` / `no_attendance` / `bad_month`).
-  - `PATCH /api/admin/vendors/[id]` — קישור vendor↔staff.
-  - Widget "עובד מקושר" ב-`DocumentReviewForm` + פס הצעה
-    ב-`DocumentSplitPanel` + כפתור "הצע פיצול" עם בורר חודש (MonthField).
-  - **סינון `status='approved'`** — pending של מנהל עבודה לא נכנס עד
-    שהאדמין אישר (עקבי עם הכלל הכללי של המערכת).
-  - **חודש ברירת מחדל = החודש שלפני `doc_date`** — התלוש של יולי
-    נחתם 5-10 באוגוסט, אז חודש הנוכחות הנכון הוא יולי (`doc_date`-1M).
-    בורר החודש מאפשר override לחריגים.
-  - אין שינוי schema (הכל רוכב על `vendors.staff_id` משלב א').
-  - Build נקי, 367/367 tests. אימות בדגימת פרודקשן: מסמך שכר של נריה
-    שמעוני (2026-06-11) → חודש 2026-05 מזוהה כברירת מחדל, 7.63 שעות
-    מאושרות על מנחם משיב 12 → ₪847 המדויקים של התלוש.
-- **טרם נעשה:** merge ל-main + פריסה + עדכון מיפוי vendor↔staff
-  ל-10 ספקים שבפועל עובדים אצלנו (חנן, עבודה ידנית ב-UI חדש).
 
 ### קישור מסמכים — matcher אוטומטי (שלב 3)
 - **הבסיס** (`linked_document_id` + role גזור + סינון aggregation) פרוס בייצור.
