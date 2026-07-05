@@ -41,6 +41,7 @@ const EDITABLE_FIELDS = [
   "status",
   "possible_duplicate_of",  // settable to null to clear a "not a duplicate" flag
   "linked_document_id",     // invoice ↔ payment cross-reference; null = primary, uuid = evidence
+  "include_in_actuals",     // false = paper-trail-only; excluded from budget-actual + P&L
 ] as const;
 
 const RETURN_COLUMNS = DOCUMENT_COLUMNS;

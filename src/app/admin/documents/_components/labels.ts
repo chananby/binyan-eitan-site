@@ -36,6 +36,10 @@ export interface DocRow {
   // Evidence rows are excluded from every expense/income aggregate to
   // avoid double-counting.
   linked_document_id?: string | null;
+  // False → the row exists for the paper trail but is excluded from every
+  // expense rollup (budget-actual, P&L, export totals). True (default) =
+  // normal behavior. Admins toggle this on the detail screen.
+  include_in_actuals?: boolean;
   confidence?: string | null;   // high | medium | low
   created_at: string;
   vendor: { name: string } | null;

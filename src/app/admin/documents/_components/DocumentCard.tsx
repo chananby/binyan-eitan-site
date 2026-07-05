@@ -14,7 +14,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Building2, Camera, Eye, RefreshCw, Loader2, Scissors } from "lucide-react";
+import { AlertTriangle, Building2, Camera, Eye, RefreshCw, Loader2, Scissors, Archive } from "lucide-react";
 import {
   DOC_TYPE_LABELS, statusChip, fmtCurrency, fmtDate, displayVendor, type DocRow,
 } from "./labels";
@@ -158,6 +158,17 @@ export default function DocumentCard({
               original) with delete / clear-flag actions. onChanged refreshes the
               inbox list after a resolution. */}
           <DuplicateChip doc={doc} onDeleted={onChanged} onCleared={onChanged} />
+          {/* Excluded from rollups (paper-trail-only). Quiet grey chip
+              so the admin registers it without alarm — this is a
+              deliberate state the admin set on the detail screen. */}
+          {doc.include_in_actuals === false && (
+            <span
+              className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-[#2D2926]/[0.06] text-[#2D2926]/70"
+              title="המסמך לא נספר בחישובי הרווחיות — ארכיון בלבד"
+            >
+              <Archive size={11} /> לא נכלל בחישוב
+            </span>
+          )}
         </div>
       </Link>
 

@@ -9,5 +9,5 @@ export const DOCUMENT_COLUMNS =
   "doc_type, direction, vendor_id, vendor_name_raw, doc_number, doc_date, " +
   "amount_before_vat, vat_amount, total_amount, currency, amount_ils, category, " +
   "project_id, description, notes, reviewed_at, reviewed_by, uploaded_by, " +
-  "file_hash, possible_duplicate_of, linked_document_id, confidence, " +
+  "file_hash, possible_duplicate_of, linked_document_id, include_in_actuals, confidence, " +
   "created_at, vendor:vendor_id(name), project:project_id(name)";

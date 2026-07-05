@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Check, X, Save, Trash2, Plus, Scissors, RotateCcw } from "lucide-react";
+import { Loader2, Check, X, Save, Trash2, Plus, Scissors, RotateCcw, Archive } from "lucide-react";
 import {
   DOC_TYPE_LABELS, DIRECTION_LABELS, CATEGORY_LABELS, CURRENCY_OPTIONS,
   DOC_TYPE_OPTIONS, DIRECTION_OPTIONS, CATEGORY_OPTIONS, type DocRow,
@@ -345,6 +345,8 @@ export default function DocumentReviewForm({
         />
       )}
 
+      <IncludeInActualsToggle doc={doc} />
+
       <div>
         <label className={LABEL}>תיאור</label>
         <input value={form.description} onChange={e => set("description", e.target.value)} className={FIELD} />
@@ -376,6 +378,78 @@ export default function DocumentReviewForm({
           {busy === "delete" ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={16} />}
         </button>
       </div>
+    </div>
+  );
+}
+
+// Inline toggle for financial_documents.include_in_actuals. Default TRUE
+// (the checkbox is on). Unchecking flips the row to paper-trail-only —
+// the row still ships with the accountant zip and appears in the inbox
+// with a "לא נכלל בחישוב" chip, but every expense rollup (budget-actual,
+// P&L, export totals) drops it.
+//
+// Independent of the main form: PATCH fires immediately on toggle so the
+// admin doesn't need to hit "שמור". Optimistic — local state updates
+// instantly, revert on error, no parent refresh needed for correctness.
+function IncludeInActualsToggle({ doc }: { doc: DocRow }) {
+  // Undefined counts as true (default DB value) so a legacy fetch that
+  // predates this feature still renders "checked".
+  const initial = doc.include_in_actuals !== false;
+  const [included, setIncluded] = useState(initial);
+  const [busy, setBusy]         = useState(false);
+  const [err, setErr]           = useState<string | null>(null);
+
+  async function toggle(next: boolean) {
+    if (busy) return;
+    setBusy(true); setErr(null);
+    const prev = included;
+    setIncluded(next); // optimistic
+    try {
+      const res = await fetch(`/api/admin/documents/${doc.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ include_in_actuals: next }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setErr(d.error ?? `שגיאה ${res.status}`);
+        setIncluded(prev); // revert
+      }
+    } catch (e) {
+      setErr(String(e));
+      setIncluded(prev);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className={`border rounded-md p-3 ${included ? "border-[#2D2926]/10 bg-white" : "border-amber-200 bg-amber-50/60"}`}>
+      <label className="flex items-start gap-2 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={included}
+          onChange={(e) => toggle(e.target.checked)}
+          disabled={busy}
+          className="mt-0.5 accent-[#8D775F]"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-[#2D2926]">
+            כלול בחישוב הרווחיות
+            {busy && <Loader2 size={11} className="animate-spin text-[#2D2926]/50" />}
+          </div>
+          {included ? (
+            <p className="text-[0.7rem] text-[#2D2926]/55 mt-0.5 leading-snug">
+              המסמך נספר בביצוע פר-פרויקט, ב-P&amp;L החודשי ובסה&quot;כ בייצוא לחשבון.
+            </p>
+          ) : (
+            <p className="text-[0.7rem] text-amber-800 mt-0.5 leading-snug inline-flex items-center gap-1">
+              <Archive size={11} /> ארכיון בלבד — לא נספר ברווחיות, ב-P&amp;L או בסיכומי ייצוא. עדיין מופיע בתיבת המסמכים ובחבילה לרו&quot;ח.
+            </p>
+          )}
+          {err && <p className="text-[0.7rem] text-red-600 mt-1">{err}</p>}
+        </div>
+      </label>
     </div>
   );
 }
