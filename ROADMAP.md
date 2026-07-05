@@ -108,6 +108,20 @@
   נמחק; כפתור "+ דיווח חסר" הוחלף בהודעת "פנה למנהל העבודה" בכל 6 השפות.
   **59 רשומות היסטוריות של עובדים במסלול הישן לא מושפעות; 2 pending נותרו
   לאישור אדמין כרגיל.** commit `dd5e8ff`.
+- **מנגנון חריגת GPS דרך מנהל העבודה + תיקון `geoRequired`** — רוכב על
+  ה-panel של מנהל העבודה שכבר קיים (בלי endpoint חדש, בלי מסך חדש, בלי
+  שינוי סכימה). ForemanManualEntryPanel קיבל textarea אופציונלי
+  "סיבה/הערה" (max 300) שנשלח כ-`notes` ונכתב ל-`edit_note` (העמודה כבר
+  קיימת מ-`20260607_attendance_edit_audit_soft_delete`) על כל שורה שהבקשה
+  מייצרת (גם כניסה וגם יציאה — פילטר לא מפספס חצי משמרת). בפאנל האישור
+  המתינ באדמין נוסף רנדור "הערה: …" מתחת ל-"הוגש: מנהל: …", כדי לזהות
+  תבניות (חריגות GPS, שכחות) בלי לפתוח שורות. הודעות שהעובד יראה למנהל
+  העבודה — `gpsOutOfRange` ו-`geoRequired` — הפכו לדו-לשוניות ב-runtime
+  (worker language + `\n\n` + עברית) דרך `bilingualForForeman()` חדש
+  ב-`i18n.ts`. `whitespace-pre-line` הוסף ב-`ErrorScreen` וב-banner של
+  `MenuScreen`. הנוסחים העדכניים בכל 6 השפות: "פנה למנהל העבודה שיזין
+  את ההחתמה שלך מהפורטל שלו." אימות ייצור: `x-matched-path: /admin`.
+  commit `dce5e5a`.
 - **אכיפת מיקום בהחתמה** — מודל 2-tier נפרד מהחיווי הוויזואלי הקיים:
   `attendance_gps_enforce_radius_m=100` (אכיפה) + `attendance_far_threshold_m=50`
   (chip אדום, נשמר כפי שהיה). כניסה מעל הרדיוס → 403 `gps_out_of_range`. יציאה
@@ -214,13 +228,16 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
 - **סטטוס:** דחוי, הכרעה עתידית מתי לבנות.
 
 ### אימות תרגומים SI/HI/ZH
-- 21 מחרוזות שהוספו במסגרת סבבי ה-i18n האחרונים הן best-effort מאוצר-מילים
+- 21+ מחרוזות שהוספו במסגרת סבבי ה-i18n האחרונים הן best-effort מאוצר-מילים
   קיים בכל שפה. **מומלץ מעבר native-speaker לפני** שעובד לא-עברי ייתקל
   בהודעה בפועל.
 - הפריטים ב-i18n.ts:
   - סבב אכיפה: `noOpenEntryToClose` / `gpsOutOfRange` /
     `monthlyRemoteExitCap` / `corrRecordNotFound` / `corrRecordDeleted`.
   - סבב הפרדת ידני: `askForemanForFix` / `manualEntryDisabled`.
+  - סבב GPS-override: נוסח מעודכן ל-`gpsOutOfRange` (הפניה למנהל
+    העבודה) + `geoRequired` (אותו דפוס). כרגע דו-לשוני ב-runtime עם
+    fallback לעברית, אז fix ה-native הוא איכות ולא תקלה חוסמת.
 
 ### חוב טכני ידוע
 - **`ForemanPortal.tsx` (~1,344 שורות)** — מועמד ל-refactor. פירוק `site` tab
