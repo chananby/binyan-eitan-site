@@ -140,6 +140,14 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **MonthField משותף RTL** — הוצף באג ויזואלי בבורר החודש של דוח נוכחות חודשי:
+  ה-widget הנייטיב של הדפדפן מציג את החודשים LTR ואת חצי השנה בכיוון LTR
+  שלא ניתן לתקן ב-CSS. פתרון: קומפוננטת [`MonthField`](src/app/admin/_components/shared/MonthField.tsx)
+  משותפת שעוטפת את `<input type="month">` עם 2 חצים משלנו בכיווניות עברית
+  (`ChevronRight` = חודש קודם, `ChevronLeft` = חודש הבא — עקבי עם `WeekPicker`).
+  הוחלף בכל 4 המופעים: MonthlyReportPanel, PayrollTab, RateManager,
+  DocumentExportModal. **בדיקת חצים אנכיים במערכת נערכה במקביל — 14 מופעים,
+  כולם תקינים** (10 accordion + 2 reorder, אין הפוכים). commit `7e34c61`.
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
   ניגודיות AA, שלושה סבבי refactor (dashboard, admin tabs, ForemanPortal).
