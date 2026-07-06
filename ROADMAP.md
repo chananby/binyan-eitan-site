@@ -226,7 +226,8 @@
   `manualDateLabel` / `manualTimeIn` / `manualTimeOut` / `manualProjectLabel` /
   `manualValidation`) אומתו 0-referenced ונמחקו מה-interface
   `ScreenStrings` ומכל 6 השפות (48 מחרוזות + 6 שורות interface).
-  Build נקי, 367 tests.
+  Build נקי, 367 tests. **נפרס בייצור** (commit `c697e8d`, אימות:
+  `x-matched-path: /admin`).
   **נותרים בתור:** גל 2 (פאנל נראות אדמין — endpoint
   `/api/attendance/error-report` + סופר 24h לפי staff_id/code) +
   גל 3 (עקרונות X/Y/Z ב-`DEVELOPMENT_PRINCIPLES.md`).
