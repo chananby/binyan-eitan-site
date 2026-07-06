@@ -206,6 +206,21 @@
   הרענון, בלי קפיצה. שינוי תצוגה בלבד — reload/loadData לא נגעו.
   **נפרס בייצור** (commit `be4bdbe`, אימות: `x-matched-path: /admin`).
   **מוקדים נותרים לסבב הבא:** ScheduleTab (הוספת פועל יומי) + CollectionsTab.
+- **הודעות שגיאה בזרימת העובד — גל 1 (ניקוי + הבחנה + קידוד).**
+  שלוש בעיות תוקנו בסבב הזה: (1) 5 מפתחות i18n מאובנים
+  (`manualBtn`/`manualTitle`/`manualSentTitle`/`manualSentBody`/`manualHint`)
+  שרדו את סבב מחיקת "דיווח חסר" — נמחקו מהממשק `ScreenStrings`
+  ומ-6 השפות (30 מחרוזות). (2) `geoRequired` פוצל ל-4 מפתחות
+  ספציפיים: `geoPermissionDenied` / `geoPositionUnavailable` /
+  `geoTimeout` / `geoUnsupported`, וב-`AttendanceForm.tsx:227` ה-callback
+  של `getCurrentPosition` מקבל עכשיו את `GeolocationPositionError.code`
+  ומאתר את המפתח (1/2/3). כל 4 עברו ל-`bilingualForForeman`. (3) 8
+  מסלולי fallback שנפלו ל-`unknownError` קודדו מחדש ב-backend
+  (`invalid_body`/`missing_action`/`invalid_action`/`location_required`/
+  `access_denied`/`server_error`/`session_expired`) — הודעות עובד
+  ספציפיות ב-`i18n.ts`, פרטים טכניים ב-`console.error` בלבד.
+  Build נקי, 367 tests. **גל 2 (פאנל נראות אדמין) + גל 3 (עקרונות
+  ב-DEVELOPMENT_PRINCIPLES) — נותרים בתור.**
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
   ניגודיות AA, שלושה סבבי refactor (dashboard, admin tabs, ForemanPortal).
@@ -266,6 +281,13 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
   - סבב GPS-override: נוסח מעודכן ל-`gpsOutOfRange` (הפניה למנהל
     העבודה) + `geoRequired` (אותו דפוס). כרגע דו-לשוני ב-runtime עם
     fallback לעברית, אז fix ה-native הוא איכות ולא תקלה חוסמת.
+  - **סבב הודעות שגיאה גל 1:** `geoPermissionDenied` (הישן של
+    `geoRequired`) + 3 חדשים לפי `GeolocationPositionError.code`
+    (`geoPositionUnavailable`, `geoTimeout`, `geoUnsupported`), וכן
+    4 מפתחות fallback שהוציאו מסלולים מ-`unknownError`
+    (`errClientBadRequest`, `errLocationRequired`, `errAccessDenied`,
+    `errServerBusy`). 7 חדשים × 4 שפות non-HE = 28 מחרוזות
+    best-effort לתקף מול native.
 
 ### חוב טכני ידוע
 - **`ForemanPortal.tsx` (~1,344 שורות)** — מועמד ל-refactor. פירוק `site` tab

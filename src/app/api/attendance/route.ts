@@ -34,15 +34,19 @@ export async function POST(req: NextRequest) {
   // Blocks browser-originated cross-origin abuse (CSRF). Workers always submit
   // from the /attendance page, which is same-origin, so this is invisible to
   // legitimate use.
+  // Every error return carries a stable `error` code (snake_case) that the
+  // client maps to a localized message. Never send a human-readable string
+  // — the client is multilingual and the worker sees T[lang].<key> chosen
+  // from the code. See DEVELOPMENT_PRINCIPLES: "one code → one message".
   const origin = req.headers.get("origin");
   const host = req.headers.get("host");
   if (origin && host) {
     try {
       if (new URL(origin).host !== host) {
-        return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+        return NextResponse.json({ success: false, error: "access_denied" }, { status: 403 });
       }
     } catch {
-      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ success: false, error: "access_denied" }, { status: 403 });
     }
   }
 
@@ -52,7 +56,9 @@ export async function POST(req: NextRequest) {
   // not throttle each other.
   const staffId = getWorkerStaffIdFromRequest(req);
   if (!staffId) {
-    return NextResponse.json({ success: false, error: "יש להזדהות מחדש" }, { status: 401 });
+    // Client treats 401 status as sessionExpired regardless of body — the
+    // body code is documentation for anyone reading server logs.
+    return NextResponse.json({ success: false, error: "session_expired" }, { status: 401 });
   }
 
   // ── Rate limit ────────────────────────────────────────────────────────────
@@ -70,15 +76,16 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
+    console.error("[attendance] invalid_body: JSON parse failed for staff", staffId);
+    return NextResponse.json({ success: false, error: "invalid_body" }, { status: 400 });
   }
 
   const { action, lat, lng, timestamp, project_id } = body;
   if (!action) {
-    return NextResponse.json({ success: false, error: "Missing required field: action" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "missing_action" }, { status: 400 });
   }
   if (!lat || !lng) {
-    return NextResponse.json({ success: false, error: "Location required" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "location_required" }, { status: 400 });
   }
 
   // ── Init Supabase ──────────────────────────────────────────────────────────
@@ -90,9 +97,12 @@ export async function POST(req: NextRequest) {
       !supabaseUrl && "SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL)",
       !supabaseKey && "SUPABASE_SERVICE_ROLE_KEY",
     ].filter(Boolean).join(", ");
+    // The technical detail (which env var) stays in the server log; the
+    // worker sees a generic errServerBusy. Same pattern for the two
+    // 500s below.
     console.error("[attendance] Missing env vars:", missing);
     return NextResponse.json(
-      { success: false, error: `Missing env vars: ${missing}` },
+      { success: false, error: "server_error" },
       { status: 500 }
     );
   }
@@ -103,7 +113,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Supabase client init failed";
     console.error("[attendance] createServerClient threw:", msg);
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return NextResponse.json({ success: false, error: "server_error" }, { status: 500 });
   }
 
   // ── 1. Look up staff by signed id ─────────────────────────────────────────
@@ -118,14 +128,17 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   if (staffError) {
+    // Full staffError detail (message + code + hint) already went to the
+    // server log via logSupabaseError. The worker gets the generic
+    // errServerBusy — no leaking DB internals to the phone.
     logSupabaseError("staff lookup", staffError);
     return NextResponse.json(
-      { success: false, error: `staff_lookup_failed: ${staffError.message}` },
+      { success: false, error: "server_error" },
       { status: 500 }
     );
   }
   if (!staff) {
-    return NextResponse.json({ success: false, error: "יש להזדהות מחדש" }, { status: 401 });
+    return NextResponse.json({ success: false, error: "session_expired" }, { status: 401 });
   }
   if (staff.active === false) {
     return NextResponse.json({ success: false, error: "account_inactive" }, { status: 403 });
@@ -134,7 +147,7 @@ export async function POST(req: NextRequest) {
   // ── 2. Normalize action + duplicate clock-in guard ────────────────────────
   const normalizedAction = action === "כניסה" ? "in" : action === "יציאה" ? "out" : action;
   if (!["in", "out"].includes(normalizedAction)) {
-    return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "invalid_action" }, { status: 400 });
   }
 
   // Block a new clock-in only when an OPEN record exists (an entry not yet
@@ -253,9 +266,11 @@ export async function POST(req: NextRequest) {
         .gte("clock_at", monthStart)
         .gt("distance_from_project_m", enf.radiusMeters);
       if (countErr) {
+        // countErr detail (code + message) already went to the log via
+        // logSupabaseError. Worker sees the generic errServerBusy.
         logSupabaseError("remote-exit count", countErr);
         return NextResponse.json(
-          { success: false, error: `remote_exit_count_failed: ${countErr.message}` },
+          { success: false, error: "server_error" },
           { status: 500 },
         );
       }
@@ -290,7 +305,7 @@ export async function POST(req: NextRequest) {
     }
     logSupabaseError("attendance insert", insertError);
     return NextResponse.json(
-      { success: false, error: `attendance_insert_failed: ${insertError.message}` },
+      { success: false, error: "server_error" },
       { status: 500 }
     );
   }

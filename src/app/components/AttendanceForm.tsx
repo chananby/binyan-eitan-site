@@ -220,15 +220,30 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     if (!identifiedStaffId) { setStep("phone"); return; }
     setGeoError(null); setStep("locating");
     if (!navigator.geolocation) {
+      // Extremely rare in 2026 — every mainstream mobile browser exposes
+      // this API. Distinct message because "allow GPS in your settings"
+      // is useless advice: the browser simply can't do it. Show the
+      // "ask your foreman" path directly.
       feedback.error();
-      setGeoError(bilingualForForeman(lang, "geoRequired"));
+      setGeoError(bilingualForForeman(lang, "geoUnsupported"));
       setStep("menu"); return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => { setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setStep("project"); },
-      () => {
+      (err) => {
+        // Map GeolocationPositionError.code to the right message. Before
+        // the split, all three codes collapsed to a single message that
+        // said "allow GPS in settings" — misleading for timeouts and
+        // signal-unavailable, where the worker's real fix is different
+        // (retry / step outside). Falls back to permission-denied for
+        // an unknown code so the worker sees SOMETHING actionable.
         feedback.error();
-        setGeoError(bilingualForForeman(lang, "geoRequired"));
+        const bilingualKey =
+          err.code === 1 ? "geoPermissionDenied" :    // PERMISSION_DENIED
+          err.code === 2 ? "geoPositionUnavailable" : // POSITION_UNAVAILABLE
+          err.code === 3 ? "geoTimeout" :             // TIMEOUT
+                           "geoPermissionDenied";
+        setGeoError(bilingualForForeman(lang, bilingualKey));
         setStep("menu");
       },
       { timeout: 12000, enableHighAccuracy: true, maximumAge: 60000 }
@@ -278,6 +293,37 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
       } else if (res.status === 429) {
         feedback.error();
         setErrorMsg(T[lang].tooManyAttempts); setStep("error");
+      } else if (data.error === "location_required") {
+        // The worker's client sent the request without coordinates —
+        // likely a stale UI state or a retry against a mid-transition
+        // geolocation result. Distinct from GPS-out-of-range: no coords
+        // at all vs. coords but too far. Message points at the same
+        // fix path (retry / contact foreman) but names the cause.
+        feedback.error();
+        setErrorMsg(T[lang].errLocationRequired); setStep("error");
+      } else if (data.error === "missing_action" || data.error === "invalid_action" || data.error === "invalid_body") {
+        // 400s from a malformed request payload. Not reachable from the
+        // real UI (buttons always fill the action), but a stale client
+        // or a bad retry could trigger it. Grouped under one message
+        // because the worker's action is the same in all three cases.
+        feedback.error();
+        setErrorMsg(T[lang].errClientBadRequest); setStep("error");
+      } else if (data.error === "access_denied") {
+        // 403 from the middleware — the caller isn't a worker with a
+        // valid attendance session. Distinct from 401 (session expired,
+        // fixable by re-entering phone) and from account_inactive
+        // (the worker's own account is disabled).
+        feedback.error();
+        setErrorMsg(T[lang].errAccessDenied); setStep("error");
+      } else if (res.status >= 500 || data.error === "server_error") {
+        // Generic server-side bucket: env vars missing, DB failure, or
+        // any other 500 the route returns. The worker can't diagnose,
+        // so we give them one friendly message. The BACKEND still logs
+        // the specific cause via console.error — that log line is the
+        // real trace for chnn to look at, and it never leaks to the
+        // worker.
+        feedback.error();
+        setErrorMsg(T[lang].errServerBusy); setStep("error");
       } else {
         feedback.error();
         // Never surface data.error directly — backend may return Hebrew

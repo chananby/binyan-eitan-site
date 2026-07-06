@@ -38,7 +38,18 @@ export function langDir(lang: Lang): "rtl" | "ltr" {
 }
 
 export interface ScreenStrings {
-  clockTitle: string; phonePrompt: string; confirmLocation: string; geoRequired: string;
+  clockTitle: string; phonePrompt: string; confirmLocation: string;
+  // Geolocation error variants — one per GeolocationPositionError.code
+  // (1=denied, 2=unavailable, 3=timeout) plus a compat leg for browsers
+  // with no navigator.geolocation object at all. Split from the old
+  // single `geoRequired` key so the message actually matches the cause:
+  // "give permission" is useless advice when the phone just timed out.
+  // All four are bilingual via bilingualForForeman() — the worker can
+  // hand their phone to the foreman without a translation step.
+  geoPermissionDenied: string;
+  geoPositionUnavailable: string;
+  geoTimeout: string;
+  geoUnsupported: string;
   locating: string;
   pickSite: string; pickSiteSub: string; loadingSites: string; noSites: string; changeNumber: string;
   locationOk: string; clockIn: string; clockOut: string; changeSite: string;
@@ -49,7 +60,7 @@ export interface ScreenStrings {
   tryAgain: string; notFound: string; unknownError: string; accountInactive: string; alreadyClockedIn: string; noInternalAccess: string;
   home: string; footer: string;
   myHistory: string; historyTitle: string; noHistory: string; loadingHistory: string; backToForm: string;
-  manualBtn: string; manualTitle: string; manualSentTitle: string; manualSentBody: string; pendingBadge: string;
+  pendingBadge: string;
   corrPending: string; corrApproved: string; corrRejected: string;
   manualDateLabel: string; manualTimeIn: string; manualTimeOut: string; manualProjectLabel: string;
   identify: string; identifying: string; tooManyAttempts: string; sessionExpired: string;
@@ -72,7 +83,6 @@ export interface ScreenStrings {
   historyHoursUnit: string;             // unit suffix on totals row ("שעות")
   reportMistakeTooltip: string;         // pencil tooltip
   // ManualScreen extras
-  manualHint: string;                   // "report will be sent for admin approval"
   manualNoSite: string;                 // "— ללא אתר —" empty option label
   manualSubmit: string;                 // submit button
   manualBackToHistory: string;          // back link
@@ -130,13 +140,27 @@ export interface ScreenStrings {
   // to that endpoint, but the string exists so a resurrected caller has
   // a localized message ready.
   manualEntryDisabled: string;
+  // Specific fallback messages for backend errors that used to collapse
+  // to the generic `unknownError` bucket. Each one tells the worker
+  // whether the situation is (a) something they can try to fix, or
+  // (b) a real server issue where their only action is to retry / contact
+  // the foreman. Server-side, each error code is still logged with its
+  // technical reason via console.error so we retain the trace without
+  // leaking backend detail to the worker.
+  errClientBadRequest: string;   // missing_action / invalid_action / invalid_body
+  errLocationRequired: string;   // location_required — the client sent no coords
+  errAccessDenied: string;       // 403 forbidden (non-GPS)
+  errServerBusy: string;         // 500 / env / DB / other server-side failure
 }
 
 const HE: ScreenStrings = {
   clockTitle: "שעון נוכחות",
   phonePrompt: "הזן מספר טלפון לזיהוי",
   confirmLocation: "אשר מיקום והמשך",
-  geoRequired: "חובה לאשר מיקום כדי לדווח נוכחות. אפשר גישה ל-GPS בהגדרות הדפדפן ונסה שוב, או פנה למנהל העבודה שיזין את ההחתמה שלך.",
+  geoPermissionDenied: "חובה לאשר מיקום כדי לדווח נוכחות. אפשר גישה ל-GPS בהגדרות הדפדפן ונסה שוב, או פנה למנהל העבודה שיזין את ההחתמה שלך.",
+  geoPositionUnavailable: "לא הצלחנו לאתר את המיקום. צא לאזור פתוח ונסה שוב, או פנה למנהל העבודה.",
+  geoTimeout: "איתור המיקום נמשך יותר מדי. בדוק את החיבור ונסה שוב, או פנה למנהל העבודה.",
+  geoUnsupported: "הדפדפן אינו תומך במיקום. פנה למנהל העבודה שיזין את ההחתמה שלך.",
   locating: "מאתר מיקום…",
   pickSite: "בחר אתר בנייה",
   pickSiteSub: "בחר את האתר שבו אתה עובד היום",
@@ -170,10 +194,6 @@ const HE: ScreenStrings = {
   noHistory: "לא נמצאו רשומות נוכחות",
   loadingHistory: "טוען היסטוריה...",
   backToForm: "חזור לדיווח",
-  manualBtn: "דיווח חסר",
-  manualTitle: "הוספת דיווח ידני",
-  manualSentTitle: "הדיווח נשלח ✓",
-  manualSentBody: "המנהל יאשר את הדיווח בקרוב",
   pendingBadge: "ממתין לאישור",
   corrPending: "ממתין לאישור ⏳",
   corrApproved: "אושר ✓",
@@ -203,7 +223,6 @@ const HE: ScreenStrings = {
   historyTotal: "סה\"כ",
   historyHoursUnit: "שעות",
   reportMistakeTooltip: "דווח על טעות",
-  manualHint: "הדיווח ישלח לאישור המנהל",
   manualNoSite: "— ללא אתר —",
   manualSubmit: "שלח לאישור",
   manualBackToHistory: "חזור להיסטוריה",
@@ -229,13 +248,20 @@ const HE: ScreenStrings = {
   corrRecordDeleted: "הרשומה נמחקה. פנה למנהל.",
   askForemanForFix: "שכחת החתמה? פנה למנהל העבודה.",
   manualEntryDisabled: "הזנה ידנית עצמאית הופסקה. פנה למנהל העבודה לתיקון.",
+  errClientBadRequest: "בקשה לא תקינה. נסה שוב, ואם התקלה נמשכת פנה למנהל העבודה.",
+  errLocationRequired: "לא נשלח מיקום. נסה שוב, ואם התקלה נמשכת פנה למנהל העבודה.",
+  errAccessDenied: "אין הרשאה. פנה למנהל העבודה.",
+  errServerBusy: "תקלה זמנית בשרת. נסה שוב עוד רגע, ואם התקלה נמשכת פנה למנהל העבודה.",
 };
 
 const RU: ScreenStrings = {
   clockTitle: "Отметка о явке",
   phonePrompt: "Введите номер телефона",
   confirmLocation: "Подтвердить местоположение",
-  geoRequired: "Необходимо разрешить доступ к местоположению. Разрешите GPS в настройках браузера и попробуйте снова, или попросите бригадира отметить приход за вас.",
+  geoPermissionDenied: "Необходимо разрешить доступ к местоположению. Разрешите GPS в настройках браузера и попробуйте снова, или попросите бригадира отметить приход за вас.",
+  geoPositionUnavailable: "Не удалось определить местоположение. Выйдите на открытую местность и попробуйте снова, или обратитесь к бригадиру.",
+  geoTimeout: "Определение местоположения заняло слишком много времени. Проверьте соединение и попробуйте снова, или обратитесь к бригадиру.",
+  geoUnsupported: "Браузер не поддерживает определение местоположения. Попросите бригадира отметить приход за вас.",
   locating: "Определение местоположения…",
   pickSite: "Выберите объект",
   pickSiteSub: "Выберите объект, где вы работаете сегодня",
@@ -269,10 +295,6 @@ const RU: ScreenStrings = {
   noHistory: "Записи не найдены",
   loadingHistory: "Загрузка...",
   backToForm: "Вернуться к отметке",
-  manualBtn: "Пропущенная отметка",
-  manualTitle: "Добавить отметку вручную",
-  manualSentTitle: "Отметка отправлена ✓",
-  manualSentBody: "Менеджер скоро подтвердит её",
   pendingBadge: "Ожидает подтверждения",
   corrPending: "Ожидает ⏳",
   corrApproved: "Одобрено ✓",
@@ -302,7 +324,6 @@ const RU: ScreenStrings = {
   historyTotal: "Итого",
   historyHoursUnit: "ч",
   reportMistakeTooltip: "Сообщить об ошибке",
-  manualHint: "Отметка будет отправлена на подтверждение менеджеру",
   manualNoSite: "— без объекта —",
   manualSubmit: "Отправить",
   manualBackToHistory: "Назад к истории",
@@ -328,13 +349,20 @@ const RU: ScreenStrings = {
   corrRecordDeleted: "Эта запись была удалена. Обратитесь к менеджеру.",
   askForemanForFix: "Забыли отметиться? Обратитесь к бригадиру.",
   manualEntryDisabled: "Самостоятельная отметка задним числом отключена. Обратитесь к бригадиру.",
+  errClientBadRequest: "Некорректный запрос. Попробуйте снова, а если ошибка сохраняется — обратитесь к бригадиру.",
+  errLocationRequired: "Местоположение не отправлено. Попробуйте снова, а если ошибка сохраняется — обратитесь к бригадиру.",
+  errAccessDenied: "Нет доступа. Обратитесь к бригадиру.",
+  errServerBusy: "Временный сбой сервера. Попробуйте через минуту, а если ошибка сохраняется — обратитесь к бригадиру.",
 };
 
 const EN: ScreenStrings = {
   clockTitle: "Time Clock",
   phonePrompt: "Enter phone number to identify",
   confirmLocation: "Confirm location and continue",
-  geoRequired: "Location access is required to clock in. Allow GPS in your browser settings and try again, or ask your foreman to enter the clock-in for you.",
+  geoPermissionDenied: "Location access is required to clock in. Allow GPS in your browser settings and try again, or ask your foreman to enter the clock-in for you.",
+  geoPositionUnavailable: "Couldn't determine your location. Step into open sky and try again, or ask your foreman.",
+  geoTimeout: "Locating took too long. Check your connection and try again, or ask your foreman.",
+  geoUnsupported: "This browser doesn't support location. Ask your foreman to enter the clock-in for you.",
   locating: "Locating…",
   pickSite: "Select a construction site",
   pickSiteSub: "Select the site where you are working today",
@@ -368,10 +396,6 @@ const EN: ScreenStrings = {
   noHistory: "No attendance records found",
   loadingHistory: "Loading history…",
   backToForm: "Back to clock",
-  manualBtn: "Missing entry",
-  manualTitle: "Add a manual entry",
-  manualSentTitle: "Report submitted ✓",
-  manualSentBody: "The manager will approve the report soon",
   pendingBadge: "Pending approval",
   corrPending: "Pending ⏳",
   corrApproved: "Approved ✓",
@@ -401,7 +425,6 @@ const EN: ScreenStrings = {
   historyTotal: "Total",
   historyHoursUnit: "hrs",
   reportMistakeTooltip: "Report a mistake",
-  manualHint: "The report will be sent for the manager's approval",
   manualNoSite: "— No site —",
   manualSubmit: "Submit for approval",
   manualBackToHistory: "Back to history",
@@ -427,13 +450,20 @@ const EN: ScreenStrings = {
   corrRecordDeleted: "This record has been deleted. Contact the manager.",
   askForemanForFix: "Forgot to clock? Ask your foreman.",
   manualEntryDisabled: "Self-service manual entry has been disabled. Ask your foreman to fix it.",
+  errClientBadRequest: "The request was malformed. Try again — if it keeps failing, ask your foreman.",
+  errLocationRequired: "No location was sent. Try again — if it keeps failing, ask your foreman.",
+  errAccessDenied: "You don't have access. Ask your foreman.",
+  errServerBusy: "Temporary server error. Try again in a moment — if it keeps failing, ask your foreman.",
 };
 
 const SI: ScreenStrings = {
   clockTitle: "පැමිණීම් ඔරලෝසුව",
   phonePrompt: "හඳුනා ගැනීමට දුරකථන අංකය ඇතුළු කරන්න",
   confirmLocation: "ස්ථානය තහවුරු කර ඉදිරියට යන්න",
-  geoRequired: "පැමිණීම වාර්තා කිරීමට ස්ථානයට අවසර අවශ්‍යයි. බ්‍රවුසර සැකසුම්වල GPS අවසර දී නැවත උත්සාහ කරන්න, නැතහොත් ඔබේ ස්ථාන කළමනාකරු ඔබ වෙනුවෙන් සටහන් කිරීමට ඉල්ලන්න.",
+  geoPermissionDenied: "පැමිණීම වාර්තා කිරීමට ස්ථානයට අවසර අවශ්‍යයි. බ්‍රවුසර සැකසුම්වල GPS අවසර දී නැවත උත්සාහ කරන්න, නැතහොත් ඔබේ ස්ථාන කළමනාකරු ඔබ වෙනුවෙන් සටහන් කිරීමට ඉල්ලන්න.",
+  geoPositionUnavailable: "ස්ථානය හඳුනා ගැනීමට නොහැකි විය. විවෘත අහසක් යටට ගොස් නැවත උත්සාහ කරන්න, නැතහොත් ඔබේ ස්ථාන කළමනාකරු අමතන්න.",
+  geoTimeout: "ස්ථානය සොයා ගැනීමට වැඩි කාලයක් ගත විය. ඔබේ සම්බන්ධතාවය පරීක්ෂා කර නැවත උත්සාහ කරන්න, නැතහොත් ඔබේ ස්ථාන කළමනාකරු අමතන්න.",
+  geoUnsupported: "මෙම බ්‍රවුසරය ස්ථාන සේවා සඳහා සහාය නොදක්වයි. ඔබ වෙනුවෙන් සටහන් කිරීමට ඔබේ ස්ථාන කළමනාකරු අමතන්න.",
   locating: "ස්ථානය සොයමින්…",
   pickSite: "ඉදිකිරීම් ස්ථානයක් තෝරන්න",
   pickSiteSub: "ඔබ අද වැඩ කරන ස්ථානය තෝරන්න",
@@ -467,10 +497,6 @@ const SI: ScreenStrings = {
   noHistory: "පැමිණීම් වාර්තා හමු නොවීය",
   loadingHistory: "ඉතිහාසය පූරණය වෙමින්…",
   backToForm: "ඔරලෝසුවට ආපසු",
-  manualBtn: "අතුරුදහන් වාර්තාව",
-  manualTitle: "අතින් වාර්තාවක් එක් කරන්න",
-  manualSentTitle: "වාර්තාව යවන ලදී ✓",
-  manualSentBody: "කළමනාකරු ඉක්මනින් වාර්තාව අනුමත කරයි",
   pendingBadge: "අනුමැතිය බලාපොරොත්තුවෙන්",
   corrPending: "බලාපොරොත්තුවෙන් ⏳",
   corrApproved: "අනුමත විය ✓",
@@ -500,7 +526,6 @@ const SI: ScreenStrings = {
   historyTotal: "එකතුව",
   historyHoursUnit: "පැය",
   reportMistakeTooltip: "වැරැද්දක් වාර්තා කරන්න",
-  manualHint: "වාර්තාව කළමනාකරුගේ අනුමැතිය සඳහා යවනු ලැබේ",
   manualNoSite: "— ස්ථානයක් නැත —",
   manualSubmit: "අනුමැතිය සඳහා යවන්න",
   manualBackToHistory: "ඉතිහාසයට ආපසු",
@@ -526,13 +551,20 @@ const SI: ScreenStrings = {
   corrRecordDeleted: "මෙම වාර්තාව මකා දමා ඇත. කළමනාකරු අමතන්න.",
   askForemanForFix: "සටහන් කිරීමට අමතක වුනාද? ඔබේ ස්ථාන කළමනාකරු අමතන්න.",
   manualEntryDisabled: "ස්වයං-සේවා අතින් සටහන් කිරීම අක්‍රිය කර ඇත. සකස් කිරීමට ස්ථාන කළමනාකරු අමතන්න.",
+  errClientBadRequest: "ඉල්ලීම වැරදිය. නැවත උත්සාහ කරන්න — දෝෂය දිගටම පවතී නම්, ඔබේ ස්ථාන කළමනාකරු අමතන්න.",
+  errLocationRequired: "ස්ථානය යවා නොමැත. නැවත උත්සාහ කරන්න — දෝෂය දිගටම පවතී නම්, ඔබේ ස්ථාන කළමනාකරු අමතන්න.",
+  errAccessDenied: "ඔබට අවසර නැත. ඔබේ ස්ථාන කළමනාකරු අමතන්න.",
+  errServerBusy: "තාවකාලික සේවාදායක දෝෂයකි. මොහොතකට පසු නැවත උත්සාහ කරන්න — දෝෂය දිගටම පවතී නම්, ඔබේ ස්ථාන කළමනාකරු අමතන්න.",
 };
 
 const ZH: ScreenStrings = {
   clockTitle: "考勤打卡",
   phonePrompt: "输入电话号码进行识别",
   confirmLocation: "确认位置并继续",
-  geoRequired: "报告考勤需要位置权限。请在浏览器设置中允许 GPS 后重试，或请工地负责人为您登记打卡。",
+  geoPermissionDenied: "报告考勤需要位置权限。请在浏览器设置中允许 GPS 后重试，或请工地负责人为您登记打卡。",
+  geoPositionUnavailable: "无法确定位置。请到开阔地带后重试，或联系工地负责人。",
+  geoTimeout: "定位耗时过长。请检查网络后重试，或联系工地负责人。",
+  geoUnsupported: "此浏览器不支持定位。请让工地负责人为您登记打卡。",
   locating: "正在定位…",
   pickSite: "选择工地",
   pickSiteSub: "选择您今天工作的工地",
@@ -566,10 +598,6 @@ const ZH: ScreenStrings = {
   noHistory: "未找到考勤记录",
   loadingHistory: "正在加载历史记录…",
   backToForm: "返回打卡",
-  manualBtn: "缺失记录",
-  manualTitle: "添加手动记录",
-  manualSentTitle: "记录已提交 ✓",
-  manualSentBody: "管理员将很快批准该记录",
   pendingBadge: "待批准",
   corrPending: "待批准 ⏳",
   corrApproved: "已批准 ✓",
@@ -599,7 +627,6 @@ const ZH: ScreenStrings = {
   historyTotal: "总计",
   historyHoursUnit: "小时",
   reportMistakeTooltip: "报告错误",
-  manualHint: "该记录将发送给管理员批准",
   manualNoSite: "— 无工地 —",
   manualSubmit: "提交批准",
   manualBackToHistory: "返回历史记录",
@@ -625,13 +652,20 @@ const ZH: ScreenStrings = {
   corrRecordDeleted: "此记录已被删除。请联系管理员。",
   askForemanForFix: "忘记打卡？请联系工地负责人。",
   manualEntryDisabled: "自助手动打卡已停用。请联系工地负责人处理。",
+  errClientBadRequest: "请求无效。请重试 — 如问题持续，请联系工地负责人。",
+  errLocationRequired: "未发送位置。请重试 — 如问题持续，请联系工地负责人。",
+  errAccessDenied: "无权访问。请联系工地负责人。",
+  errServerBusy: "服务器暂时故障。请稍后重试 — 如问题持续，请联系工地负责人。",
 };
 
 const HI: ScreenStrings = {
   clockTitle: "उपस्थिति घड़ी",
   phonePrompt: "पहचान के लिए फ़ोन नंबर दर्ज करें",
   confirmLocation: "स्थान की पुष्टि करें और जारी रखें",
-  geoRequired: "उपस्थिति दर्ज करने के लिए स्थान की अनुमति आवश्यक है। ब्राउज़र सेटिंग्स में GPS की अनुमति दें और पुनः प्रयास करें, या अपने साइट प्रबंधक से आपके लिए दर्ज करने के लिए कहें।",
+  geoPermissionDenied: "उपस्थिति दर्ज करने के लिए स्थान की अनुमति आवश्यक है। ब्राउज़र सेटिंग्स में GPS की अनुमति दें और पुनः प्रयास करें, या अपने साइट प्रबंधक से आपके लिए दर्ज करने के लिए कहें।",
+  geoPositionUnavailable: "स्थान का पता नहीं लगाया जा सका। खुले क्षेत्र में जाकर पुनः प्रयास करें, या अपने साइट प्रबंधक से संपर्क करें।",
+  geoTimeout: "स्थान का पता लगाने में बहुत समय लगा। अपना कनेक्शन जाँचकर पुनः प्रयास करें, या अपने साइट प्रबंधक से संपर्क करें।",
+  geoUnsupported: "यह ब्राउज़र स्थान सेवाओं का समर्थन नहीं करता। अपने साइट प्रबंधक से आपके लिए दर्ज करने के लिए कहें।",
   locating: "स्थान ढूँढ रहे हैं…",
   pickSite: "निर्माण स्थल चुनें",
   pickSiteSub: "वह स्थल चुनें जहाँ आप आज काम कर रहे हैं",
@@ -665,10 +699,6 @@ const HI: ScreenStrings = {
   noHistory: "कोई उपस्थिति रिकॉर्ड नहीं मिला",
   loadingHistory: "इतिहास लोड हो रहा है…",
   backToForm: "घड़ी पर वापस",
-  manualBtn: "छूटी हुई प्रविष्टि",
-  manualTitle: "मैन्युअल प्रविष्टि जोड़ें",
-  manualSentTitle: "प्रविष्टि भेजी गई ✓",
-  manualSentBody: "प्रबंधक जल्द ही प्रविष्टि स्वीकृत करेंगे",
   pendingBadge: "अनुमोदन लंबित",
   corrPending: "लंबित ⏳",
   corrApproved: "स्वीकृत ✓",
@@ -698,7 +728,6 @@ const HI: ScreenStrings = {
   historyTotal: "कुल",
   historyHoursUnit: "घंटे",
   reportMistakeTooltip: "गलती की रिपोर्ट करें",
-  manualHint: "प्रविष्टि प्रबंधक की स्वीकृति के लिए भेजी जाएगी",
   manualNoSite: "— कोई स्थल नहीं —",
   manualSubmit: "स्वीकृति के लिए भेजें",
   manualBackToHistory: "इतिहास पर वापस",
@@ -724,6 +753,10 @@ const HI: ScreenStrings = {
   corrRecordDeleted: "यह रिकॉर्ड हटा दिया गया है। प्रबंधक से संपर्क करें।",
   askForemanForFix: "उपस्थिति दर्ज करना भूल गए? अपने साइट प्रबंधक से संपर्क करें।",
   manualEntryDisabled: "स्व-सेवा मैन्युअल प्रविष्टि बंद कर दी गई है। सुधार के लिए साइट प्रबंधक से संपर्क करें।",
+  errClientBadRequest: "अनुरोध अमान्य है। पुनः प्रयास करें — यदि समस्या बनी रहे, अपने साइट प्रबंधक से संपर्क करें।",
+  errLocationRequired: "स्थान नहीं भेजा गया। पुनः प्रयास करें — यदि समस्या बनी रहे, अपने साइट प्रबंधक से संपर्क करें।",
+  errAccessDenied: "आपके पास पहुँच नहीं है। अपने साइट प्रबंधक से संपर्क करें।",
+  errServerBusy: "अस्थायी सर्वर त्रुटि। एक क्षण बाद पुनः प्रयास करें — यदि समस्या बनी रहे, अपने साइट प्रबंधक से संपर्क करें।",
 };
 
 export const T: Record<Lang, ScreenStrings> = {
@@ -746,14 +779,24 @@ export function detectInitialLang(navigatorLanguage?: string): Lang {
 }
 
 /**
- * For messages the worker will show to their (Hebrew-speaking) foreman —
- * `gpsOutOfRange` and `geoRequired`. Renders the worker's language plus a
- * Hebrew line so the worker can hand their phone to the foreman without
- * a translation step. For Hebrew-speaking workers, returns the string as-is
- * (no duplicate line). Callers pick the T key (currently `gpsOutOfRange`
- * and `geoRequired`).
+ * For messages the worker will show to their (Hebrew-speaking) foreman.
+ * Renders the worker's language plus a Hebrew line so the worker can hand
+ * their phone to the foreman without a translation step. For Hebrew-
+ * speaking workers, returns the string as-is (no duplicate line).
+ *
+ * All geolocation error variants get this treatment — the worker's next
+ * step in every case is either "fix a settings thing themselves" or
+ * "show the phone to the foreman"; the second option needs Hebrew.
+ * `gpsOutOfRange` (from the backend) is also here for the same reason.
  */
-export function bilingualForForeman(lang: Lang, key: "gpsOutOfRange" | "geoRequired"): string {
+export type BilingualKey =
+  | "gpsOutOfRange"
+  | "geoPermissionDenied"
+  | "geoPositionUnavailable"
+  | "geoTimeout"
+  | "geoUnsupported";
+
+export function bilingualForForeman(lang: Lang, key: BilingualKey): string {
   const own = T[lang][key];
   if (lang === "he") return own;
   return `${own}\n\n${T.he[key]}`;
