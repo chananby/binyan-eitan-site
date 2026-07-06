@@ -182,7 +182,8 @@
   → אפשר שיפט חדש. `openEntryCount` הוסר; ה-route משתמש ב-`!hasOpenRecord`.
   5 tests חדשים כולל BUG REPRO של המקרה מהפרודקשן. אימות ב-SELECT מול
   5 עובדים מהדוח (פייסירי, נילנגה, ננדיקה, פזלי, עלי) — כולם עברו מ-BLOCK
-  ל-ALLOW. אין שינוי schema.
+  ל-ALLOW. אין שינוי schema. **נפרס בייצור** (commit `a63b826`, אימות:
+  `x-matched-path: /admin`) — העובדים החסומים יכולים לצאת עכשיו.
 
 ### נוכחות + שכר (משפחת C1)
 - **C1 — payroll routes** (`/api/admin/payroll` + `/api/admin/payroll/export`)
