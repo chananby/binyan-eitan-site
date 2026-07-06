@@ -19,30 +19,51 @@ export interface AttEvent {
 }
 
 /**
- * Net open entries for a single day: (#entries − #exits) among rows whose
- * clock_at is on/after `dayStartISO`.
+ * True when an unclosed entry exists within the caller's time window —
+ * driven by the LAST chronological event in that window: an entry means
+ * the shift is still open, an exit means it's closed.
  *
- * Day scoping is by clock_at (never created_at): a row entered *today* but
- * stamped for *yesterday* (clock_at < dayStart) is excluded, so it does not
- * count as open today. Rows with a null clock_at are excluded too (absence
- * markers carry no clock time). ISO-8601 UTC strings compare lexically in
- * chronological order, so a plain string `>=` is correct.
+ * Why last-event, not ins-minus-outs: the count-based version was correct
+ * for the B2 same-day guard (dayStartISO = today's Israel-local midnight,
+ * so exits never survived past the shift they closed), but wrong for B3
+ * (windowStartISO = now-24h, a rolling window). Under B3 a worker who did
+ *
+ *     yesterday 07:00 IN → 15:00 OUT → today 07:00 IN
+ *
+ * had ins=1, outs=1 in the 24h window at 14:00 today. The count came out
+ * to zero, so the guard reported "no open entry" and blocked the OUT —
+ * even though today's IN was manifestly unclosed. Fifteen active workers
+ * hit this on 2026-07-06 before the fix landed.
+ *
+ * Last-event semantics collapse cleanly for the B2 case too — a worker
+ * who ran (IN, OUT) today has last-event = OUT = closed, so a fresh IN
+ * is allowed; a worker who ran (IN, OUT, IN) still open today has
+ * last-event = IN, blocked. Same answers as the old count for every B2
+ * shape, correct answers for B3.
+ *
+ * Filtering rules preserved from the count-based version:
+ *   • rows with `clock_at < windowStartISO` are excluded (window scope)
+ *   • rows with `clock_at == null` are excluded (absence markers carry
+ *     no clock time)
+ *   • both action vocabularies ("in"/"out" and "כניסה"/"יציאה") count
+ *     via isEntry/isExit — the manual-entry flow uses Hebrew, the live
+ *     flow uses English, and they mix on the same worker
+ *   • ISO-8601 UTC strings sort chronologically as plain strings, so a
+ *     lexical sort is correct
  */
-export function openEntryCount(rows: AttEvent[], dayStartISO: string): number {
-  const sameDay = rows.filter((r) => r.clock_at != null && r.clock_at >= dayStartISO);
-  const ins  = sameDay.filter((r) => isEntry(r.action)).length;
-  const outs = sameDay.filter((r) => isExit(r.action)).length;
-  return ins - outs;
-}
-
-/**
- * True when an unclosed entry exists for the day — a new clock-in must be
- * blocked. This is the corrected guard: it fires only on an OPEN record, so
- * entry→exit→entry (already closed) is allowed while entry→entry (two open)
- * is rejected.
- */
-export function hasOpenRecord(rows: AttEvent[], dayStartISO: string): boolean {
-  return openEntryCount(rows, dayStartISO) > 0;
+export function hasOpenRecord(rows: AttEvent[], windowStartISO: string): boolean {
+  let latestEntry: string | null = null;
+  let latestExit:  string | null = null;
+  for (const r of rows) {
+    if (r.clock_at == null || r.clock_at < windowStartISO) continue;
+    if (isEntry(r.action)) {
+      if (latestEntry == null || r.clock_at > latestEntry) latestEntry = r.clock_at;
+    } else if (isExit(r.action)) {
+      if (latestExit == null  || r.clock_at > latestExit)  latestExit  = r.clock_at;
+    }
+  }
+  if (latestEntry == null) return false;
+  return latestExit == null || latestEntry > latestExit;
 }
 
 export type ManualRowPlan = { action: "כניסה" | "יציאה"; time: string };

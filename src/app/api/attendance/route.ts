@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../lib/supabase";
 import { israelDayStartISO } from "../../../lib/israel-time";
-import { hasOpenRecord, openEntryCount } from "../../../lib/attendance-logic";
+import { hasOpenRecord } from "../../../lib/attendance-logic";
 import { getWorkerStaffIdFromRequest } from "../../../lib/admin-auth";
 import { checkRateLimit } from "../../../lib/rate-limit";
 import {
@@ -154,8 +154,8 @@ export async function POST(req: NextRequest) {
   // closed by an exit) — NOT merely because the worker clocked in earlier
   // today. This lets a worker who already clocked out start a fresh shift
   // (e.g. moved to another site), while still blocking a double open entry.
-  // See hasOpenRecord: open = today's entries > exits, day-scoped by clock_at,
-  // counting both action vocabularies. Unit-tested in attendance-logic.test.ts.
+  // See hasOpenRecord: "the LATEST event in the window is an entry".
+  // Unit-tested in attendance-logic.test.ts.
   if (normalizedAction === "in") {
     const todayStr   = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
     const todayStart = israelDayStartISO(todayStr);
@@ -177,6 +177,12 @@ export async function POST(req: NextRequest) {
   // 08:00 today is 9h back — well within 24h). Older orphans must go
   // through admin correction, not through a random OUT click that would
   // silently close the wrong shift and produce a bad paycheck.
+  //
+  // hasOpenRecord (last-event semantics) is what this needs: with the
+  // rolling 24h window a worker who did IN→OUT yesterday and IN today
+  // has ins=1/outs=1 = 0 (the old count-based check would have blocked
+  // them). Their LATEST event, though, is today's IN — the shift is
+  // manifestly open. See attendance-logic.ts for the full rationale.
   if (normalizedAction === "out") {
     const cutoffISO = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
     const { data: recent } = await supabase
@@ -186,7 +192,7 @@ export async function POST(req: NextRequest) {
       .eq("staff_id", staff.id)
       .in("action", ["in", "כניסה", "out", "יציאה"])
       .gte("clock_at", cutoffISO);
-    if (openEntryCount(recent ?? [], cutoffISO) === 0) {
+    if (!hasOpenRecord(recent ?? [], cutoffISO)) {
       return NextResponse.json(
         {
           success: false,
