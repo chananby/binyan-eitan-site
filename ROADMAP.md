@@ -219,8 +219,14 @@
   (`invalid_body`/`missing_action`/`invalid_action`/`location_required`/
   `access_denied`/`server_error`/`session_expired`) — הודעות עובד
   ספציפיות ב-`i18n.ts`, פרטים טכניים ב-`console.error` בלבד.
-  Build נקי, 367 tests. **גל 2 (פאנל נראות אדמין) + גל 3 (עקרונות
-  ב-DEVELOPMENT_PRINCIPLES) — נותרים בתור.**
+  Build נקי, 367 tests. **נפרס בייצור** (commit `9146fb9`, אימות:
+  `x-matched-path: /admin`). **נותרים בתור:** גל 2 (פאנל נראות
+  אדמין — endpoint `/api/attendance/error-report` + סופר 24h לפי
+  staff_id/code), גל 3 (עקרונות X/Y/Z ב-`DEVELOPMENT_PRINCIPLES.md`),
+  ו-8 מפתחות `manual*` נוספים 0-referenced (`manualNoSite`/
+  `manualSubmit`/`manualBackToHistory`/`manualDateLabel`/`manualTimeIn`/
+  `manualTimeOut`/`manualProjectLabel`/`manualValidation`) שנתגלו
+  בסבב הזה — סבב ניקוי קצר, ~48 מחרוזות.
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
   ניגודיות AA, שלושה סבבי refactor (dashboard, admin tabs, ForemanPortal).
