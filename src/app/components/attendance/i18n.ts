@@ -62,7 +62,6 @@ export interface ScreenStrings {
   myHistory: string; historyTitle: string; noHistory: string; loadingHistory: string; backToForm: string;
   pendingBadge: string;
   corrPending: string; corrApproved: string; corrRejected: string;
-  manualDateLabel: string; manualTimeIn: string; manualTimeOut: string; manualProjectLabel: string;
   identify: string; identifying: string; tooManyAttempts: string; sessionExpired: string;
   // 401 from POST /api/worker/identify — the be_internal_token (PIN) cookie
   // expired/was wiped. Distinct from sessionExpired (worker auth cookie
@@ -72,7 +71,6 @@ export interface ScreenStrings {
   missingExitOne: string; missingExitMany: string; missingExitCta: string;
   // ── Added in the 6-language migration ──────────────────────────────────
   backToPortal: string;                 // top-right "back to portal" link
-  manualValidation: string;             // "must fill date & time"
   networkError: string;                 // generic network catch in AttendanceForm
   // History screen — table chrome
   historyColDate: string;
@@ -82,10 +80,6 @@ export interface ScreenStrings {
   historyTotal: string;                 // "סה"כ" summary label
   historyHoursUnit: string;             // unit suffix on totals row ("שעות")
   reportMistakeTooltip: string;         // pencil tooltip
-  // ManualScreen extras
-  manualNoSite: string;                 // "— ללא אתר —" empty option label
-  manualSubmit: string;                 // submit button
-  manualBackToHistory: string;          // back link
   // Days of the week — index 0=Sunday … 6=Saturday (JS Date.getDay
   // convention). History prefixes each row with the weekday (e.g.
   // "יום שני"). dayPrefix is the word in front of the day name; "" if
@@ -198,10 +192,6 @@ const HE: ScreenStrings = {
   corrPending: "ממתין לאישור ⏳",
   corrApproved: "אושר ✓",
   corrRejected: "נדחה ✗",
-  manualDateLabel: "תאריך",
-  manualTimeIn: "שעת כניסה",
-  manualTimeOut: "שעת יציאה",
-  manualProjectLabel: "אתר (אופציונלי)",
   identify: "המשך",
   identifying: "מאמת...",
   tooManyAttempts: "יותר מדי ניסיונות. נסה שוב בעוד כמה דקות.",
@@ -214,7 +204,6 @@ const HE: ScreenStrings = {
   missingExitMany: "שכחת להחתים יציאה ב-{n} ימים. ניתן להשלים במסך ההיסטוריה.",
   missingExitCta: "מעבר להיסטוריה",
   backToPortal: "חזור לתפריט הראשי",
-  manualValidation: "יש למלא תאריך ושעה",
   networkError: "שגיאת רשת — נסה שוב",
   historyColDate: "תאריך",
   historyColEntry: "כניסה",
@@ -223,9 +212,6 @@ const HE: ScreenStrings = {
   historyTotal: "סה\"כ",
   historyHoursUnit: "שעות",
   reportMistakeTooltip: "דווח על טעות",
-  manualNoSite: "— ללא אתר —",
-  manualSubmit: "שלח לאישור",
-  manualBackToHistory: "חזור להיסטוריה",
   dayPrefix: "יום",
   weekdays: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"],
   corrTitle: "דווח על טעות ברשומה",
@@ -299,10 +285,6 @@ const RU: ScreenStrings = {
   corrPending: "Ожидает ⏳",
   corrApproved: "Одобрено ✓",
   corrRejected: "Отклонено ✗",
-  manualDateLabel: "Дата",
-  manualTimeIn: "Время прихода",
-  manualTimeOut: "Время ухода",
-  manualProjectLabel: "Объект (необязательно)",
   identify: "Продолжить",
   identifying: "Проверка...",
   tooManyAttempts: "Слишком много попыток. Попробуйте через несколько минут.",
@@ -315,7 +297,6 @@ const RU: ScreenStrings = {
   missingExitMany: "Вы забыли отметить уход за {n} дн. Завершить можно в истории.",
   missingExitCta: "Перейти к истории",
   backToPortal: "Назад к порталу",
-  manualValidation: "Заполните дату и время",
   networkError: "Сетевая ошибка — попробуйте снова",
   historyColDate: "Дата",
   historyColEntry: "Приход",
@@ -324,9 +305,6 @@ const RU: ScreenStrings = {
   historyTotal: "Итого",
   historyHoursUnit: "ч",
   reportMistakeTooltip: "Сообщить об ошибке",
-  manualNoSite: "— без объекта —",
-  manualSubmit: "Отправить",
-  manualBackToHistory: "Назад к истории",
   dayPrefix: "",
   weekdays: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
   corrTitle: "Сообщить об ошибке",
@@ -400,10 +378,6 @@ const EN: ScreenStrings = {
   corrPending: "Pending ⏳",
   corrApproved: "Approved ✓",
   corrRejected: "Rejected ✗",
-  manualDateLabel: "Date",
-  manualTimeIn: "Clock-in time",
-  manualTimeOut: "Clock-out time",
-  manualProjectLabel: "Site (optional)",
   identify: "Continue",
   identifying: "Verifying…",
   tooManyAttempts: "Too many attempts. Try again in a few minutes.",
@@ -416,7 +390,6 @@ const EN: ScreenStrings = {
   missingExitMany: "You forgot to clock out on {n} days. You can complete them in the history screen.",
   missingExitCta: "Go to history",
   backToPortal: "Back to main menu",
-  manualValidation: "Please fill in date and time",
   networkError: "Network error — try again",
   historyColDate: "Date",
   historyColEntry: "Entry",
@@ -425,9 +398,6 @@ const EN: ScreenStrings = {
   historyTotal: "Total",
   historyHoursUnit: "hrs",
   reportMistakeTooltip: "Report a mistake",
-  manualNoSite: "— No site —",
-  manualSubmit: "Submit for approval",
-  manualBackToHistory: "Back to history",
   dayPrefix: "",
   weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
   corrTitle: "Report a mistake in the record",
@@ -501,10 +471,6 @@ const SI: ScreenStrings = {
   corrPending: "බලාපොරොත්තුවෙන් ⏳",
   corrApproved: "අනුමත විය ✓",
   corrRejected: "ප්‍රතික්ෂේප විය ✗",
-  manualDateLabel: "දිනය",
-  manualTimeIn: "ඇතුළු වීමේ වේලාව",
-  manualTimeOut: "පිටවීමේ වේලාව",
-  manualProjectLabel: "ස්ථානය (විකල්ප)",
   identify: "ඉදිරියට",
   identifying: "සත්‍යාපනය වෙමින්…",
   tooManyAttempts: "උත්සාහයන් ඉතා වැඩියි. මිනිත්තු කිහිපයකින් නැවත උත්සාහ කරන්න.",
@@ -517,7 +483,6 @@ const SI: ScreenStrings = {
   missingExitMany: "ඔබ දින {n} ක් පිටවීම සටහන් කිරීමට අමතක කර ඇත. ඉතිහාස තිරයේ ඒවා සම්පූර්ණ කළ හැක.",
   missingExitCta: "ඉතිහාසයට යන්න",
   backToPortal: "ප්‍රධාන මෙනුවට ආපසු",
-  manualValidation: "කරුණාකර දිනය සහ වේලාව පුරවන්න",
   networkError: "ජාල දෝෂයක් — නැවත උත්සාහ කරන්න",
   historyColDate: "දිනය",
   historyColEntry: "ඇතුළු වීම",
@@ -526,9 +491,6 @@ const SI: ScreenStrings = {
   historyTotal: "එකතුව",
   historyHoursUnit: "පැය",
   reportMistakeTooltip: "වැරැද්දක් වාර්තා කරන්න",
-  manualNoSite: "— ස්ථානයක් නැත —",
-  manualSubmit: "අනුමැතිය සඳහා යවන්න",
-  manualBackToHistory: "ඉතිහාසයට ආපසු",
   dayPrefix: "",
   weekdays: ["ඉරිදා", "සඳුදා", "අඟහරුවාදා", "බදාදා", "බ්‍රහස්පතින්දා", "සිකුරාදා", "සෙනසුරාදා"],
   corrTitle: "වාර්තාවේ වැරැද්දක් වාර්තා කරන්න",
@@ -602,10 +564,6 @@ const ZH: ScreenStrings = {
   corrPending: "待批准 ⏳",
   corrApproved: "已批准 ✓",
   corrRejected: "已拒绝 ✗",
-  manualDateLabel: "日期",
-  manualTimeIn: "上班时间",
-  manualTimeOut: "下班时间",
-  manualProjectLabel: "工地（可选）",
   identify: "继续",
   identifying: "正在验证…",
   tooManyAttempts: "尝试次数过多。请几分钟后重试。",
@@ -618,7 +576,6 @@ const ZH: ScreenStrings = {
   missingExitMany: "您有 {n} 天忘记下班打卡。可在历史记录页面补录。",
   missingExitCta: "前往历史记录",
   backToPortal: "返回主菜单",
-  manualValidation: "请填写日期和时间",
   networkError: "网络错误 — 请重试",
   historyColDate: "日期",
   historyColEntry: "上班",
@@ -627,9 +584,6 @@ const ZH: ScreenStrings = {
   historyTotal: "总计",
   historyHoursUnit: "小时",
   reportMistakeTooltip: "报告错误",
-  manualNoSite: "— 无工地 —",
-  manualSubmit: "提交批准",
-  manualBackToHistory: "返回历史记录",
   dayPrefix: "星期",
   weekdays: ["日", "一", "二", "三", "四", "五", "六"],
   corrTitle: "报告记录中的错误",
@@ -703,10 +657,6 @@ const HI: ScreenStrings = {
   corrPending: "लंबित ⏳",
   corrApproved: "स्वीकृत ✓",
   corrRejected: "अस्वीकृत ✗",
-  manualDateLabel: "तारीख़",
-  manualTimeIn: "प्रवेश समय",
-  manualTimeOut: "निकास समय",
-  manualProjectLabel: "स्थल (वैकल्पिक)",
   identify: "जारी रखें",
   identifying: "सत्यापित हो रहा है…",
   tooManyAttempts: "बहुत अधिक प्रयास। कुछ मिनट बाद पुनः प्रयास करें।",
@@ -719,7 +669,6 @@ const HI: ScreenStrings = {
   missingExitMany: "आप {n} दिन निकास दर्ज करना भूल गए। आप उन्हें इतिहास स्क्रीन में पूरा कर सकते हैं।",
   missingExitCta: "इतिहास पर जाएँ",
   backToPortal: "मुख्य मेनू पर वापस",
-  manualValidation: "कृपया तारीख़ और समय भरें",
   networkError: "नेटवर्क त्रुटि — पुनः प्रयास करें",
   historyColDate: "तारीख़",
   historyColEntry: "प्रवेश",
@@ -728,9 +677,6 @@ const HI: ScreenStrings = {
   historyTotal: "कुल",
   historyHoursUnit: "घंटे",
   reportMistakeTooltip: "गलती की रिपोर्ट करें",
-  manualNoSite: "— कोई स्थल नहीं —",
-  manualSubmit: "स्वीकृति के लिए भेजें",
-  manualBackToHistory: "इतिहास पर वापस",
   dayPrefix: "",
   weekdays: ["रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"],
   corrTitle: "रिकॉर्ड में गलती की रिपोर्ट करें",

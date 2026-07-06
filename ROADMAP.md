@@ -220,13 +220,16 @@
   `access_denied`/`server_error`/`session_expired`) — הודעות עובד
   ספציפיות ב-`i18n.ts`, פרטים טכניים ב-`console.error` בלבד.
   Build נקי, 367 tests. **נפרס בייצור** (commit `9146fb9`, אימות:
-  `x-matched-path: /admin`). **נותרים בתור:** גל 2 (פאנל נראות
-  אדמין — endpoint `/api/attendance/error-report` + סופר 24h לפי
-  staff_id/code), גל 3 (עקרונות X/Y/Z ב-`DEVELOPMENT_PRINCIPLES.md`),
-  ו-8 מפתחות `manual*` נוספים 0-referenced (`manualNoSite`/
-  `manualSubmit`/`manualBackToHistory`/`manualDateLabel`/`manualTimeIn`/
-  `manualTimeOut`/`manualProjectLabel`/`manualValidation`) שנתגלו
-  בסבב הזה — סבב ניקוי קצר, ~48 מחרוזות.
+  `x-matched-path: /admin`).
+- **ניקוי מפתחות i18n מאובנים — הושלם.** 8 מפתחות `manual*` נוספים
+  שזוהו בגל 1 (`manualNoSite` / `manualSubmit` / `manualBackToHistory` /
+  `manualDateLabel` / `manualTimeIn` / `manualTimeOut` / `manualProjectLabel` /
+  `manualValidation`) אומתו 0-referenced ונמחקו מה-interface
+  `ScreenStrings` ומכל 6 השפות (48 מחרוזות + 6 שורות interface).
+  Build נקי, 367 tests.
+  **נותרים בתור:** גל 2 (פאנל נראות אדמין — endpoint
+  `/api/attendance/error-report` + סופר 24h לפי staff_id/code) +
+  גל 3 (עקרונות X/Y/Z ב-`DEVELOPMENT_PRINCIPLES.md`).
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
   ניגודיות AA, שלושה סבבי refactor (dashboard, admin tabs, ForemanPortal).
