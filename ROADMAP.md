@@ -199,8 +199,11 @@
   `edited_by=admin:<name>` דרך `resolveActorLabel` הקיים (במקום ה-null
   שהיה בפועל למסלול admin), משלים audit trail. 5 tests חדשים ב-
   attendance-logic.test.ts שמתקפים את שני ה-guards עם BUG REPRO של וייס
-  ב-clock_at האמיתי. **הפיצ'ר הגדול "תמונת מה יש ומה חסר נגישה מכל מקום"
-  נשאר בתור** — הסבב הזה נותן guards + כפתור חסר, לא UX חדש.
+  ב-clock_at האמיתי. **נפרס בייצור** (commit `a21e41c`, אימות:
+  `x-matched-path: /admin`) — הכפילות של וייס לא תוכל להיווצר עוד,
+  ולחנן יש כפתור "השלם יציאה" ליום היום. **הפיצ'ר הגדול "תמונת מה יש
+  ומה חסר נגישה מכל מקום" נשאר בתור** — הסבב הזה נותן guards + כפתור
+  חסר, לא UX חדש.
 - **C1 — payroll routes** (`/api/admin/payroll` + `/api/admin/payroll/export`)
   סוננו לפי `created_at` → 32 שורות backfill חודשי נחתכו מהתלוש. תוקן: סינון
   לפי `clock_at` (workDate) — commit `4e2200b`. אימות ייצור: ~₪4,897 חוב אמיתי
