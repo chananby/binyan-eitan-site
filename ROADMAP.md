@@ -228,9 +228,15 @@
   `ScreenStrings` ומכל 6 השפות (48 מחרוזות + 6 שורות interface).
   Build נקי, 367 tests. **נפרס בייצור** (commit `c697e8d`, אימות:
   `x-matched-path: /admin`).
+- **עקרונות טיפול בשגיאות ב-DEVELOPMENT_PRINCIPLES.md — גל 3.**
+  מקטע חדש #12–13 + הנחיה, בסגנון התמציתי של העקרונות הקיימים:
+  (12) call-to-action מצביע על קוד חי — `git grep` את שם הפיצ'ר
+  ואת טקסט הכפתור בכל שפות ה-i18n כשמוחקים; (13) קוד אחד, הודעה
+  אחת — כשל משתמש → קוד ברור, כשל טכני → הודעה ידידותית + log
+  מפורט בשרת; והנחיה: שגיאה שמשביתה עובד ראויה לנראות אדמין
+  (לא חוק גורף). commit `72ae674`.
   **נותרים בתור:** גל 2 (פאנל נראות אדמין — endpoint
-  `/api/attendance/error-report` + סופר 24h לפי staff_id/code) +
-  גל 3 (עקרונות X/Y/Z ב-`DEVELOPMENT_PRINCIPLES.md`).
+  `/api/attendance/error-report` + סופר 24h לפי staff_id/code).
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
   ניגודיות AA, שלושה סבבי refactor (dashboard, admin tabs, ForemanPortal).
