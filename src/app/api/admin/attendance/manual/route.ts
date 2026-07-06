@@ -5,8 +5,9 @@ import {
   getRoleFromRequest,
   getForemanStaffIdFromRequest,
 } from "../../../../../lib/admin-auth";
-import { israelWallClockToISO } from "../../../../../lib/israel-time";
-import { planManualWorkRows } from "../../../../../lib/attendance-logic";
+import { israelDayStartISO, israelWallClockToISO } from "../../../../../lib/israel-time";
+import { hasOpenRecord, planManualWorkRows } from "../../../../../lib/attendance-logic";
+import { resolveActorLabel } from "../../../../../lib/audit-actor";
 
 export const runtime = "nodejs";
 
@@ -57,7 +58,6 @@ export async function POST(req: NextRequest) {
   // This is the whole substance of the foreman path — without it, a
   // foreman could insert rows attributed to any project. Admin path
   // has no such restriction (admin can enter for any worker, any project).
-  let editedBy: string | null = null;
   if (isForeman) {
     const foremanStaffId = getForemanStaffIdFromRequest(req);
     if (!foremanStaffId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -73,14 +73,51 @@ export async function POST(req: NextRequest) {
     if (!proj || proj.foreman_id !== foremanStaffId) {
       return NextResponse.json({ error: "אין הרשאה לפרויקט הזה" }, { status: 403 });
     }
-    // Audit trail: the row was created by this foreman. The pending
-    // admin panel reads edited_by to show "מי הזין" alongside the row.
-    const { data: fm } = await supabase
-      .from("staff")
-      .select("name")
-      .eq("id", foremanStaffId)
-      .maybeSingle();
-    editedBy = `foreman:${fm?.name ?? foremanStaffId.slice(0, 8)}`;
+  }
+
+  // Audit trail — same shape both paths. Was foreman-only before; that
+  // left admin-created rows with edited_by=NULL, which is exactly why
+  // Weiss's duplicate on 2026-07-06 had no "מי הזין" trace. resolveActorLabel
+  // handles all three cases (admin / view-as-foreman / real foreman)
+  // and falls back to an id-slice on lookup failure so the write is
+  // never refused by a missing name.
+  const editedBy = await resolveActorLabel(supabase, req);
+
+  // ── Duplicate guard (work-type only) ────────────────────────────────────
+  // A regular / overtime insert creates a new IN row. If the worker
+  // already has an OPEN IN for the same Israel-local day, that new IN
+  // is a duplicate — the shape that produced the Weiss incident.
+  // B2's UNIQUE partial index doesn't catch this pair because the
+  // vocabularies differ ("in" live vs "כניסה" manual) and clock_at
+  // differs by seconds. So we guard here, before the insert.
+  //
+  // Scope by DAY (the date the admin typed), not by a rolling window:
+  // the point of the check is "another IN on the same calendar day".
+  // A worker who ran IN→OUT this morning and needs a fresh manual IN
+  // for a second shift this evening must still be allowed.
+  if (isWork) {
+    const dayStartISO = israelDayStartISO(date);
+    // Next-day YMD via a noon-anchored Date (DST-safe) → +1 day → slice.
+    const nextYmd = new Date(new Date(`${date}T12:00:00Z`).getTime() + 86_400_000)
+      .toISOString().slice(0, 10);
+    const nextDayStartISO = israelDayStartISO(nextYmd);
+    const { data: dayRows } = await supabase
+      .from("attendance")
+      .select("action, clock_at")
+      .is("deleted_at", null)
+      .eq("staff_id", staff_id)
+      .in("action", ["in", "כניסה", "out", "יציאה"])
+      .gte("clock_at", dayStartISO)
+      .lt("clock_at", nextDayStartISO);
+    if (hasOpenRecord(dayRows ?? [], dayStartISO)) {
+      return NextResponse.json(
+        {
+          error: "already_has_open_entry",
+          message: "לעובד כבר יש כניסה פתוחה היום. השתמש ב'השלם יציאה'.",
+        },
+        { status: 409 },
+      );
+    }
   }
 
   // Format matching parseLabelDateTime: "D.M.YYYY, HH:MM"
@@ -110,7 +147,8 @@ export async function POST(req: NextRequest) {
     source: "manual",
     lat: null,
     lng: null,
-    ...(editedBy    ? { edited_by: editedBy, edited_at: new Date().toISOString() } : {}),
+    edited_by: editedBy,
+    edited_at: new Date().toISOString(),
     ...(trimmedNote ? { edit_note: trimmedNote } : {}),
     ...(project_id?.trim() ? { project_id } : {}),
   });

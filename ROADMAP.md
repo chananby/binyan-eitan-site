@@ -184,8 +184,23 @@
   5 עובדים מהדוח (פייסירי, נילנגה, ננדיקה, פזלי, עלי) — כולם עברו מ-BLOCK
   ל-ALLOW. אין שינוי schema. **נפרס בייצור** (commit `a63b826`, אימות:
   `x-matched-path: /admin`) — העובדים החסומים יכולים לצאת עכשיו.
-
-### נוכחות + שכר (משפחת C1)
+- **4 guards במנגנון ההשלמה הידנית.** אחרי B3, כפילות של ישראל מאיר וייס
+  (2026-07-06) חשפה שהזרימה עצמה שגויה: `ManualEntryForm` יצר כניסה חדשה
+  אף שהעובד כבר החתים לייב, כי `WorkerHistoryPanel` לא הראה כפתור "השלם
+  יציאה" ליום היום (סטטוס `in-progress`), ו-`/api/admin/attendance/manual`
+  לא בדק כפילות לפני INSERT. חוקר החקירה מצא 4 באגים ותוקנו:
+  (1) `WorkerHistoryPanel.DayActions` קיבל case ל-`in-progress` שמציג
+  "השלם יציאה" (mode=`complete` הקיים) — פותח את המסלול הנכון של יציאה
+  בלבד. (2) `/api/admin/attendance/manual` בודק לפני INSERT של `type=regular`
+  אם `hasOpenRecord` על היום שהוזן — אם כן, `409 already_has_open_entry`.
+  (3) `/api/admin/attendance/clock-out` בודק לפני INSERT של יציאה שיש
+  כניסה פתוחה — אם לא, `409 no_open_entry_to_close` (בסגנון B3, מונע
+  יציאה יתומה שמעוותת דוח חודשי). (4) שני ה-endpoints מכתבים
+  `edited_by=admin:<name>` דרך `resolveActorLabel` הקיים (במקום ה-null
+  שהיה בפועל למסלול admin), משלים audit trail. 5 tests חדשים ב-
+  attendance-logic.test.ts שמתקפים את שני ה-guards עם BUG REPRO של וייס
+  ב-clock_at האמיתי. **הפיצ'ר הגדול "תמונת מה יש ומה חסר נגישה מכל מקום"
+  נשאר בתור** — הסבב הזה נותן guards + כפתור חסר, לא UX חדש.
 - **C1 — payroll routes** (`/api/admin/payroll` + `/api/admin/payroll/export`)
   סוננו לפי `created_at` → 32 שורות backfill חודשי נחתכו מהתלוש. תוקן: סינון
   לפי `clock_at` (workDate) — commit `4e2200b`. אימות ייצור: ~₪4,897 חוב אמיתי

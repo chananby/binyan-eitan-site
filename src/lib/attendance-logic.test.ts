@@ -149,3 +149,44 @@ describe("hasOpenRecord under a rolling 24h window (B3 clock-out guard)", () => 
     expect(hasOpenRecord(rows, CUTOFF)).toBe(false);
   });
 });
+
+describe("hasOpenRecord as the day-scoped guard for manual + clock-out endpoints", () => {
+  // These are the exact shapes the /api/admin/attendance/manual (duplicate
+  // guard on a new IN) and /api/admin/attendance/clock-out (orphan-exit
+  // guard) call sites hand to hasOpenRecord: rows filtered to a single
+  // calendar day, windowStart = that day's midnight. Same helper, tighter
+  // window — proves both guards fire the way the routes expect.
+  const DS = "2026-07-06T00:00:00.000Z"; // day-start for the test day
+  const at = (hhmm: string) => `2026-07-06T${hhmm}:00.000Z`;
+
+  it("BUG REPRO — Weiss 2026-07-06: live IN present → manual IN must be rejected", () => {
+    // Weiss's actual state at the moment chnn opened ManualEntryForm:
+    // one live IN at 06:14Z (09:14 IL), no exit yet.
+    const rows = [ev("in", "2026-07-06T06:14:10.979Z")];
+    expect(hasOpenRecord(rows, DS)).toBe(true);
+  });
+
+  it("no rows for the day → allow a fresh manual IN (blank canvas)", () => {
+    expect(hasOpenRecord([], DS)).toBe(false);
+  });
+
+  it("closed shift (IN→OUT) earlier the same day → allow a second manual IN", () => {
+    const rows = [ev("in", at("06:00")), ev("out", at("14:00"))];
+    expect(hasOpenRecord(rows, DS)).toBe(false);
+  });
+
+  it("orphan exit already exists (no IN) → also 'no open entry' → BLOCK clock-out", () => {
+    // Weird prior data — a lone OUT with no matching IN. clock-out
+    // should refuse to add ANOTHER OUT.
+    const rows = [ev("out", at("14:00"))];
+    expect(hasOpenRecord(rows, DS)).toBe(false);
+  });
+
+  it("open IN present → ALLOW clock-out (the השלמת יציאה case)", () => {
+    // This is the flow that used to force chnn into ManualEntryForm's
+    // IN+OUT pair. With the WorkerHistoryPanel fix, in-progress days
+    // route here, and the guard confirms the IN exists to close.
+    const rows = [ev("in", at("07:00"))];
+    expect(hasOpenRecord(rows, DS)).toBe(true);
+  });
+});

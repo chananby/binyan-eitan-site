@@ -343,6 +343,24 @@ function DayActions(props: {
           <Plus size={11} strokeWidth={1.5} /> השלם יציאה
         </button>
       )}
+      {/* Today (in-progress): worker has an open IN and no OUT yet. If they
+          asked chnn to close them out mid-day, the same "השלם יציאה" flow
+          the retro "no-exit" case uses is the right tool — POST to
+          /api/admin/attendance/clock-out with date+time, single new OUT
+          row, no duplicate IN. Without this branch chnn had to fall back
+          to ManualEntryForm's IN+OUT pair, which produced the Weiss
+          duplicate on 2026-07-06 (a manual IN at 09:14 identical to the
+          worker's live IN 10 seconds earlier). */}
+      {day.status === "in-progress" && (
+        <button
+          type="button"
+          onClick={props.onComplete}
+          className={`${btn} border-amber-300 text-amber-700 hover:bg-amber-50`}
+          {...disabledProps}
+        >
+          <Plus size={11} strokeWidth={1.5} /> השלם יציאה
+        </button>
+      )}
       {day.status === "missing" && (
         <button
           type="button"
