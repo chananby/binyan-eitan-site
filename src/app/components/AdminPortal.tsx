@@ -15,7 +15,7 @@ import {
   AlertCircle, DollarSign, Target,
   ChevronLeft, Grid3x3, Download, Plus,
   UserCog, Clock, MapPin, UserX, FileText, Inbox, Users, Coins,
-  AlertTriangle,
+  AlertTriangle, XCircle,
 } from "lucide-react";
 import { Card } from "../admin/_components/shared/Card";
 import AttentionPanel, { type AttentionItem } from "../admin/_components/shared/AttentionPanel";
@@ -412,6 +412,20 @@ export default function AdminPortal() {
     project_id: string | null; project_name: string | null;
     clock_at: string; day_ymd: string;
   }>>([]);
+  // Silent-failure log for the "worker got stuck" panel. Same scoping
+  // pattern as staleOpens — populated from /api/admin/attendance/failures,
+  // count drives an AttentionPanel row, rows render inside AttendanceTab's
+  // new "failures" subtab. Only carries category='worker_stuck' rows from
+  // the last 24h; noise/security_signal stay in the DB for pattern
+  // analysis but don't surface here.
+  const [failures, setFailures] = useState<Array<{
+    id: string; error_code: string; http_status: number;
+    action: string | null; distance_m: number | null; attempted_at: string;
+    staff: { id: string; name: string } | null;
+    project: { id: string; name: string } | null;
+  }>>([]);
+  const [failuresLoading, setFailuresLoading] = useState(false);
+  const [failuresErr,     setFailuresErr]     = useState<string | null>(null);
   const [pendingLoading,   setPendingLoading]   = useState(false);
   const [pendingErr,       setPendingErr]       = useState<string | null>(null);
 
@@ -771,7 +785,7 @@ export default function AdminPortal() {
     // Load on admin auth so the Attendance tab's red badge is accurate from
     // any starting tab. Also reload when the user opens Attendance to catch
     // anything created in the last 2 min between auto-refreshes.
-    if (authState === "admin") { loadPending(); loadCorrectionRequests(); loadJoinRequests(); loadCollections(); loadStaleOpens(); }
+    if (authState === "admin") { loadPending(); loadCorrectionRequests(); loadJoinRequests(); loadCollections(); loadStaleOpens(); loadFailures(); }
   }, [authState, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-refresh attendance every 60 s ────────────────────────────────────
@@ -794,7 +808,7 @@ export default function AdminPortal() {
       if (document.visibilityState !== "visible") return;
       if (!AUTO_TABS.includes(autoTabRef.current)) return;
       if (autoTabRef.current === "attendance" && authState === "admin") {
-        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures()]);
       } else {
         await loadData(authState as "admin" | "foreman");
       }
@@ -907,6 +921,29 @@ export default function AdminPortal() {
     }
   }
 
+  // "Worker got stuck" log — surfaces silent failures the count-based
+  // dashboards can't see (a worker who was blocked by GPS / B3 / an
+  // account_inactive flag never leaves a trail in `attendance`, so
+  // absence-from-the-log is the only evidence). Errors surface inline
+  // in the panel; this loader keeps them non-fatal like loadStaleOpens.
+  async function loadFailures() {
+    setFailuresLoading(true); setFailuresErr(null);
+    try {
+      const res = await fetch("/api/admin/attendance/failures");
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setFailuresErr(d.error ?? `שגיאה ${res.status}`);
+        return;
+      }
+      const d = await res.json();
+      setFailures(d.failures ?? []);
+    } catch (e) {
+      setFailuresErr(String(e));
+    } finally {
+      setFailuresLoading(false);
+    }
+  }
+
   async function loadJoinRequests() {
     setJoinRequestsLoading(true); setJoinRequestsErr(null);
     try {
@@ -983,7 +1020,7 @@ export default function AdminPortal() {
       }
       setCorrectionRequests((cur) => cur.filter((r) => r.id !== id));
       if (status === "approved") {
-        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures()]);
       }
       return true;
     } catch {
@@ -1001,7 +1038,7 @@ export default function AdminPortal() {
       if (tab === "expenses")                               { await loadMaterials(); setLastRefreshed(new Date()); }
       else if (tab === "income")                            { await loadIncome();    setLastRefreshed(new Date()); }
       else if (tab === "attendance" && authState === "admin")
-        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures()]);
       else if (tab === "join_requests" && authState === "admin")
         await loadJoinRequests();
       else if (tab === "collections" && authState === "admin")
@@ -1380,6 +1417,17 @@ export default function AdminPortal() {
   }
   const attentionItems: AttentionItem[] = [
     {
+      // Silent-failure log first — a stuck worker is the most time-
+      // sensitive signal on the dashboard (they can't clock out, their
+      // hours are wrong, they might already have left the site angry).
+      key: "attendance-failures",
+      icon: <XCircle size={14} strokeWidth={1.5} />,
+      label: "כשלי החתמה ב-24 השעות האחרונות",
+      count: failures.length,
+      severity: "high",
+      onClick: () => { setAttendanceSubTab("failures"); goToTab("attendance"); },
+    },
+    {
       key: "pending",
       icon: <Clock size={14} strokeWidth={1.5} />,
       label: "בקשות תיקון נוכחות ממתינות לאישור",
@@ -1605,6 +1653,10 @@ export default function AdminPortal() {
             correctionsErr={correctionsErr}
             onLoadCorrections={loadCorrectionRequests}
             onResolveCorrection={resolveCorrection}
+            failures={failures}
+            failuresLoading={failuresLoading}
+            failuresErr={failuresErr}
+            onLoadFailures={loadFailures}
             todayLogs={todayLogs}
             dataLoading={dataLoading}
             attLoadErr={attLoadErr}

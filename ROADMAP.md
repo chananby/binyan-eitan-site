@@ -249,8 +249,30 @@
   אחת — כשל משתמש → קוד ברור, כשל טכני → הודעה ידידותית + log
   מפורט בשרת; והנחיה: שגיאה שמשביתה עובד ראויה לנראות אדמין
   (לא חוק גורף). commit `72ae674`.
-  **נותרים בתור:** גל 2 (פאנל נראות אדמין — endpoint
-  `/api/attendance/error-report` + סופר 24h לפי staff_id/code).
+- **פאנל נראות כשלי החתמה — גל 2.** האירוע של 2026-07-06 (15+
+  עובדים שנחסמו מ-B3 וחנן גילה רק כי עובד היה לידו) הוכיח שכשלי
+  החתמה שקטים = בעיה קלאסית. המנגנון:
+  - טבלה חדשה `attendance_failures` (מיגרציה `20260706_attendance_failures.sql`)
+    עם 3 קטגוריות: `worker_stuck` (מוצג), `noise` (נשמר, לא מוצג —
+    session_expired/rate_limit/invalid_body), `security_signal`
+    (access_denied — נשמר, לא מוצג). Partial index על worker_stuck.
+    RLS enabled ללא policies (זהה ל-attendance_corrections).
+  - Helper `failClock()` ב-`/api/attendance/route.ts` שעוטף את
+    **כל 13 error returns** — כותב לטבלה fire-and-forget (INSERT
+    שנכשל לא חוסם את התשובה לעובד) ומחזיר את ה-NextResponse
+    הסטנדרטי. עקרון #13 ("קוד אחד, הודעה אחת") מקבל אכיפה טכנית —
+    קשה להוסיף return בלי לכתוב ללוג.
+  - Endpoint `GET /api/admin/attendance/failures` — מחזיר
+    `worker_stuck` מ-24h עם JOIN לשם עובד + פרויקט, מוגבל 500.
+  - Panel: פריט חדש ב-`AttentionPanel` (severity: high,
+    icon: XCircle) עם count של worker_stuck 24h. onClick →
+    תת-לשונית חדשה `"failures"` ב-AttendanceTab (לצד live/history)
+    שמראה את הפירוט: שם + "לפני X דק'" + סיבה בעברית + פרויקט.
+    server_error מודגש אדום כתקלה שדורשת התייחסות. עטוף
+    ב-`<StaleRefresh>` לפי עקרון "לא לקפוץ ברענון".
+  - הטבלה מוחלטת — לא מזינה כסף, לא נוגעת ב-payroll. **חנן צריך
+    להריץ את המיגרציה ידנית** לפני שהעמוד יעבוד. Follow-up: cron
+    ניקוי אם הטבלה תגדל מעבר לגודל נוח (v1 בלי, ~50-150 שורות/חודש).
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
   ניגודיות AA, שלושה סבבי refactor (dashboard, admin tabs, ForemanPortal).

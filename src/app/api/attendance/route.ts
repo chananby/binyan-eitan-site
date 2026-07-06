@@ -22,6 +22,82 @@ function logSupabaseError(context: string, err: { code?: string; message?: strin
   }));
 }
 
+// Categorization of the failure — drives whether it shows on the admin's
+// "worker got stuck" panel. See migration 20260706_attendance_failures.sql
+// for the full rationale.
+type FailureCategory = "worker_stuck" | "noise" | "security_signal";
+interface FailureDetails {
+  staffId?: string | null;
+  action?: string | null;
+  projectId?: string | null;
+  lat?: string | null;
+  lng?: string | null;
+  distanceM?: number | null;
+  uaFp?: string | null;
+  /** Extra HTTP headers to include on the response (e.g. Retry-After). */
+  headers?: Record<string, string>;
+}
+
+/**
+ * Log the failure to attendance_failures (fire-and-forget — a DB write
+ * failure here MUST NOT block the error response to the worker) and
+ * return the standard `{success:false, error:code}` NextResponse.
+ *
+ * When called with `supabase=null` (very early errors that fire before
+ * the client is initialized: access_denied, session_expired,
+ * too_many_attempts, invalid_body), the DB write is skipped. Those are
+ * all `noise` or `security_signal`; the panel doesn't lose anything
+ * critical. Log-worthy errors (worker_stuck, in particular) all fire
+ * after supabase is initialized and therefore always get captured.
+ */
+async function failClock(
+  supabase: ReturnType<typeof createServerClient> | null,
+  code: string,
+  category: FailureCategory,
+  httpStatus: number,
+  details?: FailureDetails,
+): Promise<NextResponse> {
+  if (supabase) {
+    const parseNum = (v: string | null | undefined): number | null => {
+      if (v == null || v === "") return null;
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : null;
+    };
+    try {
+      await supabase.from("attendance_failures").insert({
+        staff_id:    details?.staffId ?? null,
+        error_code:  code,
+        category,
+        http_status: httpStatus,
+        action:      details?.action ?? null,
+        project_id:  details?.projectId ?? null,
+        client_lat:  parseNum(details?.lat),
+        client_lng:  parseNum(details?.lng),
+        distance_m:  details?.distanceM ?? null,
+        ua_fp:       details?.uaFp ?? null,
+      });
+    } catch (err) {
+      // Fire-and-forget: log to server output and keep going. Under no
+      // circumstances does a failed observability write block the
+      // legitimate error response to the worker.
+      console.error(`[failClock insert failed] code=${code}`, err);
+    }
+  }
+  return NextResponse.json(
+    { success: false, error: code },
+    { status: httpStatus, ...(details?.headers ? { headers: details.headers } : {}) },
+  );
+}
+
+// Extract a short user-agent fingerprint from the request. Not a full UA
+// string (PII / bulky) — just enough to spot "one PWA on one phone is
+// spamming server_error" patterns from admin queries.
+function uaFingerprint(req: NextRequest): string | null {
+  const ua = req.headers.get("user-agent");
+  if (!ua) return null;
+  return ua.slice(0, 40);
+}
+
 // POST → main worker clock-in/out endpoint.
 //
 // Identity comes from the signed worker cookie (/api/worker/identify). Any
@@ -40,13 +116,17 @@ export async function POST(req: NextRequest) {
   // from the code. See DEVELOPMENT_PRINCIPLES: "one code → one message".
   const origin = req.headers.get("origin");
   const host = req.headers.get("host");
+  const uaFp = uaFingerprint(req);
   if (origin && host) {
     try {
       if (new URL(origin).host !== host) {
-        return NextResponse.json({ success: false, error: "access_denied" }, { status: 403 });
+        // Fires before supabase init — logging skipped. security_signal
+        // acknowledged as unlogged in v1; if abuse patterns need to be
+        // audited later, move supabase init above this block.
+        return await failClock(null, "access_denied", "security_signal", 403, { uaFp });
       }
     } catch {
-      return NextResponse.json({ success: false, error: "access_denied" }, { status: 403 });
+      return await failClock(null, "access_denied", "security_signal", 403, { uaFp });
     }
   }
 
@@ -58,7 +138,8 @@ export async function POST(req: NextRequest) {
   if (!staffId) {
     // Client treats 401 status as sessionExpired regardless of body — the
     // body code is documentation for anyone reading server logs.
-    return NextResponse.json({ success: false, error: "session_expired" }, { status: 401 });
+    // Fires before supabase init — logging skipped (noise anyway).
+    return await failClock(null, "session_expired", "noise", 401, { uaFp });
   }
 
   // ── Rate limit ────────────────────────────────────────────────────────────
@@ -66,10 +147,13 @@ export async function POST(req: NextRequest) {
   // don't lock out a worker, but still catches a stuck client.
   const rl = checkRateLimit(`staff:${staffId}:attendance-clock`, 15);
   if (!rl.allowed) {
-    return NextResponse.json(
-      { success: false, error: "too_many_attempts" },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
-    );
+    // Fires before supabase init — logging skipped. Deliberately: if a
+    // worker's PWA is spamming, we don't want each hit to also hit the
+    // DB. Rate-limit itself is the correct signal.
+    return await failClock(null, "too_many_attempts", "noise", 429, {
+      staffId, uaFp,
+      headers: { "Retry-After": String(rl.retryAfterSec) },
+    });
   }
 
   let body: { action?: string; lat?: string; lng?: string; timestamp?: string; project_id?: string };
@@ -77,16 +161,10 @@ export async function POST(req: NextRequest) {
     body = await req.json();
   } catch {
     console.error("[attendance] invalid_body: JSON parse failed for staff", staffId);
-    return NextResponse.json({ success: false, error: "invalid_body" }, { status: 400 });
+    return await failClock(null, "invalid_body", "noise", 400, { staffId, uaFp });
   }
 
   const { action, lat, lng, timestamp, project_id } = body;
-  if (!action) {
-    return NextResponse.json({ success: false, error: "missing_action" }, { status: 400 });
-  }
-  if (!lat || !lng) {
-    return NextResponse.json({ success: false, error: "location_required" }, { status: 400 });
-  }
 
   // ── Init Supabase ──────────────────────────────────────────────────────────
   const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -97,14 +175,11 @@ export async function POST(req: NextRequest) {
       !supabaseUrl && "SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL)",
       !supabaseKey && "SUPABASE_SERVICE_ROLE_KEY",
     ].filter(Boolean).join(", ");
-    // The technical detail (which env var) stays in the server log; the
-    // worker sees a generic errServerBusy. Same pattern for the two
-    // 500s below.
+    // Fires before supabase init: without env vars, there is no DB to
+    // log to. Falls back to server console only. The technical detail
+    // (which env var) stays in the log; the worker sees errServerBusy.
     console.error("[attendance] Missing env vars:", missing);
-    return NextResponse.json(
-      { success: false, error: "server_error" },
-      { status: 500 }
-    );
+    return await failClock(null, "server_error", "worker_stuck", 500, { staffId, uaFp });
   }
 
   let supabase: ReturnType<typeof createServerClient>;
@@ -113,7 +188,22 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Supabase client init failed";
     console.error("[attendance] createServerClient threw:", msg);
-    return NextResponse.json({ success: false, error: "server_error" }, { status: 500 });
+    return await failClock(null, "server_error", "worker_stuck", 500, { staffId, uaFp });
+  }
+
+  // Body-shape guards moved BELOW supabase init on purpose: they're
+  // categorized as worker_stuck (location_required especially — the
+  // worker's phone couldn't send coords) and need to hit the failures
+  // log. missing_action is technically pre-body but grouped with
+  // location_required for symmetry — both mean "the worker's request
+  // was missing something they can retry after re-clicking".
+  if (!action) {
+    return await failClock(supabase, "missing_action", "noise", 400, { staffId, uaFp });
+  }
+  if (!lat || !lng) {
+    return await failClock(supabase, "location_required", "worker_stuck", 400, {
+      staffId, action, projectId: project_id ?? null, uaFp,
+    });
   }
 
   // ── 1. Look up staff by signed id ─────────────────────────────────────────
@@ -132,22 +222,23 @@ export async function POST(req: NextRequest) {
     // server log via logSupabaseError. The worker gets the generic
     // errServerBusy — no leaking DB internals to the phone.
     logSupabaseError("staff lookup", staffError);
-    return NextResponse.json(
-      { success: false, error: "server_error" },
-      { status: 500 }
-    );
+    return await failClock(supabase, "server_error", "worker_stuck", 500, { staffId, action, uaFp });
   }
   if (!staff) {
-    return NextResponse.json({ success: false, error: "session_expired" }, { status: 401 });
+    return await failClock(supabase, "session_expired", "noise", 401, { staffId, action, uaFp });
   }
   if (staff.active === false) {
-    return NextResponse.json({ success: false, error: "account_inactive" }, { status: 403 });
+    return await failClock(supabase, "account_inactive", "worker_stuck", 403, {
+      staffId: staff.id, action, uaFp,
+    });
   }
 
   // ── 2. Normalize action + duplicate clock-in guard ────────────────────────
   const normalizedAction = action === "כניסה" ? "in" : action === "יציאה" ? "out" : action;
   if (!["in", "out"].includes(normalizedAction)) {
-    return NextResponse.json({ success: false, error: "invalid_action" }, { status: 400 });
+    return await failClock(supabase, "invalid_action", "noise", 400, {
+      staffId: staff.id, action, uaFp,
+    });
   }
 
   // Block a new clock-in only when an OPEN record exists (an entry not yet
@@ -167,7 +258,13 @@ export async function POST(req: NextRequest) {
       .in("action", ["in", "כניסה", "out", "יציאה"])
       .gte("clock_at", todayStart);
     if (hasOpenRecord(todays ?? [], todayStart)) {
-      return NextResponse.json({ success: false, error: "already_clocked_in" }, { status: 409 });
+      // Categorized as noise: a first click that hits already_clocked_in
+      // usually means the worker refreshed and re-submitted; the earlier
+      // clock is already in the log. Repeat abusers are already handled
+      // by rate-limiting.
+      return await failClock(supabase, "already_clocked_in", "noise", 409, {
+        staffId: staff.id, action: normalizedAction, projectId: project_id ?? null, uaFp,
+      });
     }
   }
 
@@ -193,14 +290,11 @@ export async function POST(req: NextRequest) {
       .in("action", ["in", "כניסה", "out", "יציאה"])
       .gte("clock_at", cutoffISO);
     if (!hasOpenRecord(recent ?? [], cutoffISO)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "no_open_entry_to_close",
-          message: "אין כניסה פתוחה לסגירה. אם צריך תיקון, פנה למנהל.",
-        },
-        { status: 409 },
-      );
+      // Classic worker-stuck signal — this is the exact class of block
+      // that hit 15+ workers on 2026-07-06. Panel-worthy.
+      return await failClock(supabase, "no_open_entry_to_close", "worker_stuck", 409, {
+        staffId: staff.id, action: normalizedAction, projectId: project_id ?? null, uaFp,
+      });
     }
   }
 
@@ -253,11 +347,13 @@ export async function POST(req: NextRequest) {
       if (normalizedAction === "in") {
         // Hard block on clock-in — the worker is not at the site.
         // 403 (not 409) so clients can branch on "you can't do this
-        // here" vs "you already did it".
-        return NextResponse.json(
-          { success: false, error: "gps_out_of_range" },
-          { status: 403 },
-        );
+        // here" vs "you already did it". Also the highest-value
+        // panel entry: "N workers tried to clock in from off-site"
+        // is exactly what chnn needs to spot patterns.
+        return await failClock(supabase, "gps_out_of_range", "worker_stuck", 403, {
+          staffId: staff.id, action: normalizedAction, projectId: project_id ?? null,
+          lat, lng, distanceM: Math.round(dist), uaFp,
+        });
       }
       // Clock-out over the radius: counted as a "remote exit". Allowed
       // up to the monthly cap; blocked with 409 after that. Same
@@ -275,16 +371,15 @@ export async function POST(req: NextRequest) {
         // countErr detail (code + message) already went to the log via
         // logSupabaseError. Worker sees the generic errServerBusy.
         logSupabaseError("remote-exit count", countErr);
-        return NextResponse.json(
-          { success: false, error: "server_error" },
-          { status: 500 },
-        );
+        return await failClock(supabase, "server_error", "worker_stuck", 500, {
+          staffId: staff.id, action: normalizedAction, projectId: project_id ?? null, uaFp,
+        });
       }
       if ((remoteExitCount ?? 0) >= enf.monthlyRemoteExitCap) {
-        return NextResponse.json(
-          { success: false, error: "monthly_remote_exit_cap_reached" },
-          { status: 409 },
-        );
+        return await failClock(supabase, "monthly_remote_exit_cap_reached", "worker_stuck", 409, {
+          staffId: staff.id, action: normalizedAction, projectId: project_id ?? null,
+          lat, lng, distanceM: Math.round(dist), uaFp,
+        });
       }
       // Under the cap → let the out through; the row's distance value
       // is the mark of "remote exit" in the data, no extra flag needed.
@@ -304,16 +399,14 @@ export async function POST(req: NextRequest) {
     // response the guard produces for the same-day case above, so
     // clients don't need a second branch.
     if ((insertError as { code?: string }).code === "23505") {
-      return NextResponse.json(
-        { success: false, error: "already_clocked_in" },
-        { status: 409 },
-      );
+      return await failClock(supabase, "already_clocked_in", "noise", 409, {
+        staffId: staff.id, action: normalizedAction, projectId: project_id ?? null, uaFp,
+      });
     }
     logSupabaseError("attendance insert", insertError);
-    return NextResponse.json(
-      { success: false, error: "server_error" },
-      { status: 500 }
-    );
+    return await failClock(supabase, "server_error", "worker_stuck", 500, {
+      staffId: staff.id, action: normalizedAction, projectId: project_id ?? null, uaFp,
+    });
   }
 
   // ── 3. Daily message (optional, non-blocking) ──────────────────────────────

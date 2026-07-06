@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import {
   BarChart2, Loader2, Download, AlertCircle, Calendar, Plus,
   AlertTriangle, RefreshCw, Building2, Pencil, History, Phone, UserX,
-  ChevronDown, ChevronUp,
+  ChevronDown, ChevronUp, XCircle,
 } from "lucide-react";
+import { labelFor, describeFailure, formatRelative } from "../../../../lib/attendance-failure-labels";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { TabRefreshBar } from "../shared/TabRefreshBar";
@@ -18,7 +19,20 @@ import WorkerHistoryPanel from "./WorkerHistoryPanel";
 import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
 import { attendanceTimeHHMM, attendanceDayTimeShort } from "../../../../lib/attendance-time";
 
-export type AttendanceSubTab = "live" | "history";
+export type AttendanceSubTab = "live" | "history" | "failures";
+
+/** One row of the silent-failure log (loaded from
+ *  /api/admin/attendance/failures — worker_stuck category, last 24h). */
+export interface AttendanceFailure {
+  id: string;
+  error_code: string;
+  http_status: number;
+  action: string | null;
+  distance_m: number | null;
+  attempted_at: string;
+  staff: { id: string; name: string } | null;
+  project: { id: string; name: string } | null;
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 // Duplicated from AdminPortal — these types describe the public prop surface
@@ -799,6 +813,108 @@ function AbsentTodayPanel({ staff, absentTodayIds }: {
   );
 }
 
+// ── Silent-failure log ────────────────────────────────────────────────────────
+// Renders category='worker_stuck' rows from the last 24h. Each row is:
+//   [staff name] · [relative time] · [Hebrew reason] · [optional project]
+// Wrapped in StaleRefresh so a background reload doesn't collapse the list
+// and jump the tab — same pattern the pending queue uses.
+function FailuresPanel({ failures, loading, error, onReload }: {
+  failures: AttendanceFailure[];
+  loading: boolean;
+  error: string | null;
+  onReload: () => void | Promise<void>;
+}) {
+  return (
+    <Card>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <XCircle size={15} strokeWidth={1.5} className="text-red-500" />
+          <h2 className="font-heading text-sm font-bold">
+            כשלי החתמה — 24 שעות אחרונות ({failures.length})
+          </h2>
+        </div>
+        <button
+          onClick={() => onReload()}
+          className="flex items-center gap-1 text-caption text-charcoal/70 hover:text-accent transition-colors"
+        >
+          <RefreshCw size={12} /> רענן
+        </button>
+      </div>
+      <p className="text-caption text-charcoal/60 mb-3">
+        מציג רק כשלים שהעובד נחסם במהותם (GPS, יציאה בלי כניסה, שגיאת שרת וכו&apos;).
+        כשלים טכניים חוזרים (session פג, retry) נשמרים אבל לא מוצגים כאן.
+      </p>
+      {error && (
+        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded px-3 py-2.5 text-sm text-red-700 mb-3">
+          <AlertCircle size={15} className="shrink-0 mt-0.5" />
+          <span>שגיאה בטעינת יומן הכשלים: {error}</span>
+        </div>
+      )}
+      <StaleRefresh
+        loading={loading}
+        hasContent={failures.length > 0}
+        spinner={<p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
+      >
+        {failures.length === 0 && (
+          <p className="text-sm text-charcoal/70 text-center py-4">
+            אין כשלים ב-24 השעות האחרונות ✓
+          </p>
+        )}
+        {failures.length > 0 && (
+          <div className="divide-y divide-charcoal/15">
+            {failures.map(f => <FailureRow key={f.id} f={f} />)}
+          </div>
+        )}
+      </StaleRefresh>
+    </Card>
+  );
+}
+
+function FailureRow({ f }: { f: AttendanceFailure }) {
+  const { emphasis } = labelFor(f.error_code);
+  const reason = describeFailure(f.error_code, f.distance_m);
+  const relTime = formatRelative(f.attempted_at);
+  const fullTime = new Date(f.attempted_at).toLocaleString("he-IL", {
+    timeZone: "Asia/Jerusalem",
+    day: "2-digit", month: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+  });
+  // High-emphasis rows carry a red-tinted background — server_error is
+  // the classic case: something's genuinely broken and chnn should look
+  // at Vercel logs. Everyday worker-stuck rows stay neutral so a
+  // legitimate cluster (5 people got gps_out_of_range) doesn't panic
+  // the reader.
+  const rowClass = emphasis === "high"
+    ? "bg-red-50/60 hover:bg-red-50"
+    : "hover:bg-bone/40";
+  return (
+    <div className={`py-2.5 px-2 flex items-start gap-3 ${rowClass} transition-colors`}>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="text-sm font-semibold text-charcoal">
+            {f.staff?.name ?? "—"}
+          </p>
+          <span
+            className="text-caption text-charcoal/60 tabular-nums"
+            title={fullTime}
+          >
+            {relTime}
+          </span>
+        </div>
+        <p className={`text-caption mt-0.5 ${emphasis === "high" ? "text-red-700 font-semibold" : "text-charcoal/80"}`}>
+          {reason}
+          {f.project?.name && (
+            <span className="text-charcoal/60"> · {f.project.name}</span>
+          )}
+          {f.action && (
+            <span className="text-charcoal/50"> · פעולה: {f.action === "in" ? "כניסה" : f.action === "out" ? "יציאה" : f.action}</span>
+          )}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ── 4. Today's log ───────────────────────────────────────────────────────────
 function TodayLog({
   todayLogs, dataLoading, attLoadErr,
@@ -1114,6 +1230,12 @@ type Props = {
   onLoadCorrections:  () => void | Promise<void>;
   onResolveCorrection: (id: string, status: "approved" | "rejected") => Promise<boolean>;
 
+  // Silent-failure log — worker_stuck rows from the last 24h.
+  failures:         AttendanceFailure[];
+  failuresLoading:  boolean;
+  failuresErr:      string | null;
+  onLoadFailures:   () => void | Promise<void>;
+
   // Today + recent
   todayLogs:   AttendanceRecord[];
   dataLoading: boolean;
@@ -1229,7 +1351,24 @@ export default function AttendanceTab(p: Props) {
         >
           היסטוריית עובד
         </SubTabButton>
+        <SubTabButton
+          active={p.subTab === "failures"}
+          onClick={() => p.setSubTab("failures")}
+          badge={p.failures.length}
+          icon={<XCircle size={13} strokeWidth={1.5} />}
+        >
+          כשלי החתמה
+        </SubTabButton>
       </div>
+
+      {p.subTab === "failures" && (
+        <FailuresPanel
+          failures={p.failures}
+          loading={p.failuresLoading}
+          error={p.failuresErr}
+          onReload={p.onLoadFailures}
+        />
+      )}
 
       {p.subTab === "history" && (
         <WorkerHistoryPanel
