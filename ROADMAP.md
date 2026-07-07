@@ -225,6 +225,9 @@
   ב-`voice/project/route.ts` — לא מריץ שוב את הגייט אחרי הפיק של
   הפרויקט (race window של שניות בין `/action` ל-`/project`); כדאי
   להעביר את הגייט לתוך `insertPhoneAttendance` בסבב עתידי.
+  **נפרס בייצור** (commit `db9eebe`, אימות: `x-matched-path: /admin`) —
+  התבנית הפוני של הכפילות של וייס לא תוכל להתקיים עוד, וגם יציאה יתומה
+  דרך הטלפון נחסמת.
 - **C1 — payroll routes** (`/api/admin/payroll` + `/api/admin/payroll/export`)
   סוננו לפי `created_at` → 32 שורות backfill חודשי נחתכו מהתלוש. תוקן: סינון
   לפי `clock_at` (workDate) — commit `4e2200b`. אימות ייצור: ~₪4,897 חוב אמיתי
