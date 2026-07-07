@@ -8,8 +8,32 @@ import {
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { INPUT } from "../shared/constants";
+import DateField from "../shared/DateField";
 import AttendanceRowEditor, { type EditorMode } from "../shared/AttendanceRowEditor";
 import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
+
+// Israel-local YMD for "today" — used by quick shortcuts and by `max` on
+// the picker so an admin doesn't accidentally scroll into the future.
+function israelYMDNow(): string {
+  return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
+}
+
+// First-of-month / last-of-month strings driven off the Israel-local YMD.
+// UTC-noon anchoring keeps the +1-month math off any DST seam.
+function firstOfMonth(ymd: string): string {
+  return `${ymd.slice(0, 7)}-01`;
+}
+function lastOfMonth(ymd: string): string {
+  const [y, m] = ymd.split("-").map(Number);
+  const next = new Date(Date.UTC(y, m, 1));       // first of NEXT month
+  const last = new Date(next.getTime() - 86_400_000);
+  return last.toISOString().slice(0, 10);
+}
+function prevMonthYMD(ymd: string): string {
+  const [y, m] = ymd.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m - 2, 15));     // any day inside previous month
+  return d.toISOString().slice(0, 10);
+}
 
 // Both edits and deletes go through the server's retro window (current /
 // previous Israel-calendar month). Compute here in the client purely to
@@ -147,7 +171,7 @@ export default function WorkerHistoryPanel(p: Props) {
       </div>
 
       {/* Selectors */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
         <Field label="עובד">
           <select
             value={p.selectedStaffId}
@@ -160,24 +184,63 @@ export default function WorkerHistoryPanel(p: Props) {
             ))}
           </select>
         </Field>
+        {/* Custom DateField for from/to. Replaces the browser-native
+            <input type="date"> whose vertical spinner buttons carry a
+            fixed ↑=forward / ↓=backward semantic that fights the Hebrew
+            timeline direction; our chevrons flip that (ChevronRight=
+            previous, ChevronLeft=next). Also gives the admin an editable
+            YYYY-MM-DD text field for direct entry when they need to
+            jump beyond ±1 day. `max={today}` blocks stepping into the
+            future — history has nothing there. */}
         <Field label="מ-">
-          <input
-            type="date"
+          <DateField
             value={p.from}
-            onChange={e => p.setFrom(e.target.value)}
-            className={INPUT}
-            dir="ltr"
+            onChange={p.setFrom}
+            max={p.to || undefined}
+            aria-label="תאריך התחלה"
           />
         </Field>
         <Field label="עד">
-          <input
-            type="date"
+          <DateField
             value={p.to}
-            onChange={e => p.setTo(e.target.value)}
-            className={INPUT}
-            dir="ltr"
+            onChange={p.setTo}
+            min={p.from || undefined}
+            max={israelYMDNow()}
+            aria-label="תאריך סיום"
           />
         </Field>
+      </div>
+
+      {/* Quick range shortcuts — the common case is a whole month view
+          (for a payroll dispute, "what did this worker do all of April?").
+          Buttons compute Israel-local first/last of the target month and
+          hand both dates to the parent in one shot, avoiding a
+          double-stepping walk. Precise ranges are still typable via the
+          DateField inputs above. */}
+      <div className="flex flex-wrap items-center gap-2 mb-4 text-caption">
+        <span className="text-charcoal/60 me-1">טווח מהיר:</span>
+        <button
+          type="button"
+          onClick={() => {
+            const today = israelYMDNow();
+            p.setFrom(firstOfMonth(today));
+            p.setTo(today);
+          }}
+          className="border border-charcoal/15 text-charcoal/75 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors"
+        >
+          החודש הזה
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const prev = prevMonthYMD(israelYMDNow());
+            p.setFrom(firstOfMonth(prev));
+            p.setTo(lastOfMonth(prev));
+          }}
+          className="border border-charcoal/15 text-charcoal/75 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors"
+        >
+          החודש הקודם
+        </button>
       </div>
 
       {!p.selectedStaffId && (

@@ -334,6 +334,20 @@
   הנוכחית. **"צפה בתור" (view-as-foreman) נשאר חסום למושבתים** —
   הבחנה מכוונת: היסטוריה = צפייה בעבר (מותר); צפה-בתור = פעולה בהווה
   (לא). אין נגיעה ב-backend/schema/endpoint. Build נקי, 381 tests.
+- **בורר תאריכים מותאם בפאנל היסטוריית עובד.** `<input type="date">`
+  של הדפדפן מגיע עם spinner אנכי (↑=קדימה, ↓=אחורה) שנוגד את קריאת
+  הזמן בעברית ולא ניתן לשנות. הוחלף ב-DateField חדש (
+  [`shared/DateField.tsx`](src/app/admin/_components/shared/DateField.tsx))
+  שמקבילה ל-MonthField/WeekPicker: חיצים אופקיים ב-RTL
+  (`ChevronRight`=יום קודם, `ChevronLeft`=יום הבא), input טקסט
+  editable ל-YYYY-MM-DD, commit-on-blur כדי שלא ייגרם fetch על כל
+  אות. הוסף strip "טווח מהיר" עם `החודש הזה` / `החודש הקודם` שממלאים
+  from+to בלחיצה — 90% ממקרי השימוש (מחלוקת שכר על חודש מסוים).
+  בנוסף: תרגמנו לעברית את שגיאות ה-validation ב-
+  `/api/admin/staff/[id]/history` ("תאריך ההתחלה חייב להיות לפני
+  תאריך הסיום" ו-"תאריך לא תקין — נדרש פורמט YYYY-MM-DD") שהיו
+  אנגלית וזלגו ישירות לבאנר האדום. שינוי UI + הודעות שרת בלבד,
+  אין נגיעה בלוגיקת שליפת ההיסטוריה. Build נקי.
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
   ניגודיות AA, שלושה סבבי refactor (dashboard, admin tabs, ForemanPortal).

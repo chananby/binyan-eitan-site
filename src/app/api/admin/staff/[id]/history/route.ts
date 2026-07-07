@@ -32,10 +32,19 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
   const to   = searchParams.get("to")   ?? today;
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to)) {
-    return NextResponse.json({ error: "Invalid date format (expected YYYY-MM-DD)" }, { status: 400 });
+    // Hebrew: surfaces directly in the admin UI (WorkerHistoryPanel binds
+    // e.error into a red banner). Not worker-facing, so no i18n layer —
+    // the /admin surface is Hebrew-only.
+    return NextResponse.json(
+      { error: "תאריך לא תקין — נדרש פורמט YYYY-MM-DD." },
+      { status: 400 },
+    );
   }
   if (from > to) {
-    return NextResponse.json({ error: "from must be <= to" }, { status: 400 });
+    return NextResponse.json(
+      { error: "תאריך ההתחלה חייב להיות לפני תאריך הסיום." },
+      { status: 400 },
+    );
   }
 
   const supabase = createServerClient();
