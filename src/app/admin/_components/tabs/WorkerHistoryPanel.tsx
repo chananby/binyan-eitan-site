@@ -59,8 +59,20 @@ const STATUS_STYLE: Record<
 };
 
 export default function WorkerHistoryPanel(p: Props) {
-  // Active workers first; keep inactive optionally available later if needed.
-  const selectableStaff = p.staff.filter(s => s.active);
+  // The picker includes ALL non-deleted staff — active and deactivated —
+  // because history is a past-facing view and a deactivated worker's
+  // months of records are exactly what the admin needs at payroll /
+  // audit time. Active first (sorted client-side already by role/name
+  // upstream), then deactivated at the bottom of the dropdown; each
+  // deactivated name carries a "(לא פעיל)" suffix so the admin sees
+  // the state immediately without a separate search.
+  const selectableStaff = [
+    ...p.staff.filter(s =>  s.active),
+    ...p.staff.filter(s => !s.active),
+  ];
+  function displayName(s: { name: string; active: boolean }): string {
+    return s.active ? s.name : `${s.name} (לא פעיל)`;
+  }
 
   // Which row (by date) is currently in inline-edit mode, and in which flow.
   // Only one row open at a time — keeps the table predictable on small screens.
@@ -72,7 +84,10 @@ export default function WorkerHistoryPanel(p: Props) {
   const totalHours   = p.days.reduce((s, d) => s + (d.hours ?? 0), 0);
   const presentDays  = p.days.filter(d => d.status === "present").length;
   const missingDays  = p.days.filter(d => d.status === "missing").length;
-  const selectedName = selectableStaff.find(s => s.id === p.selectedStaffId)?.name;
+  // The header label carries the same "(לא פעיל)" suffix so the state
+  // stays visible while the admin is browsing that worker's history.
+  const selectedStaff = selectableStaff.find(s => s.id === p.selectedStaffId);
+  const selectedName  = selectedStaff ? displayName(selectedStaff) : undefined;
 
   function openEditor(date: string, mode: EditorMode) {
     setEditingDate(date);
@@ -141,7 +156,7 @@ export default function WorkerHistoryPanel(p: Props) {
           >
             <option value="">בחר עובד...</option>
             {selectableStaff.map(s => (
-              <option key={s.id} value={s.id}>{s.name}</option>
+              <option key={s.id} value={s.id}>{displayName(s)}</option>
             ))}
           </select>
         </Field>

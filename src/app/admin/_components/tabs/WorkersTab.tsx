@@ -597,16 +597,23 @@ function renderStaffRow(
       </div>
       <span className={`text-caption px-2 py-0.5 shrink-0 ${s.active ? "bg-green-50 text-green-600" : "bg-charcoal/5 text-charcoal/70"}`}>{s.active ? "פעיל" : "לא פעיל"}</span>
       <button onClick={() => p.onStartEdit(s)} className="text-content border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0">ערוך</button>
-      {!isInactive && (
-        <button
-          onClick={() => p.onViewHistory(s.id)}
-          className="text-content border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0 flex items-center gap-1"
-          aria-label={`היסטוריית ${s.name}`}
-        >
-          <History size={11} strokeWidth={1.5} /> היסטוריה
-        </button>
-      )}
-      {/* Admin-only "view-as-foreman" (read-only). Only for active foremen. */}
+      {/* History is a PAST-facing view — deactivated workers still have
+          months of records the admin may need to look up (payroll dispute,
+          tax audit, "when did they leave the site last May?"). Data is
+          preserved on inactive (staff.active=false, not deleted), and the
+          history endpoint doesn't filter by active — the button was the
+          only gate. Now shown for both. */}
+      <button
+        onClick={() => p.onViewHistory(s.id)}
+        className="text-content border border-charcoal/15 px-2.5 py-1 hover:border-accent hover:text-accent transition-colors shrink-0 flex items-center gap-1"
+        aria-label={`היסטוריית ${s.name}`}
+      >
+        <History size={11} strokeWidth={1.5} /> היסטוריה
+      </button>
+      {/* Admin-only "view-as-foreman" (read-only). Only for active foremen —
+          a deactivated foreman has no live scope to view AS, so this stays
+          gated. Distinct from "היסטוריה" above: history is past-facing
+          (allowed for inactive), view-as is present-facing (not). */}
       {!isInactive && s.role === "ממונה" && (
         <button
           onClick={() => p.onViewAs(s.id)}

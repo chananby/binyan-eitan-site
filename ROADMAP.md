@@ -319,6 +319,21 @@
     שהעובד נתקע, במקום להסתמך על צילום מסך.
     **Follow-up:** cron ניקוי אם הטבלה תגדל מעבר לגודל נוח
     (v1 בלי, ~50-150 שורות/חודש צפוי).
+- **גישה להיסטוריית עובד לא-פעיל.** חנן השבית עובד ורצה לראות את
+  ההיסטוריה שלו, לא מצא איפה. החקירה מצאה שהנתונים במלואם ב-DB
+  (`staff.active=false`, לא נמחק — 21 עובדים לא-פעילים, 6 עם היסטוריה
+  שמורה של עשרות שורות `attendance`), וה-endpoint
+  `staff/[id]/history` לא מסנן `active`. שני שערים ב-UI בלבד חסמו:
+  (1) [`WorkersTab.tsx:600`](src/app/admin/_components/tabs/WorkersTab.tsx#L600)
+  הסתיר את כפתור "היסטוריה" ב-`!isInactive`; (2)
+  [`WorkerHistoryPanel.tsx:63`](src/app/admin/_components/tabs/WorkerHistoryPanel.tsx#L63)
+  סינן את ה-picker ל-`s.active` בלבד (עם קומנט "keep inactive optionally
+  available later if needed" — מישהו ידע שזו מגבלה זמנית). תיקון UI-only:
+  כפתור "היסטוריה" מוצג גם למושבתים; ה-picker כולל את כולם, פעילים
+  ראשונים ואז מושבתים עם סיומת "(לא פעיל)" ליד השם + בכותרת הבחירה
+  הנוכחית. **"צפה בתור" (view-as-foreman) נשאר חסום למושבתים** —
+  הבחנה מכוונת: היסטוריה = צפייה בעבר (מותר); צפה-בתור = פעולה בהווה
+  (לא). אין נגיעה ב-backend/schema/endpoint. Build נקי, 381 tests.
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
   ניגודיות AA, שלושה סבבי refactor (dashboard, admin tabs, ForemanPortal).
