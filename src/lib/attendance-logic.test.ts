@@ -190,3 +190,49 @@ describe("hasOpenRecord as the day-scoped guard for manual + clock-out endpoints
     expect(hasOpenRecord(rows, DS)).toBe(true);
   });
 });
+
+describe("hasOpenRecord as the Twilio /voice/action guard (mixed vocabularies)", () => {
+  // The Twilio IVR was the last surface that filtered same-day duplicates
+  // with .eq("action", "out") — English only. A worker whose manual
+  // "יציאה" had been logged by chnn earlier the same day could call in,
+  // slip past the check, and mint a duplicate OUT (Weiss on the phone).
+  // These cases pin the invariants the new guard relies on: hasOpenRecord
+  // must handle both action vocabularies uniformly and route Twilio's OUT
+  // to the "already exited" / "no open entry" branches without ever
+  // reaching insertPhoneAttendance.
+  const DS = "2026-07-06T00:00:00.000Z";
+  const at = (hhmm: string) => `2026-07-06T${hhmm}:00.000Z`;
+
+  it("BUG REPRO — prior manual Hebrew יציאה + Twilio OUT: last event = exit → BLOCK", () => {
+    // The exact shape from the /voice/action OUT branch: worker has IN
+    // + a manual Hebrew יציאה earlier today. hasOpenRecord=false is
+    // the signal for "no open entry to close" — Twilio must NOT insert
+    // another out, or it duplicates the Hebrew exit already on the row.
+    const rows = [ev("in", at("07:00")), ev("יציאה", at("14:00"))];
+    expect(hasOpenRecord(rows, DS)).toBe(false);
+  });
+
+  it("live English 'in' + Twilio OUT with no prior exit → ALLOW (normal end-of-shift call)", () => {
+    // The typical happy path: worker clocked in via the web this morning
+    // (English "in"), calls Twilio at the end of shift. hasOpenRecord=true
+    // → the guard lets the OUT through.
+    const rows = [ev("in", at("07:00"))];
+    expect(hasOpenRecord(rows, DS)).toBe(true);
+  });
+
+  it("no events at all today + Twilio OUT → BLOCK orphan exit", () => {
+    // Worker never clocked in today, calls to clock out anyway (typo, or
+    // called from home). Before the guard, Twilio would create a lone
+    // OUT that shows up in payroll as a phantom −N-hour shift.
+    expect(hasOpenRecord([], DS)).toBe(false);
+  });
+
+  it("manual כניסה (Hebrew) + Twilio OUT → ALLOW (chnn opened, worker closes by phone)", () => {
+    // The reverse-vocabulary case: chnn added a manual Hebrew כניסה for
+    // the worker earlier (say, they forgot the morning clock-in), the
+    // worker now calls in for the OUT. Guard must recognise the Hebrew
+    // IN as open — otherwise the worker is stuck.
+    const rows = [ev("כניסה", at("06:00"))];
+    expect(hasOpenRecord(rows, DS)).toBe(true);
+  });
+});

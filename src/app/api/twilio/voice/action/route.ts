@@ -24,7 +24,7 @@ import {
   israelHHMM, israelTodayYMD, insertPhoneAttendance,
 } from "../../../../../lib/twilio";
 import { israelDayStartISO } from "../../../../../lib/israel-time";
-import { isEntry } from "../../../../../lib/attendance-time";
+import { isEntry, isExit } from "../../../../../lib/attendance-time";
 import { hasOpenRecord } from "../../../../../lib/attendance-logic";
 
 export const runtime = "nodejs";
@@ -75,65 +75,68 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Duplicate-guard ──────────────────────────────────────────────────────
-  // IN:  block only when an OPEN record exists (today's entries > exits) — a
-  //      worker who already clocked out may start a new shift. Matches the
-  //      web flow in /api/attendance.
-  // OUT: unchanged — a second same-day clock-out is still blocked, since phone
-  //      callers can't see their day so far and might re-call to "make sure".
-  // Day scoping is by clock_at (never created_at). Both action vocabularies
-  // ("in"/"out" + "כניסה"/"יציאה") are counted via isEntry/isExit.
+  // Symmetric shape for both IN and OUT: fetch today's rows in BOTH
+  // action vocabularies ("in"/"out" + "כניסה"/"יציאה" — chnn's manual
+  // entries and the worker web flow use Hebrew; live IVR and the /admin
+  // clock-out endpoint use English) and route the decision through
+  // hasOpenRecord. Day scoping is by clock_at, never created_at.
+  //
+  //   IN  → block when the LAST event today is an entry (an unclosed
+  //         shift is already on the clock; a second IN would overlap).
+  //   OUT → block when the LAST event today is an exit (already gone
+  //         home; a second OUT would duplicate) OR when there's no
+  //         event at all (no open entry to close — otherwise the OUT
+  //         becomes an orphan that surfaces as a phantom −N-hour shift
+  //         in the monthly report).
+  //
+  // Before this branch the OUT guard used .eq("action", "out") — English
+  // only. A worker whose manual "יציאה" had been logged by chnn earlier
+  // today could call in, get "no existing OUT found", and mint a
+  // duplicate. Weiss on the phone. Also: no hasOpenRecord check meant
+  // pressing 2 with no IN would create an orphan exit.
   const todayStart = israelDayStartISO(israelTodayYMD());
+  const { data: todays, error: openErr } = await supabase
+    .from("attendance")
+    .select("action, clock_at")
+    .is("deleted_at", null)
+    .eq("staff_id", staffId)
+    .in("action", ["in", "כניסה", "out", "יציאה"])
+    .gte("clock_at", todayStart)
+    .order("clock_at", { ascending: false });
+  if (openErr) {
+    console.error("[twilio/voice/action] dup-check error:", JSON.stringify(openErr));
+    return twimlResponse(say("שגיאת מערכת זמנית. נסו שוב בעוד רגע.") + "<Hangup/>");
+  }
+  const rows = todays ?? [];
+  const openNow = hasOpenRecord(rows, todayStart);
 
-  if (action === "in") {
-    const { data: todays, error: openErr } = await supabase
-      .from("attendance")
-      .select("action, clock_at")
-      .is("deleted_at", null)
-      .eq("staff_id", staffId)
-      .in("action", ["in", "כניסה", "out", "יציאה"])
-      .gte("clock_at", todayStart)
-      .order("clock_at", { ascending: false });
-    if (openErr) {
-      console.error("[twilio/voice/action] dup-check error:", JSON.stringify(openErr));
-      return twimlResponse(say("שגיאת מערכת זמנית. נסו שוב בעוד רגע.") + "<Hangup/>");
-    }
-    if (hasOpenRecord(todays ?? [], todayStart)) {
-      // Latest entry (todays is ordered desc by clock_at) → read its time aloud.
-      const openRow = (todays ?? []).filter((r) => isEntry(r.action))[0];
-      const when = openRow?.clock_at ? israelHHMM(new Date(openRow.clock_at)) : "";
-      const msg = when
-        ? `כבר רשומה כניסה פתוחה היום בשעה ${when}. להתראות.`
-        : `כבר רשומה כניסה פתוחה היום. להתראות.`;
-      return twimlResponse(say(msg) + "<Hangup/>");
-    }
-  } else {
-    const { data: existing, error: existingErr } = await supabase
-      .from("attendance")
-      .select("id, clock_at, timestamp_label, created_at")
-      .is("deleted_at", null)
-      .eq("staff_id", staffId)
-      .eq("action", action)
-      .gte("clock_at", todayStart)
-      .order("clock_at", { ascending: false })
-      .limit(1);
-    if (existingErr) {
-      console.error("[twilio/voice/action] dup-check error:", JSON.stringify(existingErr));
-      return twimlResponse(say("שגיאת מערכת זמנית. נסו שוב בעוד רגע.") + "<Hangup/>");
-    }
-    if (existing && existing.length > 0) {
-      const row = existing[0];
-      // Prefer clock_at (always set by both flows) over timestamp_label, which
-      // older web check-ins stored as a full "25.05.2026, 08:47" string —
-      // wordy to read aloud. Re-formatting from clock_at gives a clean "HH:MM".
-      const when =
-        row.clock_at ? israelHHMM(new Date(row.clock_at)) :
-        row.created_at ? israelHHMM(new Date(row.created_at)) :
-        row.timestamp_label || "";
+  if (action === "in" && openNow) {
+    // Latest entry (rows is ordered desc by clock_at) → read its time aloud.
+    const openRow = rows.filter((r) => isEntry(r.action))[0];
+    const when = openRow?.clock_at ? israelHHMM(new Date(openRow.clock_at)) : "";
+    const msg = when
+      ? `כבר רשומה כניסה פתוחה היום בשעה ${when}. להתראות.`
+      : `כבר רשומה כניסה פתוחה היום. להתראות.`;
+    return twimlResponse(say(msg) + "<Hangup/>");
+  }
+  if (action === "out" && !openNow) {
+    // No open entry to close. Distinguish two shapes for the caller so
+    // they know whether the office should hear about it:
+    //   • last event today was already an OUT → "כבר רשומה יציאה"
+    //     (they double-called; harmless, no admin action needed).
+    //   • no relevant events today at all → "אין כניסה פתוחה" (worker
+    //     never clocked in — probably needs a foreman to help).
+    const lastExit = rows.filter((r) => isExit(r.action))[0];
+    if (lastExit) {
+      const when = lastExit.clock_at ? israelHHMM(new Date(lastExit.clock_at)) : "";
       const msg = when
         ? `כבר רשומה יציאה היום בשעה ${when}. להתראות.`
         : `כבר רשומה יציאה היום. להתראות.`;
       return twimlResponse(say(msg) + "<Hangup/>");
     }
+    return twimlResponse(
+      say("אין כניסה פתוחה לסגירה היום. אנא פנו למנהל העבודה.") + "<Hangup/>",
+    );
   }
 
   // ── Fetch active projects ───────────────────────────────────────────────
