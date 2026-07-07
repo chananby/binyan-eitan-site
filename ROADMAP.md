@@ -348,6 +348,9 @@
   תאריך הסיום" ו-"תאריך לא תקין — נדרש פורמט YYYY-MM-DD") שהיו
   אנגלית וזלגו ישירות לבאנר האדום. שינוי UI + הודעות שרת בלבד,
   אין נגיעה בלוגיקת שליפת ההיסטוריה. Build נקי.
+  **נפרס בייצור** (commit `39f9346`, אימות: `x-matched-path: /admin`) —
+  חיצים אנכיים ההפוכים של הדפדפן נעלמו מהמסך, וטווח חודש מלא הוא
+  שתי לחיצות במקום ריקוד בורר.
 - **StaleRefresh** — רענון חלק, ללא spinner-flash (5 מסכים).
 - **קריאות** — tokens (`text-content`/`text-caption`/`text-muted`), Card depth,
   ניגודיות AA, שלושה סבבי refactor (dashboard, admin tabs, ForemanPortal).
