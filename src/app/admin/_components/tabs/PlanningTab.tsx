@@ -269,7 +269,7 @@ export default function PlanningTab(p: Props) {
                   <span className="text-caption text-charcoal/70 tabular-nums" dir="ltr">{day.short}</span>
                 </div>
                 {dayTasks.length === 0 ? (
-                  <p className="text-caption text-charcoal/20 text-center py-1.5">ריק</p>
+                  <p className="text-caption text-charcoal/60 text-center py-1.5">ריק</p>
                 ) : (
                   <div className="divide-y divide-charcoal/15">
                     {dayTasks.map(t => (
@@ -403,7 +403,7 @@ export default function PlanningTab(p: Props) {
                 {isExpanded && (
                   <div className="border-t border-charcoal/8">
                     {msTasks.length === 0 ? (
-                      <p className="text-caption text-charcoal/25 text-center py-3">אין משימות תחת אבן דרך זו</p>
+                      <p className="text-caption text-charcoal/60 text-center py-3">אין משימות תחת אבן דרך זו — הוסף מ&quot;הוספת משימה שבועית&quot; למעלה</p>
                     ) : (
                       <div className="divide-y divide-charcoal/15">
                         {msTasks.map(t => (

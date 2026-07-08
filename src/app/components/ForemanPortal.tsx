@@ -690,11 +690,11 @@ export default function ForemanPortal({
       <header className="bg-charcoal text-white px-4 pt-10 pb-4 sticky top-0 z-30">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-caption tracking-widest uppercase text-white/30 mb-0.5">ממשק ממונה · {foremanName}</p>
+            <p className="text-caption tracking-widest uppercase text-white/70 mb-0.5">ממשק ממונה · {foremanName}</p>
             <h1 className="font-heading text-lg font-bold text-white leading-tight truncate">{project!.name}</h1>
           </div>
           <div className="shrink-0 text-end">
-            <div className="flex items-center justify-end gap-1 text-white/30 text-caption uppercase mb-0.5">
+            <div className="flex items-center justify-end gap-1 text-white/70 text-caption uppercase mb-0.5">
               <Flame size={9} /><span>הוצאות שבועיות</span>
             </div>
             <p className="font-heading text-xl font-bold text-accent tabular-nums">
@@ -704,14 +704,14 @@ export default function ForemanPortal({
         </div>
         <div className="flex items-center justify-between mt-2.5">
           <button onClick={() => loadDashboard(project!.id)}
-            className="flex items-center gap-1 text-caption text-white/25 hover:text-white/50 transition-colors">
+            className="flex items-center gap-1 text-caption text-white/70 hover:text-white transition-colors">
             <RefreshCw size={10} strokeWidth={1.5} className={dataLoading ? "animate-spin" : ""} />
             <span>רענן</span>
           </button>
           {projects.length > 1 && (
-            <button onClick={() => setView("select")} className="text-caption text-white/25 hover:text-white/50">החלף פרויקט</button>
+            <button onClick={() => setView("select")} className="text-caption text-white/70 hover:text-white">החלף פרויקט</button>
           )}
-          <button onClick={onLogout} className="flex items-center gap-1 text-caption text-white/25 hover:text-white/50">
+          <button onClick={onLogout} className="flex items-center gap-1 text-caption text-white/70 hover:text-white">
             <LogOut size={10} strokeWidth={1.5} /><span>יציאה</span>
           </button>
         </div>
@@ -1352,7 +1352,7 @@ export default function ForemanPortal({
         ] as { key: Tab; icon: React.ReactNode; label: string; dot: boolean }[]).map(t => (
           <button key={t.key} onClick={() => { setTab(t.key); if (t.key === "hours" && !hoursLoaded) loadHours(); }}
             className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 relative transition-colors active:scale-95 ${
-              tab === t.key ? "text-accent" : "text-charcoal/30"
+              tab === t.key ? "text-accent" : "text-charcoal/60"
             }`}>
             {t.dot && <span className="absolute top-2 right-1/2 translate-x-3.5 w-1.5 h-1.5 rounded-full bg-red-500" />}
             {t.icon}

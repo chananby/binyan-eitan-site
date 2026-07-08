@@ -1041,7 +1041,7 @@ function TodayLogRow({
       <div className="flex items-center justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold truncate">{r.staff?.name ?? "—"}</p>
-          <p className="text-caption text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
+          <p className="text-caption text-charcoal/70 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
         </div>
         <span className={`text-content font-semibold shrink-0 ${r.action === "כניסה" || r.action === "in" ? "text-green-600" : "text-red-400"}`}>
           {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
@@ -1051,17 +1051,17 @@ function TodayLogRow({
         </span>
         <DistanceFlag r={r} threshold={farThresholdM} />
         <PhoneCallChip source={r.source} />
-        <button onClick={() => onStartEditAtt(r)} className="text-charcoal/70 hover:text-accent transition-colors shrink-0 p-0.5">
-          <Pencil size={11} strokeWidth={1.5} />
+        <button onClick={() => onStartEditAtt(r)} className="text-charcoal/70 hover:text-accent transition-colors shrink-0 p-1.5">
+          <Pencil size={14} strokeWidth={1.5} />
         </button>
         {r.staff?.id && (
           <button
             onClick={() => onViewHistory(r.staff!.id)}
             title={`היסטוריית ${r.staff?.name ?? "עובד"}`}
             aria-label={`היסטוריית ${r.staff?.name ?? "עובד"}`}
-            className="text-charcoal/70 hover:text-accent transition-colors shrink-0 p-0.5"
+            className="text-charcoal/70 hover:text-accent transition-colors shrink-0 p-1.5"
           >
-            <History size={11} strokeWidth={1.5} />
+            <History size={14} strokeWidth={1.5} />
           </button>
         )}
       </div>
@@ -1259,7 +1259,7 @@ function RecentLogRow({
               </button>
             )}
           </div>
-          <p className="text-caption text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
+          <p className="text-caption text-charcoal/70 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {r.project && <span className="text-caption text-charcoal/70 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
@@ -1268,8 +1268,8 @@ function RecentLogRow({
           </span>
           <DistanceFlag r={r} threshold={farThresholdM} />
           <PhoneCallChip source={r.source} />
-          <button onClick={() => onStartEditAtt(r)} className="text-charcoal/70 hover:text-accent transition-colors p-0.5">
-            <Pencil size={11} strokeWidth={1.5} />
+          <button onClick={() => onStartEditAtt(r)} className="text-charcoal/70 hover:text-accent transition-colors p-1.5">
+            <Pencil size={14} strokeWidth={1.5} />
           </button>
         </div>
       </div>
