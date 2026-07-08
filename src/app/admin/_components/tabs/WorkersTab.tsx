@@ -332,7 +332,7 @@ export default function WorkersTab(p: Props) {
               </label>
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="שיבוץ ללוח">
               <label className="flex items-center gap-2 text-sm py-2.5 cursor-pointer">
                 <input type="checkbox" checked={p.newOfficeOnly} onChange={e => p.setNewOfficeOnly(e.target.checked)} className="accent-accent" />
