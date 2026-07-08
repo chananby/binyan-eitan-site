@@ -663,6 +663,10 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
     (`errClientBadRequest`, `errLocationRequired`, `errAccessDenied`,
     `errServerBusy`). 7 חדשים × 4 שפות non-HE = 28 מחרוזות
     best-effort לתקף מול native.
+  - **סבב הודעת GPS מעצימה:** נוסח חדש ל-`geoPermissionDenied` (הוראה
+    ספציפית לאנדרואיד — 🔒/ⓘ ליד כתובת האתר ← מיקום ← אפשר, הפניה למנהל
+    כמוצא אחרון) + רסטרוקטורה קלה ל-`geoPositionUnavailable`/`geoTimeout`.
+    SI/HI/ZH best-effort → **לתקף מול native.**
 
 ### חוב טכני ידוע
 - **`ForemanPortal.tsx` (~1,344 שורות)** — מועמד ל-refactor. פירוק `site` tab
