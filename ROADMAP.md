@@ -463,6 +463,60 @@
   4 טפסי אדמין וטבלת הצעות במובייל נקיים; מחולל ההצעות מציב ציפייה
   נכונה במקום להיראות שבור. **14 בעיות Medium/Low מהסריקה נותרו
   בתור לסבב הבא.**
+- **14 תיקוני ממשק Medium/Low — סריקת הממשק נסגרה (20/20).**
+  סבב שלישי ואחרון של סריקת ה-UI: 12 Medium + 2 Low. CSS/גדלים/
+  tooltip/aria-label בלבד, בלי שינויי לוגיקה. **10 קבצים, +39/-38.**
+  **נוכחות ותיקוני עובד:**
+  (8) [`AttendanceTab.tsx:1265`](src/app/admin/_components/tabs/AttendanceTab.tsx#L1265) — `title={r.project.name}` על
+  שם פרויקט מוקטע.
+  (11) [`CorrectionRequestsPanel.tsx:137-169`](src/app/admin/_components/shared/CorrectionRequestsPanel.tsx#L137) — 6 שדות קריטיים
+  (שפה/פעולה/תאריך/זמן/סיבה/חותם) מ-`text-[0.65rem]`/`text-[0.75rem]`
+  → `text-caption` (14px). כפתורי approve/reject לא נגעו.
+  (12) [`WorkerHistoryPanel.tsx:321,325,392`](src/app/admin/_components/tabs/WorkerHistoryPanel.tsx#L321) — סמן ½-יום,
+  "ממתין" chip (Clock `size=9→12`), placeholder חופש → `text-caption`.
+  (13) [`WorkerHistoryPanel.tsx:288`](src/app/admin/_components/tabs/WorkerHistoryPanel.tsx#L288) — נוסף `min-w-[720px]`
+  על טבלת 7 עמודות; אותו דפוס `ScheduleTable` כבר משתמש בו.
+  (18) [`AttendanceRowEditor.tsx:154,166,178`](src/app/admin/_components/shared/AttendanceRowEditor.tsx#L154) — 3 תוויות
+  "שעת כניסה/יציאה/סיבת תיקון": `text-[0.65rem] uppercase tracking-wider`
+  → `text-caption`. אומת admin-only Hebrew (נקרא רק מ-
+  `WorkerHistoryPanel.tsx:346`), אין שפות לטיניות שהעברה תשבור.
+  (19) [`AttendanceTab.tsx:79`](src/app/admin/_components/tabs/AttendanceTab.tsx#L79) — PhoneCallChip: Phone
+  `size=9→12` + `aria-label` (התווית עצמה `hidden sm:inline`, screen
+  reader היה חסר הקשר במובייל).
+  (20) [`AttendanceTab.tsx:1119`](src/app/admin/_components/tabs/AttendanceTab.tsx#L1119) — empty state "אין רשומות
+  ב-7 הימים האחרונים" קיבל רמז *"— לחץ 'רענן עכשיו' אם עובדים
+  דיווחו בינתיים"* (בסגנון "אין דיווחים היום").
+  **תכנון + שיבוץ:**
+  (7) [`PlanningTab.tsx:283-288`](src/app/admin/_components/tabs/PlanningTab.tsx#L283) — 3 כפתורי סטטוס `▶ ✓ ✕`
+  קיבלו `title` + `aria-label` ("הפעל משימה" / "סמן כהושלמה" /
+  "בטל שיוץ ליום"). ✕ בונוס: `text-charcoal/20`→`/60` (היה בלתי-
+  נראה למרות שזו פעולה, לא עיטור).
+  (9) [`WorkerChip.tsx:87-92`](src/app/admin/_components/shared/WorkerChip.tsx#L87) — תג פרופסיה
+  `text-[0.6rem]` (9.6px) → `text-caption` + `title` על שם עובד
+  ותג פרופסיה (שניהם `truncate max-w-[…]`); "ידני" marker גם
+  ל-`text-caption`.
+  (10) [`AssignCellDialog.tsx:108,130,133`](src/app/admin/_components/shared/AssignCellDialog.tsx#L108) — 3 סימני
+  "נוכחי"/"ידני" `text-[0.6rem]` → `text-caption`.
+  **מסמכים + שכר:**
+  (14) [`StaffDocumentsSection.tsx:237`](src/app/admin/_components/shared/StaffDocumentsSection.tsx#L237) — כלל ההעלאה
+  "PDF/JPG/… עד 10MB" מ-`text-[0.6rem] text-charcoal/35` →
+  `text-caption text-charcoal/70`.
+  (15) [`PayrollTab.tsx:136,156,160`](src/app/admin/_components/tabs/PayrollTab.tsx#L136) — טבלת שכר 9 עמודות:
+  `text-xs`→`text-caption` + `min-w-[720px]`; תג "עצמאי" ו-"מחוק"
+  → `text-caption`. מספרים ותגיות ההשפעה-על-תלוש קריאים.
+  **פורטל ממונה:**
+  (16) [`ForemanPortal.tsx:671,673,677`](src/app/components/ForemanPortal.tsx#L671) — hints של מסך בחירת
+  פרויקט: "לחץ לכניסה" `/35`→`/70`; ChevronRight `/25`→`/60`;
+  "יציאה מהמערכת" `/25`→`/70`.
+  (17) [`ForemanPortal.tsx:698,792-794,1141`](src/app/components/ForemanPortal.tsx#L698) — 5 אייקוני צ'יפ
+  Lucide `size={9}`→`{12}`: Flame (הוצאות שבועיות), Package/Users/
+  Wrench (חומרים/קבלן/ציוד ב-"מחר דרוש טיפול"), AlertTriangle
+  (ספירת red count יומית).
+  **נפרס בייצור** (commit `ea6bcc9`, אימות: `x-matched-path: /admin`) —
+  **סריקת הממשק (20 ממצאים) נסגרה במלואה** על פני 3 סבבים: 6 HIGH
+  (`69bbccb`), `responsive-quick-wins` (`144ff9d`), 14 Medium/Low
+  (`ea6bcc9`). מסכי היום-יום של חנן (נוכחות/תכנון/שכר) והפורטלים
+  של ממונה ועובד עברו ניקיון קונטרסט + טאץ' + תוויות מקצה לקצה.
 
 ### שאר תשתית פעילה
 - שיבוץ שבועי + copy-week + by-project view + temporary day-laborers.
