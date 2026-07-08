@@ -21,6 +21,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Loader2, AlertTriangle, RefreshCw, Users, Building2, Copy } from "lucide-react";
+import { StaleRefresh } from "../shared/StaleRefresh";
 import { getSundayLocal, addWeeks } from "../../../../lib/israel-week";
 import type {
   ScheduleAssignment,
@@ -433,12 +434,8 @@ export default function ScheduleTab() {
         </button>
       </div>
 
-      {loading && (
-        <div className="flex items-center justify-center gap-2 py-12 text-charcoal/65">
-          <Loader2 size={18} className="animate-spin" /> טוען תכנון…
-        </div>
-      )}
-
+      {/* Error stays outside StaleRefresh — if the reload failed there's
+          nothing sensible to keep on screen from the previous frame. */}
       {!loading && error && (
         <div className="flex flex-col items-center gap-3 py-12">
           <AlertTriangle size={32} className="text-amber-500" />
@@ -453,48 +450,66 @@ export default function ScheduleTab() {
         </div>
       )}
 
-      {!loading && !error && data && view === "worker" && (
-        <>
-          <ScheduleTable
-            workers={data.workers}
-            projects={data.projects}
-            manualProjects={data.manual_projects}
-            schedule={data.schedule}
-            vacations={data.vacations}
-            days={data.days}
-            onCellTap={({ worker, date, current }) => {
-              const workerName =
-                worker.kind === "staff"
-                  ? data.workers.find((w) => w.id === worker.id)?.name ?? "—"
-                  : worker.name;
-              setDialog({ mode: "cell", worker, workerName, date, current });
-            }}
-            onApplyWeek={(worker) => {
-              const workerName =
-                worker.kind === "staff"
-                  ? data.workers.find((w) => w.id === worker.id)?.name ?? "—"
-                  : worker.name;
-              setDialog({ mode: "week", worker, workerName });
-            }}
-          />
-          <AddTempWorkerForm
-            days={data.days}
-            dayLabels={dayLabels}
-            projects={data.projects}
-            manualProjects={data.manual_projects}
-            onAdd={handleAddTemp}
-          />
-        </>
-      )}
+      {/* StaleRefresh keeps the current schedule visible during a post-
+          action reload (add-temp-worker / toolbar refresh / week switch)
+          instead of unmounting to a spinner and jumping to the top —
+          same pattern BoardTab.tsx:319 uses for the board grid. First
+          load still gets a full spinner via the `spinner` override so
+          the "טוען תכנון…" copy is preserved. */}
+      {!error && (
+        <StaleRefresh
+          loading={loading}
+          hasContent={!!data}
+          spinner={
+            <div className="flex items-center justify-center gap-2 py-12 text-charcoal/65">
+              <Loader2 size={18} className="animate-spin" /> טוען תכנון…
+            </div>
+          }
+        >
+          {data && view === "worker" && (
+            <>
+              <ScheduleTable
+                workers={data.workers}
+                projects={data.projects}
+                manualProjects={data.manual_projects}
+                schedule={data.schedule}
+                vacations={data.vacations}
+                days={data.days}
+                onCellTap={({ worker, date, current }) => {
+                  const workerName =
+                    worker.kind === "staff"
+                      ? data.workers.find((w) => w.id === worker.id)?.name ?? "—"
+                      : worker.name;
+                  setDialog({ mode: "cell", worker, workerName, date, current });
+                }}
+                onApplyWeek={(worker) => {
+                  const workerName =
+                    worker.kind === "staff"
+                      ? data.workers.find((w) => w.id === worker.id)?.name ?? "—"
+                      : worker.name;
+                  setDialog({ mode: "week", worker, workerName });
+                }}
+              />
+              <AddTempWorkerForm
+                days={data.days}
+                dayLabels={dayLabels}
+                projects={data.projects}
+                manualProjects={data.manual_projects}
+                onAdd={handleAddTemp}
+              />
+            </>
+          )}
 
-      {!loading && !error && data && view === "site" && (
-        <ScheduleByProjectTable
-          workers={data.workers}
-          projects={data.projects}
-          manualProjects={data.manual_projects}
-          schedule={data.schedule}
-          days={data.days}
-        />
+          {data && view === "site" && (
+            <ScheduleByProjectTable
+              workers={data.workers}
+              projects={data.projects}
+              manualProjects={data.manual_projects}
+              schedule={data.schedule}
+              days={data.days}
+            />
+          )}
+        </StaleRefresh>
       )}
 
       {dialog && data && (

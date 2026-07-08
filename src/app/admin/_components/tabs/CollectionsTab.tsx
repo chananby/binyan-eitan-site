@@ -25,6 +25,7 @@
 import { useMemo, useState } from "react";
 import { Loader2, RefreshCw, ChevronDown, ChevronUp, Coins, Building2 } from "lucide-react";
 import CollectionItemCard, { type CollectionsMilestone } from "../shared/CollectionItemCard";
+import { StaleRefresh } from "../shared/StaleRefresh";
 
 export interface CollectionItem {
   milestone: CollectionsMilestone;
@@ -145,13 +146,8 @@ export default function CollectionsTab({ data, loading, error, onReload, onPayme
         </button>
       </div>
 
-      {/* States */}
-      {loading && (
-        <div className="flex items-center justify-center gap-2 py-12 text-charcoal/65">
-          <Loader2 size={18} className="animate-spin" /> טוען...
-        </div>
-      )}
-
+      {/* Error stays outside StaleRefresh — nothing sensible to keep
+          on screen if the reload itself failed. */}
       {!loading && error && (
         <div className="bg-red-50 border border-red-300 rounded-md p-4">
           <p className="text-sm text-red-800 font-semibold">{error}</p>
@@ -162,30 +158,46 @@ export default function CollectionsTab({ data, loading, error, onReload, onPayme
         </div>
       )}
 
-      {!loading && !error && data && data.items.length === 0 && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-8 text-center">
-          <p className="text-base font-semibold text-green-800">אין מה לגבות כרגע</p>
-          <p className="text-sm text-green-700 mt-1">הכל מעודכן ✓</p>
-        </div>
-      )}
+      {/* StaleRefresh keeps the collection list (hero + project cards)
+          mounted during a manual refresh or a post-payment reload,
+          instead of collapsing back to a spinner and jumping the page
+          to the top. First load still shows the full "טוען..." spinner
+          via the override. Same pattern BoardTab.tsx:319 uses. */}
+      {!error && (
+        <StaleRefresh
+          loading={loading}
+          hasContent={!!data}
+          spinner={
+            <div className="flex items-center justify-center gap-2 py-12 text-charcoal/65">
+              <Loader2 size={18} className="animate-spin" /> טוען...
+            </div>
+          }
+        >
+          {data && data.items.length === 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-md p-8 text-center">
+              <p className="text-base font-semibold text-green-800">אין מה לגבות כרגע</p>
+              <p className="text-sm text-green-700 mt-1">הכל מעודכן ✓</p>
+            </div>
+          )}
 
-      {/* Hero summary — only when there IS something to collect. */}
-      {!loading && !error && data && data.items.length > 0 && (
-        <div className="bg-red-50 border-2 border-red-300 rounded-md p-4 space-y-1">
-          <p className="text-xs font-bold text-red-700 tracking-wide uppercase flex items-center gap-1">
-            <Coins size={14} strokeWidth={2} /> לגבייה עכשיו
-          </p>
-          <p className="text-3xl font-bold text-red-800 tabular-nums leading-tight">
-            {fmt(totalDue)}
-          </p>
-          <p className="text-sm text-charcoal/85">
-            {count} {count === 1 ? "תשלום" : "תשלומים"} מ-{projectCount} {projectCount === 1 ? "פרויקט" : "פרויקטים"}
-          </p>
-        </div>
-      )}
+          {/* Hero summary — only when there IS something to collect. */}
+          {data && data.items.length > 0 && (
+            <div className="bg-red-50 border-2 border-red-300 rounded-md p-4 space-y-1 mb-4">
+              <p className="text-xs font-bold text-red-700 tracking-wide uppercase flex items-center gap-1">
+                <Coins size={14} strokeWidth={2} /> לגבייה עכשיו
+              </p>
+              <p className="text-3xl font-bold text-red-800 tabular-nums leading-tight">
+                {fmt(totalDue)}
+              </p>
+              <p className="text-sm text-charcoal/85">
+                {count} {count === 1 ? "תשלום" : "תשלומים"} מ-{projectCount} {projectCount === 1 ? "פרויקט" : "פרויקטים"}
+              </p>
+            </div>
+          )}
 
-      {/* Project sections */}
-      {!loading && !error && groups.map((group) => {
+          {/* Project sections */}
+          <div className="space-y-4">
+          {groups.map((group) => {
         const isCollapsed = collapsed.has(group.id);
         const isInactive = group.status !== "active";
         return (
@@ -233,6 +245,9 @@ export default function CollectionsTab({ data, loading, error, onReload, onPayme
           </div>
         );
       })}
+          </div>
+        </StaleRefresh>
+      )}
     </div>
   );
 }
