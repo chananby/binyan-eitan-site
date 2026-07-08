@@ -381,6 +381,27 @@
 - **i18n עובד** — 6 שפות בפורטל, שפה נשמרת ב-DB פר-עובד.
 - **שפת סימון** — Overline tags, badge language, chip flags.
 - **Auth ממונה/עובד** — טלפון בלבד (הוסר PIN gate).
+- **זריעת לוח תשלומים אוטומטית במחולל הצעות מחיר.** התווית ליד
+  התבנית הגלובלית ("ברירת מחדל ללוח תשלומים — תכנס אוטומטית להצעות
+  חדשות", `quote-generator.html:1751`) הבטיחה זריעה אוטומטית כבר
+  מהקומיט הראשון של המחולל (`8d98050`), אבל הקוד שיזרע *מעולם*
+  לא נכתב. אימות DB ב-10 הצעות אחרונות: 0 מתוכן כללו בלוק payment,
+  אף ש-7 מהן שמרו תבנית 6-שלבים ב-`defaultPaymentMilestones`. חנן
+  ניצל פעם אחר פעם את התבנית השמורה, יצר "הצעה חדשה", וגילה שהלוח
+  חסר גם בתצוגה המקדימה וגם ב-PDF (המנגנון היחיד — `window.print()`
+  על אותה תצוגה). תוקן על ענף ה-init של הצעה חדשה (`!urlHasQuoteId()`),
+  אחרי ש-`COMPANY_CONFIG_KEYS` העביר את `defaultPaymentMilestones`
+  מהמצב הקודם: אם המערך קיים ולא ריק → `createBlock('payment')` +
+  מיפוי של `defaultPaymentMilestones` לתוך `block.milestones` (כל
+  שלב מקבל `uid()` טרי, description ו-percentage מהתבנית) + push
+  ל-`state.blocks`. תבנית ריקה → אין זריעה (בלי בלוק ריק). הצעות
+  קיימות נטענות דרך `cloudSync.init()` מ-`result.quote.data` בלי
+  שינוי — לא נגענו רטרואקטיבית. הכפתור הידני "💰 לוח תשלומים" ו-
+  `renderPaymentPreview` לא נגעו בהם (רק לא היה להם בלוק לרנדר).
+  17 שורות ב-`public/admin-tools/quote-generator.html`, שינוי HTML
+  סטטי. `node --check` על ה-inline JS עובר; next build נקי.
+  **נפרס בייצור** (commit `48f91f5`, אימות: `x-matched-path: /admin/quotes`) —
+  הצעה חדשה מקבלת עכשיו את הלוח מיד בטופס ובתצוגה, בלי קליק נוסף.
 
 ### שאר תשתית פעילה
 - שיבוץ שבועי + copy-week + by-project view + temporary day-laborers.
