@@ -228,6 +228,30 @@
   **נפרס בייצור** (commit `db9eebe`, אימות: `x-matched-path: /admin`) —
   התבנית הפוני של הכפילות של וייס לא תוכל להתקיים עוד, וגם יציאה יתומה
   דרך הטלפון נחסמת.
+- **נעילת שינוי action בעריכה + "השלם יציאה" ב-RecentLogs.** 2026-07-08:
+  ישראל שם טוב שכח יציאה אתמול; חנן פתח את שורת הכניסה שלו ב-RecentLogs
+  ושינה את ה-dropdown "פעולה" מ-`כניסה` ל-`יציאה` כדי "להשלים" את היום.
+  ה-live IN של 08:12 נכתב-על על ידי OUT של 17:04. `original_clock_at`
+  שמר את החותם המקורי, אבל **אין `original_action`** בסכימה — האיבוד
+  לא-הפיך. תיקון דו-חלקי, בלי שינויי endpoint/schema:
+  (א) `EditAttRow` הפך את dropdown הפעולה ל-`disabled`+`aria-disabled`
+  עם הסבר: "לא ניתן לשנות כניסה↔יציאה בעריכה. להשלמת יציאה חסרה —
+  סגור והשתמש בכפתור 'השלם יציאה' ליד הרשומה." `handleEditAtt` +
+  `handleEditAndApproveAtt` הפסיקו לשלוח `action` ב-PATCH body (זמן
+  + פרויקט + סטטוס נשארו — הם מזיזים נתון, לא מוחקים אותו). ה-endpoint
+  `/api/admin/attendance/[id]` נשאר מקבל `action` תאימות אחורה — הלקוח
+  הוא זה שלא ישלח יותר.
+  (ב) `RecentLogs` מחשב `staffDayHasExit: Set<staff.id|YMD>` על הרשימה
+  הטעונה, בשתי אוצרות מילה (`isEntry`/`isExit`) כך שיציאה עברית ידנית
+  סוגרת IN אנגלי לייב ולהיפך. כל שורת כניסה שאין לה OUT תואם ליום
+  מציגה chip אמבר "השלם יציאה" ליד תגית "כניסה"; קליק פותח טופס inline
+  (HH:MM + אישור/ביטול) שעושה POST ל-`/api/admin/attendance/clock-out`
+  עם `{staff_id, project_id, date, time}` — בדיוק כמו mode=complete של
+  WorkerHistoryPanel. ה-guard `hasOpenRecord` בשרת עדיין רץ, אז UI
+  מיושן לא יכול ליצור יציאה יתומה גם אם טאב מקביל כבר סגר את המשמרת.
+  **נפרס בייצור** (commit `65a1c2f`, אימות: `x-matched-path: /admin`) —
+  המסלול שכשל אצל ישראל שם טוב סגור פיזית, ולחנן יש כפתור נכון להשלמת
+  יציאה ישירות מ-RecentLogs (בנוסף לזה שכבר קיים ב-WorkerHistoryPanel).
 - **C1 — payroll routes** (`/api/admin/payroll` + `/api/admin/payroll/export`)
   סוננו לפי `created_at` → 32 שורות backfill חודשי נחתכו מהתלוש. תוקן: סינון
   לפי `clock_at` (workDate) — commit `4e2200b`. אימות ייצור: ~₪4,897 חוב אמיתי
