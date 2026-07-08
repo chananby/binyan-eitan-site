@@ -553,6 +553,42 @@
   אילמת מאז 2026-07-06 (הרישום הראשון שנתפס) מעבירה עכשיו את חנן
   ישירות למקום שבו הוא סוגר את היום. הפריט התאם עצמו לדפוס של
   שאר הפריטים בפאנל.
+- **2 מוקדי קפיצה נוספים — ScheduleTab + CollectionsTab — נסגרו.**
+  שני מוקדים נותרו מסבב האנטי-קפיצה: שניהם השתמשו באנטי-דפוס
+  הקלאסי `{loading && <Spinner/>}` + `{!loading && data && <Content/>}`,
+  שמוריד את כל אזור התוכן מ-DOM על כל reload, מאפס גלילה, ומאבד
+  את המקום שהמשתמש היה בו. אותו פתרון שכבר החיל על BoardTab,
+  JoinRequestsTab ו-pending-queue: עטיפה ב-`<StaleRefresh loading=...
+  hasContent=!!data>` שמשמר את הפריים הקודם עם dim + badge "מתעדכן…"
+  עד שהנתונים החדשים מגיעים.
+  (א) [`ScheduleTab.tsx`](src/app/admin/_components/tabs/ScheduleTab.tsx) — הקפיצה
+  התרחשה אחרי `handleAddTemp` ([`:360`](src/app/admin/_components/tabs/ScheduleTab.tsx#L360),
+  POST של עובד יומי → `await load(sunday)`), כפתור "רענן" בסרגל
+  ([`:429`](src/app/admin/_components/tabs/ScheduleTab.tsx#L429)), ו-"נסה שוב"
+  במסך שגיאה. שינויי שיבוץ (`applyPick`) לא קפצו כי היו כבר optimistic
+  (`setData`, [`:150,164,169`](src/app/admin/_components/tabs/ScheduleTab.tsx#L150))
+  — לא נגעו. הפתרון: עטיפה של ה-`worker`/`site` views ב-StaleRefresh
+  עם `spinner` override שמשמר את הודעת "טוען תכנון…" בטעינה ראשונה.
+  Error banner נשאר מחוץ (אין מה להשאיר על המסך אם ה-reload עצמו
+  נכשל).
+  (ב) [`CollectionsTab.tsx`](src/app/admin/_components/tabs/CollectionsTab.tsx) —
+  הקפיצה התרחשה אחרי כפתור "רענן" ידני ([`:141`](src/app/admin/_components/tabs/CollectionsTab.tsx#L141))
+  ואחרי `onPayment` שגורם ל-parent להריץ reload. `paying` state
+  מקומי (line 117) חסם inputs אבל לא היה זה שהפיל את ה-DOM. הפתרון:
+  עטיפה זהה סביב hero + empty-state + project-groups; הוספת
+  `<div className="space-y-4">` פנימי כדי לשחזר את המרווח בין
+  כרטיסי פרויקטים שהגיע מ-`space-y-4` של ההורה.
+  **סריקת רוחב:** [`QuotesTab.tsx:87-98`](src/app/admin/_components/tabs/QuotesTab.tsx#L87)
+  מציג אותו אנטי-דפוס לכרטיס "הצעות אחרונות" בדשבורד, אבל אין שם
+  auto-refresh (`useEffect` פעם אחת ב-mount), והכרטיס below-the-fold —
+  לא דחוף, נדחה. שאר הלשוניות (AttendanceTab עם 3 StaleRefresh,
+  BoardTab, JoinRequestsTab, PayrollTab עם empty-state בלבד)
+  נקיות.
+  2 קבצים, +109/-79 שורות, `npm run build` נקי.
+  **נפרס בייצור** (commit `78f5372`, אימות: `x-matched-path: /admin`) —
+  הוספת עובד יומי + רענון גבייה + סימון תשלום → הרשימות
+  נשארות על המסך, badge "מתעדכן…", בלי קפיצה. **QuotesTab
+  נותר במוקד יחיד ולא-דחוף בתור.**
 
 ### שאר תשתית פעילה
 - שיבוץ שבועי + copy-week + by-project view + temporary day-laborers.
