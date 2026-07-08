@@ -17,7 +17,7 @@ import CorrectionRequestsPanel, { type CorrectionRequest } from "../shared/Corre
 import MonthlyReportPanel from "../shared/MonthlyReportPanel";
 import WorkerHistoryPanel from "./WorkerHistoryPanel";
 import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
-import { attendanceTimeHHMM, attendanceDayTimeShort } from "../../../../lib/attendance-time";
+import { attendanceTimeHHMM, attendanceDayTimeShort, israelYMD, isEntry, isExit } from "../../../../lib/attendance-time";
 
 export type AttendanceSubTab = "live" | "history" | "failures";
 
@@ -132,8 +132,22 @@ function EditAttRow({
   return (
     <form onSubmit={edit.onSubmit} className="py-3 space-y-2">
       <div className="grid grid-cols-2 gap-2">
+        {/* Action is locked to view-only. Changing a row's action
+            (e.g. from כניסה to יציאה) erases the live record — the
+            original action isn't stored in a separate column, so the
+            edit is irreversible. See 2026-07-08 incident (ישראל שם טוב
+            had his live IN silently rewritten as an OUT via this dropdown).
+            The rare legitimate case (worker or foreman logged the wrong
+            action) is handled by delete + re-insert instead. For the
+            common "worker forgot the OUT" case, the "השלם יציאה" button
+            in RecentLogs / WorkerHistoryPanel does the right thing. */}
         <Field label="פעולה">
-          <select value={edit.action} onChange={e => edit.setAction(e.target.value)} className={INPUT}>
+          <select
+            value={edit.action}
+            disabled
+            aria-disabled="true"
+            className={`${INPUT} disabled:opacity-70 disabled:cursor-not-allowed`}
+          >
             <option value="כניסה">כניסה</option>
             <option value="יציאה">יציאה</option>
           </select>
@@ -142,6 +156,9 @@ function EditAttRow({
           <input value={edit.timestamp} onChange={e => edit.setTimestamp(e.target.value)} placeholder="08:30" className={INPUT} dir="ltr" />
         </Field>
       </div>
+      <p className="text-caption text-charcoal/60 leading-snug">
+        לא ניתן לשנות כניסה↔יציאה בעריכה. להשלמת יציאה חסרה — סגור והשתמש בכפתור &quot;השלם יציאה&quot; ליד הרשומה.
+      </p>
       <Field label="אתר">
         <select value={edit.project} onChange={e => edit.setProject(e.target.value)} className={INPUT}>
           <option value="">ללא אתר</option>
@@ -1102,6 +1119,22 @@ function RecentLogs({
             <p className="text-sm text-charcoal/70 text-center py-4">אין רשומות ב-7 הימים האחרונים</p>
           )}
           {!recentLogsLoading && recentLogs.length > 0 && (() => {
+            // Precompute (staff × day) buckets that already have an OUT row.
+            // A row surfaces the "השלם יציאה" quick action only when its
+            // own bucket lacks any OUT — i.e. the shift is genuinely open
+            // and completing an exit is what an admin would actually want.
+            // Both action vocabularies are checked (isEntry/isExit) so a
+            // Hebrew manual entry closes an English live IN and vice-versa.
+            const staffDayHasExit = new Set<string>();
+            for (const r of recentLogs) {
+              if (!r.staff?.id || !isExit(r.action)) continue;
+              // AttendanceRecord.created_at is typed as optional but every
+              // DB row has it; workDate needs one of clock_at/created_at.
+              // Skip defensively if both are missing (shouldn't happen).
+              const ts = r.clock_at ?? r.created_at;
+              if (!ts) continue;
+              staffDayHasExit.add(`${r.staff.id}|${israelYMD(new Date(ts))}`);
+            }
             const regular = recentLogs.filter(r => !r.staff?.attendance_exempt);
             const exempt  = recentLogs.filter(r =>  r.staff?.attendance_exempt);
             return (
@@ -1110,7 +1143,9 @@ function RecentLogs({
                   <div className="divide-y divide-charcoal/15">
                     {regular.map(r => (
                       <RecentLogRow key={r.id} r={r} edit={edit} projects={projects}
-                        onStartEditAtt={onStartEditAtt} farThresholdM={farThresholdM} dim={false} />
+                        onStartEditAtt={onStartEditAtt} farThresholdM={farThresholdM} dim={false}
+                        staffDayHasExit={staffDayHasExit}
+                        onCompleteExitDone={onLoadRecentLogs} />
                     ))}
                   </div>
                 )}
@@ -1120,7 +1155,9 @@ function RecentLogs({
                     <div className="divide-y divide-charcoal/15">
                       {exempt.map(r => (
                         <RecentLogRow key={r.id} r={r} edit={edit} projects={projects}
-                          onStartEditAtt={onStartEditAtt} farThresholdM={farThresholdM} dim />
+                          onStartEditAtt={onStartEditAtt} farThresholdM={farThresholdM} dim
+                          staffDayHasExit={staffDayHasExit}
+                          onCompleteExitDone={onLoadRecentLogs} />
                       ))}
                     </div>
                   </div>
@@ -1136,6 +1173,7 @@ function RecentLogs({
 
 function RecentLogRow({
   r, edit, projects, onStartEditAtt, farThresholdM, dim,
+  staffDayHasExit, onCompleteExitDone,
 }: {
   r: AttendanceRecord;
   edit: EditAttSlice;
@@ -1143,7 +1181,61 @@ function RecentLogRow({
   onStartEditAtt: (r: AttendanceRecord, isPending?: boolean) => void;
   farThresholdM: number;
   dim: boolean;
+  staffDayHasExit: Set<string>;
+  onCompleteExitDone: () => void;
 }) {
+  // "השלם יציאה" quick action: only surfaces on an IN row whose (staff × day)
+  // bucket has zero OUTs among the currently loaded recent-logs page. This
+  // is a UI-scope check — the /api/admin/attendance/clock-out endpoint
+  // still runs its own hasOpenRecord day-scoped guard, so a stale UI can't
+  // create an orphan OUT even if a concurrent tab already closed the shift.
+  const rowTs = r.clock_at ?? r.created_at;
+  const rowYmd = rowTs ? israelYMD(new Date(rowTs)) : "";
+  const needsExit = !!r.staff?.id
+    && !!rowYmd
+    && isEntry(r.action)
+    && !staffDayHasExit.has(`${r.staff.id}|${rowYmd}`);
+
+  const [mode, setMode] = useState<null | "complete">(null);
+  const [exitTime, setExitTime] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [errMsg, setErrMsg] = useState<string | null>(null);
+
+  async function submitComplete(e: React.FormEvent) {
+    e.preventDefault();
+    if (!r.staff?.id) return;
+    if (!/^\d{2}:\d{2}$/.test(exitTime)) {
+      setErrMsg("שעה לא תקינה — פורמט HH:MM");
+      return;
+    }
+    if (!rowYmd) { setErrMsg("שגיאה: תאריך רשומה חסר"); return; }
+    setBusy(true); setErrMsg(null);
+    try {
+      const date = rowYmd;
+      const res = await fetch("/api/admin/attendance/clock-out", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          staff_id: r.staff.id,
+          project_id: r.project?.id ?? null,
+          date,
+          time: exitTime,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setMode(null); setExitTime("");
+        onCompleteExitDone();
+      } else {
+        setErrMsg("שגיאה: " + (data.error ?? res.status));
+      }
+    } catch (err) {
+      setErrMsg("שגיאת רשת: " + String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (edit.id === r.id) {
     return <EditAttRow edit={edit} projects={projects} withApproveButton={false} />;
   }
@@ -1156,6 +1248,16 @@ function RecentLogRow({
             <span className={`text-caption font-semibold px-1.5 py-0.5 ${r.action === "כניסה" || r.action === "in" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
               {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
             </span>
+            {needsExit && mode === null && (
+              <button
+                type="button"
+                onClick={() => setMode("complete")}
+                className="text-caption font-semibold px-2 py-0.5 border border-amber-500 bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors"
+                title="הוסף רשומת יציאה ליום זה (הכניסה לא נוגעים בה)"
+              >
+                השלם יציאה
+              </button>
+            )}
           </div>
           <p className="text-caption text-charcoal/35 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
         </div>
@@ -1171,6 +1273,38 @@ function RecentLogRow({
           </button>
         </div>
       </div>
+      {mode === "complete" && (
+        <form onSubmit={submitComplete} className="mt-2 pt-2 border-t border-amber-200 flex items-center gap-2 flex-wrap">
+          <span className="text-caption text-charcoal/70">שעת יציאה ({rowYmd}):</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={exitTime}
+            onChange={e => setExitTime(e.target.value)}
+            placeholder="17:00"
+            maxLength={5}
+            dir="ltr"
+            className={`${INPUT} w-24 text-center tabular-nums`}
+            autoFocus
+          />
+          <button
+            type="submit"
+            disabled={busy}
+            className="text-caption font-semibold px-3 py-1 bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
+          >
+            {busy ? "שומר…" : "אישור"}
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => { setMode(null); setExitTime(""); setErrMsg(null); }}
+            className="text-caption text-charcoal/60 hover:text-charcoal px-2"
+          >
+            ביטול
+          </button>
+          {errMsg && <span className="text-caption text-red-600 basis-full">{errMsg}</span>}
+        </form>
+      )}
     </div>
   );
 }

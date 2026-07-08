@@ -99,8 +99,13 @@ export function useAdminAttendance({ reload, loadPending, setPendingRecords, set
     e.preventDefault(); if (!editAttId) return;
     setEditAttLoading(true); setEditAttMsg("");
     try {
+      // action is intentionally NOT sent — the EditAttRow dropdown is
+      // now view-only, and a stray action change on the server side is
+      // the 2026-07-08 incident (worker's live IN silently overwritten
+      // as an OUT). Time + project are still editable; those never
+      // erase a data point, they just move it.
       const res  = await fetch(`/api/admin/attendance/${editAttId}`, { method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: editAttAction, project_id: editAttProject || null, timestamp_label: editAttTimestamp }) });
+        body: JSON.stringify({ project_id: editAttProject || null, timestamp_label: editAttTimestamp }) });
       const data = await res.json();
       if (res.ok) {
         const wasPending = editAttIsPending;
@@ -111,20 +116,21 @@ export function useAdminAttendance({ reload, loadPending, setPendingRecords, set
       } else { setEditAttMsg("שגיאה: " + (data.error ?? res.status)); }
     } catch (err) { setEditAttMsg("שגיאת רשת: " + String(err)); }
     finally { setEditAttLoading(false); }
-  }, [editAttId, editAttAction, editAttProject, editAttTimestamp, editAttIsPending, recentLogsVisible, loadPending, loadRecentLogs, reload]);
+  }, [editAttId, editAttProject, editAttTimestamp, editAttIsPending, recentLogsVisible, loadPending, loadRecentLogs, reload]);
 
   const handleEditAndApproveAtt = useCallback(async () => {
     if (!editAttId) return;
     setEditAttLoading(true); setEditAttMsg("");
     try {
+      // action intentionally not sent — see handleEditAtt above.
       const res  = await fetch(`/api/admin/attendance/${editAttId}`, { method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: editAttAction, project_id: editAttProject || null, timestamp_label: editAttTimestamp, status: "approved" }) });
+        body: JSON.stringify({ project_id: editAttProject || null, timestamp_label: editAttTimestamp, status: "approved" }) });
       const data = await res.json();
       if (res.ok) { setEditAttId(null); setEditAttIsPending(false); loadPending(); reload(); }
       else        { setEditAttMsg("שגיאה: " + (data.error ?? res.status)); }
     } catch (err) { setEditAttMsg("שגיאת רשת: " + String(err)); }
     finally { setEditAttLoading(false); }
-  }, [editAttId, editAttAction, editAttProject, editAttTimestamp, loadPending, reload]);
+  }, [editAttId, editAttProject, editAttTimestamp, loadPending, reload]);
 
   const handleManualEntry = useCallback(async (e: React.FormEvent) => {
     e.preventDefault(); setManualLoading(true); setManualErr(null); setManualMsg(null);
