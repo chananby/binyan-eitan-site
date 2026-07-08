@@ -33,6 +33,56 @@
 הן presentation שמקבל props (עקרון "fetch מחוץ ל-UI"). כל לשונית = קובץ ב-
 [`src/app/admin/_components/tabs/`](src/app/admin/_components/tabs/).
 
+### תרשים אזורים (מבט-על)
+
+מבנה המערכת במבט אחד: פורטלי השטח מזינים את הנוכחות, הנוכחות מזינה שכר,
+המסמכים מזינים את המאזן. ההיקפי מנותק מהליבה.
+
+```mermaid
+flowchart TB
+  subgraph PORTALS["פורטלי שטח (מזינים נוכחות)"]
+    FM["פורטל ממונה"]
+    WK["פורטל עובד — PWA"]
+    TW["טלפון — Twilio IVR"]
+  end
+
+  subgraph ADMIN["פורטל הניהול (/admin)"]
+    ATT["נוכחות + שכר"]
+    SCH["שיבוץ + תכנון"]
+    FIN["כספים: מסמכים · גבייה · הכנסות/הוצאות"]
+    QT["הצעות מחיר"]
+    WP["עובדים + פרויקטים"]
+  end
+
+  subgraph DATA["נתונים מרכזיים"]
+    DB_ATT[("attendance")]
+    DB_DOC[("financial_documents")]
+    DB_PM[("payment_milestones")]
+    DB_CORE[("staff · projects")]
+  end
+
+  FM --> DB_ATT
+  WK --> DB_ATT
+  TW --> DB_ATT
+  DB_ATT --> ATT
+  ATT -->|"clock_at × תעריף"| PAY["תלוש שכר — XLSX"]
+  DB_DOC --> FIN
+  FIN -->|"approved · amount_ils"| PNL["מאזן חודשי + תקציב-מול-ביצוע"]
+  DB_PM --> FIN
+  WP --> DB_CORE
+  DB_CORE --> SCH
+  DB_CORE --> ATT
+
+  subgraph PUBLIC["האתר הציבורי — binyaneitan.com"]
+    SITE["בית · תיק עבודות · מאמרים · יצירת קשר"] --> LEAD["לידים → וואטסאפ / מייל"]
+  end
+
+  subgraph PERIPH["היקפי — מנותק מהליבה"]
+    MATH["אפליקציית מתמטיקה"]
+    HOLD["פנים-ארגוני / החזקות"]
+  end
+```
+
 ---
 
 # חלק א — הליבה העסקית
@@ -55,6 +105,32 @@
   - סוף חודש → טווח → דוח שעות מצטבר פר-עובד → הדפסה/PDF.
 - **מחובר ל:** דשבורד (כרטיס "טרם החתימו" זהה), עובדים (כפתור היסטוריה), פורטל ממונה (מקור pending/corrections), שכר (אותה נוכחות), חשבון (אכיפת GPS), `/admin/health`. טבלאות: `attendance`, `attendance_corrections`, `attendance_failures`, `staff`, `projects`, `vacation_days`.
 - **קבצים:** [`AttendanceTab.tsx`](src/app/admin/_components/tabs/AttendanceTab.tsx), `tabs/WorkerHistoryPanel.tsx`, `shared/{CorrectionRequestsPanel,MonthlyReportPanel,DistanceFlag,StaleRefresh,AttendanceRowEditor}.tsx`; endpoints `api/admin/attendance/{today,recent,pending,manual,clock-out,failures,report,monthly-report,corrections,corrections/[id],stale-opens,[id]}`.
+
+**תרשים: 3 מסלולי החתמה → רשומה אחת.** שים לב ל-gotcha של `action` בתחתית.
+
+```mermaid
+flowchart TD
+  START["עובד רוצה להחתים"] --> CH{"איך?"}
+  CH -->|"סמארטפון"| WEB["פורטל עובד — PWA"]
+  CH -->|"טלפון"| PHONE["חיוג — Twilio IVR"]
+  CH -->|"שכח / תיקון"| MAN["ממונה או אדמין מזין ידנית"]
+
+  WEB --> ID["זיהוי טלפון + cookie"] --> PICK["בחירת פרויקט + כניסה/יציאה"]
+  PICK --> GPS["בדיקת GPS בדפדפן"] --> POST["POST /api/attendance"]
+  POST --> ENF{"אכיפת GPS + guards"}
+
+  PHONE --> CID["זיהוי לפי caller-ID"] --> DTMF["הקשה: 1 כניסה · 2 יציאה + בחירת אתר"]
+  DTMF --> INS["insertPhoneAttendance"]
+
+  MAN --> GUARD["בדיקת כניסה פתוחה — hasOpenRecord"] --> PENDING["status=pending — ממתין לאישור אדמין"]
+
+  ENF -->|"תקין"| REC["רשומת attendance"]
+  ENF -->|"נחסם: מחוץ לרדיוס / כפול / יציאה יתומה"| FAIL[("attendance_failures")]
+  INS --> REC
+  PENDING --> REC
+
+  REC --> NOTE["gotcha: action — web כותב 'כניסה/יציאה', טלפון כותב 'in/out'.<br/>כל פילטר חייב לכסות את שתי אוצרות המילה."]
+```
 
 ## א.2 — שיבוץ
 
@@ -103,6 +179,26 @@
   - צפי: חודש תיאורטי 22 ימים × 8.5ש' = 187 × תעריף נוכחי; מתעלם מנוכחות אמיתית.
 - **מחובר ל:** עובדים (RateManager, `has_rate` מזין דגל שכר), נוכחות (מקור), חופשות, דשבורד (כרטיס צפי). טבלאות: `staff` (rate legacy + national_id/pension/holiday/travel), `staff_rates` (מקור אמת per-חודש), `attendance`, `vacation_days`.
 - **קבצים:** [`PayrollTab.tsx`](src/app/admin/_components/tabs/PayrollTab.tsx), `hooks/usePayroll.ts`, `shared/{RateManager,ForecastDetailDialog}.tsx`, `lib/{payroll-aggregate,payroll-forecast,staff-rates}.ts`; endpoints `api/admin/payroll[/export|/forecast|/forecast/export]`, `staff/[id]/rates`.
+
+**תרשים: מנוכחות לתלוש.** הסינון לפי `clock_at` (לא `created_at`) — ראה gotcha.
+
+```mermaid
+flowchart TD
+  ATT[("attendance — סינון לפי clock_at")] --> AGG["aggregate: firstIn / lastOut לכל יום"]
+  VAC[("vacation_days")] --> AGGV["aggregate חופשה — half_day=0.5"]
+  AGG --> RATE["getRatesForMonth — staff_rates לחודש"]
+  AGGV --> RATE
+  RATE --> GROSS{"computeGross לפי סוג העסקה"}
+  GROSS -->|"שעתי"| H["שעות × תעריף"]
+  GROSS -->|"יומי"| D["ימים × תעריף"]
+  GROSS -->|"גלובלי"| G["משכורת קבועה"]
+  H --> TABLE["טבלת שכר פר-עובד"]
+  D --> TABLE
+  G --> TABLE
+  TABLE --> XLS{"ייצוא XLSX"}
+  XLS -->|"שכירים"| EMP["+ פנסיה + חגים"]
+  XLS -->|"עצמאים"| FRE["בלי פנסיה / חגים"]
+```
 
 ## א.5 — הצעות מחיר
 
@@ -183,6 +279,26 @@
   - קישור: חד-כיווני — `linked_document_id` על ה-evidence מצביע על ה-primary; ה-primary לא נספר פעמיים.
 - **מחובר ל:** פרויקטים (הוצאות פר-פרויקט + תקציב-מול-ביצוע), דשבורד (P&L), הכנסות/הוצאות (מקור אמת מאוחד), עובדים/ספקים (vendor↔staff ל-suggest-split), שכר. טבלאות: `financial_documents`, `document_project_splits`, `vendors`, `projects`, `attendance`, `staff`; Storage `financial-documents`.
 - **קבצים:** `tabs/DocumentsTab.tsx` (link-card בלבד), [`DocumentsInboxClient.tsx`](src/app/admin/documents/DocumentsInboxClient.tsx), `admin/documents/{triage/TriageClient,review/ReviewQueueClient,[id]/DocumentDetailClient,[id]/DocumentReviewForm}.tsx`, `_components/{DocumentUploader,DocumentCard,DocumentFilters,DocumentSplitPanel,DocumentLinkSection,useDocumentSplits}`, `lib/document-{extraction,splits,classify,resume,columns,filters}.ts`, `attendance-project-shares.ts`; endpoints `api/admin/documents[/[id][/extract|/file|/splits|/suggest-split]|/bulk|/check|/export|/resume-pending|/split-doc-ids]`.
+
+**תרשים: ממסמך שהועלה למאזן.** invariant: שיוך ישיר או פיצול — לא שניהם.
+
+```mermaid
+flowchart TD
+  UP["העלאת מסמך"] --> HASH{"probe כפילות — file_hash"}
+  HASH -->|"כפול"| DUP["התראת כפילות — לא נספר"]
+  HASH -->|"חדש"| AI["חילוץ AI — Anthropic"]
+  AI --> FIELDS["שדות: סוג · direction · סכום · ספק"]
+  FIELDS --> TRI["טריאז' — שיוך לפרויקט"]
+  TRI --> OPT{"טיפול נוסף?"}
+  OPT -->|"פיצול בין פרויקטים"| SPLIT["document_project_splits — single OR split"]
+  OPT -->|"קישור חשבונית↔העברה"| LINK["linked_document_id — evidence לא נספר"]
+  OPT -->|"החרגה"| EXC["include_in_actuals=false — ארכיון בלבד"]
+  OPT -->|"רגיל"| APP["אישור — status=approved"]
+  SPLIT --> APP
+  LINK --> APP
+  APP --> ROLL["מזין: תקציב-מול-ביצוע + מאזן חודשי"]
+  EXC -.->|"לא נספר"| ROLL
+```
 
 ## א.10 — הכנסות
 
