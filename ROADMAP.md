@@ -517,6 +517,42 @@
   (`69bbccb`), `responsive-quick-wins` (`144ff9d`), 14 Medium/Low
   (`ea6bcc9`). מסכי היום-יום של חנן (נוכחות/תכנון/שכר) והפורטלים
   של ממונה ועובד עברו ניקיון קונטרסט + טאץ' + תוויות מקצה לקצה.
+- **התראת "כניסות פתוחות מימים קודמים" הפכה למסלול טיפול מלא.**
+  הפריט בפאנל "דורש תשומת לב" של הדשבורד קיים מאז חבילת האכיפה
+  (`43c711e`, B1 signal path) והספירה שלו נכונה — אבל ה-onClick
+  עשה רק `goToTab("attendance")` והנחית על sub-tab `"live"` שאין
+  בו שום פאנל שמציג את `staleOpens`. חנן היה לוחץ על ההתראה
+  ורואה אותו מסך שלא היה מזכיר את יוסף חיים ברמן שנתקע פתוח מ-06.07
+  09:04 באגסי 52 ירושלים. הממונה כן ראה פאנל מקביל
+  ([`ForemanPortal.tsx:927`](src/app/components/ForemanPortal.tsx#L927)); לאדמין
+  לא היה מקבילה. תוקן:
+  (א) [`AttendanceTab`](src/app/admin/_components/tabs/AttendanceTab.tsx) קיבל
+  `staleOpensPanel` amber ב-sub-tab `"live"`, בין `correctionsPanel`
+  ל-`ReportPanel`. סגנון מקביל לפאנל הממונה — `AlertTriangle` + כותרת
+  amber + כרטיס `bg-amber-50 border-amber-200` עם שורה לכל יתום:
+  שם עובד + זמן כניסה (DD.MM HH:MM ישראל, דרך `fmtStaleWhen`
+  מקומי) + שם פרויקט. כל שורה `<button>` מלא רוחב עם hover אמבר
+  עמוק יותר, קורא ל-`onOpenStaleDay(staff_id, day_ymd)`.
+  (ב) [`AdminPortal.viewWorkerHistoryForDay(staffId, ymd)`](src/app/components/AdminPortal.tsx#L1160) —
+  helper חדש שמאמץ את הדפוס של `viewWorkerHistory` הקיים וגם קובע
+  `historyFrom = historyTo = ymd`, כדי ש-WorkerHistoryPanel ייפתח
+  ממוקד ליום היתום. עם commit `a21e41c` כפתור "השלם יציאה"
+  ([`WorkerHistoryPanel.tsx:392`](src/app/admin/_components/tabs/WorkerHistoryPanel.tsx#L392))
+  כבר מחכה שם — קליק אחד → טופס HH:MM → יוצר יציאה בלי לגעת בכניסה.
+  (ג) onClick של הפריט `stale-opens` בפאנל התשומת-לב
+  ([`AdminPortal.tsx:1466`](src/app/components/AdminPortal.tsx#L1466)) עודכן
+  ל-`setAttendanceSubTab("live"); goToTab("attendance");` — אותו דפוס
+  שהפריט `not-clocked` כבר משתמש בו — כדי להבטיח שהפאנל האמבר
+  יהיה גלוי בעת נחיתה, גם אם הביקור הקודם השאיר את המשתמש
+  ב-sub-tab אחר.
+  לא נגעו: ה-endpoint `/api/admin/attendance/stale-opens` (נכון,
+  אומת מול הרשומה החיה), ה-פאנל של הממונה, וכפתור "השלם יציאה"
+  עצמו. 2 קבצים, +73/-1 שורות, `npm run build` נקי.
+  **נפרס בייצור** (commit `3b87006`, אימות: `x-matched-path: /admin`) —
+  מסלול "התראה → פאנל → פעולה" סגור סופית; אחת ההתראות שנשארה
+  אילמת מאז 2026-07-06 (הרישום הראשון שנתפס) מעבירה עכשיו את חנן
+  ישירות למקום שבו הוא סוגר את היום. הפריט התאם עצמו לדפוס של
+  שאר הפריטים בפאנל.
 
 ### שאר תשתית פעילה
 - שיבוץ שבועי + copy-week + by-project view + temporary day-laborers.
