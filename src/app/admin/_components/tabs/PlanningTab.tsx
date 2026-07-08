@@ -280,12 +280,12 @@ export default function PlanningTab(p: Props) {
                           {t.contractor && <p className="text-caption text-charcoal/70">{t.contractor}</p>}
                         </div>
                         {t.status === "planned" && (
-                          <button onClick={() => p.onSetTaskStatus(t.id, "in_progress")} className="text-caption border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">▶</button>
+                          <button onClick={() => p.onSetTaskStatus(t.id, "in_progress")} title="הפעל משימה" aria-label="הפעל משימה" className="text-caption border border-amber-300 px-1.5 py-0.5 text-amber-700 hover:bg-amber-50 transition-colors shrink-0">▶</button>
                         )}
                         {t.status !== "completed" && (
-                          <button onClick={() => p.onSetTaskStatus(t.id, "completed")} className="text-caption border border-green-300 px-1.5 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">✓</button>
+                          <button onClick={() => p.onSetTaskStatus(t.id, "completed")} title="סמן כהושלמה" aria-label="סמן כהושלמה" className="text-caption border border-green-300 px-1.5 py-0.5 text-green-700 hover:bg-green-50 transition-colors shrink-0">✓</button>
                         )}
-                        <button onClick={() => p.onAssignTaskDay(t.id, null)} className="text-caption text-charcoal/20 hover:text-red-400 transition-colors shrink-0">✕</button>
+                        <button onClick={() => p.onAssignTaskDay(t.id, null)} title="בטל שיוץ ליום" aria-label="בטל שיוץ ליום" className="text-caption text-charcoal/60 hover:text-red-400 transition-colors shrink-0">✕</button>
                       </div>
                     ))}
                   </div>

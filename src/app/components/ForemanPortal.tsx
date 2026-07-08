@@ -668,13 +668,13 @@ export default function ForemanPortal({
             className="w-full bg-white border border-warm-gray-light p-5 text-start flex items-center justify-between hover:border-accent transition-colors active:scale-[0.98]">
             <div>
               <p className="font-heading text-base font-bold text-charcoal">{p.name}</p>
-              <p className="text-content text-charcoal/35 mt-0.5">לחץ לכניסה לפרויקט</p>
+              <p className="text-content text-charcoal/70 mt-0.5">לחץ לכניסה לפרויקט</p>
             </div>
-            <ChevronRight size={20} strokeWidth={1.5} className="text-charcoal/25 shrink-0" />
+            <ChevronRight size={20} strokeWidth={1.5} className="text-charcoal/60 shrink-0" />
           </button>
         ))}
       </div>
-      <button onClick={onLogout} className="pb-10 text-center text-content text-charcoal/25 underline underline-offset-2">
+      <button onClick={onLogout} className="pb-10 text-center text-content text-charcoal/70 underline underline-offset-2">
         יציאה מהמערכת
       </button>
     </div>
@@ -695,7 +695,7 @@ export default function ForemanPortal({
           </div>
           <div className="shrink-0 text-end">
             <div className="flex items-center justify-end gap-1 text-white/70 text-caption uppercase mb-0.5">
-              <Flame size={9} /><span>הוצאות שבועיות</span>
+              <Flame size={12} /><span>הוצאות שבועיות</span>
             </div>
             <p className="font-heading text-xl font-bold text-accent tabular-nums">
               ₪{Math.round(weeklyBurn).toLocaleString("he-IL")}
@@ -789,9 +789,9 @@ export default function ForemanPortal({
                     <div key={t.id} className="py-2.5">
                       <p className="text-sm font-semibold text-amber-800">{t.task_name}</p>
                       <div className="flex gap-2 mt-1">
-                        {!t.material_ready    && <span className="text-caption bg-red-100 text-red-600 px-1.5 py-0.5 flex items-center gap-0.5"><Package size={9} /> חומרים</span>}
-                        {!t.sub_confirmed     && <span className="text-caption bg-red-100 text-red-600 px-1.5 py-0.5 flex items-center gap-0.5"><Users   size={9} /> קבלן</span>}
-                        {!t.equipment_on_site && <span className="text-caption bg-red-100 text-red-600 px-1.5 py-0.5 flex items-center gap-0.5"><Wrench  size={9} /> ציוד</span>}
+                        {!t.material_ready    && <span className="text-caption bg-red-100 text-red-600 px-1.5 py-0.5 flex items-center gap-0.5"><Package size={12} /> חומרים</span>}
+                        {!t.sub_confirmed     && <span className="text-caption bg-red-100 text-red-600 px-1.5 py-0.5 flex items-center gap-0.5"><Users   size={12} /> קבלן</span>}
+                        {!t.equipment_on_site && <span className="text-caption bg-red-100 text-red-600 px-1.5 py-0.5 flex items-center gap-0.5"><Wrench  size={12} /> ציוד</span>}
                       </div>
                     </div>
                   ))}
@@ -1138,7 +1138,7 @@ export default function ForemanPortal({
                       <div className="flex items-center gap-2">
                         {dayRedCount > 0 && (
                           <span className="text-caption bg-red-100 text-red-600 px-1.5 py-0.5 font-bold flex items-center gap-0.5">
-                            <AlertTriangle size={9} /> {dayRedCount}
+                            <AlertTriangle size={12} /> {dayRedCount}
                           </span>
                         )}
                         {allDayTasks.length > 0 && (

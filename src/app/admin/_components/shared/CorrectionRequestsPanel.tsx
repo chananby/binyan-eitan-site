@@ -134,17 +134,17 @@ export default function CorrectionRequestsPanel(p: {
                         — no badge there keeps the card tidy. */}
                     {isWorkerLangCode(r.staff?.language) && r.staff!.language !== "he" && (
                       <span
-                        className="text-[0.65rem] text-charcoal/70 px-1 py-0.5 rounded bg-charcoal/[0.06] tabular-nums"
+                        className="text-caption text-charcoal/70 px-1 py-0.5 rounded bg-charcoal/[0.06] tabular-nums"
                         title={`שפת פורטל: ${WORKER_LANG_LABEL_HE[r.staff!.language as "en" | "ru" | "si" | "zh" | "hi"]}`}
                       >
                         {WORKER_LANG_FLAGS[r.staff!.language as "en" | "ru" | "si" | "zh" | "hi"]} {r.staff!.language!.toUpperCase()}
                       </span>
                     )}
-                    <span className={`text-[0.75rem] font-semibold px-1.5 py-0.5
+                    <span className={`text-caption font-semibold px-1.5 py-0.5
                       ${act === "כניסה" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
                       {act}
                     </span>
-                    {date && <span className="text-[0.75rem] text-charcoal/70 tabular-nums">{date}</span>}
+                    {date && <span className="text-caption text-charcoal/70 tabular-nums">{date}</span>}
                   </div>
 
                   {/* השינוי: מה היה ← מה ביקש */}
@@ -155,18 +155,18 @@ export default function CorrectionRequestsPanel(p: {
                       <span className="text-base font-bold text-amber-700 tabular-nums">{r.proposed_time}</span>
                     </div>
                   ) : (
-                    <p className="text-[0.75rem] text-charcoal/70" dir="ltr">
+                    <p className="text-caption text-charcoal/70" dir="ltr">
                       רשומה: <span className="tabular-nums">{time}</span>
                     </p>
                   )}
 
                   {/* למה */}
-                  <p className="text-[0.75rem] text-charcoal/70 leading-snug">
+                  <p className="text-caption text-charcoal/70 leading-snug">
                     <span className="text-charcoal/70">סיבה: </span>{r.reason}
                   </p>
 
                   {/* מתי הוגש */}
-                  <p className="text-[0.65rem] text-charcoal/70">
+                  <p className="text-caption text-charcoal/70">
                     הוגש: {new Date(r.created_at).toLocaleString("he-IL", {
                       timeZone: "Asia/Jerusalem",
                       day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",

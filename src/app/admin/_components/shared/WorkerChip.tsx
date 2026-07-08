@@ -84,12 +84,12 @@ export default function WorkerChip({ data, onTap, onRemove, disableDrag }: Props
         strokeWidth={1.5}
         className={`shrink-0 ${data.isManual ? "text-amber-500" : "text-charcoal/60"}`}
       />
-      <span className="font-body text-xs font-semibold text-charcoal truncate max-w-[120px]">{data.label}</span>
+      <span title={data.label} className="font-body text-xs font-semibold text-charcoal truncate max-w-[120px]">{data.label}</span>
       {data.tag && (
-        <span className="font-body text-[0.6rem] text-charcoal/65 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[80px] truncate">{data.tag}</span>
+        <span title={data.tag} className="font-body text-caption text-charcoal/65 px-1 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[80px] truncate">{data.tag}</span>
       )}
       {data.isManual && (
-        <span className="font-body text-[0.6rem] text-amber-600 px-1 py-0.5 rounded bg-amber-50 shrink-0">ידני</span>
+        <span className="font-body text-caption text-amber-600 px-1 py-0.5 rounded bg-amber-50 shrink-0">ידני</span>
       )}
       {onRemove && data.isManual && (
         <button

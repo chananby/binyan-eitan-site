@@ -234,7 +234,7 @@ export default function StaffDocumentsSection({ staffId }: Props) {
               ? <><Loader2 size={12} className="animate-spin" /> מעלה…</>
               : <><Upload size={12} /> העלה</>}
           </button>
-          <p className="text-[0.6rem] text-charcoal/35">
+          <p className="text-caption text-charcoal/70">
             PDF / JPG / PNG / WEBP / HEIC · עד 10MB
           </p>
         </form>

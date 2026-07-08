@@ -74,9 +74,10 @@ function PhoneCallChip({ source }: { source?: string | null }) {
   return (
     <span
       title="החתמה טלפונית — ללא אימות מיקום"
+      aria-label="החתמה טלפונית — ללא אימות מיקום"
       className="inline-flex items-center gap-0.5 text-caption font-semibold px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 shrink-0"
     >
-      <Phone size={9} strokeWidth={2} />
+      <Phone size={12} strokeWidth={2} />
       <span className="hidden sm:inline">ללא אימות מיקום</span>
     </span>
   );
@@ -1116,7 +1117,7 @@ function RecentLogs({
           {recentLogsLoading && <p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
           {recentLogsErr && <p className="text-content text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {recentLogsErr}</p>}
           {!recentLogsLoading && !recentLogsErr && recentLogs.length === 0 && (
-            <p className="text-sm text-charcoal/70 text-center py-4">אין רשומות ב-7 הימים האחרונים</p>
+            <p className="text-sm text-charcoal/70 text-center py-4">אין רשומות ב-7 הימים האחרונים — לחץ &quot;רענן עכשיו&quot; אם עובדים דיווחו בינתיים</p>
           )}
           {!recentLogsLoading && recentLogs.length > 0 && (() => {
             // Precompute (staff × day) buckets that already have an OUT row.
@@ -1262,7 +1263,7 @@ function RecentLogRow({
           <p className="text-caption text-charcoal/70 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {r.project && <span className="text-caption text-charcoal/70 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
+          {r.project && <span title={r.project.name} className="text-caption text-charcoal/70 max-w-[80px] truncate hidden sm:block">{r.project.name}</span>}
           <span className="text-content text-charcoal/35 tabular-nums" dir="ltr">
             {attendanceDayTimeShort(r) || "—"}
           </span>

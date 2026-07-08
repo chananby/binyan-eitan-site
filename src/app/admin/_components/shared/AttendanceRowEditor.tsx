@@ -151,7 +151,7 @@ export default function AttendanceRowEditor(p: Props) {
           <div className="flex flex-wrap items-end gap-3">
             {showStart && (
               <label className="flex flex-col gap-1">
-                <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/65">שעת כניסה</span>
+                <span className="text-caption text-charcoal/65">שעת כניסה</span>
                 <input
                   type="time"
                   value={startTime}
@@ -163,7 +163,7 @@ export default function AttendanceRowEditor(p: Props) {
             )}
             {showEnd && (
               <label className="flex flex-col gap-1">
-                <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/65">{p.mode === "add" ? "שעת יציאה (אופציונלי)" : "שעת יציאה"}</span>
+                <span className="text-caption text-charcoal/65">{p.mode === "add" ? "שעת יציאה (אופציונלי)" : "שעת יציאה"}</span>
                 <input
                   type="time"
                   value={endTime}
@@ -175,7 +175,7 @@ export default function AttendanceRowEditor(p: Props) {
             )}
             {p.mode !== "add" && (
               <label className="flex flex-col gap-1 flex-1 min-w-[180px]">
-                <span className="text-[0.65rem] uppercase tracking-wider text-charcoal/65">סיבת תיקון (אופציונלי)</span>
+                <span className="text-caption text-charcoal/65">סיבת תיקון (אופציונלי)</span>
                 <input
                   type="text"
                   value={note}

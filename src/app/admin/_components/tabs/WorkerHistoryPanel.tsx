@@ -285,7 +285,7 @@ export default function WorkerHistoryPanel(p: Props) {
 
           {/* Day table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-[0.8rem] border-collapse">
+            <table className="w-full min-w-[720px] text-[0.8rem] border-collapse">
               <thead>
                 <tr className="bg-bone text-charcoal/65 text-[0.75rem]">
                   <th className="text-start font-semibold px-2 py-2 border border-warm-gray-light">תאריך</th>
@@ -318,14 +318,14 @@ export default function WorkerHistoryPanel(p: Props) {
                         <td className="px-2 py-1.5 border border-warm-gray-light">
                           <span className={`inline-flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 ${st.cls}`}>
                             {st.icon} {st.label}
-                            {d.halfDayVacation && <span className="text-[0.65rem]"> (½)</span>}
+                            {d.halfDayVacation && <span className="text-caption"> (½)</span>}
                           </span>
                           {d.hasPending && (
                             <span
-                              className="inline-flex items-center gap-0.5 text-[0.65rem] text-amber-700 ms-1.5"
+                              className="inline-flex items-center gap-0.5 text-caption text-amber-700 ms-1.5"
                               title="בקשת תיקון פתוחה ליום זה"
                             >
-                              <Clock size={9} strokeWidth={1.5} /> ממתין
+                              <Clock size={12} strokeWidth={1.5} /> ממתין
                             </span>
                           )}
                         </td>
@@ -389,7 +389,7 @@ function DayActions(props: {
   const { day, editable, disabledTitle, isDeleting } = props;
 
   if (day.status === "vacation") {
-    return <span className="text-[0.65rem] text-charcoal/70">—</span>;
+    return <span className="text-caption text-charcoal/70">—</span>;
   }
 
   const disabledProps = editable

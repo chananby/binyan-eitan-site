@@ -133,7 +133,7 @@ export default function PayrollTab(p: Props) {
             </span>
           </div>
           <div className="overflow-x-auto -mx-5 px-5">
-            <table className="w-full text-xs">
+            <table className="w-full min-w-[720px] text-caption">
               <thead>
                 <tr className="border-b border-warm-gray-light">
                   <th className="text-start py-2 font-semibold text-charcoal/60">שם</th>
@@ -153,11 +153,11 @@ export default function PayrollTab(p: Props) {
                     <td className="py-2 font-semibold">
                       {r.name}
                       {r.is_freelancer && (
-                        <span className="ms-2 inline-flex items-center text-[0.65rem] font-semibold tracking-wide px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 align-middle">
+                        <span className="ms-2 inline-flex items-center text-caption font-semibold tracking-wide px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 align-middle">
                           עצמאי
                         </span>
                       )}
-                      {r.deleted_at && <span className="ms-2 text-[0.75rem] font-normal text-charcoal/70">🗑️ (מחוק)</span>}
+                      {r.deleted_at && <span className="ms-2 text-caption font-normal text-charcoal/70">🗑️ (מחוק)</span>}
                     </td>
                     <td className="py-2 text-charcoal/60">
                       {r.employment_type === "hourly" ? "שעתי" : r.employment_type === "daily" ? "יומי" : "גלובלי"}
