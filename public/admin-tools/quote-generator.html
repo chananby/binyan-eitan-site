@@ -1868,6 +1868,23 @@
     if (prev) {
       COMPANY_CONFIG_KEYS.forEach(k => { if (prev[k] !== undefined) state[k] = prev[k]; });
     }
+    // Auto-seed a payment block from state.defaultPaymentMilestones.
+    // The company-config UI ("ברירת מחדל ללוח תשלומים — תכנס אוטומטית
+    // להצעות חדשות") has always promised this seeding, but until now
+    // no code implemented it — result: 0 of the last 10 quotes carried
+    // a payment block despite 7 of them having a 6-step template saved.
+    // Only fresh quotes (no ?id=) get the seed; existing quotes reload
+    // from the cloud blob as-is. Empty template ⇒ no block seeded (the
+    // admin can still add one via the "💰 לוח תשלומים" button).
+    if (Array.isArray(state.defaultPaymentMilestones) && state.defaultPaymentMilestones.length > 0) {
+      const paymentBlock = createBlock('payment');
+      paymentBlock.milestones = state.defaultPaymentMilestones.map(m => ({
+        id: uid(),
+        description: m.description || '',
+        percentage: Number(m.percentage) || 0,
+      }));
+      state.blocks.push(paymentBlock);
+    }
   }
 
   function loadState() {
