@@ -434,6 +434,35 @@
   6 מכשולי שמישות שחזרו יום-יום נגמרו. **14 בעיות Medium/Low נותרו
   בתור לסבב הבא + `responsive-quick-wins` (2 קונפליקטים טריוויאליים
   ב-`IncomeTab`/`WorkersTab`).**
+- **responsive-quick-wins — מוזג ונפרס.** ענף `responsive-quick-wins`
+  היה מגובה על origin משנת יוני 2026 עם 2 קומיטים (`32b7fc3`,
+  `c9094d0`) של שיפורי רספונסיביות למובייל. הבדיקה הקודמת אימתה
+  שהם עדיין רלוונטיים עם 2 קונפליקטים טריוויאליים; הובאו עכשיו ל-main
+  ב-3 קומיטים (2 cherry-picks + הרחבה אחת):
+  (א) **טפסי אדמין למובייל** — [`ExpensesTab`](src/app/admin/_components/tabs/ExpensesTab.tsx) (3 שורות),
+  [`IncomeTab`](src/app/admin/_components/tabs/IncomeTab.tsx) (1 שורה), [`WorkersTab`](src/app/admin/_components/tabs/WorkersTab.tsx) (11 שורות —
+  9 מ-branch המקורי + 2 שדרוגי אחידות לזוג "שיבוץ ללוח"/"תווית"
+  שנוסף על main משני צידי הטופס). כל שורות ה-grid עברו מ-
+  `grid-cols-2/3` ל-`grid-cols-1 sm:grid-cols-2/3` — במובייל <640px
+  שדה תופס רוחב מלא במקום ~163px/108px דחוסים; ב-`sm+` המראה זהה.
+  (ב) **טבלת ההצעות** — [`QuotesListClient`](src/app/admin/quotes/list/QuotesListClient.tsx): טבלת 7 עמודות
+  נעטפה ב-`overflow-x-auto -mx-4 px-4`. הגלישה האופקית מוכלת בכרטיס
+  במקום לגרור scrollbar לכל העמוד. אותו דפוס `PayrollTab`/`AttendanceTab`
+  כבר משתמשים בו.
+  (ג) **בנר יעצי במחולל הצעות** — [`QuoteGeneratorClient`](src/app/admin/quotes/QuoteGeneratorClient.tsx): `lg:hidden`
+  bronze banner "מחולל ההצעות מותאם למחשב — לפתיחה ופעולה מיטבית,
+  פתח ממחשב." יעצי, לא חוסם; ה-iframe נשאר לרשות המשתמש מתחת.
+  המחולל עצמו נשאר HTML של 3,843 שורות עם `A4 210mm` preview —
+  רה-ריט רספונסיבי אמיתי הוא פרויקט נפרד.
+  פתרון הקונפליקטים: main העביר את IncomeTab לתוך אקורדיון + הוסיף
+  שדה "שיבוץ ללוח" ב-WorkersTab בשני מקומות. שמרנו את כל התוספות
+  של main והחלנו `grid-cols-1 sm:grid-cols-2` על ה-divs הרלוונטיים
+  (כולל אלה שנוספו על main) — סימטריה בין טופס הוספה לעריכה.
+  5 קבצים, +27/-17 שורות, npm run build נקי.
+  **נפרס בייצור** (commit `144ff9d`, אימות: `x-matched-path: /admin`) —
+  4 טפסי אדמין וטבלת הצעות במובייל נקיים; מחולל ההצעות מציב ציפייה
+  נכונה במקום להיראות שבור. **14 בעיות Medium/Low מהסריקה נותרו
+  בתור לסבב הבא.**
 
 ### שאר תשתית פעילה
 - שיבוץ שבועי + copy-week + by-project view + temporary day-laborers.
