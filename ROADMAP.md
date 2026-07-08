@@ -402,6 +402,38 @@
   סטטי. `node --check` על ה-inline JS עובר; next build נקי.
   **נפרס בייצור** (commit `48f91f5`, אימות: `x-matched-path: /admin/quotes`) —
   הצעה חדשה מקבלת עכשיו את הלוח מיד בטופס ובתצוגה, בלי קליק נוסף.
+- **6 תיקוני ממשק HIGH — ניגודיות + טאץ' + empty states.** סריקה
+  שיטתית של פורטלי אדמין+ממונה מצאה 20 פגמים; 6 מהם דורגו HIGH
+  ("מידע שאי אפשר לקרוא / פעולה שאי אפשר להקיש עליה"). כולם תוקנו
+  בסבב אחד — CSS-only, בלי שינויי לוגיקה/state/זרימה:
+  (1) [`ForemanPortal.tsx:693-717`](src/app/components/ForemanPortal.tsx#L693) — הדר הממונה: 5 מופעים
+  של `text-white/25` / `text-white/30` על `bg-charcoal` → `text-white/70`
+  (הוברי כפתורים `/50` → white). שם ממונה, "הוצאות שבועיות", "רענן",
+  "החלף פרויקט", "יציאה" עלו מ-~2.4:1 ל-~7:1.
+  (2) [`ForemanPortal.tsx:1355`](src/app/components/ForemanPortal.tsx#L1355) — טאב לא-פעיל בניווט
+  התחתון: `text-charcoal/30` → `/60`. 6 טאבים ראשיים ברורים.
+  (3) [`AttendanceTab.tsx:1044,1262`](src/app/admin/_components/tabs/AttendanceTab.tsx#L1044) — טלפוני עובד
+  ב-TodayLog + RecentLogs: `text-charcoal/35` → `/70`. זה המספר
+  שחנן מחייג אליו בפועל.
+  (4) [`AttendanceTab.tsx:1054-1064,1271-1272`](src/app/admin/_components/tabs/AttendanceTab.tsx#L1054) — 3 כפתורי-אייקון
+  (Pencil של יומן, History, Pencil של Recent): `size={11}` → `{14}`
+  + `p-0.5` → `p-1.5`. שטח מגע מ-~12×12 ל-~28×28 (מעל סף 24px של
+  WCAG 2.2). ה-Pencil בשורות pending-approval (line 774) נשאר —
+  לא סומן HIGH.
+  (5) [`PlanningTab.tsx:272,406`](src/app/admin/_components/tabs/PlanningTab.tsx#L272) — empty states: `text-charcoal/20`
+  ו-`/25` → `/60`. באבן דרך ריקה נוספה שורת רמז — *"אין משימות תחת
+  אבן דרך זו — הוסף מ'הוספת משימה שבועית' למעלה"* — בסגנון "אין
+  דיווחים היום — לחץ 'רענן עכשיו'". ב-"ריק" היומי (line 272)
+  ההודעה נשארה תמציתית כדי לא לשכפל את הרמז 7 פעמים.
+  (6) [`AttendanceReportMistake.tsx:66,76`](src/app/components/attendance/AttendanceReportMistake.tsx#L66) — תוויות טופס תיקון
+  worker-facing (6 שפות): `text-[0.65rem]` → `text-caption` (10.4px→14px).
+  `uppercase tracking-wider` נשמר כי הוא עדיין תקף ב-RU/EN. 6 המחרוזות
+  אומתו — כולן קצרות (עד ~30 תווים), לא נשברות ב-14px.
+  4 קבצים, +18/-18 שורות, npm run build נקי.
+  **נפרס בייצור** (commit `69bbccb`, אימות: `x-matched-path: /admin`) —
+  6 מכשולי שמישות שחזרו יום-יום נגמרו. **14 בעיות Medium/Low נותרו
+  בתור לסבב הבא + `responsive-quick-wins` (2 קונפליקטים טריוויאליים
+  ב-`IncomeTab`/`WorkersTab`).**
 
 ### שאר תשתית פעילה
 - שיבוץ שבועי + copy-week + by-project view + temporary day-laborers.
