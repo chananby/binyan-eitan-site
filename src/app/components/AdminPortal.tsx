@@ -1153,6 +1153,20 @@ export default function AdminPortal() {
     goToTab("attendance");
   }
 
+  // Same as viewWorkerHistory, but zooms the range to a single day so the
+  // WorkerHistoryPanel opens focused on the problematic day and the
+  // existing "השלם יציאה" quick-action ([WorkerHistoryPanel.tsx:392], from
+  // commit a21e41c) is one click away. Wired to the AttentionPanel's
+  // stale-opens item and to per-row clicks inside the amber panel that
+  // AttendanceTab now renders on the "live" sub-tab.
+  function viewWorkerHistoryForDay(staffId: string, ymd: string) {
+    setHistoryStaffId(staffId);
+    setHistoryFrom(ymd);
+    setHistoryTo(ymd);
+    setAttendanceSubTab("history");
+    goToTab("attendance");
+  }
+
   // Reload the history any time the selection / range changes, but only while
   // the user is actually looking at the history sub-tab — saves a roundtrip
   // when they navigate elsewhere.
@@ -1460,7 +1474,10 @@ export default function AdminPortal() {
       label: "כניסות פתוחות מימים קודמים",
       count: staleOpens.length,
       severity: "medium",
-      onClick: () => goToTab("attendance"),
+      // Force the "live" sub-tab: AttendanceTab renders the amber
+      // stale-opens panel there (mirror of ForemanPortal.tsx:927), and
+      // each row inside it deep-links onward via viewWorkerHistoryForDay.
+      onClick: () => { setAttendanceSubTab("live"); goToTab("attendance"); },
     },
     {
       key: "no-gps",
@@ -1681,6 +1698,8 @@ export default function AdminPortal() {
             historyLoading={historyLoading}
             historyError={historyError}
             onLoadHistory={loadHistory}
+            staleOpens={staleOpens}
+            onOpenStaleDay={viewWorkerHistoryForDay}
           />
         )}
 

@@ -1406,6 +1406,18 @@ type Props = {
   historyLoading: boolean;
   historyError:   string | null;
   onLoadHistory:  () => void;
+
+  // Orphan clock-ins from prior days (B1 signal). Rendered as an amber
+  // panel inside the "live" sub-tab, mirroring what the foreman portal
+  // already shows on its own dashboard. Each row is a button that deep-
+  // links to WorkerHistoryPanel focused on that (staff × day) — the
+  // "השלם יציאה" quick-action lives there.
+  staleOpens: Array<{
+    staff_id: string; staff_name: string;
+    project_id: string | null; project_name: string | null;
+    clock_at: string; day_ymd: string;
+  }>;
+  onOpenStaleDay: (staffId: string, ymd: string) => void;
 };
 
 export default function AttendanceTab(p: Props) {
@@ -1432,6 +1444,46 @@ export default function AttendanceTab(p: Props) {
   // pending, the panel stays in its original position to keep the report
   // panel visible above the fold.
   const hasPending = p.pendingRecords.length > 0;
+
+  // "DD.MM HH:MM" in Israel time — parallels the ForemanPortal.fmtDayHM
+  // formatter (kept local there too). Only used by the stale-opens panel
+  // below; no need to promote to a shared util yet.
+  const fmtStaleWhen = (iso: string) => {
+    const d = new Date(iso);
+    const ymd = d.toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit" });
+    const hm  = d.toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" });
+    return `${ymd} ${hm}`;
+  };
+
+  const staleOpensPanel = p.staleOpens.length > 0 ? (
+    <Card>
+      <div className="flex items-center gap-2 mb-2">
+        <AlertTriangle size={15} strokeWidth={1.5} className="text-amber-600" />
+        <h2 className="font-heading text-sm font-bold text-amber-800">
+          כניסות פתוחות מימים קודמים ({p.staleOpens.length})
+        </h2>
+      </div>
+      <p className="text-caption text-charcoal/70 mb-2">
+        לחץ על שורה לפתיחת ההיסטוריה של העובד ביום הבעייתי — עם כפתור &quot;השלם יציאה&quot; מוכן.
+      </p>
+      <div className="bg-amber-50 border border-amber-200 divide-y divide-amber-100">
+        {p.staleOpens.map(s => (
+          <button
+            key={`${s.staff_id}|${s.day_ymd}`}
+            type="button"
+            onClick={() => p.onOpenStaleDay(s.staff_id, s.day_ymd)}
+            className="w-full text-start px-4 py-2.5 hover:bg-amber-100 transition-colors"
+          >
+            <p className="text-sm font-semibold text-amber-900">{s.staff_name}</p>
+            <p className="text-caption text-amber-700 mt-0.5">
+              כניסה מ-{fmtStaleWhen(s.clock_at)}
+              {s.project_name ? ` · ${s.project_name}` : ""}
+            </p>
+          </button>
+        ))}
+      </div>
+    </Card>
+  ) : null;
 
   const pendingPanel = (
     <PendingApprovals
@@ -1524,6 +1576,7 @@ export default function AttendanceTab(p: Props) {
 
           {hasPending && pendingPanel}
           {correctionsPanel}
+          {staleOpensPanel}
 
       <ReportPanel
         attReportFrom={p.attReportFrom}       setAttReportFrom={p.setAttReportFrom}
