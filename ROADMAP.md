@@ -262,6 +262,21 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **סטטוס "ללא כניסה" ליציאה יתומה + כפתור "השלם כניסה".** יציאה יתומה
+  (exit בלי entry — 8 ימים היסטוריים בייצור, כולם לפני חבילת ה-guards,
+  0 חדשים) נפלה בטעות לסטטוס `no-exit` וקיבלה כפתור "השלם יציאה" שתמיד
+  נכשל ב-409 (`hasOpenRecord=false`) — call-to-action למסלול מת, הפרת
+  עיקרון #12. השורש ב-[`worker-history-aggregate.ts`](src/lib/worker-history-aggregate.ts):
+  הטרנרי דחס entry-without-exit ו-exit-without-entry לאותו `no-exit`.
+  התיקון: `DayStatus` חדש **`no-entry`** מופרד; DayActions מציג "השלם
+  כניסה" (אייקון LogIn); `AttendanceRowEditor` mode חדש `complete-entry`
+  שמבקש שעת כניסה בלבד ו-POST ל-`api/admin/attendance/manual` entry-only
+  (**אין endpoint חדש** — ה-guard הקיים מחזיר 409 `already_has_open_entry`
+  אם כבר יש כניסה). דוח חודשי: מונה `noEntryDays` נפרד מ-`noExitDays`,
+  היתומה כבר לא נספרת כ-no-exit ולא כיום עבודה. **אין נזק כספי** (יתומה
+  מדולגת בשכר). 4 בדיקות חדשות, build נקי, 385 tests. commit `5682a3a`
+  (מקומי — ממתין ל-push+deploy). **8 היציאות היתומות ההיסטוריות: חנן
+  משלים ידנית מול כל עובד דרך הכפתור החדש.** לא נגעתי ב-guards הקיימים.
 - **הודעת GPS מעצימה לעובד — הוראה ספציפית לאנדרואיד.** כשעובד נחסם על
   הרשאת מיקום (`geoPermissionDenied`, code 1), ההודעה הישנה הייתה מעורפלת
   ("אפשר GPS בהגדרות הדפדפן") ומפנה למנהל כפתרון שווה-ערך. רוב העובדים על
