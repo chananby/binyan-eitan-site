@@ -66,6 +66,7 @@ const STATUS_LABEL_HE: Record<DayRow["status"], string> = {
   "present":        "",
   "in-progress":    "בעבודה",
   "no-exit":        "ללא יציאה",
+  "no-entry":       "ללא כניסה",
   "vacation":       "חופש",
   "sick":           "מחלה",
   "absent-marker":  "היעדרות",

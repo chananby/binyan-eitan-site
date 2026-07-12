@@ -21,6 +21,7 @@ export type DayStatus =
   | "present"      // real clock-in + clock-out for the day
   | "in-progress"  // clocked in, no clock-out yet (today only)
   | "no-exit"      // past day, clocked in, never clocked out
+  | "no-entry"     // past day, clocked out, never clocked in (orphan exit)
   | "vacation"     // covered by vacation_days (admin-approved)
   | "sick"         // clock_at=null attendance row with action='מחלה' etc.
   | "absent-marker" // clock_at=null attendance row with action='חופש'/'אחר'
@@ -67,6 +68,7 @@ export interface WorkerBlock {
     vacationDays: number;
     absenceDays: number;
     noExitDays: number;
+    noEntryDays: number;
   };
 }
 
@@ -158,7 +160,7 @@ export function buildMonthlyReport(
     const perDay: Map<string, DayBucket>    = byStaffDay.get(s.id) ?? new Map();
     const vacs:   Map<string, boolean>      = vacByStaff.get(s.id) ?? new Map();
     const days: DayRow[] = [];
-    let workDays = 0, workHoursMs = 0, vacationDays = 0, absenceDays = 0, noExitDays = 0;
+    let workDays = 0, workHoursMs = 0, vacationDays = 0, absenceDays = 0, noExitDays = 0, noEntryDays = 0;
 
     for (const ymd of iterDays(from, to)) {
       const dow = dayOfWeek(ymd);
@@ -216,9 +218,12 @@ export function buildMonthlyReport(
           status = ymd === todayYmd ? "in-progress" : "no-exit";
           if (status === "no-exit") { noExitDays += 1; workDays += 1; }
         } else {
-          // exit without matching in — treat as no-exit day for the counter
-          status = "no-exit";
-          noExitDays += 1;
+          // exit without matching in (orphan exit) — a distinct incomplete
+          // day from no-exit, and the opposite manual fix ("השלם כניסה").
+          // Counted separately so the block summary doesn't mislabel it, and
+          // NOT as a work day (no entry → no measurable shift).
+          status = "no-entry";
+          noEntryDays += 1;
         }
 
         // Most-mentioned project for the day.
@@ -247,6 +252,7 @@ export function buildMonthlyReport(
         vacationDays,
         absenceDays,
         noExitDays,
+        noEntryDays,
       },
     });
   }

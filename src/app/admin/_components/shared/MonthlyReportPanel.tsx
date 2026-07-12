@@ -22,7 +22,7 @@ import { Card } from "./Card";
 import MonthField from "./MonthField";
 
 type DayStatus =
-  | "present" | "in-progress" | "no-exit"
+  | "present" | "in-progress" | "no-exit" | "no-entry"
   | "vacation" | "sick" | "absent-marker" | "empty";
 
 interface DayRow {
@@ -45,6 +45,7 @@ interface WorkerBlock {
     vacationDays: number;
     absenceDays: number;
     noExitDays: number;
+    noEntryDays: number;
   };
 }
 
@@ -70,6 +71,7 @@ const STATUS_LABEL: Record<DayStatus, string> = {
   "present":       "",
   "in-progress":   "בעבודה",
   "no-exit":       "ללא יציאה",
+  "no-entry":      "ללא כניסה",
   "vacation":      "חופש",
   "sick":          "מחלה",
   "absent-marker": "היעדרות",
@@ -227,6 +229,9 @@ function WorkerBlockCard({ block, month }: { block: WorkerBlock; month: string }
         )}
         {block.totals.noExitDays > 0 && (
           <span className="text-amber-700">ללא יציאה: {block.totals.noExitDays}</span>
+        )}
+        {block.totals.noEntryDays > 0 && (
+          <span className="text-amber-700">ללא כניסה: {block.totals.noEntryDays}</span>
         )}
       </div>
     </div>

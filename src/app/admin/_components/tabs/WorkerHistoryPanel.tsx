@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import {
   Calendar, Loader2, AlertCircle, CheckCircle2, Clock,
-  AlertTriangle, XCircle, Plane, RefreshCw, Pencil, Trash2, Plus,
+  AlertTriangle, XCircle, Plane, RefreshCw, Pencil, Trash2, Plus, LogIn,
 } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
@@ -80,6 +80,10 @@ const STATUS_STYLE: Record<
   // distinguishes from "present" (full day, finished) without screaming.
   "in-progress":{ label: "בעבודה",   cls: "text-green-700  bg-green-50",          icon: <span className="inline-block w-2 h-2 rounded-full bg-green-600" aria-hidden /> },
   "no-exit":    { label: "ללא יציאה", cls: "text-amber-700  bg-amber-50",         icon: <AlertTriangle size={11} strokeWidth={1.5} /> },
+  // no-entry = orphan exit (clocked out, never clocked in). Same amber weight
+  // as no-exit — both are "incomplete day, needs a manual fix" — but a
+  // distinct label + icon so chnn sees which side is missing at a glance.
+  "no-entry":   { label: "ללא כניסה", cls: "text-amber-700  bg-amber-50",         icon: <LogIn         size={11} strokeWidth={1.5} /> },
 };
 
 export default function WorkerHistoryPanel(p: Props) {
@@ -337,6 +341,7 @@ export default function WorkerHistoryPanel(p: Props) {
                             isDeleting={isDeleting}
                             onEdit={() => openEditor(d.date, "edit")}
                             onComplete={() => openEditor(d.date, "complete")}
+                            onCompleteEntry={() => openEditor(d.date, "complete-entry")}
                             onAdd={() => openEditor(d.date, "add")}
                             onDelete={() => deleteDay(d)}
                           />
@@ -381,10 +386,11 @@ function DayActions(props: {
   editable: boolean;
   disabledTitle: string;
   isDeleting: boolean;
-  onEdit:     () => void;
-  onComplete: () => void;
-  onAdd:      () => void;
-  onDelete:   () => void;
+  onEdit:         () => void;
+  onComplete:     () => void;
+  onCompleteEntry: () => void;
+  onAdd:          () => void;
+  onDelete:       () => void;
 }) {
   const { day, editable, disabledTitle, isDeleting } = props;
 
@@ -419,6 +425,20 @@ function DayActions(props: {
           {...disabledProps}
         >
           <Plus size={11} strokeWidth={1.5} /> השלם יציאה
+        </button>
+      )}
+      {/* no-entry = orphan exit: an OUT with no matching IN. The fix is the
+          MIRROR of no-exit — add the missing IN, don't touch the exit. Points
+          at "complete-entry" (POST /api/admin/attendance/manual, entry-only),
+          NOT clock-out, which would 409 (no open entry to close). */}
+      {day.status === "no-entry" && (
+        <button
+          type="button"
+          onClick={props.onCompleteEntry}
+          className={`${btn} border-amber-300 text-amber-700 hover:bg-amber-50`}
+          {...disabledProps}
+        >
+          <LogIn size={11} strokeWidth={1.5} /> השלם כניסה
         </button>
       )}
       {/* Today (in-progress): worker has an open IN and no OUT yet. If they

@@ -4,11 +4,16 @@
  * AttendanceRowEditor — inline form rendered as an expanded <tr> beneath a
  * WorkerHistoryPanel day row. Drives three flows:
  *
- *   • edit:     adjust an existing day's entry+exit times (PATCHes both rows).
- *   • complete: add the missing OUT for a day where the worker forgot to
- *               clock out (POST /api/admin/attendance/clock-out with date+time).
- *   • add:      create both IN and OUT for a day with no attendance at all
- *               (POST /api/admin/attendance/manual, type=regular).
+ *   • edit:           adjust an existing day's entry+exit times (PATCHes both rows).
+ *   • complete:       add the missing OUT for a day where the worker forgot to
+ *                     clock out (POST /api/admin/attendance/clock-out with date+time).
+ *   • complete-entry: add the missing IN for an orphan-exit day — an OUT with
+ *                     no matching IN (POST /api/admin/attendance/manual,
+ *                     type=regular, entry-only). The mirror of "complete".
+ *                     The manual endpoint's own guard rejects a duplicate with
+ *                     409 already_has_open_entry if an IN already exists.
+ *   • add:            create both IN and OUT for a day with no attendance at all
+ *                     (POST /api/admin/attendance/manual, type=regular).
  *
  * Always sends `edit_note` (when typed) so the audit trail on the server
  * records *why* the row was touched. The server enforces the retro window
@@ -21,7 +26,7 @@ import { useState } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
 
-export type EditorMode = "edit" | "complete" | "add";
+export type EditorMode = "edit" | "complete" | "complete-entry" | "add";
 
 interface Props {
   mode: EditorMode;
@@ -51,9 +56,10 @@ export default function AttendanceRowEditor(p: Props) {
 
   // Per-mode hints — kept on one line so the form header doesn't shift the table.
   const title =
-    p.mode === "edit"     ? `עריכת שעות — ${p.day.date}` :
-    p.mode === "complete" ? `השלמת יציאה — ${p.day.date}` :
-                            `הוספת יום עבודה — ${p.day.date}`;
+    p.mode === "edit"           ? `עריכת שעות — ${p.day.date}` :
+    p.mode === "complete"       ? `השלמת יציאה — ${p.day.date}` :
+    p.mode === "complete-entry" ? `השלמת כניסה — ${p.day.date}` :
+                                  `הוספת יום עבודה — ${p.day.date}`;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -91,6 +97,27 @@ export default function AttendanceRowEditor(p: Props) {
             staff_id: p.staffId,
             date:     p.day.date,
             time:     endTime,
+          }),
+        });
+        if (!res.ok) {
+          const b = await res.json().catch(() => ({}));
+          throw new Error(b.error ?? `שגיאה ${res.status}`);
+        }
+      } else if (p.mode === "complete-entry") {
+        // Orphan-exit fix: add the missing IN only, leave the existing OUT
+        // untouched. Reuses the manual endpoint entry-only — its hasOpenRecord
+        // guard 409s (already_has_open_entry) if an IN already exists, so we
+        // can't accidentally create a second entry.
+        if (!startTime) { setErr("נא למלא שעת כניסה"); return; }
+        const res = await fetch("/api/admin/attendance/manual", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            staff_id:   p.staffId,
+            date:       p.day.date,
+            type:       "regular",
+            entry_time: startTime,
+            ...(note.trim() ? { notes: note.trim() } : {}),
           }),
         });
         if (!res.ok) {
@@ -137,9 +164,10 @@ export default function AttendanceRowEditor(p: Props) {
     }
   }
 
-  // Show fields based on mode. complete-exit only asks for end time.
-  const showStart = p.mode === "edit" || p.mode === "add";
-  const showEnd   = true;
+  // Show fields based on mode. "complete" (exit) asks only for end time;
+  // "complete-entry" asks only for start time; edit/add ask for both.
+  const showStart = p.mode === "edit" || p.mode === "add" || p.mode === "complete-entry";
+  const showEnd   = p.mode === "edit" || p.mode === "add" || p.mode === "complete";
 
   return (
     <tr className="bg-bone/60">

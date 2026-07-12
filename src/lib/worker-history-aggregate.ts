@@ -53,11 +53,16 @@ export interface WorkerVacationDay {
  *  - missing:     workday with no attendance and no vacation
  *  - in-progress: TODAY (Israel TZ) with an entry but no exit yet — the
  *                 worker is still on-shift, no correction is needed
- *  - no-exit:     a PAST day with attendance but the entry/exit pair is
- *                 incomplete (either entry without exit, or — much rarer
- *                 — exit without entry; both indicate "incomplete day")
+ *  - no-exit:     a PAST day with an entry but no exit — the worker clocked
+ *                 in and forgot to clock out. Fixed via "השלם יציאה".
+ *  - no-entry:    a PAST day with an exit but no entry (orphan exit) — the
+ *                 worker clocked out with no matching clock-in. Fixed via
+ *                 "השלם כניסה". Kept DISTINCT from no-exit because the two
+ *                 need opposite corrections; collapsing them (as this module
+ *                 used to) pointed the "complete exit" button at a day that
+ *                 had no open entry, so clock-out always 409'd.
  */
-export type DayStatus = "present" | "vacation" | "missing" | "in-progress" | "no-exit";
+export type DayStatus = "present" | "vacation" | "missing" | "in-progress" | "no-exit" | "no-entry";
 
 export interface WorkerHistoryDay {
   /** YYYY-MM-DD */
@@ -198,12 +203,16 @@ export function aggregateWorkerHistory(
     const project = Object.entries(projectCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 
     // Today + open entry = the worker is still on-shift; that's "in-progress",
-    // not "no-exit" (which would imply a forgotten clock-out that needs
-    // correction). Any past day with a missing exit keeps the "no-exit" flag.
+    // not "no-exit" (a forgotten clock-out). A past day with an entry but no
+    // exit is "no-exit". A day with an exit but NO entry (orphan exit) is
+    // "no-entry" — the opposite fix. This block only runs when the day has at
+    // least one record (guarded above), so "no entry" here always means "has
+    // an exit", never "empty".
     const status: DayStatus =
       firstEntry && lastExit ? "present"
       : firstEntry && ymd === todayYmd ? "in-progress"
-      : "no-exit";
+      : firstEntry ? "no-exit"
+      : "no-entry";
 
     out.push({
       date: ymd, dayName, startTime, endTime, hours, status, project,
