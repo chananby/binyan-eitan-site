@@ -32,6 +32,7 @@ import {
 } from "../../../../lib/payroll-aggregate";
 import { getRatesForMonth } from "../../../../lib/staff-rates";
 import { includeInReport } from "../../../../lib/payroll-include";
+import { filterApprovedForPay, countPendingStatus } from "../../../../lib/payroll-attendance";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -114,18 +115,27 @@ export async function GET(req: NextRequest) {
   // in vacation_days and don't earn hours; excluding them from payroll's
   // attendance feed is intentional.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // Fetch the month's non-deleted rows WITH status, then gate in JS:
+  // filterApprovedForPay feeds the aggregation, countPendingStatus feeds the
+  // warning. Only status='approved' is paid — the admin's approval is a real
+  // gate. Verified safe: every live web / phone-call / clock-out row is
+  // written 'approved' (column default), so nothing legitimate is dropped —
+  // only pending (awaiting review) and rejected. One query serves both.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let attQuery: any = supabase
     .from("attendance")
-    .select("staff_id, action, clock_at, created_at, project_id")
+    .select("staff_id, action, clock_at, created_at, project_id, status")
     .is("deleted_at", null)
     .gte("clock_at", israelDayStartISO(monthStart))
     .lt("clock_at", israelDayStartISO(nextMonth));
   if (staffId) attQuery = attQuery.eq("staff_id", staffId);
-  const { data: attData, error: attErr } = await attQuery;
+  const { data: attRaw, error: attErr } = await attQuery;
   if (attErr) {
     console.error("[payroll] attendance err:", attErr.message);
     return NextResponse.json({ error: attErr.message }, { status: 500 });
   }
+  const attData = filterApprovedForPay((attRaw ?? []) as (AttendanceRow & { status?: string | null })[]);
+  const pendingCount = countPendingStatus((attRaw ?? []) as { status?: string | null }[]);
 
   // Vacation — month range, all staff (no project filter — vacation isn't per-project)
   const { data: vacData, error: vacErr } = await supabase
@@ -138,7 +148,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: vacErr.message }, { status: 500 });
   }
 
-  const attStats = aggregateAttendance((attData ?? []) as AttendanceRow[], month);
+  const attStats = aggregateAttendance(attData as AttendanceRow[], month);
   const vacStats = aggregateVacation((vacData ?? []) as VacationRow[]);
 
   // Rates for the report month from staff_rates (per-month history). Each
@@ -186,5 +196,5 @@ export async function GET(req: NextRequest) {
     };
   });
 
-  return NextResponse.json({ month, staff_id: staffId ?? null, rows });
+  return NextResponse.json({ month, staff_id: staffId ?? null, rows, pendingCount });
 }

@@ -16,6 +16,7 @@ export function usePayroll() {
   });
   const [payrollStaffId,    setPayrollStaffId]    = useState<string>("");
   const [payrollRows,       setPayrollRows]       = useState<PayrollRow[]>([]);
+  const [payrollPending,    setPayrollPending]    = useState(0);
   const [payrollLoading,    setPayrollLoading]    = useState(false);
   const [payrollExporting,  setPayrollExporting]  = useState<null | "employees" | "freelancers">(null);
 
@@ -26,10 +27,10 @@ export function usePayroll() {
       if (payrollStaffId) q.set("staff_id", payrollStaffId);
       const res = await fetch(`/api/admin/payroll?${q.toString()}`);
       const data = await res.json();
-      if (res.ok) setPayrollRows(data.rows ?? []);
-      else setPayrollRows([]);
+      if (res.ok) { setPayrollRows(data.rows ?? []); setPayrollPending(data.pendingCount ?? 0); }
+      else { setPayrollRows([]); setPayrollPending(0); }
     } catch {
-      setPayrollRows([]);
+      setPayrollRows([]); setPayrollPending(0);
     } finally {
       setPayrollLoading(false);
     }
@@ -63,6 +64,7 @@ export function usePayroll() {
     payrollMonth,     setPayrollMonth,
     payrollStaffId,   setPayrollStaffId,
     payrollRows,
+    payrollPending,
     payrollLoading,
     payrollExporting,
     loadPayroll,

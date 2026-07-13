@@ -17,7 +17,7 @@
  */
 
 import { useState } from "react";
-import { AlertCircle, BarChart2, Download, Loader2 } from "lucide-react";
+import { AlertCircle, AlertTriangle, BarChart2, Download, Loader2 } from "lucide-react";
 import { Card } from "./Card";
 import MonthField from "./MonthField";
 
@@ -53,6 +53,7 @@ interface Data {
   month: string;
   from: string;
   to:   string;
+  pendingCount?: number;
   blocks: WorkerBlock[];
 }
 
@@ -159,6 +160,15 @@ export default function MonthlyReportPanel() {
         <p className="mt-3 flex items-center gap-1.5 text-caption text-red-600">
           <AlertCircle size={12} /> {err}
         </p>
+      )}
+
+      {data && (data.pendingCount ?? 0) > 0 && (
+        <div className="mt-4 flex items-start gap-2 text-amber-800 bg-amber-50 border border-amber-200 px-3 py-2.5">
+          <AlertTriangle size={15} strokeWidth={1.5} className="text-amber-600 mt-0.5 shrink-0" />
+          <div className="text-xs leading-relaxed">
+            <span className="font-bold tabular-nums">{data.pendingCount}</span> רשומות נוכחות ממתינות לאישור בחודש זה — הן <span className="font-bold">אינן</span> נכללות בדוח. אשר אותן בטאב נוכחות כדי שייכללו.
+          </div>
+        </div>
       )}
 
       {data && (

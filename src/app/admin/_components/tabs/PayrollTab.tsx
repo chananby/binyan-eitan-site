@@ -32,11 +32,13 @@ interface Props {
   setPayrollStaffId: (v: string) => void;
 
   payrollRows: PayrollRow[];
+  payrollPending: number;
   payrollLoading: boolean;
   payrollExporting: null | "employees" | "freelancers";
 
   onLoadPayroll: () => void | Promise<void>;
   onExportPayroll: (type: "employees" | "freelancers") => void | Promise<void>;
+  onGoToApprovals: () => void;
 }
 
 export default function PayrollTab(p: Props) {
@@ -110,6 +112,28 @@ export default function PayrollTab(p: Props) {
           </button>
         </div>
       </Card>
+
+      {/* Pending-approval warning — money-critical. Pending attendance is NOT
+          counted in the report; without this banner an unreviewed row is a
+          silent omission from the payslip. Links straight to the approval
+          queue (attendance → live). */}
+      {p.payrollPending > 0 && (
+        <Card>
+          <div className="flex items-start gap-2 text-amber-800 bg-amber-50 border border-amber-200 px-3 py-2.5">
+            <AlertTriangle size={15} strokeWidth={1.5} className="text-amber-600 mt-0.5 shrink-0" />
+            <div className="text-xs leading-relaxed">
+              <span className="font-bold tabular-nums">{p.payrollPending}</span> רשומות נוכחות ממתינות לאישור בחודש זה — הן <span className="font-bold">אינן</span> נכללות בדוח. אשר אותן כדי שייכללו.
+              <button
+                type="button"
+                onClick={p.onGoToApprovals}
+                className="ms-2 font-semibold text-amber-900 underline underline-offset-2 hover:text-accent"
+              >
+                לתור האישורים ←
+              </button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Missing-rate notice — only when at least one row in the *currently
           loaded* month is missing its rate. The list itself is computed

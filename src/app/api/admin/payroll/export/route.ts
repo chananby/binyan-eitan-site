@@ -25,6 +25,7 @@ import {
 } from "../../../../../lib/payroll-aggregate";
 import { getRatesForMonth } from "../../../../../lib/staff-rates";
 import { includeInReport } from "../../../../../lib/payroll-include";
+import { filterApprovedForPay, countPendingStatus } from "../../../../../lib/payroll-attendance";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -108,14 +109,20 @@ export async function GET(req: NextRequest) {
   // producing under-payment. Same rule: absence markers with clock_at=NULL
   // live in vacation_days and aren't part of this attendance feed.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // Fetch with status, gate in JS (mirrors /api/admin/payroll). Only approved
+  // reaches the accountant's file; pending (awaiting review) and rejected are
+  // excluded, and pending is surfaced as a note row. Safe: live web /
+  // phone-call / clock-out rows are all written 'approved'.
   let attQuery: any = supabase
     .from("attendance")
-    .select("staff_id, action, clock_at, created_at")
+    .select("staff_id, action, clock_at, created_at, status")
     .is("deleted_at", null)
     .gte("clock_at", israelDayStartISO(monthStart))
     .lt("clock_at", israelDayStartISO(nextMonth));
   if (staffId) attQuery = attQuery.eq("staff_id", staffId);
-  const { data: attData } = await attQuery;
+  const { data: attRaw } = await attQuery;
+  const attData = filterApprovedForPay((attRaw ?? []) as (AttRow & { status?: string | null })[]);
+  const pendingCount = countPendingStatus((attRaw ?? []) as { status?: string | null }[]);
 
   const { data: vacData } = await supabase
     .from("vacation_days")
@@ -244,6 +251,17 @@ export async function GET(req: NextRequest) {
   totalRow.font = { bold: true };
   totalRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF3F2EE" } };
   totalRow.getCell("gross").numFmt = '#,##0.00 ₪';
+
+  // Pending note — so the accountant knows some rows were withheld pending the
+  // admin's approval and this file is not the final word for the month.
+  if ((pendingCount ?? 0) > 0) {
+    sheet.addRow([]);
+    const noteRow = sheet.addRow([
+      `⚠ ${pendingCount} רשומות נוכחות ממתינות לאישור לא נכללו בדוח זה. לאחר אישורן יש להפיק דוח מעודכן.`,
+    ]);
+    noteRow.font = { bold: true, color: { argb: "FF9A6A00" } };
+    noteRow.getCell(1).alignment = { horizontal: "right" };
+  }
 
   // Borders
   sheet.eachRow({ includeEmpty: false }, (row) => {

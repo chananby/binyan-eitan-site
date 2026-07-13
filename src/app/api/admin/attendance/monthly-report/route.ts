@@ -34,6 +34,7 @@ import {
 import { israelDayStartISO, israelDayEndISO } from "../../../../../lib/israel-time";
 import { workDate, israelYMD } from "../../../../../lib/attendance-time";
 import { includeInReport } from "../../../../../lib/payroll-include";
+import { filterApprovedForPay } from "../../../../../lib/payroll-attendance";
 import {
   buildMonthlyReport,
   type MonthlyStaff,
@@ -137,9 +138,12 @@ export async function GET(req: NextRequest) {
   const staff = (staffRaw ?? []) as MonthlyStaff[];
 
   // ── Attendance (widened ±35 on created_at — C2/C3 fix pattern) ─────────
+  // Fetch with status, gate in JS (mirrors the payroll routes): the report
+  // body shows approved only; pending (foreman awaiting review) and rejected
+  // are excluded, with pending surfaced as a separate count/warning.
   let attQuery = supabase
     .from("attendance")
-    .select("staff_id, action, clock_at, created_at, project:project_id(name)")
+    .select("staff_id, action, clock_at, created_at, status, project:project_id(name)")
     .is("deleted_at", null)
     .gte("created_at", israelDayStartISO(shiftYMD(from, -35)))
     .lte("created_at", israelDayEndISO(shiftYMD(to, +35)))
@@ -147,11 +151,14 @@ export async function GET(req: NextRequest) {
   if (allowedProjectIds !== null) {
     attQuery = attQuery.in("project_id", allowedProjectIds);
   }
-  const { data: attRaw, error: attErr } = await attQuery;
+  const { data: attRawAll, error: attErr } = await attQuery;
   if (attErr) {
     console.error("[monthly-report] att", JSON.stringify(attErr));
     return NextResponse.json({ error: attErr.message }, { status: 500 });
   }
+  const attRaw = filterApprovedForPay(
+    (attRawAll ?? []) as unknown as (MonthlyReportAttendanceRow & { status?: string | null })[],
+  );
 
   const { data: vacRaw, error: vacErr } = await supabase
     .from("vacation_days")
@@ -162,6 +169,16 @@ export async function GET(req: NextRequest) {
     console.error("[monthly-report] vac", JSON.stringify(vacErr));
     return NextResponse.json({ error: vacErr.message }, { status: 500 });
   }
+
+  // Pending attendance in the month (NOT in the approved report body) —
+  // counted from the SAME fetch (already deleted-null + project-scoped +
+  // widened window), narrowed to status='pending' and work date in [from, to].
+  const pendingCount = ((attRawAll ?? []) as unknown as (MonthlyReportAttendanceRow & { status?: string | null })[])
+    .filter((r) => {
+      if (r.status !== "pending" || !r.staff_id) return false;
+      const ymd = israelYMD(workDate(r));
+      return ymd >= from && ymd <= to;
+    }).length;
 
   // Staff whose attendance actually falls inside the report month [from, to]
   // (attRaw is widened ±35 days on created_at, so filter by the work date).
@@ -198,7 +215,7 @@ export async function GET(req: NextRequest) {
   );
 
   if (format !== "xlsx") {
-    return NextResponse.json({ month, from, to, blocks });
+    return NextResponse.json({ month, from, to, blocks, pendingCount });
   }
 
   // ── XLSX ────────────────────────────────────────────────────────────────
@@ -235,6 +252,18 @@ export async function GET(req: NextRequest) {
     left:   { style: "thin", color: { argb: "FFCCCCCC" } },
     right:  { style: "thin", color: { argb: "FFCCCCCC" } },
   };
+
+  // Pending warning at the very top so it's the first thing seen.
+  if (pendingCount > 0) {
+    const warnRow = sheet.addRow([
+      `⚠ ${pendingCount} רשומות נוכחות ממתינות לאישור אינן כלולות בדוח זה. אשר אותן והפק דוח מעודכן.`,
+    ]);
+    sheet.mergeCells(warnRow.number, 1, warnRow.number, 7);
+    warnRow.font = { bold: true, color: { argb: "FF9A6A00" } };
+    warnRow.alignment = { horizontal: "right", vertical: "middle" };
+    warnRow.height = 20;
+    sheet.addRow([]);
+  }
 
   for (const b of blocks) {
     const classification = b.staff.is_freelancer ? "עצמאי" : "שכיר";

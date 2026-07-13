@@ -326,6 +326,7 @@ export default function AdminPortal() {
     payrollMonth,     setPayrollMonth,
     payrollStaffId,   setPayrollStaffId,
     payrollRows,
+    payrollPending,
     payrollLoading,
     payrollExporting,
     loadPayroll,
@@ -1945,10 +1946,12 @@ export default function AdminPortal() {
             payrollMonth={payrollMonth}     setPayrollMonth={setPayrollMonth}
             payrollStaffId={payrollStaffId} setPayrollStaffId={setPayrollStaffId}
             payrollRows={payrollRows}
+            payrollPending={payrollPending}
             payrollLoading={payrollLoading}
             payrollExporting={payrollExporting}
             onLoadPayroll={loadPayroll}
             onExportPayroll={exportPayroll}
+            onGoToApprovals={() => { setAttendanceSubTab("live"); goToTab("attendance"); }}
           />
         )}
 
