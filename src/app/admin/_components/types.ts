@@ -59,6 +59,7 @@ export interface PayrollRow {
   travel_allowance: boolean;
   pension_status: string | null;
   gross_salary: number;
+  active?: boolean;
   deleted_at?: string | null;
 }
 

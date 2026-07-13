@@ -32,6 +32,8 @@ import {
   getForemanStaffIdFromRequest,
 } from "../../../../../lib/admin-auth";
 import { israelDayStartISO, israelDayEndISO } from "../../../../../lib/israel-time";
+import { workDate, israelYMD } from "../../../../../lib/attendance-time";
+import { includeInReport } from "../../../../../lib/payroll-include";
 import {
   buildMonthlyReport,
   type MonthlyStaff,
@@ -115,13 +117,15 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Staff list ──────────────────────────────────────────────────────────
-  // Admin: all active workers + foremen. Foreman: filtered downstream via
-  // attendance rows on their projects. Managers (roles other than "עובד" /
-  // "ממונה") are still excluded — they don't clock and shouldn't appear.
+  // NOT filtered by active=true — a worker deactivated after working the
+  // month must still appear (same money concern as payroll). Inactive rows
+  // are kept only if they clocked hours this month (admin branch below);
+  // dormant inactive stay out. deleted_at IS NULL still excludes deleted.
+  // Managers (roles other than "עובד"/"ממונה") and attendance-exempt staff
+  // are still excluded — they don't clock.
   const { data: staffRaw, error: staffErr } = await supabase
     .from("staff")
     .select("id, name, is_freelancer, employment_type, role, active, deleted_at, attendance_exempt")
-    .eq("active", true)
     .is("deleted_at", null)
     .in("role", ["עובד", "ממונה"])
     .eq("attendance_exempt", false)
@@ -159,16 +163,30 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: vacErr.message }, { status: 500 });
   }
 
-  // Foreman scope on staff: only include workers who actually appeared in
-  // the (already project-scoped) attendance slice. Admin skips this step
-  // and gets every active worker.
-  let scopedStaff: MonthlyStaff[] = staff;
+  // Staff whose attendance actually falls inside the report month [from, to]
+  // (attRaw is widened ±35 days on created_at, so filter by the work date).
+  // Drives the "deactivated-but-worked" inclusion.
+  const workedInMonth = new Set<string>();
+  for (const r of (attRaw ?? []) as unknown as MonthlyReportAttendanceRow[]) {
+    if (!r.staff_id) continue;
+    const ymd = israelYMD(workDate(r));
+    if (ymd >= from && ymd <= to) workedInMonth.add(r.staff_id);
+  }
+
+  // Foreman scope on staff: only workers who appeared in the (already
+  // project-scoped) attendance slice — unchanged, and now naturally includes
+  // a deactivated worker who clocked on their project.
+  // Admin scope: active workers + inactive workers who clocked this month
+  // (includeInReport). Dormant inactive workers stay out.
+  let scopedStaff: MonthlyStaff[];
   if (allowedProjectIds !== null) {
     const seen = new Set<string>();
     for (const r of (attRaw ?? []) as unknown as MonthlyReportAttendanceRow[]) {
       if (r.staff_id) seen.add(r.staff_id);
     }
     scopedStaff = staff.filter((s) => seen.has(s.id));
+  } else {
+    scopedStaff = staff.filter((s) => includeInReport(s.active ?? true, workedInMonth.has(s.id)));
   }
 
   const blocks = buildMonthlyReport(
@@ -220,8 +238,9 @@ export async function GET(req: NextRequest) {
 
   for (const b of blocks) {
     const classification = b.staff.is_freelancer ? "עצמאי" : "שכיר";
+    const inactiveTag = b.staff.active === false ? " (לא פעיל)" : "";
     // Title row — merged across all 7 columns
-    const titleRow = sheet.addRow([`${b.staff.name} · ${classification} · ${monthLabel}`]);
+    const titleRow = sheet.addRow([`${b.staff.name}${inactiveTag} · ${classification} · ${monthLabel}`]);
     sheet.mergeCells(titleRow.number, 1, titleRow.number, 7);
     titleRow.font = { bold: true, size: 12 };
     titleRow.fill = FILL_TITLE;

@@ -24,6 +24,7 @@ import {
   type VacationRec,
 } from "../../../../../lib/payroll-aggregate";
 import { getRatesForMonth } from "../../../../../lib/staff-rates";
+import { includeInReport } from "../../../../../lib/payroll-include";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,6 +42,7 @@ interface StaffRow {
   holiday_eligible: boolean;
   role: string;
   start_date: string | null;
+  active: boolean;
 }
 
 type AttRow = AttendanceRec;
@@ -84,10 +86,14 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // NOT filtered by active=true — a worker deactivated after working the
+  // month still earned that payslip and must reach the accountant. Inactive
+  // rows are kept only if they clocked hours this month (includeInReport,
+  // below). deleted_at IS NULL still excludes truly-deleted workers.
   let staffQuery: any = supabase
     .from("staff")
-    .select("id, name, national_id, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role, start_date")
-    .eq("active", true)
+    .select("id, name, national_id, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role, start_date, active")
+    .is("deleted_at", null)
     .eq("is_freelancer", wantFreelancers)
     .in("role", ["עובד", "ממונה"])
     .order("name", { ascending: true });
@@ -119,6 +125,11 @@ export async function GET(req: NextRequest) {
 
   const attMap = aggregateAttendance((attData ?? []) as AttRow[], month);
   const vacMap = aggregateVacation((vacData ?? []) as VacRow[]);
+
+  // Presence-driven inclusion: active workers always; inactive only if they
+  // clocked hours this month. The accountant's file must carry a deactivated
+  // worker who still worked, but not the dormant inactive roster.
+  const reportStaff = staff.filter((s) => includeInReport(s.active, attMap.has(s.id)));
 
   // ── Build the workbook ──────────────────────────────────────────────────
   // Hebrew month label for the sheet title — "מאי 2026" rather than 2026-05.
@@ -174,11 +185,11 @@ export async function GET(req: NextRequest) {
   // Rates for the report month — source-of-truth for the gross math.
   // Workers with no staff_rates row fall back to staff legacy columns and
   // get a "⚠️" prefix on their name cell so the accountant sees them.
-  const ratesMap = await getRatesForMonth(supabase, staff.map((s) => s.id), month);
+  const ratesMap = await getRatesForMonth(supabase, reportStaff.map((s) => s.id), month);
 
   // Data rows
   let grandTotal = 0;
-  for (const s of staff) {
+  for (const s of reportStaff) {
     const att = attMap.get(s.id) ?? { days: 0, hours: 0 };
     const vac = vacMap.get(s.id) ?? 0;
     const rateRow  = ratesMap.get(s.id) ?? null;
@@ -191,7 +202,9 @@ export async function GET(req: NextRequest) {
     grandTotal += gross;
 
     sheet.addRow({
-      name:            (rateRow ? "" : "⚠️ ") + s.name,
+      // "⚠️" flags a missing rate; "(לא פעיל)" flags a deactivated worker who
+      // still worked this month — so the accountant treats them intentionally.
+      name:            (rateRow ? "" : "⚠️ ") + s.name + (s.active ? "" : " (לא פעיל)"),
       national_id:     s.national_id ?? "",
       // Display as DD/MM/YYYY for the accountant; empty if not set.
       start_date:      s.start_date ? s.start_date.split("-").reverse().join("/") : "",

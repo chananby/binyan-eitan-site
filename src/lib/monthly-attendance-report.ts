@@ -46,6 +46,9 @@ export interface MonthlyStaff {
   name: string;
   is_freelancer: boolean;
   employment_type: string | null;
+  /** false = deactivated worker who still worked this month (surfaced so the
+   *  XLSX title and the panel can flag them "(לא פעיל)"). */
+  active?: boolean;
 }
 
 export interface DayRow {

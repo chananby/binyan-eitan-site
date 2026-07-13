@@ -37,7 +37,7 @@ interface DayRow {
 }
 
 interface WorkerBlock {
-  staff: { id: string; name: string; is_freelancer: boolean; employment_type: string | null };
+  staff: { id: string; name: string; is_freelancer: boolean; employment_type: string | null; active?: boolean };
   days: DayRow[];
   totals: {
     workDays: number;
@@ -185,6 +185,9 @@ function WorkerBlockCard({ block, month }: { block: WorkerBlock; month: string }
       <div className="bg-bone-dark border-b-2 border-charcoal/30 px-4 py-3">
         <p className="font-heading text-base font-bold text-charcoal">
           {block.staff.name}
+          {block.staff.active === false && (
+            <span className="ms-2 text-caption font-normal text-muted">(לא פעיל)</span>
+          )}
         </p>
         <p className="text-caption text-muted mt-0.5">
           {classification} · {heMonthLabel(month)}

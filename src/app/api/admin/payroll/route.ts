@@ -31,6 +31,7 @@ import {
   type VacationRec,
 } from "../../../../lib/payroll-aggregate";
 import { getRatesForMonth } from "../../../../lib/staff-rates";
+import { includeInReport } from "../../../../lib/payroll-include";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,6 +48,7 @@ interface StaffRow {
   travel_allowance: boolean;
   pension_status: string | null;
   holiday_eligible: boolean;
+  active: boolean;
   deleted_at?: string | null;
 }
 
@@ -77,17 +79,18 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServerClient();
 
-  // Fetch active "עובד" + "ממונה" staff (anyone the company pays — admins/manager roles excluded).
-  // active=true alone is sufficient to exclude soft-deleted workers: the
-  // soft-delete contract (DELETE /api/admin/staff/[id]) only sets deleted_at
-  // on rows that are already active=false, so any row with active=true has
-  // deleted_at=null by invariant. We still surface `deleted_at` per row in
-  // case the contract ever loosens; the field is null in practice today.
+  // Fetch payable "עובד" + "ממונה" staff (admins/manager roles excluded).
+  // NOT filtered by active=true: a worker deactivated after working a month
+  // still earned that month's payslip. We fetch active AND inactive here,
+  // then include an inactive worker in the report ONLY if they clocked hours
+  // this month (includeInReport, below) — so the ~21 dormant inactive rows
+  // don't flood the report. deleted_at IS NULL still excludes truly-deleted
+  // workers (deleted_at is set only on already-inactive rows).
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let staffQuery: any = supabase
     .from("staff")
-    .select("id, name, national_id, is_freelancer, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role, deleted_at")
-    .eq("active", true)
+    .select("id, name, national_id, is_freelancer, employment_type, hourly_rate, daily_rate, monthly_global_salary, travel_allowance, pension_status, holiday_eligible, role, active, deleted_at")
+    .is("deleted_at", null)
     .in("role", ["עובד", "ממונה"])
     .order("name", { ascending: true });
   if (staffId) staffQuery = staffQuery.eq("id", staffId);
@@ -143,7 +146,12 @@ export async function GET(req: NextRequest) {
   // ⚠️-flag fallback cases.
   const ratesMap = await getRatesForMonth(supabase, staff.map((s) => s.id), month);
 
-  const rows = staff.map((s) => {
+  // Presence-driven inclusion: active workers always; inactive only if they
+  // have attendance rows this month (attStats.has → ≥1 non-deleted clock row
+  // in the month). Keeps deactivated-but-worked in, dormant-inactive out.
+  const rows = staff
+    .filter((s) => includeInReport(s.active, attStats.has(s.id)))
+    .map((s) => {
     const stats = attStats.get(s.id) ?? { days: 0, hours: 0 };
     const vacation_days = vacStats.get(s.id) ?? 0;
     const rateRow  = ratesMap.get(s.id) ?? null;
@@ -173,6 +181,7 @@ export async function GET(req: NextRequest) {
       travel_allowance: s.travel_allowance,
       pension_status: s.pension_status,
       gross_salary,
+      active: s.active,
       deleted_at: s.deleted_at ?? null,
     };
   });

@@ -48,7 +48,7 @@ export default function PayrollTab(p: Props) {
           <h2 className="font-heading text-base font-bold">דוח שכר חודשי</h2>
         </div>
         <p className="text-xs text-charcoal/65 mb-4 leading-relaxed">
-          בחר חודש ולחץ &quot;טען&quot; לראות סיכום ימי עבודה, שעות, חופשה ושכר ברוטו לכל עובד פעיל.
+          בחר חודש ולחץ &quot;טען&quot; לראות סיכום ימי עבודה, שעות, חופשה ושכר ברוטו לכל עובד שעבד החודש (כולל עובד שהושבת אך עבד בחודש זה).
           ייצוא ל-XLSX מוכן לשליחה לרוא&quot;ח.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -61,10 +61,16 @@ export default function PayrollTab(p: Props) {
           <Field label="עובד (אופציונלי)">
             <select value={p.payrollStaffId} onChange={e => p.setPayrollStaffId(e.target.value)} className={INPUT}>
               <option value="">כל העובדים</option>
+              {/* Include deactivated workers too — history/payroll are past-facing
+                  (same rule as WorkerHistoryPanel). Active first, then inactive
+                  with a "(לא פעיל)" suffix so the drilldown can reach a
+                  deactivated worker who worked the selected month. */}
               {p.staff
-                .filter(s => s.active && (s.role === "עובד" || s.role === "ממונה"))
+                .filter(s => s.role === "עובד" || s.role === "ממונה")
+                .slice()
+                .sort((a, b) => Number(b.active) - Number(a.active))
                 .map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
+                  <option key={s.id} value={s.id}>{s.name}{s.active ? "" : " (לא פעיל)"}</option>
                 ))}
             </select>
           </Field>
@@ -157,6 +163,7 @@ export default function PayrollTab(p: Props) {
                           עצמאי
                         </span>
                       )}
+                      {r.active === false && !r.deleted_at && <span className="ms-2 text-caption font-normal text-charcoal/70">(לא פעיל)</span>}
                       {r.deleted_at && <span className="ms-2 text-caption font-normal text-charcoal/70">🗑️ (מחוק)</span>}
                     </td>
                     <td className="py-2 text-charcoal/60">
