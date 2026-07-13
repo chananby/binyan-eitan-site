@@ -275,9 +275,10 @@
   ה-routes: `payroll`, `payroll/export` (XLSX לרו"ח), `attendance/monthly-report`.
   UI: PayrollTab (שורות + dropdown) ו-MonthlyReportPanel מסמנים "(לא פעיל)";
   ה-XLSX מוסיף "(לא פעיל)" בשם. לא נגעתי ב-`forecast` (active-only נכון שם)
-  ולא ב-`payroll-aggregate.ts`. build נקי, 388 tests (+3). commit `15eb4fb`
-  (מקומי — ממתין ל-push+deploy). **8 העובדים ההיסטוריים: חנן מטפל אחד-אחד
-  (תלושים מתקנים לחודשים שנמצאו ב-SQL).**
+  ולא ב-`payroll-aggregate.ts`. build נקי, 388 tests (+3). **נפרס בייצור**
+  (commit `15eb4fb`, deploy `HxcxnE1N`, אימות `x-matched-path: /admin`).
+  **8 העובדים ההיסטוריים: חנן מטפל אחד-אחד — תלושים מתקנים לחודשים שנמצאו
+  ב-SQL (רלוונטי לביטוח לאומי/מס/פנסיה).**
 - **סטטוס "ללא כניסה" ליציאה יתומה + כפתור "השלם כניסה".** יציאה יתומה
   (exit בלי entry — 8 ימים היסטוריים בייצור, כולם לפני חבילת ה-guards,
   0 חדשים) נפלה בטעות לסטטוס `no-exit` וקיבלה כפתור "השלם יציאה" שתמיד
