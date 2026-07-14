@@ -262,6 +262,21 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **מנוע שלמות נוכחות — סבב 1 (מנוע בלבד).** הפיצ'ר הגדול "תמונת מה יש ומה
+  חסר, נגישה מכל מקום". helper טהור [`attendance-incompleteness.ts`](src/lib/attendance-incompleteness.ts)
+  (`computeIncompleteDays` + `summarizeIncomplete`) + endpoint
+  `GET /api/admin/attendance/incomplete?from&to&staff_id?` → `{items, summary}`.
+  **6 סוגי חוסר:** no_exit, no_entry, **no_project (חדש — 46 בייצור, הכי נפוץ)**,
+  stuck_failure, pending_correction, pending_manual. כל item נושא issue+action+
+  ref_id לתיקון. מאחד את הכפילות stale-opens≡no_exit (מקור אמת יחיד); יום יכול
+  לשאת כמה issues (day_count = distinct staff×date). רוכב על אותם פרימיטיבים
+  של ה-aggregators (2 אוצרות מילה ממקור אחד), בלי לרפקטר את worker-history/
+  monthly-report (timeline שונה, monthly קריטי-כספית). foreman-scoped. 10 tests,
+  build נקי, 408. commit `43271f3` (מקומי — ממתין ל-push+deploy).
+  **סבבים בתור:** 2 = שער השכר (באנר מאוחד ב-PayrollTab, מחליף אזהרת pending),
+  3 = פאנל נראות (היברידי — כשל חי נפרד/high, שאר ה-issues מאוחד "N ימים לא
+  שלמים"/medium). **פער לסגור בסבב 3:** `stuck_failure` → כפתור "הוסף יום"
+  (היום פאנל הכשלים תצוגה-בלבד).
 - **רגרסיית גלילה אופקית בטבלאות (מ-`ea6bcc9`) — תוקנה.** סעיפים 13+15 של
   סבב תיקוני ה-UI הוסיפו `min-w-[720px]` ל-WorkerHistoryPanel (7 עמ') ו-
   PayrollTab (9 עמ') כדי למנוע דחיסה במובייל — אבל בדסקטופ הפאנל צר מ-720px,
