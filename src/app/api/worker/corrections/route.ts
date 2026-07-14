@@ -39,6 +39,28 @@ function isWithinRetroWindow(recordIso: string | null): boolean {
   return recordYM === nowYM || recordYM === prevYM;
 }
 
+// GET — how many correction requests this worker has already filed in the
+// current Israel calendar month (all statuses). Drives the "this is your Nth
+// request this month" awareness message on the form. Never blocks.
+export async function GET(req: NextRequest) {
+  const staffId = getWorkerStaffIdFromRequest(req);
+  if (!staffId) {
+    return NextResponse.json({ error: "יש להזדהות מחדש" }, { status: 401 });
+  }
+  const nowYmd = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
+  const monthPrefix = nowYmd.slice(0, 7);
+  const [yy, mm] = monthPrefix.split("-").map(Number);
+  const nextMonthYmd = mm === 12 ? `${yy + 1}-01-01` : `${yy}-${String(mm + 1).padStart(2, "0")}-01`;
+  const supabase = createServerClient();
+  const { count } = await supabase
+    .from("attendance_corrections")
+    .select("id", { count: "exact", head: true })
+    .eq("staff_id", staffId)
+    .gte("created_at", israelDayStartISO(`${monthPrefix}-01`))
+    .lt("created_at", israelDayStartISO(nextMonthYmd));
+  return NextResponse.json({ month_count: count ?? 0 });
+}
+
 export async function POST(req: NextRequest) {
   const staffId = getWorkerStaffIdFromRequest(req);
   if (!staffId) {

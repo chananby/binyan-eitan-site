@@ -97,6 +97,8 @@ export interface ScreenStrings {
   corrTimeRequired: string;
   corrDayHasExit: string;
   corrDayHasEntry: string;
+  corrCountNormal: string;
+  corrCountHigh: string;
   corrProposedLabel: string;
   corrReasonLabel: string;
   corrReasonPlaceholder: string;
@@ -233,6 +235,8 @@ const HE: ScreenStrings = {
   corrTimeRequired: "נא למלא שעה",
   corrDayHasExit: "כבר רשומה יציאה ליום זה.",
   corrDayHasEntry: "כבר רשומה כניסה ליום זה.",
+  corrCountNormal: "זו הבקשה ה-{n} שלך החודש.",
+  corrCountHigh: "זו הבקשה ה-{n} שלך החודש. נסה להחתים בזמן כדי להימנע מתיקונים.",
   corrProposedLabel: "שעה נכונה (אופציונלי)",
   corrReasonLabel: "מה הטעות?",
   corrReasonPlaceholder: "למשל: יצאתי ב-18:30 ולא ב-17:00 כפי שמופיע",
@@ -335,6 +339,8 @@ const RU: ScreenStrings = {
   corrTimeRequired: "Укажите время",
   corrDayHasExit: "За этот день уже отмечен уход.",
   corrDayHasEntry: "За этот день уже отмечен приход.",
+  corrCountNormal: "Это ваш {n}-й запрос в этом месяце.",
+  corrCountHigh: "Это ваш {n}-й запрос в этом месяце. Старайтесь отмечаться вовремя, чтобы избежать исправлений.",
   corrProposedLabel: "Правильное время (опционально)",
   corrReasonLabel: "В чём ошибка?",
   corrReasonPlaceholder: "Например: я ушёл в 18:30, а не в 17:00",
@@ -437,6 +443,8 @@ const EN: ScreenStrings = {
   corrTimeRequired: "Please enter a time",
   corrDayHasExit: "A clock-out is already recorded for this day.",
   corrDayHasEntry: "A clock-in is already recorded for this day.",
+  corrCountNormal: "This is your request #{n} this month.",
+  corrCountHigh: "This is your request #{n} this month. Try to clock in/out on time to avoid corrections.",
   corrProposedLabel: "Correct time (optional)",
   corrReasonLabel: "What is the mistake?",
   corrReasonPlaceholder: "e.g., I left at 18:30, not 17:00 as shown",
@@ -539,6 +547,8 @@ const SI: ScreenStrings = {
   corrTimeRequired: "කරුණාකර වේලාව ඇතුළත් කරන්න",
   corrDayHasExit: "මෙම දිනය සඳහා දැනටමත් පිටවීමක් සටහන් කර ඇත.",
   corrDayHasEntry: "මෙම දිනය සඳහා දැනටමත් පැමිණීමක් සටහන් කර ඇත.",
+  corrCountNormal: "මෙය මෙම මාසයේ ඔබගේ {n} වන ඉල්ලීමයි.",
+  corrCountHigh: "මෙය මෙම මාසයේ ඔබගේ {n} වන ඉල්ලීමයි. නිවැරදි කිරීම් වළක්වා ගැනීමට වේලාවට සටහන් කිරීමට උත්සාහ කරන්න.",
   corrProposedLabel: "නිවැරදි වේලාව (විකල්ප)",
   corrReasonLabel: "වැරැද්ද කුමක්ද?",
   corrReasonPlaceholder: "උදා: පෙන්වා ඇති පරිදි 17:00 ට නොව 18:30 ට මම පිටව ගියෙමි",
@@ -641,6 +651,8 @@ const ZH: ScreenStrings = {
   corrTimeRequired: "请输入时间",
   corrDayHasExit: "当天已记录下班打卡。",
   corrDayHasEntry: "当天已记录上班打卡。",
+  corrCountNormal: "这是您本月的第 {n} 次申请。",
+  corrCountHigh: "这是您本月的第 {n} 次申请。请尽量按时打卡以避免更正。",
   corrProposedLabel: "正确时间（可选）",
   corrReasonLabel: "错误是什么？",
   corrReasonPlaceholder: "例如：我18:30离开，而不是显示的17:00",
@@ -743,6 +755,8 @@ const HI: ScreenStrings = {
   corrTimeRequired: "कृपया समय दर्ज करें",
   corrDayHasExit: "इस दिन के लिए छुट्टी पहले से दर्ज है।",
   corrDayHasEntry: "इस दिन के लिए प्रवेश पहले से दर्ज है।",
+  corrCountNormal: "यह इस महीने आपका {n}वाँ अनुरोध है।",
+  corrCountHigh: "यह इस महीने आपका {n}वाँ अनुरोध है। सुधार से बचने के लिए समय पर हाज़िरी दर्ज करने का प्रयास करें।",
   corrProposedLabel: "सही समय (वैकल्पिक)",
   corrReasonLabel: "गलती क्या है?",
   corrReasonPlaceholder: "उदा: मैं 18:30 पर निकला, न कि दिखाए गए 17:00 पर",

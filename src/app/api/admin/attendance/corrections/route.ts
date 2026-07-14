@@ -58,5 +58,29 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ requests: data ?? [] });
+  const requests = (data ?? []) as Array<{ staff_id: string; created_at: string }>;
+
+  // Per-worker monthly count (awareness, never a hard cap): for each pending
+  // request, how many corrections that worker filed in the SAME Israel calendar
+  // month — ALL statuses, because the pattern is what matters, not the outcome.
+  const ilMonth = (iso: string) =>
+    new Date(iso).toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" }).slice(0, 7);
+  const staffIds = [...new Set(requests.map((r) => r.staff_id))];
+  const monthCount = new Map<string, number>(); // `${staff_id}|${YYYY-MM}` → n
+  if (staffIds.length > 0) {
+    const { data: allCorr } = await supabase
+      .from("attendance_corrections")
+      .select("staff_id, created_at")
+      .in("staff_id", staffIds);
+    for (const c of (allCorr ?? []) as Array<{ staff_id: string; created_at: string }>) {
+      const key = `${c.staff_id}|${ilMonth(c.created_at)}`;
+      monthCount.set(key, (monthCount.get(key) ?? 0) + 1);
+    }
+  }
+  const withCounts = requests.map((r) => ({
+    ...r,
+    month_count: monthCount.get(`${r.staff_id}|${ilMonth(r.created_at)}`) ?? 1,
+  }));
+
+  return NextResponse.json({ requests: withCounts });
 }

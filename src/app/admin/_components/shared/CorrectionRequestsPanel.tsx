@@ -45,6 +45,7 @@ export interface CorrectionRequest {
   reason: string;
   status: string;
   request_type?: string | null;
+  month_count?: number | null;
   created_at: string;
   attendance: {
     id: string;
@@ -168,6 +169,22 @@ export default function CorrectionRequestsPanel(p: {
                       {act}
                     </span>
                     {date && <span className="text-caption text-charcoal/70 tabular-nums">{date}</span>}
+                    {/* Monthly correction count for this worker (all statuses).
+                        Awareness only — never blocks. Amber at 3+ so chnn spots
+                        a worker who leans on corrections too often. */}
+                    {(() => {
+                      const n = r.month_count ?? 1;
+                      return (
+                        <span
+                          className={`text-caption font-semibold px-1.5 py-0.5 rounded ${
+                            n >= 3 ? "bg-amber-100 text-amber-800" : "bg-charcoal/[0.06] text-charcoal/60"
+                          }`}
+                          title="מספר בקשות התיקון של העובד בחודש זה (כל הסטטוסים)"
+                        >
+                          בקשה {n} החודש
+                        </span>
+                      );
+                    })()}
                   </div>
 
                   {/* השינוי: מה היה ← מה ביקש */}
