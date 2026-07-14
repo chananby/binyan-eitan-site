@@ -88,6 +88,15 @@ export interface ScreenStrings {
   weekdays: [string, string, string, string, string, string, string];
   // AttendanceReportMistake — merged in from its old private dictionary
   corrTitle: string;
+  corrTypeTitle: string;
+  corrTypeMissingExit: string;
+  corrTypeMissingEntry: string;
+  corrTypeFixTime: string;
+  corrTimeExitLabel: string;
+  corrTimeEntryLabel: string;
+  corrTimeRequired: string;
+  corrDayHasExit: string;
+  corrDayHasEntry: string;
   corrProposedLabel: string;
   corrReasonLabel: string;
   corrReasonPlaceholder: string;
@@ -215,6 +224,15 @@ const HE: ScreenStrings = {
   dayPrefix: "יום",
   weekdays: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"],
   corrTitle: "דווח על טעות ברשומה",
+  corrTypeTitle: "מה קרה?",
+  corrTypeMissingExit: "שכחתי להחתים יציאה",
+  corrTypeMissingEntry: "שכחתי להחתים כניסה",
+  corrTypeFixTime: "השעה הרשומה שגויה",
+  corrTimeExitLabel: "שעת היציאה",
+  corrTimeEntryLabel: "שעת הכניסה",
+  corrTimeRequired: "נא למלא שעה",
+  corrDayHasExit: "כבר רשומה יציאה ליום זה.",
+  corrDayHasEntry: "כבר רשומה כניסה ליום זה.",
   corrProposedLabel: "שעה נכונה (אופציונלי)",
   corrReasonLabel: "מה הטעות?",
   corrReasonPlaceholder: "למשל: יצאתי ב-18:30 ולא ב-17:00 כפי שמופיע",
@@ -308,6 +326,15 @@ const RU: ScreenStrings = {
   dayPrefix: "",
   weekdays: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
   corrTitle: "Сообщить об ошибке",
+  corrTypeTitle: "Что случилось?",
+  corrTypeMissingExit: "Забыл отметить уход",
+  corrTypeMissingEntry: "Забыл отметить приход",
+  corrTypeFixTime: "Записано неверное время",
+  corrTimeExitLabel: "Время ухода",
+  corrTimeEntryLabel: "Время прихода",
+  corrTimeRequired: "Укажите время",
+  corrDayHasExit: "За этот день уже отмечен уход.",
+  corrDayHasEntry: "За этот день уже отмечен приход.",
   corrProposedLabel: "Правильное время (опционально)",
   corrReasonLabel: "В чём ошибка?",
   corrReasonPlaceholder: "Например: я ушёл в 18:30, а не в 17:00",
@@ -401,6 +428,15 @@ const EN: ScreenStrings = {
   dayPrefix: "",
   weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
   corrTitle: "Report a mistake in the record",
+  corrTypeTitle: "What happened?",
+  corrTypeMissingExit: "I forgot to clock out",
+  corrTypeMissingEntry: "I forgot to clock in",
+  corrTypeFixTime: "The recorded time is wrong",
+  corrTimeExitLabel: "Clock-out time",
+  corrTimeEntryLabel: "Clock-in time",
+  corrTimeRequired: "Please enter a time",
+  corrDayHasExit: "A clock-out is already recorded for this day.",
+  corrDayHasEntry: "A clock-in is already recorded for this day.",
   corrProposedLabel: "Correct time (optional)",
   corrReasonLabel: "What is the mistake?",
   corrReasonPlaceholder: "e.g., I left at 18:30, not 17:00 as shown",
@@ -494,6 +530,15 @@ const SI: ScreenStrings = {
   dayPrefix: "",
   weekdays: ["ඉරිදා", "සඳුදා", "අඟහරුවාදා", "බදාදා", "බ්‍රහස්පතින්දා", "සිකුරාදා", "සෙනසුරාදා"],
   corrTitle: "වාර්තාවේ වැරැද්දක් වාර්තා කරන්න",
+  corrTypeTitle: "කුමක් සිදු වූයේද?",
+  corrTypeMissingExit: "පිටවීම සටහන් කිරීමට අමතක විය",
+  corrTypeMissingEntry: "පැමිණීම සටහන් කිරීමට අමතක විය",
+  corrTypeFixTime: "සටහන් කළ වේලාව වැරදියි",
+  corrTimeExitLabel: "පිටවීමේ වේලාව",
+  corrTimeEntryLabel: "පැමිණීමේ වේලාව",
+  corrTimeRequired: "කරුණාකර වේලාව ඇතුළත් කරන්න",
+  corrDayHasExit: "මෙම දිනය සඳහා දැනටමත් පිටවීමක් සටහන් කර ඇත.",
+  corrDayHasEntry: "මෙම දිනය සඳහා දැනටමත් පැමිණීමක් සටහන් කර ඇත.",
   corrProposedLabel: "නිවැරදි වේලාව (විකල්ප)",
   corrReasonLabel: "වැරැද්ද කුමක්ද?",
   corrReasonPlaceholder: "උදා: පෙන්වා ඇති පරිදි 17:00 ට නොව 18:30 ට මම පිටව ගියෙමි",
@@ -587,6 +632,15 @@ const ZH: ScreenStrings = {
   dayPrefix: "星期",
   weekdays: ["日", "一", "二", "三", "四", "五", "六"],
   corrTitle: "报告记录中的错误",
+  corrTypeTitle: "发生了什么？",
+  corrTypeMissingExit: "我忘记打下班卡",
+  corrTypeMissingEntry: "我忘记打上班卡",
+  corrTypeFixTime: "记录的时间有误",
+  corrTimeExitLabel: "下班时间",
+  corrTimeEntryLabel: "上班时间",
+  corrTimeRequired: "请输入时间",
+  corrDayHasExit: "当天已记录下班打卡。",
+  corrDayHasEntry: "当天已记录上班打卡。",
   corrProposedLabel: "正确时间（可选）",
   corrReasonLabel: "错误是什么？",
   corrReasonPlaceholder: "例如：我18:30离开，而不是显示的17:00",
@@ -680,6 +734,15 @@ const HI: ScreenStrings = {
   dayPrefix: "",
   weekdays: ["रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"],
   corrTitle: "रिकॉर्ड में गलती की रिपोर्ट करें",
+  corrTypeTitle: "क्या हुआ?",
+  corrTypeMissingExit: "मैं बाहर का समय दर्ज करना भूल गया",
+  corrTypeMissingEntry: "मैं प्रवेश का समय दर्ज करना भूल गया",
+  corrTypeFixTime: "दर्ज किया गया समय गलत है",
+  corrTimeExitLabel: "छुट्टी का समय",
+  corrTimeEntryLabel: "प्रवेश का समय",
+  corrTimeRequired: "कृपया समय दर्ज करें",
+  corrDayHasExit: "इस दिन के लिए छुट्टी पहले से दर्ज है।",
+  corrDayHasEntry: "इस दिन के लिए प्रवेश पहले से दर्ज है।",
   corrProposedLabel: "सही समय (वैकल्पिक)",
   corrReasonLabel: "गलती क्या है?",
   corrReasonPlaceholder: "उदा: मैं 18:30 पर निकला, न कि दिखाए गए 17:00 पर",

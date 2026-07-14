@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
   let query: any = supabase
     .from("attendance_corrections")
     .select(`
-      id, attendance_id, staff_id, proposed_time, reason, status, created_at,
+      id, attendance_id, staff_id, proposed_time, reason, status, request_type, created_at,
       attendance:attendance_id ( id, action, clock_at, timestamp_label, project_id ),
       staff:staff_id ( id, name, phone, language )
     `)

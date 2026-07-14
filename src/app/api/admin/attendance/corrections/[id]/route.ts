@@ -21,7 +21,8 @@ import {
   isAdminAuthedFromRequest,
   getAdminIdFromRequest,
 } from "../../../../../../lib/admin-auth";
-import { israelWallClockToISO } from "../../../../../../lib/israel-time";
+import { israelWallClockToISO, israelDayStartISO } from "../../../../../../lib/israel-time";
+import { hasOpenRecord } from "../../../../../../lib/attendance-logic";
 
 export const runtime = "nodejs";
 
@@ -73,8 +74,8 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   const { data: corr, error: corrErr } = await supabase
     .from("attendance_corrections")
     .select(`
-      id, attendance_id, staff_id, proposed_time, reason, status,
-      attendance:attendance_id ( id, clock_at, created_at, original_clock_at, deleted_at )
+      id, attendance_id, staff_id, proposed_time, reason, status, request_type,
+      attendance:attendance_id ( id, action, project_id, clock_at, created_at, original_clock_at, deleted_at )
     `)
     .eq("id", params.id)
     .maybeSingle();
@@ -89,7 +90,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const att = (corr as any).attendance as
-    | { id: string; clock_at: string | null; created_at: string; original_clock_at: string | null; deleted_at: string | null }
+    | { id: string; action: string; project_id: string | null; clock_at: string | null; created_at: string; original_clock_at: string | null; deleted_at: string | null }
     | null;
   if (!att) return NextResponse.json({ error: "רשומה לא נמצאה" }, { status: 404 });
   if (att.deleted_at) {
@@ -106,43 +107,88 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   const editor   = await resolveAdminLabel(supabase, adminId);
   const nowIso   = new Date().toISOString();
 
-  // ── Apply the decision to the attendance row when approving + proposed_time ──
+  // ── Apply the decision, routed by request_type ────────────────────────────
+  // The calendar day is always taken from the flagged row (the worker can't
+  // move a record to a different day). HH:MM comes from proposed_time.
+  const requestType = (corr as any).request_type ?? "fix_time";
   if (decision === "approved" && corr.proposed_time) {
-    // Use the attendance row's existing YMD (in Israel TZ) + the proposed
-    // HH:MM. This preserves the calendar day; the worker can only fix the
-    // *time*, not move the entry to a different day (a different bug class).
     const baseIso = att.clock_at ?? att.created_at;
-    const ymd = new Date(baseIso)
-      .toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
+    const ymd = new Date(baseIso).toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
     const hm  = corr.proposed_time;
     let newClockAt: string;
     try { newClockAt = israelWallClockToISO(ymd, hm); }
-    catch {
-      return NextResponse.json({ error: "השעה המוצעת לא תקינה" }, { status: 400 });
-    }
-
-    // Build "DD.M.YYYY, HH:MM" — the same display format used elsewhere.
+    catch { return NextResponse.json({ error: "השעה המוצעת לא תקינה" }, { status: 400 }); }
     const [y, m, d] = ymd.split("-");
-    const newLabel = `${parseInt(d)}.${parseInt(m)}.${y}, ${hm}`;
+    const newLabel  = `${parseInt(d)}.${parseInt(m)}.${y}, ${hm}`;
+    const reasonSuffix = corr.reason ? `: ${corr.reason}` : "";
 
-    const update: Record<string, unknown> = {
-      clock_at:        newClockAt,
-      timestamp_label: newLabel,
-      edited_by:       editor,
-      edited_at:       nowIso,
-      edit_note:       `תיקון לפי בקשת עובד: ${corr.reason}`,
-    };
-    if (att.original_clock_at === null && att.clock_at !== null) {
-      update.original_clock_at = att.clock_at;
-    }
+    if (requestType === "missing_exit" || requestType === "missing_entry") {
+      // ADD a new row — never touch the flagged one. Reuse the day-scoped
+      // hasOpenRecord guard so we can't create a duplicate/orphan.
+      const nextYmd = new Date(new Date(`${ymd}T12:00:00Z`).getTime() + 86_400_000)
+        .toISOString().slice(0, 10);
+      const dayStartISO = israelDayStartISO(ymd);
+      const { data: dayRows } = await supabase
+        .from("attendance")
+        .select("action, clock_at")
+        .is("deleted_at", null)
+        .eq("staff_id", corr.staff_id)
+        .gte("clock_at", dayStartISO)
+        .lt("clock_at", israelDayStartISO(nextYmd));
+      const open = hasOpenRecord((dayRows ?? []) as { action: string; clock_at: string | null }[], dayStartISO);
 
-    const { error: updErr } = await supabase
-      .from("attendance")
-      .update(update)
-      .eq("id", att.id);
-    if (updErr) {
-      console.error("[admin/attendance/corrections] att update:", JSON.stringify(updErr));
-      return NextResponse.json({ error: updErr.message }, { status: 500 });
+      if (requestType === "missing_exit") {
+        // Need an OPEN entry to close; if none, the day is already closed.
+        if (!open) {
+          return NextResponse.json({ error: "אין כניסה פתוחה לסגירה ליום זה", code: "no_open_entry" }, { status: 409 });
+        }
+      } else {
+        // missing_entry: refuse if an open entry already exists.
+        if (open) {
+          return NextResponse.json({ error: "כבר קיימת כניסה פתוחה ליום זה", code: "already_has_open_entry" }, { status: 409 });
+        }
+      }
+
+      const isExitType = requestType === "missing_exit";
+      const { error: insErr } = await supabase.from("attendance").insert({
+        staff_id:        corr.staff_id,
+        action:          isExitType ? "out" : "in",
+        clock_at:        newClockAt,
+        timestamp_label: newLabel,
+        project_id:      att.project_id ?? null,
+        source:          "manual",
+        is_manual:       true,
+        status:          "approved",  // explicit — attendance.status default is undocumented
+        lat:             null,
+        lng:             null,
+        edited_by:       editor,
+        edited_at:       nowIso,
+        edit_note:       `${isExitType ? "יציאה חסרה" : "כניסה חסרה"} לפי בקשת עובד${reasonSuffix}`,
+      });
+      if (insErr) {
+        console.error("[admin/attendance/corrections] insert:", JSON.stringify(insErr));
+        return NextResponse.json({ error: insErr.message }, { status: 500 });
+      }
+    } else {
+      // fix_time — rewrite the flagged row's clock_at (existing behaviour).
+      const update: Record<string, unknown> = {
+        clock_at:        newClockAt,
+        timestamp_label: newLabel,
+        edited_by:       editor,
+        edited_at:       nowIso,
+        edit_note:       `תיקון לפי בקשת עובד${reasonSuffix}`,
+      };
+      if (att.original_clock_at === null && att.clock_at !== null) {
+        update.original_clock_at = att.clock_at;
+      }
+      const { error: updErr } = await supabase
+        .from("attendance")
+        .update(update)
+        .eq("id", att.id);
+      if (updErr) {
+        console.error("[admin/attendance/corrections] att update:", JSON.stringify(updErr));
+        return NextResponse.json({ error: updErr.message }, { status: 500 });
+      }
     }
   }
 

@@ -27,6 +27,15 @@ import {
   WORKER_LANG_LABEL_HE,
   isWorkerLangCode,
 } from "../../../../lib/worker-language";
+import { isSuspiciousTimeMove } from "../../../../lib/correction-danger";
+
+// Hebrew label per structured request type — so the admin reads intent at a
+// glance instead of free text in the worker's language.
+const REQ_TYPE_LABEL: Record<string, string> = {
+  missing_exit:  "שכח להחתים יציאה",
+  missing_entry: "שכח להחתים כניסה",
+  fix_time:      "שעה שגויה",
+};
 
 export interface CorrectionRequest {
   id: string;
@@ -35,6 +44,7 @@ export interface CorrectionRequest {
   proposed_time: string | null;
   reason: string;
   status: string;
+  request_type?: string | null;
   created_at: string;
   attendance: {
     id: string;
@@ -77,8 +87,11 @@ export default function CorrectionRequestsPanel(p: {
   // without blocking the others.
   const [pending, setPending] = useState<string | null>(null);
 
-  async function resolve(id: string, status: "approved" | "rejected") {
+  async function resolve(id: string, status: "approved" | "rejected", confirmMsg?: string) {
     if (pending) return;
+    // Money-critical: a suspicious entry-move demands an explicit confirm so a
+    // mis-filed "forgot exit" can't silently destroy a shift on approval.
+    if (status === "approved" && confirmMsg && !window.confirm(confirmMsg)) return;
     setPending(id);
     try {
       await p.onResolve(id, status);
@@ -117,27 +130,37 @@ export default function CorrectionRequestsPanel(p: {
 
       {!p.loading && p.requests.length > 0 && (
         <div className="divide-y divide-charcoal/15">
-          {p.requests.map((r) => (
+          {p.requests.map((r) => {
+            const { date, time } = clockParts(r.attendance);
+            const act = actionLabel(r.attendance?.action ?? "");
+            const reqType = r.request_type || "fix_time";
+            const typeLabel = REQ_TYPE_LABEL[reqType] ?? "";
+            // Danger = a fix_time (or legacy null) that would move an ENTRY to
+            // a suspicious time. missing_* types ADD rows, never destructive.
+            const danger =
+              (reqType === "fix_time") &&
+              isSuspiciousTimeMove(r.attendance?.action ?? "", r.attendance?.clock_at ?? null, r.proposed_time);
+            const confirmMsg = danger
+              ? `⚠ פעולה זו תזיז כניסה מ-${time} ל-${r.proposed_time}. ייתכן שהעובד התכוון ל"יציאה חסרה". להמשיך?`
+              : undefined;
+            return (
             <div key={r.id} className="py-3">
               <div className="flex items-start justify-between gap-3">
-                {(() => {
-                  const { date, time } = clockParts(r.attendance);
-                  const act = actionLabel(r.attendance?.action ?? "");
-                  return (
                 <div className="flex-1 min-w-0 space-y-1.5">
-                  {/* מי + מה (פעולה ותאריך) */}
+                  {/* מי + סוג הבקשה (תווית עברית) + פעולה + תאריך */}
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-semibold">{r.staff?.name ?? "—"}</p>
-                    {/* Language flag: shown only for non-Hebrew workers, so
-                        the admin sees instantly that a reply / clarification
-                        ought to be in another tongue. Hebrew is the majority
-                        — no badge there keeps the card tidy. */}
                     {isWorkerLangCode(r.staff?.language) && r.staff!.language !== "he" && (
                       <span
                         className="text-caption text-charcoal/70 px-1 py-0.5 rounded bg-charcoal/[0.06] tabular-nums"
                         title={`שפת פורטל: ${WORKER_LANG_LABEL_HE[r.staff!.language as "en" | "ru" | "si" | "zh" | "hi"]}`}
                       >
                         {WORKER_LANG_FLAGS[r.staff!.language as "en" | "ru" | "si" | "zh" | "hi"]} {r.staff!.language!.toUpperCase()}
+                      </span>
+                    )}
+                    {typeLabel && (
+                      <span className="text-caption font-semibold px-1.5 py-0.5 bg-charcoal/[0.07] text-charcoal/80 rounded">
+                        {typeLabel}
                       </span>
                     )}
                     <span className={`text-caption font-semibold px-1.5 py-0.5
@@ -160,10 +183,20 @@ export default function CorrectionRequestsPanel(p: {
                     </p>
                   )}
 
-                  {/* למה */}
-                  <p className="text-caption text-charcoal/70 leading-snug">
-                    <span className="text-charcoal/70">סיבה: </span>{r.reason}
-                  </p>
+                  {/* דגל סכנה — הזזת כניסה חשודה */}
+                  {danger && (
+                    <div className="flex items-start gap-1.5 bg-red-50 border border-red-300 text-red-700 px-2 py-1.5 text-caption leading-snug font-semibold">
+                      <AlertTriangle size={13} strokeWidth={2} className="shrink-0 mt-0.5" />
+                      <span>⚠ זה יזיז כניסה מ-{time} ל-{r.proposed_time} — ייתכן שהעובד התכוון ל&quot;יציאה חסרה&quot;. בדוק לפני אישור.</span>
+                    </div>
+                  )}
+
+                  {/* למה (אם נכתב) */}
+                  {r.reason && (
+                    <p className="text-caption text-charcoal/70 leading-snug">
+                      <span className="text-charcoal/70">סיבה: </span>{r.reason}
+                    </p>
+                  )}
 
                   {/* מתי הוגש */}
                   <p className="text-caption text-charcoal/70">
@@ -173,12 +206,14 @@ export default function CorrectionRequestsPanel(p: {
                     })}
                   </p>
                 </div>
-                  );
-                })()}
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <button onClick={() => resolve(r.id, "approved")} disabled={pending !== null}
-                    className="text-[0.75rem] font-semibold border border-green-200 text-green-700 hover:bg-green-600 hover:text-white px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                    {pending === r.id ? <Loader2 size={11} className="animate-spin" /> : "אשר"}
+                  <button onClick={() => resolve(r.id, "approved", confirmMsg)} disabled={pending !== null}
+                    className={`text-[0.75rem] font-semibold border px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                      danger
+                        ? "border-red-300 text-red-700 hover:bg-red-600 hover:text-white"
+                        : "border-green-200 text-green-700 hover:bg-green-600 hover:text-white"
+                    }`}>
+                    {pending === r.id ? <Loader2 size={11} className="animate-spin" /> : (danger ? "אשר בכל זאת" : "אשר")}
                   </button>
                   <button onClick={() => resolve(r.id, "rejected")} disabled={pending !== null}
                     className="text-[0.75rem] font-semibold border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
@@ -187,7 +222,8 @@ export default function CorrectionRequestsPanel(p: {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </Card>
