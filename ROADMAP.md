@@ -262,6 +262,24 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **בקשות תיקון מובנות — יציאה/כניסה חסרה + רשת ביטחון + מונה מודעות.**
+  עובד ששכח יציאה לא יכל לבקש הוספתה — רק "תיקון שעה" של רשומה קיימת, ואישור
+  כזה משכתב את `clock_at` של הכניסה לשעת ערב → 0 שעות והמשמרת נעלמת מהשכר
+  (4 מ-5 הבקשות הממתינות היו בדיוק זה). התיקון: **סוג בקשה מובנה**
+  (`request_type`: fix_time / missing_exit / missing_entry). מיגרציה
+  [`20260714_correction_request_type.sql`](supabase/migrations/20260714_correction_request_type.sql)
+  (DEFAULT 'fix_time' מפורש — לקח מ-attendance.status; **חנן מריץ ידנית לפני
+  הפריסה**). טופס העובד בוחר סוג קודם, סיבה אופציונלית. אישור מפוצל: fix_time
+  משכתב (כמו היום), missing_exit/entry **מוסיפים** רשומה (רוכב על `hasOpenRecord`,
+  בלי endpoint חדש). רשת ביטחון: helper [`correction-danger.ts`](src/lib/correction-danger.ts)
+  מסמן fix_time שמזיז כניסה ל->=12:00 או >4ש' → באנר אדום + "אשר בכל זאת"
+  (window.confirm) בפאנל, מגן גם על 5 הקיימות. **מונה מודעות (בלי חסימה):**
+  פאנל מציג "בקשה N החודש" (amber ב-N>=3); העובד רואה "זו הבקשה ה-N שלך
+  החודש" (עידוד מ-N>=3, לא נזיפה), מחושב בשאילתה בלי עמודה. i18n: 11 מפתחות
+  חדשים × 6 שפות (SI/HI/ZH best-effort → **בתור לאימות native**). build נקי,
+  398 tests (+5). commits `e56a82a` + `cc9515a` (מקומי — ממתין למיגרציה +
+  push+deploy). **5 הבקשות הממתינות: חנן מטפל דרך המנגנון החדש** (4 ידלקו
+  אדום; הטיפול הנכון להן — missing_exit / "השלם יציאה").
 - **דליפת localStorage בטעינת הצעה קיימת — תוקן.** בפתיחת `?id=` מחולל
   ההצעות צבע את הטופס מיד מ-localStorage (ההצעה הקודמת שנפתחה במכשיר)
   ורק אז `cloudSync.init()` דרס מהענן. כשהמשיכה לגגה/נכשלה, התוכן הישן
@@ -743,6 +761,10 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
     ספציפית לאנדרואיד — 🔒/ⓘ ליד כתובת האתר ← מיקום ← אפשר, הפניה למנהל
     כמוצא אחרון) + רסטרוקטורה קלה ל-`geoPositionUnavailable`/`geoTimeout`.
     SI/HI/ZH best-effort → **לתקף מול native.**
+  - **סבב בקשות תיקון מובנות:** 11 מפתחות חדשים — `corrTypeTitle`,
+    `corrTypeMissingExit`/`MissingEntry`/`FixTime`, `corrTimeExitLabel`/
+    `EntryLabel`, `corrTimeRequired`, `corrDayHasExit`/`DayHasEntry`,
+    `corrCountNormal`/`corrCountHigh`. SI/HI/ZH best-effort → **לתקף מול native.**
 
 ### חוב טכני ידוע
 - **`attendance.status` — ברירת המחדל (`'approved'`) אינה מוגדרת באף מיגרציה.**
