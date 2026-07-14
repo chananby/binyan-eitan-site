@@ -66,6 +66,33 @@
   .cloud-status.error  { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4); }
   .cloud-status .cloud-icon { font-size: 13px; }
   .cloud-status .cloud-text { font-weight: 500; white-space: nowrap; }
+
+  /* Existing-quote load overlay — blocks the editor (and thus saves) while an
+     existing quote hydrates from the cloud, so a stale/empty state can never
+     be shown or written back. Fixed full-viewport, above everything. */
+  #quote-load-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; text-align: center; padding: 24px;
+    background: rgba(245,244,240,0.96); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  }
+  #quote-load-overlay.show { display: flex; }
+  #quote-load-overlay .qlo-spinner {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 3px solid rgba(141,119,95,0.25); border-top-color: #8D775F;
+    animation: qlo-spin 0.8s linear infinite;
+  }
+  @keyframes qlo-spin { to { transform: rotate(360deg); } }
+  #quote-load-overlay .qlo-title { font-size: 16px; font-weight: 600; color: #2D2926; }
+  #quote-load-overlay .qlo-sub   { font-size: 13px; color: rgba(45,41,38,0.65); max-width: 340px; line-height: 1.5; }
+  #quote-load-overlay .qlo-actions { display: none; gap: 10px; margin-top: 6px; }
+  #quote-load-overlay.error .qlo-spinner { display: none; }
+  #quote-load-overlay.error .qlo-actions { display: flex; }
+  #quote-load-overlay .qlo-btn {
+    padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid #8D775F; background: #fff; color: #8D775F;
+  }
+  #quote-load-overlay .qlo-btn.primary { background: #8D775F; color: #fff; }
   .btn {
     background: white;
     color: var(--brand);
@@ -1503,6 +1530,19 @@
 </head>
 <body>
 
+<!-- Loading gate for existing quotes (?id=). Hidden by default; shown by
+     cloudSync.init() while hydrating, and switched to an error state if the
+     fetch fails — keeping saves blocked so a stale state can't overwrite. -->
+<div id="quote-load-overlay" aria-live="polite">
+  <div class="qlo-spinner"></div>
+  <div class="qlo-title">טוען הצעה…</div>
+  <div class="qlo-sub" id="qlo-sub">מושך את ההצעה מהענן. רגע…</div>
+  <div class="qlo-actions">
+    <button type="button" class="qlo-btn primary" id="qlo-reload">רענן</button>
+    <button type="button" class="qlo-btn" id="qlo-back">חזור לרשימה</button>
+  </div>
+</div>
+
 <div class="toolbar">
   <h1>מחולל הצעות מחיר <small>בניין איתן</small></h1>
   <div class="toolbar-actions">
@@ -1859,8 +1899,17 @@
   // per-device counter in localStorage, which produced gaps (every visit
   // burned a number) and collisions (two devices ⇒ duplicate quote_number).
   let state;
+  // True while an existing quote (?id=) is still hydrating from the cloud.
+  // Gates cloud saves so a stale/empty state can never be written back.
+  let loadPending = false;
   if (urlHasQuoteId()) {
-    state = loadState() || JSON.parse(JSON.stringify(defaultState));
+    // Start CLEAN — never paint the *previously opened* quote from localStorage.
+    // That leak once showed #481's content when #495 was opened and the cloud
+    // fetch lagged. cloudSync.init() hydrates the real quote from the cloud
+    // (the source of truth); until then the form is a blank defaultState behind
+    // the loading overlay, and saves are blocked (loadPending).
+    state = JSON.parse(JSON.stringify(defaultState));
+    loadPending = true;
   } else {
     state = JSON.parse(JSON.stringify(defaultState));
     state.quoteNumber = '';
@@ -1910,6 +1959,27 @@
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
     cloudSync.scheduleSave();
     updateDocumentTitle();
+  }
+
+  // ── Existing-quote load overlay controls ──────────────────────────────────
+  function showLoadOverlay() {
+    const el = document.getElementById('quote-load-overlay');
+    if (!el) return;
+    el.classList.remove('error');
+    el.classList.add('show');
+    const s = document.getElementById('qlo-sub');
+    if (s) s.textContent = 'מושך את ההצעה מהענן. רגע…';
+  }
+  function hideLoadOverlay() {
+    const el = document.getElementById('quote-load-overlay');
+    if (el) el.classList.remove('show', 'error');
+  }
+  function showLoadError(msg) {
+    const el = document.getElementById('quote-load-overlay');
+    if (!el) return;
+    el.classList.add('show', 'error');
+    const s = document.getElementById('qlo-sub');
+    if (s) s.textContent = msg || 'לא ניתן לטעון את ההצעה — רענן או חזור לרשימה.';
   }
 
   // Browser uses document.title both as the PDF header and as the downloaded
@@ -2000,6 +2070,9 @@
     }
 
     async function doSave() {
+      // Never write while an existing quote is still loading — a stale/empty
+      // state must not overwrite the real cloud copy.
+      if (loadPending) return;
       if (inFlight) { pendingSave = true; return; }
       inFlight = true;
       setStatus('saving', 'שומר…');
@@ -2053,6 +2126,7 @@
 
     return {
       scheduleSave() {
+        if (loadPending) return; // saves blocked until the cloud copy hydrates
         if (!dirty) return;
         clearTimeout(saveTimer);
         saveTimer = setTimeout(doSave, SAVE_DEBOUNCE_MS);
@@ -2064,6 +2138,7 @@
           setStatus('local', 'טיוטה מקומית');
           return;
         }
+        showLoadOverlay();
         setStatus('saving', 'טוען מהענן…');
         try {
           const res = await fetch(`/api/admin/quotes/${encodeURIComponent(id)}`);
@@ -2081,13 +2156,21 @@
             }
             try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
             render();
+            loadPending = false;   // cloud is the source of truth now — saves allowed
+            hideLoadOverlay();
             setStatus('synced', 'שמור בענן');
           } else {
+            // Row missing or has no data blob — keep saves BLOCKED (loadPending
+            // stays true) so an empty state can't overwrite it, and surface the
+            // error in the overlay instead of silently showing a blank form.
             setStatus('error', 'הצעה לא נמצאה');
+            showLoadError('ההצעה לא נמצאה או ריקה. חזור לרשימה או נסה שוב.');
           }
         } catch (e) {
           console.warn('[cloud-sync] load failed:', e);
           setStatus('error', 'טעינה נכשלה');
+          // loadPending intentionally stays true → saves remain blocked.
+          showLoadError('לא ניתן לטעון את ההצעה — רענן או חזור לרשימה.');
         }
       },
 
@@ -3850,6 +3933,13 @@
   window.addEventListener('resize', () => positionPopover());
 
   // ============ INIT ============
+  // Load-error overlay actions.
+  document.getElementById('qlo-reload')?.addEventListener('click', () => window.location.reload());
+  document.getElementById('qlo-back')?.addEventListener('click', () => {
+    try { window.top.location.assign('/admin/quotes/list'); }
+    catch { window.location.assign('/admin/quotes/list'); }
+  });
+
   render();
   cloudSync.init();
   updateDocumentTitle();
