@@ -289,7 +289,7 @@ export default function WorkerHistoryPanel(p: Props) {
 
           {/* Day table */}
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-[0.8rem] border-collapse">
+            <table className="w-full min-w-[720px] sm:min-w-0 text-[0.8rem] border-collapse">
               <thead>
                 <tr className="bg-bone text-charcoal/65 text-[0.75rem]">
                   <th className="text-start font-semibold px-2 py-2 border border-warm-gray-light">תאריך</th>

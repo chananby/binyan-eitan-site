@@ -163,7 +163,7 @@ export default function PayrollTab(p: Props) {
             </span>
           </div>
           <div className="overflow-x-auto -mx-5 px-5">
-            <table className="w-full min-w-[720px] text-caption">
+            <table className="w-full min-w-[720px] sm:min-w-0 text-caption">
               <thead>
                 <tr className="border-b border-warm-gray-light">
                   <th className="text-start py-2 font-semibold text-charcoal/60">שם</th>
