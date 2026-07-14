@@ -273,7 +273,8 @@
   שמירה חסומה (`scheduleSave`+`doSave`) בזמן טעינה; כשל → overlay שגיאה
   עם רענון/חזרה-לרשימה ושמירה נשארת חסומה. מסלול הצעה חדשה (בלי `?id=`)
   לא נגע — localStorage לשחזור טיוטה וזריעת לוח התשלומים נשמרים. `node
-  --check` עובר, build נקי. commit `caebae0` (מקומי — ממתין ל-push+deploy).
+  --check` עובר, build נקי. **נפרס בייצור** (commit `caebae0`, deploy
+  `pfm7p3ip`, אימות `x-matched-path: /admin/quotes`).
 - **דוח שכר סופר approved בלבד + אזהרת pending.** הדוח סָפַר כל attendance
   לא-מחוק, כולל `status='pending'` (הזנות מנהל עבודה שממתינות לאישור) ו-
   `rejected`. הכרעת חנן: רק approved ייספר — האישור שער אמיתי. **יישר סתירה**
@@ -287,7 +288,8 @@
   amber + כפתור "לתור האישורים", אותו באנר ב-MonthlyReportPanel, ושורת הערה
   ב-XLSX של שני הדוחות (לרו"ח). בונוס: 8 רשומות `rejected` שנספרו בטעות יצאו.
   לא נגעתי ב-`forecast`, בתור הממתינים, ובתיקון המושבתים. build נקי, 393 tests
-  (+5). commit `24828e1` (מקומי — ממתין ל-push+deploy).
+  (+5). **נפרס בייצור** (commit `24828e1`, deploy `pfm7p3ip`, אימות
+  `x-matched-path: /admin`).
 - **דוח שכר כולל עובדים מושבתים שעבדו בחודש.** 3 routes סיננו
   `.eq("active", true)` בשאילתת ה-staff ומנו את השורות מרשימת ה-staff —
   עובד שהושבת אחרי שעבד חודש נעלם מהדוח, **כולל מה-XLSX שהולך לרו"ח**. זה
