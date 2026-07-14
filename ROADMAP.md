@@ -745,6 +745,12 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
     SI/HI/ZH best-effort → **לתקף מול native.**
 
 ### חוב טכני ידוע
+- **`attendance.status` — ברירת המחדל (`'approved'`) אינה מוגדרת באף מיגרציה.**
+  הטבלה קדמה למשטר המיגרציות; רק `ALTER`-ים קיימים. 3 מסלולי כתיבה (החתמה
+  חיה / Twilio / clock-out) מסתמכים על ברירת המחדל הזו בלי לכתוב `status`
+  מפורש. אומת ב-SQL שהיא `'approved'` ושאין NULL-ים, אבל היא לא מתועדת בקוד.
+  שווה מיגרציה שמתעדת אותה (`DEFAULT 'approved'` מפורש) + כתיבת `status`
+  מפורשת ב-3 המסלולים.
 - **`ForemanPortal.tsx` (~1,344 שורות)** — מועמד ל-refactor. פירוק `site` tab
   ל-4 קומפוננטות: `SiteOnSitePanel` / `SiteStaleOpensPanel` /
   `SiteMissingTodayPanel` / `SitePendingPanel`.
@@ -793,14 +799,14 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
 ### DB
 - **מיגרציות + כל DB write ← ידני ע"י המשתמש ב-Supabase.** אני כותב את ה-SQL,
   המשתמש מריץ ב-SQL Editor.
-- **אין CHECK על projects.status** — בוצע ידנית עכשיו (או ממתין להרצה).
 - **סטטוס פרויקט: `active` / `inactive` בלבד.** legacy `planning` בוטל.
 - **soft-delete כברירת מחדל** — `deleted_at IS NULL` בכל טבלה מרכזית.
 - **service_role bypasses RLS** — כל ה-endpoints שלנו admin-gated ב-API, לא ב-RLS.
 
 ### פיתוח
-- **DEVELOPMENT_PRINCIPLES.md** — 11 עקרונות. קבצים < 400, fetch מחוץ ל-UI,
-  helper טהור + tests, grep על שדה משותף לפני שינוי.
+- **DEVELOPMENT_PRINCIPLES.md** — 13 עקרונות. קבצים < 400, fetch מחוץ ל-UI,
+  helper טהור + tests, grep על שדה משותף לפני שינוי; (12) call-to-action
+  מצביע על קוד חי; (13) קוד אחד, הודעה אחת.
 - **`text-content` (15px) הוא הרצפה** לתוכן; `text-caption` (14px) לצפוף;
   `text-muted` למשני. אין `text-xs` בקוד חדש.
 - **UI חדש עם Card depth** — border-charcoal/10, rounded-md, shadow עדין.
