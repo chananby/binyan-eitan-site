@@ -140,23 +140,31 @@ export async function POST(req: NextRequest) {
 }
 
 // ── Helper: compute total from quote state ─────────────────────────────────
-// Mirrors the in-browser grandTotal(): sum of (quantity × unitPrice) across
-// all section items. Defensive — returns 0 if shape is unexpected.
+// Mirrors the in-browser effectiveBase(): sum of (quantity × unitPrice) across
+// all section items; when that's 0 (a lump-sum quote with no priced sections)
+// fall back to the manual `totalOverride` so the quotes list shows the real
+// price instead of ₪0. Defensive — returns 0 if the shape is unexpected.
 function computeTotal(data: unknown): number {
   if (!data || typeof data !== "object") return 0;
-  const sections = (data as Record<string, unknown>).sections;
-  if (!Array.isArray(sections)) return 0;
+  const d = data as Record<string, unknown>;
+  const sections = d.sections;
   let total = 0;
-  for (const section of sections) {
-    if (!section || typeof section !== "object") continue;
-    const items = (section as Record<string, unknown>).items;
-    if (!Array.isArray(items)) continue;
-    for (const item of items) {
-      if (!item || typeof item !== "object") continue;
-      const q = Number((item as Record<string, unknown>).quantity) || 0;
-      const p = Number((item as Record<string, unknown>).unitPrice) || 0;
-      total += q * p;
+  if (Array.isArray(sections)) {
+    for (const section of sections) {
+      if (!section || typeof section !== "object") continue;
+      const items = (section as Record<string, unknown>).items;
+      if (!Array.isArray(items)) continue;
+      for (const item of items) {
+        if (!item || typeof item !== "object") continue;
+        const q = Number((item as Record<string, unknown>).quantity) || 0;
+        const p = Number((item as Record<string, unknown>).unitPrice) || 0;
+        total += q * p;
+      }
     }
+  }
+  if (total === 0) {
+    const override = Number(d.totalOverride) || 0;
+    if (override > 0) return override;
   }
   return total;
 }
