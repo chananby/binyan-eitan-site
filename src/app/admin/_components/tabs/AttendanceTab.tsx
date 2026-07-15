@@ -15,11 +15,13 @@ import { INPUT } from "../shared/constants";
 import DistanceFlag from "../shared/DistanceFlag";
 import CorrectionRequestsPanel, { type CorrectionRequest } from "../shared/CorrectionRequestsPanel";
 import MonthlyReportPanel from "../shared/MonthlyReportPanel";
+import IncompletePanel from "../shared/IncompletePanel";
+import type { IncompleteItem, IncompleteSummary } from "../../../../lib/attendance-incompleteness";
 import WorkerHistoryPanel from "./WorkerHistoryPanel";
 import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
 import { attendanceTimeHHMM, attendanceDayTimeShort, israelYMD, isEntry, isExit } from "../../../../lib/attendance-time";
 
-export type AttendanceSubTab = "live" | "history" | "failures";
+export type AttendanceSubTab = "live" | "history" | "failures" | "incomplete";
 
 /** One row of the silent-failure log (loaded from
  *  /api/admin/attendance/failures — worker_stuck category, last 24h). */
@@ -1371,6 +1373,16 @@ type Props = {
   failuresErr:      string | null;
   onLoadFailures:   () => void | Promise<void>;
 
+  // Incompleteness engine — dedicated "מרכז החוסרים" sub-tab (3-month window).
+  incompleteItems:   IncompleteItem[];
+  incompleteSummary: IncompleteSummary | null;
+  incompleteLoading: boolean;
+  incompleteErr:     string | null;
+  onLoadIncomplete:  () => void | Promise<void>;
+  onAssignProject:   (attendanceId: string, projectId: string) => Promise<boolean>;
+  activeProjects:    { id: string; name: string }[];
+  onGoToApprovals:   () => void;
+
   // Today + recent
   todayLogs:   AttendanceRecord[];
   dataLoading: boolean;
@@ -1546,6 +1558,14 @@ export default function AttendanceTab(p: Props) {
         >
           כשלי החתמה
         </SubTabButton>
+        <SubTabButton
+          active={p.subTab === "incomplete"}
+          onClick={() => p.setSubTab("incomplete")}
+          badge={p.incompleteSummary?.day_count ?? 0}
+          icon={<AlertTriangle size={13} strokeWidth={1.5} />}
+        >
+          חוסרים
+        </SubTabButton>
       </div>
 
       {p.subTab === "failures" && (
@@ -1554,6 +1574,20 @@ export default function AttendanceTab(p: Props) {
           loading={p.failuresLoading}
           error={p.failuresErr}
           onReload={p.onLoadFailures}
+        />
+      )}
+
+      {p.subTab === "incomplete" && (
+        <IncompletePanel
+          items={p.incompleteItems}
+          summary={p.incompleteSummary}
+          loading={p.incompleteLoading}
+          error={p.incompleteErr}
+          onReload={p.onLoadIncomplete}
+          activeProjects={p.activeProjects}
+          onViewWorkerHistoryForDay={p.onOpenStaleDay}
+          onGoToApprovals={p.onGoToApprovals}
+          onAssignProject={p.onAssignProject}
         />
       )}
 

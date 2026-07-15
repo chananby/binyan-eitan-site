@@ -14,7 +14,7 @@ import {
   ClipboardList, UserPlus, Loader2, Activity,
   AlertCircle, DollarSign, Target,
   ChevronLeft, Grid3x3, Download, Plus,
-  UserCog, Clock, MapPin, UserX, FileText, Inbox, Users, Coins,
+  UserCog, MapPin, UserX, FileText, Inbox, Users, Coins,
   AlertTriangle, XCircle,
 } from "lucide-react";
 import { Card } from "../admin/_components/shared/Card";
@@ -56,6 +56,9 @@ import type {
 import type { WorkerHistoryDay } from "../../lib/worker-history-aggregate";
 import { computeTodayLaborCost } from "../../lib/today-labor-cost";
 import type { PnlResult } from "../../lib/finance-pnl";
+import type { IncompleteItem, IncompleteSummary } from "../../lib/attendance-incompleteness";
+
+interface IncompleteEngineResult { items: IncompleteItem[]; summary: IncompleteSummary; }
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
@@ -427,6 +430,13 @@ export default function AdminPortal() {
   }>>([]);
   const [failuresLoading, setFailuresLoading] = useState(false);
   const [failuresErr,     setFailuresErr]     = useState<string | null>(null);
+  // Incompleteness engine (round 3): the full "what's missing" picture over
+  // the last 3 months. Drives the dashboard "N ימים לא שלמים" attention row
+  // and the dedicated "מרכז החוסרים" sub-tab. Same non-fatal loading pattern
+  // as staleOpens/failures.
+  const [incomplete, setIncomplete] = useState<IncompleteEngineResult | null>(null);
+  const [incompleteLoading, setIncompleteLoading] = useState(false);
+  const [incompleteErr,     setIncompleteErr]     = useState<string | null>(null);
   const [pendingLoading,   setPendingLoading]   = useState(false);
   const [pendingErr,       setPendingErr]       = useState<string | null>(null);
 
@@ -786,7 +796,7 @@ export default function AdminPortal() {
     // Load on admin auth so the Attendance tab's red badge is accurate from
     // any starting tab. Also reload when the user opens Attendance to catch
     // anything created in the last 2 min between auto-refreshes.
-    if (authState === "admin") { loadPending(); loadCorrectionRequests(); loadJoinRequests(); loadCollections(); loadStaleOpens(); loadFailures(); }
+    if (authState === "admin") { loadPending(); loadCorrectionRequests(); loadJoinRequests(); loadCollections(); loadStaleOpens(); loadFailures(); loadIncomplete(); }
   }, [authState, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-refresh attendance every 60 s ────────────────────────────────────
@@ -809,7 +819,7 @@ export default function AdminPortal() {
       if (document.visibilityState !== "visible") return;
       if (!AUTO_TABS.includes(autoTabRef.current)) return;
       if (autoTabRef.current === "attendance" && authState === "admin") {
-        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures(), loadIncomplete()]);
       } else {
         await loadData(authState as "admin" | "foreman");
       }
@@ -945,6 +955,44 @@ export default function AdminPortal() {
     }
   }
 
+  // Incompleteness engine — default 3-month window. Non-fatal like the others.
+  async function loadIncomplete() {
+    setIncompleteLoading(true); setIncompleteErr(null);
+    try {
+      const res = await fetch("/api/admin/attendance/incomplete");
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setIncompleteErr(d.error ?? `שגיאה ${res.status}`);
+        return;
+      }
+      const d = await res.json();
+      setIncomplete({ items: d.items ?? [], summary: d.summary ?? { day_count: 0, by_issue: {} } });
+    } catch (e) {
+      setIncompleteErr(String(e));
+    } finally {
+      setIncompleteLoading(false);
+    }
+  }
+
+  // no_project fix: stamp a project onto the flagged entry via the existing
+  // PATCH /api/admin/attendance/[id]. On success the engine is reloaded so the
+  // row drops off the list. Also refreshes attendance so per-project cost /
+  // salary-split reflect the new assignment.
+  async function assignProjectToRecord(attendanceId: string, projectId: string): Promise<boolean> {
+    try {
+      const res = await fetch(`/api/admin/attendance/${attendanceId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project_id: projectId }),
+      });
+      if (!res.ok) return false;
+      await Promise.all([loadIncomplete(), loadData("admin")]);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async function loadJoinRequests() {
     setJoinRequestsLoading(true); setJoinRequestsErr(null);
     try {
@@ -1021,7 +1069,7 @@ export default function AdminPortal() {
       }
       setCorrectionRequests((cur) => cur.filter((r) => r.id !== id));
       if (status === "approved") {
-        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures(), loadIncomplete()]);
       }
       return true;
     } catch {
@@ -1039,7 +1087,7 @@ export default function AdminPortal() {
       if (tab === "expenses")                               { await loadMaterials(); setLastRefreshed(new Date()); }
       else if (tab === "income")                            { await loadIncome();    setLastRefreshed(new Date()); }
       else if (tab === "attendance" && authState === "admin")
-        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures(), loadIncomplete()]);
       else if (tab === "join_requests" && authState === "admin")
         await loadJoinRequests();
       else if (tab === "collections" && authState === "admin")
@@ -1430,6 +1478,20 @@ export default function AdminPortal() {
     notClockedInCount = absent.length;
     notClockedInIds   = new Set(absent.map(s => s.id));
   }
+  // Hybrid incompleteness signal: the URGENT stuck-failures stay their own
+  // high-severity row (a worker blocked right now); everything else folds into
+  // one medium "N ימים לא שלמים" batch — distinct (staff × day) among the
+  // non-stuck issues (no_exit/no_entry/no_project/pending_*). This subsumes the
+  // old stale-opens row (stale ≡ no_exit) and the old pending row, so they're
+  // removed below — no double-counting.
+  const incompleteBatchCount = incomplete
+    ? new Set(
+        incomplete.items
+          .filter((it) => it.issue !== "stuck_failure")
+          .map((it) => `${it.staff_id}|${it.date}`),
+      ).size
+    : 0;
+
   const attentionItems: AttentionItem[] = [
     {
       // Silent-failure log first — a stuck worker is the most time-
@@ -1443,12 +1505,13 @@ export default function AdminPortal() {
       onClick: () => { setAttendanceSubTab("failures"); goToTab("attendance"); },
     },
     {
-      key: "pending",
-      icon: <Clock size={14} strokeWidth={1.5} />,
-      label: "בקשות תיקון נוכחות ממתינות לאישור",
-      count: pendingRecords.length,
-      severity: "high",
-      onClick: () => goToTab("attendance"),
+      // Batch — the full "what's missing" cleanup list, → the dedicated screen.
+      key: "incomplete-batch",
+      icon: <AlertTriangle size={14} strokeWidth={1.5} />,
+      label: "ימים לא שלמים (חוסרים + ממתינים לאישור)",
+      count: incompleteBatchCount,
+      severity: "medium",
+      onClick: () => { setAttendanceSubTab("incomplete"); goToTab("attendance"); },
     },
     {
       key: "delayed",
@@ -1467,17 +1530,6 @@ export default function AdminPortal() {
       // Force the live sub-tab so the admin lands on TodayLog (and the new
       // missing-today panel beneath it), regardless of where the last
       // attendance-tab visit left them.
-      onClick: () => { setAttendanceSubTab("live"); goToTab("attendance"); },
-    },
-    {
-      key: "stale-opens",
-      icon: <AlertTriangle size={14} strokeWidth={1.5} />,
-      label: "כניסות פתוחות מימים קודמים",
-      count: staleOpens.length,
-      severity: "medium",
-      // Force the "live" sub-tab: AttendanceTab renders the amber
-      // stale-opens panel there (mirror of ForemanPortal.tsx:927), and
-      // each row inside it deep-links onward via viewWorkerHistoryForDay.
       onClick: () => { setAttendanceSubTab("live"); goToTab("attendance"); },
     },
     {
@@ -1701,6 +1753,14 @@ export default function AdminPortal() {
             onLoadHistory={loadHistory}
             staleOpens={staleOpens}
             onOpenStaleDay={viewWorkerHistoryForDay}
+            incompleteItems={incomplete?.items ?? []}
+            incompleteSummary={incomplete?.summary ?? null}
+            incompleteLoading={incompleteLoading}
+            incompleteErr={incompleteErr}
+            onLoadIncomplete={loadIncomplete}
+            onAssignProject={assignProjectToRecord}
+            activeProjects={activeProjects}
+            onGoToApprovals={() => { setAttendanceSubTab("live"); }}
           />
         )}
 
