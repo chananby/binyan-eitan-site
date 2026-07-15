@@ -270,8 +270,8 @@
   שמקפל את גוף הפרק ומשאיר כותרת+סכום; מצב הקיפול **UI-only** (Set במודול,
   לא נשמר) — אפס נגיעה ב-cloudSync / דליפת-localStorage (`caebae0`) /
   זריעת-התשלומים (`48f91f5`); (4) הגדלת אזורי לחיצה (`.btn-icon`, `.btn-small`,
-  חצי סידור). HTML/CSS/JS בלבד, `node --check` + build נקי. commit `725aa0f`
-  (מקומי — ממתין ל-push+deploy).
+  חצי סידור). HTML/CSS/JS בלבד, `node --check` + build נקי. **נפרס בייצור**
+  (commit `725aa0f`, deploy `q1w02r48`, אימות `x-matched-path: /admin/quotes`).
 - **מנוע שלמות נוכחות — סבב 1 (מנוע בלבד).** הפיצ'ר הגדול "תמונת מה יש ומה
   חסר, נגישה מכל מקום". helper טהור [`attendance-incompleteness.ts`](src/lib/attendance-incompleteness.ts)
   (`computeIncompleteDays` + `summarizeIncomplete`) + endpoint
