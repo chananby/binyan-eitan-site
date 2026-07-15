@@ -262,6 +262,17 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **הצעה "כוללת" — מחיר כולל ידני (לפני מע"מ).** חנן רצה הצעות שמפרטות
+  תכולה מלאה בלי מחיר/כמות לסעיפים — מחיר אחד כולל. הסתרת המחירים כבר
+  הייתה (`showItemPrices`); נוסף שדה `totalOverride` + `effectiveBase() =
+  grandTotal()>0 ? grandTotal() : totalOverride` שמחליף את `grandTotal()`
+  בכל שרשרת הסה"כ (הנחה, מע"מ, בלוק ה-totals, ולוח התשלומים — מלכודת 48f91f5
+  נשמרה). **או-או:** הצעה מפורטת (grandTotal>0) אינה מושפעת כלל. תצוגת
+  lump-sum כופה הסתרת עמודות מחיר/כמות. **תיקון שרת קריטי:** `computeTotal`
+  (ב-`quotes/route.ts` + `[id]`) קיבל fallback ל-`totalOverride` — אחרת הצעה
+  כוללת נראתה ₪0 ברשימה. תואם אחורה (`defaultState.totalOverride=0`), לא נגע
+  ב-cloudSync/דליפת-localStorage. `node --check` + build נקי, 408 tests.
+  commit `ee3432f` (מקומי — ממתין ל-push+deploy).
 - **שיפורי נוחות במחולל ההצעות (4 תיקונים).** סריקת נוחות ב-
   [`quote-generator.html`](public/admin-tools/quote-generator.html) מצאה
   חיכוכים חוזרים: (1) "הוסף פרק" היה רק בכותרת (גלילה לראש) ובלי משוב →
