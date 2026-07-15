@@ -272,6 +272,18 @@
   זריעת-התשלומים (`48f91f5`); (4) הגדלת אזורי לחיצה (`.btn-icon`, `.btn-small`,
   חצי סידור). HTML/CSS/JS בלבד, `node --check` + build נקי. **נפרס בייצור**
   (commit `725aa0f`, deploy `q1w02r48`, אימות `x-matched-path: /admin/quotes`).
+- **מנוע שלמות נוכחות — סבב 3 (פאנל + 2 כלים) — הפיצ'ר הגדול סגור.** נראות
+  שוטפת + סגירת הפערים. (א) **פאנל היברידי** ב-AttentionPanel: כשל חי נשאר
+  פריט נפרד high, שאר ה-issues מאוחדים לפריט medium אחד "ימים לא שלמים"
+  (distinct staff×יום ללא stuck); הוסרו הפריטים stale-opens (≡no_exit) ו-
+  pending → אין כפילות. (ב) **מסך ייעודי "מרכז החוסרים"** — sub-tab חדש
+  "חוסרים" ב-tab נוכחות, [`IncompletePanel`](src/app/admin/_components/shared/IncompletePanel.tsx)
+  קורא ל-`GET .../incomplete` (3 חודשים), מקבץ לפי סוג עם סיכום, כל שורה
+  מנווטת לתיקון. (ג) **שיוך פרויקט** ל-no_project (46) — בורר inline → PATCH
+  `attendance/[id]` (endpoint קיים, לא נבנה חדש). (ד) **"הוסף יום"** לכשלים —
+  ניווט להיסטוריה שם "הוסף יום" הקיים ממתין. foreman-scoped. build נקי, 408
+  tests. commit `1796d0e` (מקומי — ממתין ל-push+deploy). **הפיצ'ר סגור:
+  מנוע (a27e125) + שער שכר (63ootmbr) + פאנל + מסך ייעודי + 2 כלים.**
 - **מנוע שלמות נוכחות — סבב 1 (מנוע בלבד).** הפיצ'ר הגדול "תמונת מה יש ומה
   חסר, נגישה מכל מקום". helper טהור [`attendance-incompleteness.ts`](src/lib/attendance-incompleteness.ts)
   (`computeIncompleteDays` + `summarizeIncomplete`) + endpoint
