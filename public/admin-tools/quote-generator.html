@@ -110,7 +110,7 @@
   .btn-ghost { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); }
   .btn-ghost:hover { background: rgba(255,255,255,0.1); transform: none; box-shadow: none; }
   .btn-small {
-    padding: 4px 10px;
+    padding: 6px 12px;
     font-size: 12px;
     background: var(--brand-light);
     color: var(--brand);
@@ -123,10 +123,22 @@
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 6px 10px;
     font-size: 14px;
     border-radius: 4px;
   }
+  /* Section collapse chevron — neutral hover (not the red delete tint). */
+  .section-toggle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1;
+    padding: 6px 8px;
+    border-radius: 4px;
+  }
+  .section-toggle:hover { background: var(--brand-light); color: var(--brand); }
   .btn-icon:hover { background: #fee2e2; color: var(--danger); }
   .btn-icon.add { color: var(--success); }
   .btn-icon.add:hover { background: #d1fae5; color: var(--success); }
@@ -1017,10 +1029,10 @@
     opacity: 1;
   }
   .item-reorder .btn-icon {
-    width: 22px;
-    height: 18px;
-    line-height: 14px;
-    font-size: 11px;
+    width: 26px;
+    height: 22px;
+    line-height: 18px;
+    font-size: 12px;
     padding: 0;
     color: var(--text-muted);
     border: 1px solid var(--border);
@@ -1626,6 +1638,7 @@
     <div class="form-section">
       <h2>פרקים ופריטים <button class="btn-small" id="btn-add-section">+ הוסף פרק</button></h2>
       <div id="sections-container"></div>
+      <button class="btn-small" id="btn-add-section-bottom" style="margin-top:10px">+ הוסף פרק</button>
     </div>
 
     <div class="form-section">
@@ -2222,15 +2235,25 @@
   // Standard units list (matches dropdown options); empty value = "custom" → shows free-text input
   const UNIT_OPTIONS = ["יח'", 'מ"א', 'מ"ר', 'מ"ק', 'קומפ\'', "ש'/שעות", 'יום', 'חודש'];
 
+  // Collapsed sections — UI-only (ephemeral). Deliberately NOT persisted to
+  // state/cloud: a fold is a view convenience, not quote data. Keeping it out
+  // of `state` means it never touches cloudSync / the load path / the payment
+  // seeding, so it can't break any of them. Resets on reload (acceptable).
+  const collapsedSections = new Set();
+
   function renderSections() {
     const container = document.getElementById('sections-container');
-    container.innerHTML = state.sections.map((section, sIdx) => `
+    container.innerHTML = state.sections.map((section, sIdx) => {
+      const collapsed = collapsedSections.has(section.id);
+      return `
       <div class="section-card" data-section-id="${section.id}">
         <div class="section-card-header">
+          <button class="section-toggle" data-toggle-section="${section.id}" aria-expanded="${!collapsed}" title="${collapsed ? 'הרחב פרק' : 'כווץ פרק'}">${collapsed ? '◂' : '▾'}</button>
           <textarea class="auto-grow" rows="1" placeholder="שם הפרק (למשל: עבודות הריסה ופירוק)"
                     data-section-name="${section.id}">${esc(section.name)}</textarea>
           <button class="btn-icon" data-delete-section="${section.id}" title="מחק פרק">🗑</button>
         </div>
+        <div class="section-body"${collapsed ? ' hidden' : ''}>
         ${section.items.map(item => {
           // Explicit flag wins; OR fallback for legacy items that have a non-standard unit
           // without the flag (backward compat with quotes saved before the flag existed).
@@ -2296,9 +2319,11 @@
           <button class="btn-small" data-add-item="${section.id}">+ הוסף פריט</button>
           <button class="btn-small btn-catalog" data-catalog-browse="${section.id}" title="בחר מתוך מאגר הפריטים הקבועים">⭐ פריטים קבועים</button>
         </div>
+        </div>
         <div class="section-subtotal">סכום הפרק: ${money(sectionTotal(section))}</div>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   function renderNotes() {
@@ -3248,13 +3273,27 @@
   document.addEventListener('click', e => {
     const t = e.target;
 
+    // Section collapse toggle — UI-only, no save (see collapsedSections).
+    const toggleBtn = t.closest && t.closest('[data-toggle-section]');
+    if (toggleBtn) {
+      const sid = toggleBtn.getAttribute('data-toggle-section');
+      if (collapsedSections.has(sid)) collapsedSections.delete(sid);
+      else collapsedSections.add(sid);
+      renderSections();
+      return;
+    }
+
     if (t.matches('[data-add-item]')) {
       const sid = t.getAttribute('data-add-item');
       const s = state.sections.find(x => x.id === sid);
       if (s) {
-        s.items.push({ id: uid(), name: '', description: '', quantity: 1, unit: "יח'", unitPrice: 0, unitIsCustom: false });
+        const newId = uid();
+        s.items.push({ id: newId, name: '', description: '', quantity: 1, unit: "יח'", unitPrice: 0, unitIsCustom: false });
         render();
         saveState();
+        // Focus the new item's name field (consistent with add-note/add-section).
+        const el = document.querySelector(`[data-item-field="name"][data-item-id="${newId}"]`);
+        if (el) { el.focus(); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
       }
       return;
     }
@@ -3352,10 +3391,15 @@
       return;
     }
 
-    if (t.id === 'btn-add-section') {
+    if (t.id === 'btn-add-section' || t.id === 'btn-add-section-bottom') {
       state.sections.push({ id: uid(), name: '', items: [{ id: uid(), name: '', description: '', quantity: 1, unitPrice: 0 }] });
       render();
       saveState();
+      // Focus + scroll to the new section's name field — so adding from the
+      // bottom button (or the header) lands the caret on the fresh section.
+      const secInputs = document.querySelectorAll('[data-section-name]');
+      const el = secInputs[secInputs.length - 1];
+      if (el) { el.focus(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
       return;
     }
 
