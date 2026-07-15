@@ -1,11 +1,24 @@
 "use client";
 
-import { DollarSign, Loader2, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { DollarSign, Loader2, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
 import { INPUT } from "../shared/constants";
 import MonthField from "../shared/MonthField";
 import type { StaffMember, PayrollRow } from "../types";
+import type { PayrollIncomplete } from "../hooks/usePayroll";
+import type { IncompleteIssue } from "../../../../lib/attendance-incompleteness";
+
+// Hebrew label per issue type, for the unified incompleteness banner.
+const ISSUE_LABEL: Record<IncompleteIssue, string> = {
+  no_exit:            "ללא יציאה",
+  no_entry:           "ללא כניסה",
+  no_project:         "ללא פרויקט",
+  stuck_failure:      "כשל החתמה",
+  pending_correction: "בקשת תיקון ממתינה",
+  pending_manual:     "ממתין אישור",
+};
 
 // "Does this row carry a usable rate for its employment type?" Mirrors
 // hasValidRate() on the server. If false, the worker will appear in the
@@ -32,16 +45,22 @@ interface Props {
   setPayrollStaffId: (v: string) => void;
 
   payrollRows: PayrollRow[];
-  payrollPending: number;
+  payrollIncomplete: PayrollIncomplete | null;
   payrollLoading: boolean;
   payrollExporting: null | "employees" | "freelancers";
 
   onLoadPayroll: () => void | Promise<void>;
   onExportPayroll: (type: "employees" | "freelancers") => void | Promise<void>;
   onGoToApprovals: () => void;
+  onViewWorkerHistoryForDay: (staffId: string, ymd: string) => void;
 }
 
+// Issues that navigate to the worker's day (to complete/assign there) vs. the
+// approval queue.
+const APPROVAL_ISSUES = new Set<IncompleteIssue>(["pending_correction", "pending_manual"]);
+
 export default function PayrollTab(p: Props) {
+  const [showIncompleteDetail, setShowIncompleteDetail] = useState(false);
   return (
     <div className="space-y-3">
       <Card>
@@ -113,27 +132,58 @@ export default function PayrollTab(p: Props) {
         </div>
       </Card>
 
-      {/* Pending-approval warning — money-critical. Pending attendance is NOT
-          counted in the report; without this banner an unreviewed row is a
-          silent omission from the payslip. Links straight to the approval
-          queue (attendance → live). */}
-      {p.payrollPending > 0 && (
-        <Card>
-          <div className="flex items-start gap-2 text-amber-800 bg-amber-50 border border-amber-200 px-3 py-2.5">
-            <AlertTriangle size={15} strokeWidth={1.5} className="text-amber-600 mt-0.5 shrink-0" />
-            <div className="text-xs leading-relaxed">
-              <span className="font-bold tabular-nums">{p.payrollPending}</span> רשומות נוכחות ממתינות לאישור בחודש זה — הן <span className="font-bold">אינן</span> נכללות בדוח. אשר אותן כדי שייכללו.
-              <button
-                type="button"
-                onClick={p.onGoToApprovals}
-                className="ms-2 font-semibold text-amber-900 underline underline-offset-2 hover:text-accent"
-              >
-                לתור האישורים ←
-              </button>
+      {/* Unified incompleteness gate — money-critical, but WARNS, never blocks.
+          Fed by the incompleteness engine (all six issue types incl. pending).
+          Each detail row deep-links to its fix. */}
+      {p.payrollIncomplete && p.payrollIncomplete.summary.day_count > 0 && (() => {
+        const { items, summary } = p.payrollIncomplete!;
+        const breakdown = (Object.entries(summary.by_issue) as [IncompleteIssue, number][])
+          .filter(([, n]) => n > 0)
+          .map(([issue, n]) => `${n} ${ISSUE_LABEL[issue]}`);
+        return (
+          <Card>
+            <div className="text-amber-900 bg-amber-50 border border-amber-200">
+              <div className="flex items-start gap-2 px-3 py-2.5">
+                <AlertTriangle size={15} strokeWidth={1.5} className="text-amber-600 mt-0.5 shrink-0" />
+                <div className="text-xs leading-relaxed flex-1">
+                  <span className="font-bold tabular-nums">{summary.day_count}</span> ימים לא שלמים בחודש זה — הם עלולים להשפיע על התלוש.
+                  <div className="mt-0.5 text-charcoal/70">{breakdown.join(" · ")}</div>
+                  <button
+                    type="button"
+                    onClick={() => setShowIncompleteDetail((s) => !s)}
+                    className="mt-1 inline-flex items-center gap-1 font-semibold text-amber-900 hover:text-accent"
+                  >
+                    {showIncompleteDetail ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                    {showIncompleteDetail ? "הסתר פירוט" : "פירוט וטיפול"}
+                  </button>
+                </div>
+              </div>
+              {showIncompleteDetail && (
+                <ul className="border-t border-amber-200 divide-y divide-amber-100">
+                  {items.map((it) => {
+                    const goApproval = APPROVAL_ISSUES.has(it.issue);
+                    return (
+                      <li key={`${it.issue}-${it.ref_id}-${it.staff_id}-${it.date}`}>
+                        <button
+                          type="button"
+                          onClick={() => goApproval ? p.onGoToApprovals() : p.onViewWorkerHistoryForDay(it.staff_id, it.date)}
+                          className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-start hover:bg-amber-100/60 transition-colors"
+                        >
+                          <span className="font-semibold min-w-[6.5rem] truncate">{it.staff_name ?? "—"}</span>
+                          <span className="tabular-nums text-charcoal/70" dir="ltr">{it.date}</span>
+                          <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 font-semibold rounded">{ISSUE_LABEL[it.issue]}</span>
+                          {it.project_name && <span className="text-charcoal/60 truncate">{it.project_name}</span>}
+                          <span className="ms-auto text-amber-900 font-semibold">{goApproval ? "לאישור ←" : "לתיקון ←"}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
-          </div>
-        </Card>
-      )}
+          </Card>
+        );
+      })()}
 
       {/* Missing-rate notice — only when at least one row in the *currently
           loaded* month is missing its rate. The list itself is computed

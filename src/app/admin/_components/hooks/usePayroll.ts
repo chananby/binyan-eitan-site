@@ -2,6 +2,12 @@
 
 import { useCallback, useState } from "react";
 import type { PayrollRow } from "../types";
+import type { IncompleteItem, IncompleteSummary } from "../../../../lib/attendance-incompleteness";
+
+export interface PayrollIncomplete {
+  items: IncompleteItem[];
+  summary: IncompleteSummary;
+}
 
 // Payroll month selection + loaded rows + per-button export tracking.
 // loadPayroll/exportPayroll hit /api/admin/payroll; exportPayroll drives
@@ -16,9 +22,18 @@ export function usePayroll() {
   });
   const [payrollStaffId,    setPayrollStaffId]    = useState<string>("");
   const [payrollRows,       setPayrollRows]       = useState<PayrollRow[]>([]);
-  const [payrollPending,    setPayrollPending]    = useState(0);
+  // Unified incompleteness picture for the loaded month (replaces the old
+  // pending-only warning — pending is now one issue type among six).
+  const [payrollIncomplete, setPayrollIncomplete] = useState<PayrollIncomplete | null>(null);
   const [payrollLoading,    setPayrollLoading]    = useState(false);
   const [payrollExporting,  setPayrollExporting]  = useState<null | "employees" | "freelancers">(null);
+
+  // First and last day of the selected month, Israel-local YMD.
+  const monthRange = useCallback(() => {
+    const [y, m] = payrollMonth.split("-").map(Number);
+    const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate(); // day 0 of next month
+    return { from: `${payrollMonth}-01`, to: `${payrollMonth}-${String(lastDay).padStart(2, "0")}` };
+  }, [payrollMonth]);
 
   const loadPayroll = useCallback(async () => {
     setPayrollLoading(true);
@@ -27,14 +42,27 @@ export function usePayroll() {
       if (payrollStaffId) q.set("staff_id", payrollStaffId);
       const res = await fetch(`/api/admin/payroll?${q.toString()}`);
       const data = await res.json();
-      if (res.ok) { setPayrollRows(data.rows ?? []); setPayrollPending(data.pendingCount ?? 0); }
-      else { setPayrollRows([]); setPayrollPending(0); }
+      if (res.ok) setPayrollRows(data.rows ?? []);
+      else setPayrollRows([]);
+
+      // Incompleteness gate — same month/worker scope. Non-blocking: a failure
+      // here just hides the banner, it never stops the payroll report loading.
+      try {
+        const { from, to } = monthRange();
+        const iq = new URLSearchParams({ from, to });
+        if (payrollStaffId) iq.set("staff_id", payrollStaffId);
+        const ires = await fetch(`/api/admin/attendance/incomplete?${iq.toString()}`);
+        const idata = await ires.json();
+        setPayrollIncomplete(ires.ok && idata.summary ? { items: idata.items ?? [], summary: idata.summary } : null);
+      } catch {
+        setPayrollIncomplete(null);
+      }
     } catch {
-      setPayrollRows([]); setPayrollPending(0);
+      setPayrollRows([]); setPayrollIncomplete(null);
     } finally {
       setPayrollLoading(false);
     }
-  }, [payrollMonth, payrollStaffId]);
+  }, [payrollMonth, payrollStaffId, monthRange]);
 
   const exportPayroll = useCallback(async (type: "employees" | "freelancers") => {
     setPayrollExporting(type);
@@ -64,7 +92,7 @@ export function usePayroll() {
     payrollMonth,     setPayrollMonth,
     payrollStaffId,   setPayrollStaffId,
     payrollRows,
-    payrollPending,
+    payrollIncomplete,
     payrollLoading,
     payrollExporting,
     loadPayroll,

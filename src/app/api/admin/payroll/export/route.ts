@@ -25,7 +25,8 @@ import {
 } from "../../../../../lib/payroll-aggregate";
 import { getRatesForMonth } from "../../../../../lib/staff-rates";
 import { includeInReport } from "../../../../../lib/payroll-include";
-import { filterApprovedForPay, countPendingStatus } from "../../../../../lib/payroll-attendance";
+import { filterApprovedForPay } from "../../../../../lib/payroll-attendance";
+import { loadIncompleteness } from "../../../../../lib/attendance-incompleteness-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -122,7 +123,23 @@ export async function GET(req: NextRequest) {
   if (staffId) attQuery = attQuery.eq("staff_id", staffId);
   const { data: attRaw } = await attQuery;
   const attData = filterApprovedForPay((attRaw ?? []) as (AttRow & { status?: string | null })[]);
-  const pendingCount = countPendingStatus((attRaw ?? []) as { status?: string | null }[]);
+
+  // Incompleteness day count for the month (all six issue types) → a heads-up
+  // note in the file. Non-blocking: any failure just drops the note, never
+  // breaks the accountant's export.
+  const [iy, im] = month.split("-").map(Number);
+  const lastDay = new Date(Date.UTC(iy, im, 0)).getUTCDate();
+  let incompleteDays = 0;
+  try {
+    const { summary } = await loadIncompleteness(supabase, {
+      from: monthStart,
+      to: `${month}-${String(lastDay).padStart(2, "0")}`,
+      staffId: staffId ?? null,
+    });
+    incompleteDays = summary.day_count;
+  } catch (e) {
+    console.error("[payroll/export incompleteness]", String(e));
+  }
 
   const { data: vacData } = await supabase
     .from("vacation_days")
@@ -254,10 +271,10 @@ export async function GET(req: NextRequest) {
 
   // Pending note — so the accountant knows some rows were withheld pending the
   // admin's approval and this file is not the final word for the month.
-  if ((pendingCount ?? 0) > 0) {
+  if (incompleteDays > 0) {
     sheet.addRow([]);
     const noteRow = sheet.addRow([
-      `⚠ ${pendingCount} רשומות נוכחות ממתינות לאישור לא נכללו בדוח זה. לאחר אישורן יש להפיק דוח מעודכן.`,
+      `⚠ ${incompleteDays} ימים לא שלמים בחודש (חוסרים / ממתינים לאישור) — ראה מערכת. ייתכן שהתלוש יתעדכן לאחר טיפול.`,
     ]);
     noteRow.font = { bold: true, color: { argb: "FF9A6A00" } };
     noteRow.getCell(1).alignment = { horizontal: "right" };
