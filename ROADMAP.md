@@ -262,6 +262,16 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **שיפורי נוחות במחולל ההצעות (4 תיקונים).** סריקת נוחות ב-
+  [`quote-generator.html`](public/admin-tools/quote-generator.html) מצאה
+  חיכוכים חוזרים: (1) "הוסף פרק" היה רק בכותרת (גלילה לראש) ובלי משוב →
+  נוסף כפתור תחתון קבוע + `focus()`/`scrollIntoView` לפרק החדש; (2) `focus()`
+  גם ב"הוסף פריט" לעקביות; (3) **קיפול פרקים** — chevron בכותרת (▾/◂ RTL)
+  שמקפל את גוף הפרק ומשאיר כותרת+סכום; מצב הקיפול **UI-only** (Set במודול,
+  לא נשמר) — אפס נגיעה ב-cloudSync / דליפת-localStorage (`caebae0`) /
+  זריעת-התשלומים (`48f91f5`); (4) הגדלת אזורי לחיצה (`.btn-icon`, `.btn-small`,
+  חצי סידור). HTML/CSS/JS בלבד, `node --check` + build נקי. commit `725aa0f`
+  (מקומי — ממתין ל-push+deploy).
 - **מנוע שלמות נוכחות — סבב 1 (מנוע בלבד).** הפיצ'ר הגדול "תמונת מה יש ומה
   חסר, נגישה מכל מקום". helper טהור [`attendance-incompleteness.ts`](src/lib/attendance-incompleteness.ts)
   (`computeIncompleteDays` + `summarizeIncomplete`) + endpoint
