@@ -282,8 +282,10 @@
   מנווטת לתיקון. (ג) **שיוך פרויקט** ל-no_project (46) — בורר inline → PATCH
   `attendance/[id]` (endpoint קיים, לא נבנה חדש). (ד) **"הוסף יום"** לכשלים —
   ניווט להיסטוריה שם "הוסף יום" הקיים ממתין. foreman-scoped. build נקי, 408
-  tests. commit `1796d0e` (מקומי — ממתין ל-push+deploy). **הפיצ'ר סגור:
-  מנוע (a27e125) + שער שכר (63ootmbr) + פאנל + מסך ייעודי + 2 כלים.**
+  tests. **נפרס בייצור** (commit `1796d0e`, deploy `6aod3eo1`, אימות
+  `x-matched-path: /admin`). **הפיצ'ר הגדול "תמונת מה יש ומה חסר" סגור
+  במלואו:** מנוע (`a27e125`) + שער שכר (`63ootmbr`) + פאנל היברידי + מסך
+  מרכז החוסרים + שיוך פרויקט + הוסף יום (`6aod3eo1`).
 - **מנוע שלמות נוכחות — סבב 1 (מנוע בלבד).** הפיצ'ר הגדול "תמונת מה יש ומה
   חסר, נגישה מכל מקום". helper טהור [`attendance-incompleteness.ts`](src/lib/attendance-incompleteness.ts)
   (`computeIncompleteDays` + `summarizeIncomplete`) + endpoint
