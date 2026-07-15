@@ -273,10 +273,14 @@
   של ה-aggregators (2 אוצרות מילה ממקור אחד), בלי לרפקטר את worker-history/
   monthly-report (timeline שונה, monthly קריטי-כספית). foreman-scoped. 10 tests,
   build נקי, 408. commit `43271f3` (מקומי — ממתין ל-push+deploy).
-  **סבבים בתור:** 2 = שער השכר (באנר מאוחד ב-PayrollTab, מחליף אזהרת pending),
-  3 = פאנל נראות (היברידי — כשל חי נפרד/high, שאר ה-issues מאוחד "N ימים לא
-  שלמים"/medium). **פער לסגור בסבב 3:** `stuck_failure` → כפתור "הוסף יום"
-  (היום פאנל הכשלים תצוגה-בלבד).
+  **סבב 2 (שער השכר) — הושלם:** server helper משותף `loadIncompleteness`
+  (fetch+flatten+engine, נצרך ע"י ה-endpoint וה-XLSX export); PayrollTab מציג
+  באנר מאוחד אחד "N ימים לא שלמים בחודש — עלולים להשפיע על התלוש" עם פירוט
+  לפי 6 סוגים ורשימה מתקפלת שכל שורה מנווטת לתיקון (מחליף את אזהרת ה-pending
+  הבודדת מ-24828e1). **מזהיר, לא חוסם.** הערת XLSX לרו"ח. commit `f8e86e2`
+  (מקומי — ממתין ל-push+deploy). **סבב 3 בתור:** פאנל נראות היברידי (כשל חי
+  נפרד/high, שאר ה-issues מאוחד "N ימים לא שלמים"/medium) + סגירת הפער
+  `stuck_failure` → כפתור "הוסף יום" + כלי `assign_project` ל-no_project.
 - **רגרסיית גלילה אופקית בטבלאות (מ-`ea6bcc9`) — תוקנה.** סעיפים 13+15 של
   סבב תיקוני ה-UI הוסיפו `min-w-[720px]` ל-WorkerHistoryPanel (7 עמ') ו-
   PayrollTab (9 עמ') כדי למנוע דחיסה במובייל — אבל בדסקטופ הפאנל צר מ-720px,
