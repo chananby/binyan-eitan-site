@@ -272,7 +272,8 @@
   (ב-`quotes/route.ts` + `[id]`) קיבל fallback ל-`totalOverride` — אחרת הצעה
   כוללת נראתה ₪0 ברשימה. תואם אחורה (`defaultState.totalOverride=0`), לא נגע
   ב-cloudSync/דליפת-localStorage. `node --check` + build נקי, 408 tests.
-  commit `ee3432f` (מקומי — ממתין ל-push+deploy).
+  **נפרס בייצור** (commit `ee3432f`, deploy `cbcrpm7n`, אימות
+  `x-matched-path: /admin/quotes`).
 - **שיפורי נוחות במחולל ההצעות (4 תיקונים).** סריקת נוחות ב-
   [`quote-generator.html`](public/admin-tools/quote-generator.html) מצאה
   חיכוכים חוזרים: (1) "הוסף פרק" היה רק בכותרת (גלילה לראש) ובלי משוב →
