@@ -149,7 +149,7 @@
     grid-template-columns: var(--form-panel-width, 480px) 6px 1fr;
     gap: 0;
     padding: 20px;
-    max-width: 1600px;
+    max-width: 1800px;
     margin: 0 auto;
   }
   .panel-resizer {
@@ -374,6 +374,10 @@
   .document {
     background: white;
     width: 210mm;
+    /* Never overflow the preview panel: if the panel is narrower than A4 the
+       page scales down to fit instead of being clipped. On a panel ≥ A4 it
+       shows at full 210mm. Print @media overrides to width:100% (the A4 page). */
+    max-width: 100%;
     min-height: 297mm;
     margin: 0 auto;
     padding: 18mm 16mm 22mm;
@@ -3713,7 +3717,9 @@
 
   // ============ PANEL RESIZER ============
   function applyPanelWidth() {
-    const w = Math.max(320, Math.min(state.panelWidthPx || 480, 900));
+    // Cap the form panel at 640px (was 900) so it can't starve the preview
+    // below a comfortable A4 width — the cause of the "narrow/squeezed preview".
+    const w = Math.max(320, Math.min(state.panelWidthPx || 480, 640));
     document.documentElement.style.setProperty('--form-panel-width', w + 'px');
   }
   applyPanelWidth();
@@ -3730,7 +3736,7 @@
       const x = e.touches ? e.touches[0].clientX : e.clientX;
       // In RTL: dragging LEFT widens the form panel (it's on the right)
       const delta = startX - x;
-      const w = Math.max(320, Math.min(startW + delta, 900));
+      const w = Math.max(320, Math.min(startW + delta, 640));
       state.panelWidthPx = w;
       applyPanelWidth();
     }
