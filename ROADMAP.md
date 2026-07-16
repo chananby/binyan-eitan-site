@@ -269,8 +269,9 @@
   `.document` קיבל `max-width:100%` (מוקטן בהדרגה במקום להיחתך; print לא
   מושפעת — כבר דורסת ל-`width:100%`), ותקרת ה-form panel 900→640 (applyPanelWidth
   + drag) כדי שלא ירעיב את התצוגה. מובייל נשאר single-column. לא נגעתי
-  בלוגיקה/הצעה-כוללת/זריעת-תשלומים. `node --check` + build נקי. commit
-  `9094811` (מקומי — ממתין ל-push+deploy).
+  בלוגיקה/הצעה-כוללת/זריעת-תשלומים. `node --check` + build נקי. **נפרס
+  בייצור** (commit `9094811`, deploy `derdqwo8`, אימות `x-matched-path:
+  /admin/quotes`).
 - **הצעה "כוללת" — מחיר כולל ידני (לפני מע"מ).** חנן רצה הצעות שמפרטות
   תכולה מלאה בלי מחיר/כמות לסעיפים — מחיר אחד כולל. הסתרת המחירים כבר
   הייתה (`showItemPrices`); נוסף שדה `totalOverride` + `effectiveBase() =
