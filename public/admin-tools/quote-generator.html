@@ -1018,12 +1018,14 @@
     margin-bottom: 8px;
     background: white;
   }
-  /* Reorder arrows — visible on hover (desktop) / always (mobile) */
+  /* Reorder arrows — subtly visible at rest so the admin knows they exist,
+     brightening to full on row hover / focus. (Were opacity:0 = invisible
+     until hover, so no-one knew items could be reordered.) */
   .item-reorder {
     display: flex;
     flex-direction: column;
     gap: 1px;
-    opacity: 0;
+    opacity: 0.55;
     transition: opacity 0.12s;
     flex-shrink: 0;
     margin-inline-end: 4px;
