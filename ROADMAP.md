@@ -271,8 +271,8 @@
   את הבהוב העמודות בכל הקלדה כשה-grandTotal חוצה 0 עם `totalOverride` מולא
   (רגרסיה מ-`feature/quote-lump-sum`). `effectiveBase`/הסה"כ לא נגעו —
   lump-sum עדיין מזין את הסה"כ, רק לא מסתיר עמודות דינמית; הסתרת מחירים דרך
-  הטוגל היציב. `node --check` + build נקי. commit `423bdeb` (מקומי — ממתין
-  ל-push+deploy).
+  הטוגל היציב. `node --check` + build נקי. commit `423bdeb` — **נפרס** לפרודקשן
+  (16.7.26, `fix/quote-display-polish` → main, merge ff-only).
 - **רוחב התצוגה המקדימה במחולל ההצעות — תוקן.** ה-A4 (`.document`) הוא
   `width:210mm` קבוע, בעוד ה-form panel יכל להימתח עד 900px (`panelWidthPx`
   נשמר ב-config) וה-`.layout` חסום ב-1600px — כך שפאנל התצוגה ירד מתחת
