@@ -31,7 +31,7 @@ import ProjectsTab from "../admin/_components/tabs/ProjectsTab";
 import BoardScreen from "../admin/_components/tabs/BoardScreen";
 import ExpensesTab from "../admin/_components/tabs/ExpensesTab";
 import PlanningTab from "../admin/_components/tabs/PlanningTab";
-import AttendanceTab, { type ManualType, type AttendanceSubTab } from "../admin/_components/tabs/AttendanceTab";
+import AttendanceTab, { type ManualType, type AttendanceSubTab, type AbsentWorker } from "../admin/_components/tabs/AttendanceTab";
 import LoginScreen from "../admin/_components/tabs/LoginScreen";
 import DashboardTab from "../admin/_components/tabs/DashboardTab";
 import PayrollTab from "../admin/_components/tabs/PayrollTab";
@@ -437,6 +437,10 @@ export default function AdminPortal() {
   const [incomplete, setIncomplete] = useState<IncompleteEngineResult | null>(null);
   const [incompleteLoading, setIncompleteLoading] = useState(false);
   const [incompleteErr,     setIncompleteErr]     = useState<string | null>(null);
+  // Last project each worker clocked at — feeds the "מי לא הגיע היום" panel so
+  // the admin sees where an absent worker was last expected. Keyed by staff_id.
+  // Non-fatal like the loaders above; a load failure just means no 📍 chips.
+  const [lastProjects, setLastProjects] = useState<Record<string, string | null>>({});
   const [pendingLoading,   setPendingLoading]   = useState(false);
   const [pendingErr,       setPendingErr]       = useState<string | null>(null);
 
@@ -796,7 +800,7 @@ export default function AdminPortal() {
     // Load on admin auth so the Attendance tab's red badge is accurate from
     // any starting tab. Also reload when the user opens Attendance to catch
     // anything created in the last 2 min between auto-refreshes.
-    if (authState === "admin") { loadPending(); loadCorrectionRequests(); loadJoinRequests(); loadCollections(); loadStaleOpens(); loadFailures(); loadIncomplete(); }
+    if (authState === "admin") { loadPending(); loadCorrectionRequests(); loadJoinRequests(); loadCollections(); loadStaleOpens(); loadFailures(); loadIncomplete(); loadLastProjects(); }
   }, [authState, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-refresh attendance every 60 s ────────────────────────────────────
@@ -819,7 +823,7 @@ export default function AdminPortal() {
       if (document.visibilityState !== "visible") return;
       if (!AUTO_TABS.includes(autoTabRef.current)) return;
       if (autoTabRef.current === "attendance" && authState === "admin") {
-        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures(), loadIncomplete()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures(), loadIncomplete(), loadLastProjects()]);
       } else {
         await loadData(authState as "admin" | "foreman");
       }
@@ -974,6 +978,19 @@ export default function AdminPortal() {
     }
   }
 
+  // Last-project-per-worker for the absent-today panel. Secondary/absence-safe:
+  // any failure just leaves the map empty (no 📍), never blocks the dashboard.
+  async function loadLastProjects() {
+    try {
+      const res = await fetch("/api/admin/attendance/last-projects");
+      if (!res.ok) return;
+      const d = await res.json();
+      setLastProjects(d.last ?? {});
+    } catch {
+      /* non-fatal — panel simply shows no last-project chips */
+    }
+  }
+
   // no_project fix: stamp a project onto the flagged entry via the existing
   // PATCH /api/admin/attendance/[id]. On success the engine is reloaded so the
   // row drops off the list. Also refreshes attendance so per-project cost /
@@ -1069,7 +1086,7 @@ export default function AdminPortal() {
       }
       setCorrectionRequests((cur) => cur.filter((r) => r.id !== id));
       if (status === "approved") {
-        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures(), loadIncomplete()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures(), loadIncomplete(), loadLastProjects()]);
       }
       return true;
     } catch {
@@ -1087,7 +1104,7 @@ export default function AdminPortal() {
       if (tab === "expenses")                               { await loadMaterials(); setLastRefreshed(new Date()); }
       else if (tab === "income")                            { await loadIncome();    setLastRefreshed(new Date()); }
       else if (tab === "attendance" && authState === "admin")
-        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures(), loadIncomplete()]);
+        await Promise.all([loadData("admin"), loadPending(), loadCorrectionRequests(), loadStaleOpens(), loadFailures(), loadIncomplete(), loadLastProjects()]);
       else if (tab === "join_requests" && authState === "admin")
         await loadJoinRequests();
       else if (tab === "collections" && authState === "admin")
@@ -1451,32 +1468,38 @@ export default function AdminPortal() {
 
   // ── AttentionPanel inputs ──────────────────────────────────────────────────
   // All counts are derived from state already loaded by the dashboard; no
-  // new endpoint required. The "not clocked in" item only fires between
-  // 09:00–14:00 Israel time so it doesn't flag overnight or evening hours
-  // when no-one is expected to be on site.
-  const israelHour = parseInt(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Jerusalem", hour: "numeric", hour12: false }),
-    10
-  );
+  // new endpoint required. The "not clocked in" item runs all day (no hour
+  // gate) — an admin asking "מי לא הגיע היום" wants the answer at any hour,
+  // and the item auto-clears once everyone expected has clocked in.
   const delayedCount = tasks.filter(t => t.status === "delayed").length;
   const noGpsCount   = projects.filter(p => p.status === "active" && (p.lat == null || p.lng == null)).length;
-  // Workers who should be on site today and haven't clocked yet. Excludes
-  // attendance_exempt staff (e.g. managers on global salary who aren't
-  // expected to clock) so they don't pollute the count or the absent list.
+  // Workers who should be on site today and haven't clocked IN yet. "Present"
+  // means an actual entry (isEntry — Hebrew "כניסה" / English "in"), matching
+  // the foreman portal: a worker with only an orphan EXIT hasn't arrived, so
+  // they still show as absent. Excludes attendance_exempt staff (e.g. managers
+  // on global salary who aren't expected to clock) from count and list.
   let notClockedInCount = 0;
-  let notClockedInIds: Set<string> = new Set();
-  if (isAdmin && israelHour >= 9 && israelHour < 14) {
-    const clockedIds = new Set(
-      todayLogs.filter(r => r.staff?.id).map(r => r.staff!.id)
+  let absentTodayList: AbsentWorker[] = [];
+  if (isAdmin) {
+    const clockedInIds = new Set(
+      todayLogs
+        .filter(r => r.staff?.id && (r.action === "כניסה" || r.action === "in"))
+        .map(r => r.staff!.id)
     );
     const absent = staff.filter(
       s => s.active
         && (s.role === "עובד" || s.role === "ממונה")
         && !s.attendance_exempt
-        && !clockedIds.has(s.id)
+        && !clockedInIds.has(s.id)
     );
     notClockedInCount = absent.length;
-    notClockedInIds   = new Set(absent.map(s => s.id));
+    absentTodayList = absent.map(s => ({
+      id: s.id,
+      name: s.name,
+      phone: s.phone,
+      language: s.language ?? null,
+      lastProject: lastProjects[s.id] ?? null,
+    }));
   }
   // Hybrid incompleteness signal: the URGENT stuck-failures stay their own
   // high-severity row (a worker blocked right now); everything else folds into
@@ -1739,7 +1762,7 @@ export default function AdminPortal() {
             staff={staff}
             projects={projects}
             farThresholdM={farThresholdM}
-            absentTodayIds={notClockedInIds}
+            absentTodayList={absentTodayList}
             lastRefreshed={lastRefreshed}
             refreshing={refreshing}
             onTabRefresh={handleTabRefresh}

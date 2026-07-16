@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import {
   BarChart2, Loader2, Download, AlertCircle, Calendar, Plus,
   AlertTriangle, RefreshCw, Building2, Pencil, History, Phone, UserX,
-  ChevronDown, ChevronUp, XCircle,
+  ChevronDown, ChevronUp, XCircle, MessageCircle,
 } from "lucide-react";
+import { WORKER_LANG_FLAGS, WORKER_LANG_LABEL_HE, isWorkerLangCode } from "../../../../lib/worker-language";
 import { labelFor, describeFailure, formatRelative } from "../../../../lib/attendance-failure-labels";
 import { Card } from "../shared/Card";
 import { Field } from "../shared/Field";
@@ -806,29 +807,78 @@ function PendingApprovals({
 // dashboard attention card and this panel stay byte-identical — this component
 // just renders. Hidden when the set is empty, so it's invisible after every
 // expected worker has clocked.
-function AbsentTodayPanel({ staff, absentTodayIds }: {
-  staff: StaffLite[]; absentTodayIds: Set<string>;
-}) {
-  if (absentTodayIds.size === 0) return null;
-  const absentList = staff
-    .filter(s => absentTodayIds.has(s.id))
-    .sort((a, b) => a.name.localeCompare(b.name, "he"));
+export interface AbsentWorker {
+  id: string;
+  name: string;
+  phone: string;
+  language: string | null;
+  lastProject: string | null;
+}
+
+// Israeli phone → international digits for wa.me (0521234567 → 972521234567).
+function intlDigits(raw: string): string | null {
+  const d = (raw || "").replace(/\D/g, "");
+  if (!d) return null;
+  if (d.startsWith("972")) return d;
+  if (d.startsWith("0")) return "972" + d.slice(1);
+  return "972" + d; // local number without a leading 0
+}
+
+function AbsentTodayPanel({ absentList }: { absentList: AbsentWorker[] }) {
   if (absentList.length === 0) return null;
+  const sorted = [...absentList].sort((a, b) => a.name.localeCompare(b.name, "he"));
   return (
     <Card>
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-3">
         <UserX size={15} strokeWidth={1.5} className="text-amber-500" />
         <h2 className="font-heading text-sm font-bold text-amber-700">
-          טרם החתימו היום ({absentList.length})
+          לא הגיעו היום ({sorted.length})
         </h2>
       </div>
-      <div className="flex flex-wrap gap-1.5">
-        {absentList.map(s => (
-          <span key={s.id} className="text-content px-2 py-1 bg-amber-50 border border-amber-200 text-amber-800">
-            {s.name}
-          </span>
-        ))}
-      </div>
+      <ul className="divide-y divide-charcoal/10">
+        {sorted.map(w => {
+          const intl = intlDigits(w.phone);
+          const lang = isWorkerLangCode(w.language) ? w.language : null;
+          return (
+            <li key={w.id} className="flex items-center gap-2 py-2 flex-wrap">
+              <span className="font-semibold text-content min-w-[7rem]">{w.name}</span>
+              {lang && lang !== "he" && (
+                <span
+                  className="text-caption text-charcoal/70 px-1 py-0.5 rounded bg-charcoal/[0.06] tabular-nums"
+                  title={`שפת פורטל: ${WORKER_LANG_LABEL_HE[lang]}`}
+                >
+                  {WORKER_LANG_FLAGS[lang]} {lang.toUpperCase()}
+                </span>
+              )}
+              {w.lastProject && (
+                <span className="text-caption text-charcoal/60 truncate max-w-[10rem]" title={`פרויקט אחרון: ${w.lastProject}`}>
+                  📍 {w.lastProject}
+                </span>
+              )}
+              <span className="ms-auto flex items-center gap-1.5 shrink-0">
+                {intl ? (
+                  <>
+                    <a
+                      href={`https://wa.me/${intl}`} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-600 hover:bg-green-700 text-white text-caption font-bold rounded transition-colors"
+                    >
+                      <MessageCircle size={13} strokeWidth={2} /> וואטסאפ
+                    </a>
+                    <a
+                      href={`tel:+${intl}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 border border-charcoal/20 text-charcoal/80 hover:border-accent hover:text-accent text-caption font-bold rounded transition-colors"
+                    >
+                      <Phone size={13} strokeWidth={2} /> חייג
+                    </a>
+                  </>
+                ) : (
+                  <span className="text-caption text-charcoal/40">אין טלפון</span>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     </Card>
   );
 }
@@ -1398,10 +1448,10 @@ type Props = {
   staff:    StaffLite[];
   projects: ProjectLite[];
   farThresholdM: number;
-  /** Set of active staff_ids who haven't clocked in today. Drives the
-   *  "missing today" panel in the live sub-tab. Already filtered for
-   *  attendance_exempt by the parent. */
-  absentTodayIds: Set<string>;
+  /** Active workers with no clock-IN today (all day), enriched with phone /
+   *  language / last project for the "לא הגיעו היום" panel. Built by the
+   *  parent (already filtered for attendance_exempt). */
+  absentTodayList: AbsentWorker[];
 
   // TabRefreshBar
   lastRefreshed: Date | null;
@@ -1641,7 +1691,7 @@ export default function AttendanceTab(p: Props) {
 
       {!hasPending && pendingPanel}
 
-      <AbsentTodayPanel staff={p.staff} absentTodayIds={p.absentTodayIds} />
+      <AbsentTodayPanel absentList={p.absentTodayList} />
 
       <TodayLog
         todayLogs={p.todayLogs}
