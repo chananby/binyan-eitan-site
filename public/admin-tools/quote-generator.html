@@ -2458,11 +2458,14 @@
   // ============ RENDER PREVIEW ============
   function renderPreview() {
     const doc = document.getElementById('document-preview');
-    // Lump-sum: no section prices at all, one manual total. Force the item
-    // price/qty columns off so the sections read as pure scope-of-work.
-    const isLumpSum = grandTotal() === 0 && (Number(state.totalOverride) || 0) > 0;
-    const showQty = !isLumpSum && state.showQuantity === 'yes';
-    const showPrices = !isLumpSum && state.showItemPrices !== 'no';
+    // Column visibility depends ONLY on the stable toggles — never on
+    // grandTotal()/lump-sum. Coupling them (the original lump-sum feature)
+    // made the price columns flicker on every keystroke as grandTotal()
+    // crossed 0 while totalOverride was filled. lump-sum still drives the
+    // TOTAL via effectiveBase(); to render a scope-only quote the admin turns
+    // off the stable "הצג מחירי פריטים" toggle.
+    const showQty = state.showQuantity === 'yes';
+    const showPrices = state.showItemPrices !== 'no';
     const hasItems = state.sections.some(s => s.items.length > 0 && (s.name || s.items.some(i => i.description)));
     const hasVat = (Number(state.vatRate) || 0) > 0;
     const hasDiscount = discountAmount() > 0;
@@ -2551,14 +2554,14 @@
                 </tr>
               ` : ''}
               ${validItems.map(item => {
-                // Quantity 0 ⇒ "description-only row" — typical lump-sum
-                // template flow: several zero-qty rows describe the work,
-                // followed by a single summary row that carries the price.
-                // We render qty/unit/price cells empty (not "0") and skip
-                // the line total so it doesn't accidentally appear as "—0".
+                // "Description-only row" — no meaningful price to show, so the
+                // qty/unit/price/total cells render empty instead of an ugly
+                // ₪0.00. Triggered when EITHER the quantity is 0 (template
+                // scope rows) OR the unit price is 0 (a priced-later / included
+                // item, common in lump-sum quotes).
                 const qtyNum = Number(item.quantity) || 0;
                 const priceNum = Number(item.unitPrice) || 0;
-                const isDescriptionOnly = qtyNum === 0;
+                const isDescriptionOnly = qtyNum === 0 || priceNum === 0;
                 return `
                 <tr class="item-row-print${isDescriptionOnly ? ' item-row-desc-only' : ''}">
                   <td>
