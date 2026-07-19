@@ -831,8 +831,27 @@
 
 ## בתהליך / פתוח
 
-_(ריק — כל המיגרציות הידניות שהיו ממתינות אומתו כמוחלות. פריטי החלטה עתידית
-עברו ל"החלטות שננעלו — בתור לבנייה" למטה.)_
+- **מנהל גלריה באדמין — סבב 1 (ניהול בלבד)** (`feature/gallery-manager`,
+  מקומי — ממתין ל-push + **מיגרציה ידנית**). ממשק חדש להעלאת תמונות לגלריית
+  אתר התדמית, במקום קובץ ב-`/public` + עריכת `lib/projects.ts` + deploy לכל
+  תמונה. **סבב זה = ניהול בלבד**; הגלריה הציבורית עדיין קוראת מהמערך הקשיח
+  (המעבר ל-DB בסבב 2 — כדי לא לסכן את האתר הציבורי).
+  - **מיגרציה** [`20260719_gallery_images.sql`](supabase/migrations/20260719_gallery_images.sql)
+    (ידנית, טרם הורצה): טבלת `gallery_images` — `project_slug` (=`GALLERY_PROJECTS[].id`),
+    `url` (Blob), `sort_order`, `is_cover`, `category`, `alt_he/en`, `created_at`,
+    `deleted_at`. DEFAULT מפורש לכל עמודה (לקח `attendance.status`).
+  - **אחסון: Vercel Blob** (רוכב על התשתית של `api/upload`, prefix `gallery/`).
+  - **הקטנה בצד לקוח** [`lib/image-resize.ts`](src/lib/image-resize.ts) — מחזור
+    `resizeImage()` מהמחולל, ~1920px/q0.8, 3-5MB→~200-500KB. בלי זה עשרות
+    תמונות מהנייד נתקעות.
+  - **העלאה מרובה:** קובץ-אחד-לבקשה במקביל (concurrency 3) — כל קובץ מקבל
+    התקדמות, וכישלון בודד לא שובר את האצווה (נאסף ומדווח).
+  - **endpoints (admin-gated):** `POST api/admin/gallery/upload` (Blob+שורת DB),
+    `GET api/admin/gallery?project=` (רשימה), `PATCH/DELETE api/admin/gallery/[id]`
+    (סדר/שער/קטגוריה · מחיקה רכה). **מסך:** tab "גלריה" — בורר פרויקט,
+    drop-zone + בורר `multiple`, מד "עלו X מתוך N", רשת עם מחיקה/שער/חצי-סדר.
+    foreman ללא גישה. `lib/projects.ts` ו-`ChangeOrderForm`/`api/upload` לא נגעו.
+    build + 408 טסטים עוברים.
 
 ---
 
@@ -907,6 +926,14 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
 ---
 
 ## בתור (עם תלויות)
+
+### מנהל גלריה — סבב 2 (מעבר האתר הציבורי ל-DB)
+- **תלוי בסבב 1** (הטבלה + הניהול, `feature/gallery-manager`) ובהרצת המיגרציה.
+- מעבר הגלריה הציבורית מהמערך הקשיח `lib/projects.ts` לקריאה מ-`gallery_images`
+  (דרך endpoint ציבורי + ISR, בדומה ל-`api/cloudinary-gallery` הרדום).
+- **מיגרציית 78 התמונות הקיימות** מ-`/public` → Blob + שורות DB (סקריפט חד-פעמי),
+  כולל `is_cover`/`sort_order`/`categories` הקיימים לכל פרויקט.
+- רק אחרי אימות שהניהול יציב — כדי לא לסכן את האתר הציבורי.
 
 ### שכבה 2 — השלמות רווחיות פר-פרויקט
 - **עלות עבודה פר-פרויקט** — סיכום `attendance × rates` לפי project_id.

@@ -15,7 +15,7 @@ import {
   AlertCircle, DollarSign, Target,
   ChevronLeft, Grid3x3, Download, Plus,
   UserCog, MapPin, UserX, FileText, Inbox, Users, Coins,
-  AlertTriangle, XCircle,
+  AlertTriangle, XCircle, Images,
 } from "lucide-react";
 import { Card } from "../admin/_components/shared/Card";
 import AttentionPanel, { type AttentionItem } from "../admin/_components/shared/AttentionPanel";
@@ -36,6 +36,7 @@ import LoginScreen from "../admin/_components/tabs/LoginScreen";
 import DashboardTab from "../admin/_components/tabs/DashboardTab";
 import PayrollTab from "../admin/_components/tabs/PayrollTab";
 import QuotesTab from "../admin/_components/tabs/QuotesTab";
+import GalleryTab from "../admin/_components/tabs/GalleryTab";
 import DocumentsTab from "../admin/_components/tabs/DocumentsTab";
 import JoinRequestsTab, { type JoinRequest } from "../admin/_components/tabs/JoinRequestsTab";
 import CollectionsTab, { type CollectionsData } from "../admin/_components/tabs/CollectionsTab";
@@ -62,7 +63,7 @@ interface IncompleteEngineResult { items: IncompleteItem[]; summary: IncompleteS
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type AuthState = "loading" | "unauthenticated" | "foreman" | "admin";
-type AdminTab  = "dashboard" | "attendance" | "workers" | "join_requests" | "projects" | "board" | "expenses" | "planning" | "matrix" | "income" | "collections" | "reports" | "payroll" | "quotes" | "documents" | "account";
+type AdminTab  = "dashboard" | "attendance" | "workers" | "join_requests" | "projects" | "board" | "expenses" | "planning" | "matrix" | "income" | "collections" | "reports" | "payroll" | "quotes" | "gallery" | "documents" | "account";
 type LoginMode = "pin" | "password";
 
 const HASH_TO_TAB: Record<string, AdminTab> = {
@@ -80,6 +81,7 @@ const HASH_TO_TAB: Record<string, AdminTab> = {
   payroll:    "payroll",
   salary:     "payroll",
   quotes:     "quotes",
+  gallery:    "gallery",
   documents:  "documents",
   account:    "account",
 };
@@ -1422,6 +1424,7 @@ export default function AdminPortal() {
     { key: "reports",    label: "דוחות",      icon: <BarChart2 size={13} />,      adminOnly: true },
     { key: "payroll",    label: "שכר",         icon: <DollarSign size={13} />,    adminOnly: true },
     { key: "quotes",     label: "הצעות מחיר",  icon: <FileText  size={13} />,      adminOnly: true },
+    { key: "gallery",    label: "גלריה",       icon: <Images    size={13} />,      adminOnly: true },
     { key: "documents",  label: "אסמכתאות",   icon: <Inbox     size={13} />,      adminOnly: true },
     { key: "account",    label: "חשבון",      icon: <UserCog   size={13} />,      adminOnly: true },
   ].filter(t => !t.adminOnly || isAdmin) as TabDef[];
@@ -2041,6 +2044,7 @@ export default function AdminPortal() {
 
         {/* ── QUOTES (admin only) ────────────────────────────────────────────── */}
         {tab === "quotes" && isAdmin && <QuotesTab />}
+        {tab === "gallery" && isAdmin && <GalleryTab />}
 
         {/* ── DOCUMENTS (admin only) ─────────────────────────────────────────── */}
         {tab === "documents" && isAdmin && <DocumentsTab />}
