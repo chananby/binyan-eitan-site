@@ -16,11 +16,15 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Upload, Star, Trash2, ChevronUp, ChevronDown, Loader2, AlertCircle, Images,
-  Plus, Pencil, Eye, EyeOff, Save, X,
+  Plus, Pencil, Eye, EyeOff, Save, X, Film, Check,
 } from "lucide-react";
 import { Card } from "../shared/Card";
 import { GALLERY_PROJECTS } from "../../../../lib/projects";
 import { resizeImageToBlob } from "../../../../lib/image-resize";
+import {
+  extractFrames, framesToFiles, revokeFrames, FRAME_COUNT,
+  type ExtractedFrame,
+} from "../../../../lib/video-frames";
 
 interface GalleryImage {
   id: string;
@@ -227,6 +231,17 @@ export default function GalleryTab() {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ── Video frame extraction (100% client-side; the video never leaves here) ──
+  const [frames, setFrames] = useState<ExtractedFrame[]>([]);
+  const [picked, setPicked] = useState<Set<number>>(new Set());
+  const [extracting, setExtracting] = useState(false);
+  const [extractDone, setExtractDone] = useState(0);
+  const [extractTotal, setExtractTotal] = useState(0);
+  const [videoErr, setVideoErr] = useState<string | null>(null);
+  const [passCount, setPassCount] = useState(0); // how many extraction passes so far
+  const videoFileRef = useRef<File | null>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+
   const loadImages = useCallback(async (s: string) => {
     if (!s) return;
     setLoading(true);
@@ -299,6 +314,83 @@ export default function GalleryTab() {
     setDragOver(false);
     if (e.dataTransfer?.files?.length) uploadFiles(e.dataTransfer.files);
   }
+
+  // ── Video → frames ──────────────────────────────────────────────────────────
+  // Runs one extraction pass. `phase` interleaves a later pass halfway between
+  // the previous timestamps ("חלץ עוד"). Frames are appended, never uploaded
+  // automatically — the admin picks which ones go to the project.
+  async function runExtraction(file: File, phase: number, append: boolean) {
+    setExtracting(true);
+    setVideoErr(null);
+    setExtractDone(0);
+    setExtractTotal(FRAME_COUNT);
+    try {
+      const got = await extractFrames(file, {
+        phase,
+        onProgress: (done, total) => { setExtractDone(done); setExtractTotal(total); },
+      });
+      if (append) {
+        setFrames((prev) => [...prev, ...got]);
+      } else {
+        setFrames((prev) => { revokeFrames(prev); return got; });
+        setPicked(new Set());
+      }
+      setPassCount((n) => n + 1);
+    } catch (e) {
+      // Codec/decode failures surface here with a Hebrew message — never silent.
+      setVideoErr(e instanceof Error ? e.message : "חילוץ התמונות מהסרטון נכשל");
+    } finally {
+      setExtracting(false);
+    }
+  }
+
+  function onPickVideo(file: File | undefined) {
+    if (!file || extracting) return;
+    videoFileRef.current = file;
+    setPassCount(0);
+    runExtraction(file, 0, false);
+  }
+
+  function extractMore() {
+    const f = videoFileRef.current;
+    if (!f || extracting) return;
+    // Each further pass shifts another half-slot so new timestamps interleave.
+    runExtraction(f, passCount * 0.5, true);
+  }
+
+  function togglePick(i: number) {
+    setPicked((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  }
+
+  function clearFrames() {
+    revokeFrames(frames);
+    setFrames([]);
+    setPicked(new Set());
+    setVideoErr(null);
+    setPassCount(0);
+    videoFileRef.current = null;
+    if (videoInputRef.current) videoInputRef.current.value = "";
+  }
+
+  // Picked frames go through the EXISTING upload path (resize → same endpoint).
+  async function uploadPickedFrames() {
+    if (picked.size === 0 || uploading) return;
+    const chosen = [...picked].sort((a, b) => a - b).map((i) => frames[i]).filter(Boolean);
+    const base = (videoFileRef.current?.name.replace(/\.[^.]+$/, "") || "video").slice(0, 40);
+    await uploadFiles(framesToFiles(chosen, base));
+    clearFrames();
+  }
+
+  // Release preview object URLs if the tab unmounts mid-session.
+  useEffect(() => {
+    return () => { revokeFrames(frames); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function deleteImage(id: string) {
     if (!window.confirm("למחוק את התמונה מהגלריה?")) return;
@@ -553,6 +645,83 @@ export default function GalleryTab() {
             </ul>
           </div>
         )}
+
+        {/* ── Extract stills from a video (entirely in the browser) ────────── */}
+        <div className="border-t border-charcoal/10 pt-3 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Film size={15} strokeWidth={1.5} className="text-charcoal/50" />
+            <span className="font-semibold text-content">חלץ תמונות מסרטון</span>
+            <input ref={videoInputRef} type="file" accept="video/*" className="hidden"
+              id="gallery-video-input"
+              onChange={(e) => onPickVideo(e.target.files?.[0])} />
+            <label htmlFor="gallery-video-input"
+              className={`inline-block px-3 py-1.5 border border-charcoal/25 rounded font-bold transition-colors ${
+                extracting ? "opacity-50 pointer-events-none" : "cursor-pointer hover:border-accent hover:text-accent"
+              }`}>
+              בחר סרטון
+            </label>
+          </div>
+          <p className="text-caption text-charcoal/50">
+            הסרטון <strong>נשאר במחשב שלך</strong> ולא נשלח לשרת — הדפדפן מחלץ {FRAME_COUNT} תמונות
+            ורק מה שתסמן יעלה לגלריה.
+          </p>
+
+          {extracting && (
+            <div className="flex items-center gap-2 text-caption text-charcoal/70">
+              <Loader2 size={13} className="animate-spin" />
+              מחלץ {extractDone} מתוך {extractTotal}
+            </div>
+          )}
+
+          {videoErr && (
+            <div className="flex items-start gap-1.5 text-caption text-red-600 border border-red-200 bg-red-50 rounded p-2">
+              <AlertCircle size={13} className="mt-0.5 shrink-0" /> <span>{videoErr}</span>
+            </div>
+          )}
+
+          {frames.length > 0 && (
+            <div className="space-y-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2">
+                {frames.map((f, i) => {
+                  const on = picked.has(i);
+                  return (
+                    <button key={f.previewUrl} type="button" onClick={() => togglePick(i)}
+                      className={`relative rounded-md overflow-hidden border-2 transition-colors ${
+                        on ? "border-accent" : "border-transparent hover:border-charcoal/25"
+                      }`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={f.previewUrl} alt={`פריים ${Math.round(f.time)} שניות`}
+                        className="w-full aspect-video object-cover" />
+                      <span className={`absolute top-1 start-1 w-4 h-4 rounded flex items-center justify-center ${
+                        on ? "bg-accent text-white" : "bg-black/40 text-white/70"
+                      }`}>
+                        {on && <Check size={11} strokeWidth={3} />}
+                      </span>
+                      <span className="absolute bottom-0 inset-x-0 bg-black/50 text-white text-caption tabular-nums">
+                        {Math.round(f.time)}s
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button onClick={uploadPickedFrames} disabled={picked.size === 0 || uploading}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white font-bold rounded hover:bg-accent/90 disabled:opacity-50">
+                  {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
+                  הוסף לפרויקט ({picked.size})
+                </button>
+                <button onClick={extractMore} disabled={extracting || !videoFileRef.current}
+                  className="px-3 py-1.5 border border-charcoal/20 rounded text-charcoal/70 hover:border-accent hover:text-accent disabled:opacity-50">
+                  חלץ עוד {FRAME_COUNT}
+                </button>
+                <button onClick={clearFrames} disabled={extracting}
+                  className="px-3 py-1.5 border border-charcoal/20 rounded text-charcoal/70 disabled:opacity-50">
+                  נקה
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </Card>
 
       <Card title={`תמונות בפרויקט (${images.length})`}>
