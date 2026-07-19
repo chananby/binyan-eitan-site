@@ -22,7 +22,7 @@ import { Card } from "../shared/Card";
 import { GALLERY_PROJECTS } from "../../../../lib/projects";
 import { resizeImageToBlob } from "../../../../lib/image-resize";
 import {
-  extractFrames, framesToFiles, revokeFrames, FRAME_COUNT,
+  extractFramesAuto, framesToFiles, revokeFrames, FRAME_COUNT,
   type ExtractedFrame,
 } from "../../../../lib/video-frames";
 
@@ -238,6 +238,9 @@ export default function GalleryTab() {
   const [extractDone, setExtractDone] = useState(0);
   const [extractTotal, setExtractTotal] = useState(0);
   const [videoErr, setVideoErr] = useState<string | null>(null);
+  // True once we've fallen back to ffmpeg.wasm — drives the "this will take
+  // longer" notice so a slow decode doesn't look like a hang.
+  const [slowPath, setSlowPath] = useState(false);
   const [passCount, setPassCount] = useState(0); // how many extraction passes so far
   const videoFileRef = useRef<File | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -322,12 +325,14 @@ export default function GalleryTab() {
   async function runExtraction(file: File, phase: number, append: boolean) {
     setExtracting(true);
     setVideoErr(null);
+    setSlowPath(false);
     setExtractDone(0);
     setExtractTotal(FRAME_COUNT);
     try {
-      const got = await extractFrames(file, {
+      const got = await extractFramesAuto(file, {
         phase,
         onProgress: (done, total) => { setExtractDone(done); setExtractTotal(total); },
+        onFallback: () => { setSlowPath(true); setExtractDone(0); },
       });
       if (append) {
         setFrames((prev) => [...prev, ...got]);
@@ -667,15 +672,23 @@ export default function GalleryTab() {
           </p>
 
           {extracting && (
-            <div className="flex items-center gap-2 text-caption text-charcoal/70">
-              <Loader2 size={13} className="animate-spin" />
-              מחלץ {extractDone} מתוך {extractTotal}
+            <div className="space-y-1">
+              {slowPath && (
+                <div className="text-caption text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
+                  הסרטון בפורמט שהדפדפן לא קורא — מפענח בדרך אחרת, זה ייקח קצת יותר זמן.
+                </div>
+              )}
+              <div className="flex items-center gap-2 text-caption text-charcoal/70">
+                <Loader2 size={13} className="animate-spin" />
+                מחלץ {extractDone} מתוך {extractTotal}
+              </div>
             </div>
           )}
 
           {videoErr && (
             <div className="flex items-start gap-1.5 text-caption text-red-600 border border-red-200 bg-red-50 rounded p-2">
-              <AlertCircle size={13} className="mt-0.5 shrink-0" /> <span>{videoErr}</span>
+              <AlertCircle size={13} className="mt-0.5 shrink-0" />
+              <span className="whitespace-pre-line">{videoErr}</span>
             </div>
           )}
 

@@ -287,6 +287,17 @@
   לסרטון ולתצוגות המקדימות + שחרור canvas ב-`finally`. הפריימים עוברים
   ב**מסלול ההעלאה הקיים** (`resizeImageToBlob` → `POST /api/admin/gallery/upload`)
   — **בלי endpoint חדש ובלי שינוי DB**. build + 408 טסטים.
+  - **מסלול גיבוי ffmpeg.wasm** (חנן מצלם HEVC ולא מוכן לשנות הגדרות): אם
+    הפענוח הדפדפני נכשל → `extractFramesAuto` נופל ל-`@ffmpeg/ffmpeg@0.12.15`
+    ב-**dynamic import** (לא ב-bundle הראשי — נמדד: `.next/static` 4.4M לפני
+    ואחרי), עם ליבה מ-CDN ב**גרסה נעולה** `@ffmpeg/core@0.12.10` (לא latest).
+    **headers:** נבחרה הליבה ה**חד-תהליכית** — אומת אמפירית 0 התייחסויות
+    ל-`SharedArrayBuffer`/`pthread` (מול 1+1 ב-`core-mt`), ולכן **לא נדרש
+    COOP/COEP** ו-`next.config` לא נגע → האתר הציבורי לא מושפע. הליבה (30.7MB)
+    מוגשת מ-CDN ולא מה-repo, כדי לא לנפח אותו (סבב 3 דווקא מסיר 38MB).
+    הודעות נפרדות לכל כשל: קודק (עם הפתרון ב-iOS), **CDN לא זמין**, וכשל מלא
+    (הצעה: לשלוח בוואטסאפ שממיר ל-MP4). ניקוי: `deleteFile` + `terminate()`
+    ב-`finally`.
 - **גלריה — מספור רציף בכרטיסי הפרויקטים** — **נפרס** (19.7.26,
   `fix/gallery-sequential-numbering` → main `2d8d0bd`, `dpl_CTwMApKioNQ`;
   אומת בייצור: 01-08 ברצף, בלי חורים). המספור על הכרטיסים דילג (01-05 ואז 07,08).
