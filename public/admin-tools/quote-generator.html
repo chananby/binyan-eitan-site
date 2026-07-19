@@ -1818,7 +1818,7 @@
     </div>
   </aside>
 
-  <div class="panel-resizer" id="panel-resizer" title="גרור לשינוי רוחב"></div>
+  <div class="panel-resizer" id="panel-resizer" title="גרור לשינוי רוחב · דאבל-קליק לאיפוס"></div>
 
   <!-- ===== PREVIEW PANEL ===== -->
   <div class="preview-panel">
@@ -3721,19 +3721,43 @@
   });
 
   // ============ PANEL RESIZER ============
+  // Bounds are computed from the LIVE layout width, so the limit is "the
+  // preview never shrinks below a readable floor" — not "the form can't grow".
+  // Chanan drags freely to either side; whichever panel he shrinks always keeps
+  // a usable minimum. (Earlier the form was hard-capped at 640px, which fixed a
+  // squeezed preview but stopped him widening the editor — problem for problem.)
+  const FORM_MIN_PX      = 320;   // form never narrower than this
+  const FORM_MAX_PX      = 1000;  // …nor absurdly wide on an ultra-wide screen
+  const PREVIEW_MIN_PX   = 400;   // preview column floor — the A4 stays readable
+  const DEFAULT_PANEL_PX = 480;   // balanced default (also the dbl-click reset target)
+
+  function panelBounds() {
+    // .layout content width = clientWidth − horizontal padding (20px each side).
+    // Columns are: form(var) + 6px resizer + preview(1fr). Reserving the resizer
+    // and the preview floor gives the widest the form may be right now.
+    const layout = document.querySelector('.layout');
+    const inner = (layout ? layout.clientWidth : Math.min(window.innerWidth, 1800)) - 40;
+    const RESIZER = 6;
+    let formMax = Math.min(inner - RESIZER - PREVIEW_MIN_PX, FORM_MAX_PX);
+    // Small viewport (or pre-layout): don't let max invert below the min.
+    if (formMax < FORM_MIN_PX) formMax = FORM_MIN_PX;
+    return { min: FORM_MIN_PX, max: formMax };
+  }
+
   function applyPanelWidth() {
-    // Cap the form panel at 640px (was 900) so it can't starve the preview
-    // below a comfortable A4 width — the cause of the "narrow/squeezed preview".
-    const w = Math.max(320, Math.min(state.panelWidthPx || 480, 640));
+    const { min, max } = panelBounds();
+    const w = Math.max(min, Math.min(state.panelWidthPx || DEFAULT_PANEL_PX, max));
     document.documentElement.style.setProperty('--form-panel-width', w + 'px');
   }
   applyPanelWidth();
+  // Re-clamp on window resize so the preview floor is honoured at any width.
+  window.addEventListener('resize', applyPanelWidth);
 
   (function setupResizer() {
     const resizer = document.getElementById('panel-resizer');
     if (!resizer) return;
     let startX = 0;
-    let startW = 480;
+    let startW = DEFAULT_PANEL_PX;
     let dragging = false;
 
     function onMove(e) {
@@ -3741,7 +3765,8 @@
       const x = e.touches ? e.touches[0].clientX : e.clientX;
       // In RTL: dragging LEFT widens the form panel (it's on the right)
       const delta = startX - x;
-      const w = Math.max(320, Math.min(startW + delta, 640));
+      const { min, max } = panelBounds();
+      const w = Math.max(min, Math.min(startW + delta, max));
       state.panelWidthPx = w;
       applyPanelWidth();
     }
@@ -3759,7 +3784,7 @@
     function onDown(e) {
       dragging = true;
       startX = e.touches ? e.touches[0].clientX : e.clientX;
-      startW = state.panelWidthPx || 480;
+      startW = state.panelWidthPx || DEFAULT_PANEL_PX;
       resizer.classList.add('dragging');
       document.body.style.userSelect = 'none';
       window.addEventListener('mousemove', onMove);
@@ -3770,6 +3795,12 @@
     }
     resizer.addEventListener('mousedown', onDown);
     resizer.addEventListener('touchstart', onDown, { passive: false });
+    // Double-click the divider → reset to the balanced default width.
+    resizer.addEventListener('dblclick', () => {
+      state.panelWidthPx = DEFAULT_PANEL_PX;
+      applyPanelWidth();
+      saveState();
+    });
   })();
 
   // ============ CATALOG: FIXED-ITEMS AUTOCOMPLETE (PR 2 of 3) ============
