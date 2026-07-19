@@ -274,6 +274,25 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **מנהל גלריה באדמין — סבב 1 (ניהול בלבד)** — **נפרס** (19.7.26,
+  `feature/gallery-manager` → main `0868b67`, `dpl_4UzH5RoVcmoR`; מיגרציה
+  `20260719_gallery_images.sql` **הורצה** ידנית; `BLOB_READ_WRITE_TOKEN`
+  מאומת בפרודקשן; endpoints מחזירים 401 admin-gated). ממשק חדש להעלאת תמונות
+  לגלריית אתר התדמית, במקום קובץ ב-`/public` + עריכת `lib/projects.ts` + deploy
+  לכל תמונה. **סבב זה = ניהול בלבד** — הגלריה הציבורית עדיין קוראת מהמערך הקשיח
+  (המעבר ל-DB בסבב 2).
+  - טבלת `gallery_images` (`project_slug`=`GALLERY_PROJECTS[].id`, `url` Blob,
+    `sort_order`, `is_cover`, `category`, `alt_he/en`, soft-delete; DEFAULT מפורש
+    לכל עמודה — לקח `attendance.status`).
+  - אחסון **Vercel Blob** (prefix `gallery/`, רוכב על `api/upload`). הקטנה בצד
+    לקוח [`lib/image-resize.ts`](src/lib/image-resize.ts) (~1920px/q0.8,
+    3-5MB→~200-500KB). **העלאה מרובה** קובץ-לבקשה במקביל (concurrency 3), מד
+    "עלו X מתוך N", כישלון בודד לא שובר את האצווה.
+  - endpoints admin-gated: `POST api/admin/gallery/upload`, `GET api/admin/gallery`,
+    `PATCH/DELETE api/admin/gallery/[id]`. tab "גלריה": בורר פרויקט, drop-zone +
+    `multiple`, רשת עם מחיקה/שער/חצי-סדר. `lib/projects.ts`/`ChangeOrderForm`/
+    `api/upload` לא נגעו. **סבב 2 בתור** (מטה): מעבר הגלריה הציבורית ל-DB +
+    מיגרציית 78 התמונות מ-`/public`.
 - **מחולל ההצעות — שליטה חופשית ברוחב הפאנלים (גבולות דו-צדדיים)** — **נפרס**
   (16.7.26, `fix/quote-panel-resize` → main `3b19a31`, `dpl_7bQvuMFi9DE`).
   התיקון הקודם
@@ -831,27 +850,8 @@
 
 ## בתהליך / פתוח
 
-- **מנהל גלריה באדמין — סבב 1 (ניהול בלבד)** (`feature/gallery-manager`,
-  מקומי — ממתין ל-push + **מיגרציה ידנית**). ממשק חדש להעלאת תמונות לגלריית
-  אתר התדמית, במקום קובץ ב-`/public` + עריכת `lib/projects.ts` + deploy לכל
-  תמונה. **סבב זה = ניהול בלבד**; הגלריה הציבורית עדיין קוראת מהמערך הקשיח
-  (המעבר ל-DB בסבב 2 — כדי לא לסכן את האתר הציבורי).
-  - **מיגרציה** [`20260719_gallery_images.sql`](supabase/migrations/20260719_gallery_images.sql)
-    (ידנית, טרם הורצה): טבלת `gallery_images` — `project_slug` (=`GALLERY_PROJECTS[].id`),
-    `url` (Blob), `sort_order`, `is_cover`, `category`, `alt_he/en`, `created_at`,
-    `deleted_at`. DEFAULT מפורש לכל עמודה (לקח `attendance.status`).
-  - **אחסון: Vercel Blob** (רוכב על התשתית של `api/upload`, prefix `gallery/`).
-  - **הקטנה בצד לקוח** [`lib/image-resize.ts`](src/lib/image-resize.ts) — מחזור
-    `resizeImage()` מהמחולל, ~1920px/q0.8, 3-5MB→~200-500KB. בלי זה עשרות
-    תמונות מהנייד נתקעות.
-  - **העלאה מרובה:** קובץ-אחד-לבקשה במקביל (concurrency 3) — כל קובץ מקבל
-    התקדמות, וכישלון בודד לא שובר את האצווה (נאסף ומדווח).
-  - **endpoints (admin-gated):** `POST api/admin/gallery/upload` (Blob+שורת DB),
-    `GET api/admin/gallery?project=` (רשימה), `PATCH/DELETE api/admin/gallery/[id]`
-    (סדר/שער/קטגוריה · מחיקה רכה). **מסך:** tab "גלריה" — בורר פרויקט,
-    drop-zone + בורר `multiple`, מד "עלו X מתוך N", רשת עם מחיקה/שער/חצי-סדר.
-    foreman ללא גישה. `lib/projects.ts` ו-`ChangeOrderForm`/`api/upload` לא נגעו.
-    build + 408 טסטים עוברים.
+_(ריק — כל המיגרציות הידניות שהיו ממתינות אומתו כמוחלות. פריטי החלטה עתידית
+עברו ל"החלטות שננעלו — בתור לבנייה" למטה.)_
 
 ---
 
