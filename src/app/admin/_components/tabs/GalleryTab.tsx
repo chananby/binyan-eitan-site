@@ -16,7 +16,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Upload, Star, Trash2, ChevronUp, ChevronDown, Loader2, AlertCircle, Images,
-  Plus, Pencil, Eye, EyeOff, Save, X, Film, Check,
+  Plus, Pencil, Eye, EyeOff, Save, X, Film, Check, Home,
 } from "lucide-react";
 import { Card } from "../shared/Card";
 import { GALLERY_PROJECTS } from "../../../../lib/projects";
@@ -52,6 +52,7 @@ interface GalleryProjectRow {
   aspect: string;
   sort_order: number;
   is_published: boolean;
+  is_featured: boolean;
   created_at: string;
 }
 
@@ -74,11 +75,12 @@ interface ProjectForm {
   title_he: string; title_en: string;
   category_he: string; category_en: string;
   description_he: string; description_en: string;
-  categories: string[]; aspect: string; is_published: boolean;
+  categories: string[]; aspect: string; is_published: boolean; is_featured: boolean;
 }
 const EMPTY_FORM: ProjectForm = {
   slug: "", url_slug: "", title_he: "", title_en: "", category_he: "", category_en: "",
   description_he: "", description_en: "", categories: [], aspect: "4/3", is_published: true,
+  is_featured: false,
 };
 
 export default function GalleryTab() {
@@ -140,6 +142,7 @@ export default function GalleryTab() {
       category_he: p.category_he, category_en: p.category_en,
       description_he: p.description_he, description_en: p.description_en,
       categories: p.categories ?? [], aspect: p.aspect, is_published: p.is_published,
+      is_featured: p.is_featured,
     });
     setFormErr(null);
     setEditing(p.id);
@@ -467,6 +470,11 @@ export default function GalleryTab() {
                     לא מפורסם
                   </span>
                 )}
+                {p.is_featured && (
+                  <span className="inline-flex items-center gap-1 text-caption px-1.5 py-0.5 rounded bg-accent/10 text-accent font-semibold">
+                    <Home size={11} /> בדף הבית
+                  </span>
+                )}
                 <span className="ms-auto flex items-center gap-1 shrink-0">
                   <button onClick={() => moveProject(idx, -1)} disabled={idx === 0}
                     title="למעלה" className="p-1 text-charcoal/60 hover:text-accent disabled:opacity-30">
@@ -560,6 +568,11 @@ export default function GalleryTab() {
                 <input type="checkbox" checked={form.is_published}
                   onChange={(e) => setForm({ ...form, is_published: e.target.checked })} />
                 מפורסם באתר
+              </label>
+              <label className="flex items-center gap-2 text-caption text-charcoal/70 self-end pb-1">
+                <input type="checkbox" checked={form.is_featured}
+                  onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} />
+                הצג בדף הבית
               </label>
             </div>
             <div>

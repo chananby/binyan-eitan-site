@@ -16,7 +16,7 @@ export const runtime = "nodejs";
 
 const ASPECTS = new Set(["4/3", "3/4", "16/9", "1/1"]);
 const COLS =
-  "id, slug, url_slug, title_he, title_en, category_he, category_en, description_he, description_en, categories, aspect, sort_order, is_published, created_at";
+  "id, slug, url_slug, title_he, title_en, category_he, category_en, description_he, description_en, categories, aspect, sort_order, is_published, is_featured, created_at";
 
 export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
@@ -47,6 +47,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     updates.sort_order = Math.trunc(body.sort_order);
   }
   if (typeof body.is_published === "boolean") updates.is_published = body.is_published;
+  if (typeof body.is_featured === "boolean") updates.is_featured = body.is_featured;
   // slug is intentionally immutable — it keys gallery_images.project_slug.
 
   if (Object.keys(updates).length === 0) {

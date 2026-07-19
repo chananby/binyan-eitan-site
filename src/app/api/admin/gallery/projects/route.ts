@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 const SLUG_RE = /^[a-z0-9-]{1,64}$/;
 const ASPECTS = new Set(["4/3", "3/4", "16/9", "1/1"]);
 const COLS =
-  "id, slug, url_slug, title_he, title_en, category_he, category_en, description_he, description_en, categories, aspect, sort_order, is_published, created_at";
+  "id, slug, url_slug, title_he, title_en, category_he, category_en, description_he, description_en, categories, aspect, sort_order, is_published, is_featured, created_at";
 
 export async function GET(req: NextRequest) {
   if (!isAdminAuthedFromRequest(req)) {
@@ -82,6 +82,8 @@ export async function POST(req: NextRequest) {
     aspect,
     sort_order,
     is_published: body.is_published === undefined ? true : Boolean(body.is_published),
+    // Never auto-feature: a new project must be opted in to the home page.
+    is_featured: body.is_featured === undefined ? false : Boolean(body.is_featured),
   };
 
   const { data, error } = await supabase.from("gallery_projects").insert(row).select(COLS).maybeSingle();

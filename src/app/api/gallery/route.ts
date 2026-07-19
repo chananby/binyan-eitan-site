@@ -16,7 +16,7 @@
  * origin isn't hit on every visit. `num` is derived from published order.
  */
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../lib/supabase";
 
 export const runtime = "nodejs";
@@ -42,19 +42,25 @@ interface ImageRow {
   is_cover: boolean;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // ?featured=1 → only the home-page showcase (is_featured AND is_published).
+  // Same endpoint, same shape, same caching — the home page does not need one
+  // of its own.
+  const featuredOnly = req.nextUrl.searchParams.get("featured") === "1";
   try {
     const supabase = createServerClient();
 
+    let projQuery = supabase
+      .from("gallery_projects")
+      .select(
+        "slug, url_slug, title_he, title_en, category_he, category_en, description_he, description_en, categories, aspect, sort_order",
+      )
+      .eq("is_published", true)
+      .is("deleted_at", null);
+    if (featuredOnly) projQuery = projQuery.eq("is_featured", true);
+
     const [projRes, imgRes] = await Promise.all([
-      supabase
-        .from("gallery_projects")
-        .select(
-          "slug, url_slug, title_he, title_en, category_he, category_en, description_he, description_en, categories, aspect, sort_order",
-        )
-        .eq("is_published", true)
-        .is("deleted_at", null)
-        .order("sort_order", { ascending: true }),
+      projQuery.order("sort_order", { ascending: true }),
       supabase
         .from("gallery_images")
         .select("project_slug, url, sort_order, is_cover")

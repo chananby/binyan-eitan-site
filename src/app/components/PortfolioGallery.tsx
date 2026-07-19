@@ -116,6 +116,35 @@ const PROJECTS = [
   },
 ];
 
+// The hard-coded PROJECTS above stay in the file as the SAFE FALLBACK — the
+// home page is the most important page on the site and must never break, so it
+// renders these instantly and only swaps in DB data once /api/gallery?featured=1
+// answers with a non-empty array (same contract as ProjectsGallery).
+//
+// Copy note: the five original projects take their title/category from the
+// translation bundle (proj_N_title / proj_N_category), and that copy differs
+// from the gallery_projects rows (e.g. "תשתיות ומבני ציבור" vs "תשתיות ציבוריות").
+// To keep the home page byte-identical after the switch, those five keep using
+// the translations — mapped by SLUG, not by array position — and only projects
+// with no legacy mapping (i.e. ones Chanan added in the admin) use their DB copy.
+const LEGACY_TRANSLATION_INDEX: Record<string, number> = {
+  "amshinov": 0,
+  "bayit-vegan": 1,
+  "ohel-avshalom": 2,
+  "ramat-eshkol": 3,
+  "jerusalem-luxury": 4,
+};
+
+interface HomeProject {
+  num: string;
+  cover: string;
+  series: string[];
+  /** Present only for DB-sourced rows; undefined for the hard-coded fallback. */
+  slug?: string;
+  titleFromDb?: string;
+  categoryFromDb?: string;
+}
+
 const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 // 8×8 dark-gray PNG, base64. Used as the lightbox blurDataURL so the image
@@ -135,7 +164,34 @@ export default function PortfolioGallery() {
   const [activeProject, setActiveProject] = useState<number | null>(null);
   const [activeImage, setActiveImage] = useState(0);
 
-  const project = activeProject !== null ? PROJECTS[activeProject] : null;
+  // Start on the hard-coded fallback, then hydrate from the DB.
+  const [projects, setProjects] = useState<HomeProject[]>(PROJECTS);
+
+  useEffect(() => {
+    fetch("/api/gallery?featured=1")
+      .then((r) => r.json())
+      .then((data: Array<{
+        id: string; num: string; cover: string; images: string[];
+        he: { title: string; category: string }; en: { title: string; category: string };
+      }>) => {
+        if (!Array.isArray(data) || data.length === 0) return; // keep fallback
+        setProjects(
+          data.map((p) => ({
+            num: p.num,
+            cover: p.cover,
+            series: p.images ?? [],
+            slug: p.id,
+            titleFromDb: l === "he" ? p.he?.title : p.en?.title,
+            categoryFromDb: l === "he" ? p.he?.category : p.en?.category,
+          })),
+        );
+      })
+      .catch(() => {
+        // silently keep the hard-coded fallback — the home page never breaks
+      });
+  }, [l]);
+
+  const project = activeProject !== null ? projects[activeProject] : null;
   const series = project?.series ?? [];
   const totalImages = series.length;
 
@@ -199,9 +255,16 @@ export default function PortfolioGallery() {
 
           {/* Asymmetric bento grid: item 0 tall left, items 1-2 right column stacked, item 3 full-width */}
           <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-12">
-            {PROJECTS.map((proj, index) => {
-              const title = ut[`proj_${index}_title`] ?? "";
-              const category = ut[`proj_${index}_category`] ?? "";
+            {projects.map((proj, index) => {
+              // Legacy five keep their translated copy (mapped by slug so it
+              // survives reordering); admin-added projects use their DB copy.
+              const legacy = proj.slug != null ? LEGACY_TRANSLATION_INDEX[proj.slug] : index;
+              const title =
+                (legacy !== undefined ? ut[`proj_${legacy}_title`] : undefined) ??
+                proj.titleFromDb ?? "";
+              const category =
+                (legacy !== undefined ? ut[`proj_${legacy}_category`] : undefined) ??
+                proj.categoryFromDb ?? "";
               // col-span layout: 0=7cols tall, 1=5cols, 2=5cols, 3=7cols, 4=5cols tall
               const colClass =
                 index === 0 ? "sm:col-span-7 sm:row-span-2 aspect-[4/5] sm:aspect-auto" :
@@ -265,7 +328,8 @@ export default function PortfolioGallery() {
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label={(ut[`proj_${activeProject}_title`] ?? ui.title) as string}
+            aria-label={(ut[`proj_${LEGACY_TRANSLATION_INDEX[projects[activeProject]?.slug ?? ""] ?? activeProject}_title`]
+              ?? projects[activeProject]?.titleFromDb ?? ui.title) as string}
             className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
