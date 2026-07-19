@@ -78,24 +78,28 @@ export async function GET() {
       else byProject.set(im.project_slug, [im]);
     }
 
-    const result = projects.map((p, i) => {
-      const imgs = byProject.get(p.slug) ?? [];
-      const cover = imgs.find((im) => im.is_cover)?.url ?? imgs[0]?.url ?? "";
-      return {
-        id: p.slug,
-        urlSlug: p.url_slug,
-        num: String(i + 1).padStart(2, "0"),
-        cover,
-        aspect: (p.aspect || "4/3") as "4/3" | "3/4" | "16/9" | "1/1",
-        images: imgs.map((im) => im.url),
-        categories: p.categories ?? [],
-        he: { title: p.title_he, category: p.category_he, shortDesc: p.description_he },
-        en: { title: p.title_en, category: p.category_en, shortDesc: p.description_en },
-      };
-    });
-
-    // Drop projects with zero images — the card needs a cover.
-    const withImages = result.filter((p) => p.images.length > 0);
+    // Drop projects with zero images FIRST (the card needs a cover), and only
+    // then number them. Numbering before the filter left holes in the sequence
+    // (01-05, 07…) because a dropped project still consumed its number.
+    // `num` is display-only: sort_order decides the ORDER, position decides the
+    // label, so gaps in sort_order never surface to the visitor.
+    const withImages = projects
+      .filter((p) => (byProject.get(p.slug)?.length ?? 0) > 0)
+      .map((p, i) => {
+        const imgs = byProject.get(p.slug) ?? [];
+        const cover = imgs.find((im) => im.is_cover)?.url ?? imgs[0]?.url ?? "";
+        return {
+          id: p.slug,
+          urlSlug: p.url_slug,
+          num: String(i + 1).padStart(2, "0"),
+          cover,
+          aspect: (p.aspect || "4/3") as "4/3" | "3/4" | "16/9" | "1/1",
+          images: imgs.map((im) => im.url),
+          categories: p.categories ?? [],
+          he: { title: p.title_he, category: p.category_he, shortDesc: p.description_he },
+          en: { title: p.title_en, category: p.category_en, shortDesc: p.description_en },
+        };
+      });
 
     return NextResponse.json(withImages, {
       headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
