@@ -338,6 +338,10 @@ export default function GalleryTab() {
 
   const uploadPct = uploadTotal > 0 ? Math.round((uploadDone / uploadTotal) * 100) : 0;
   const inp = "border border-charcoal/20 rounded px-2 py-1 text-content bg-white w-full";
+  // Long-text fields: vertical-only drag handle (horizontal would overflow the
+  // grid column and break the form), a roomy default so a typical 3–4 line
+  // description fits without scrolling, and a floor so it can't be dragged shut.
+  const txt = `${inp} resize-y min-h-[5.5rem] leading-relaxed`;
 
   return (
     <div className="space-y-4">
@@ -440,12 +444,12 @@ export default function GalleryTab() {
               </label>
               <label className="text-caption text-charcoal/70">
                 תיאור (עברית)
-                <textarea className={inp} rows={2} value={form.description_he}
+                <textarea className={txt} rows={5} value={form.description_he}
                   onChange={(e) => setForm({ ...form, description_he: e.target.value })} />
               </label>
               <label className="text-caption text-charcoal/70">
                 Description (English)
-                <textarea className={inp} rows={2} value={form.description_en}
+                <textarea className={txt} rows={5} value={form.description_en}
                   onChange={(e) => setForm({ ...form, description_en: e.target.value })} />
               </label>
               <label className="text-caption text-charcoal/70">
