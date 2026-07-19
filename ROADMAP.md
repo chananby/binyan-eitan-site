@@ -850,8 +850,34 @@
 
 ## בתהליך / פתוח
 
-_(ריק — כל המיגרציות הידניות שהיו ממתינות אומתו כמוחלות. פריטי החלטה עתידית
-עברו ל"החלטות שננעלו — בתור לבנייה" למטה.)_
+- **מנהל גלריה — סבב 2 (מעבר האתר הציבורי ל-DB + ניהול פרויקטים)**
+  (`feature/gallery-projects-db`, מקומי — ממתין ל-push + **2 מיגרציות ידניות**).
+  משלים את הפער מסבב 1: הגלריה הציבורית עברה מהמערך הקשיח לקריאה מ-DB, וחנן
+  יכול לנהל פרויקטים במלואם (לא רק תמונות) — כולל להוסיף 5 פרויקטים חדשים בלי קוד.
+  - **2 מיגרציות (סדר הרצה):** (1)
+    [`20260719_gallery_projects.sql`](supabase/migrations/20260719_gallery_projects.sql)
+    — טבלת `gallery_projects` (slug, url_slug, title_he/en, category_he/en,
+    description_he/en, categories[], aspect, sort_order, is_published, soft-delete;
+    DEFAULT מפורש). (2)
+    [`20260719_gallery_content_migration.sql`](supabase/migrations/20260719_gallery_content_migration.sql)
+    — ייבוא 5 הפרויקטים + 75 שורות תמונה (73 refs + 2 קבצי-שער שהיו מחוץ ל-images[]
+    → נכנסו כתמונה מובילה) מ-`GALLERY_PROJECTS`; url=נתיב `/public` הנוכחי;
+    idempotent. **התמונות נשארות ב-`/public`** — רק הרישום עבר ל-DB.
+  - **קריאה ציבורית:** [`GET /api/gallery`](src/app/api/gallery/route.ts) (ציבורי,
+    ISR/CDN 60ש') מרכיב `GalleryProject[]` מ-`gallery_projects`+`gallery_images`
+    (published, לא-מחוק, לפי sort_order). **fallback בטוח:** ProjectsGallery
+    מתחיל מהמערך הקשיח ומחליף רק אם התשובה מערך לא-ריק → כשל/ריק שומר את ה-fallback,
+    האתר לא נשבר. `next/image` נשמר; הוסף hostname של Blob ל-`next.config`.
+    **מסלול Cloudinary הרדום הוסר** (`api/cloudinary-gallery`; `lib/cloudinary.ts`
+    נשאר כ-helper ל-`/public`). תוקן באג נגרר: `GALLERY_PROJECTS.indexOf` → `projects.indexOf`.
+  - **ניהול פרויקטים באדמין:** endpoints CRUD (`GET/POST api/admin/gallery/projects`,
+    `PATCH/DELETE .../[id]`, admin-gated) + GalleryTab מורחב (רשימה + הוסף/ערוך,
+    כותרות/תיאורים he/en, קטגוריות, aspect, פרסום, סדר, מחיקה רכה; הבורר קורא
+    מה-DB). build + 408 טסטים.
+  - **בתור אחרי אימות:** ניקוי `/public` (העלאת 73 התמונות ל-Blob + מחיקה מה-repo) —
+    לא בסבב זה, אחרי שנוודא שהכל עובד.
+
+_(שאר הפריטים: כל המיגרציות הישנות אומתו כמוחלות.)_
 
 ---
 
@@ -927,13 +953,12 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
 
 ## בתור (עם תלויות)
 
-### מנהל גלריה — סבב 2 (מעבר האתר הציבורי ל-DB)
-- **תלוי בסבב 1** (הטבלה + הניהול, `feature/gallery-manager`) ובהרצת המיגרציה.
-- מעבר הגלריה הציבורית מהמערך הקשיח `lib/projects.ts` לקריאה מ-`gallery_images`
-  (דרך endpoint ציבורי + ISR, בדומה ל-`api/cloudinary-gallery` הרדום).
-- **מיגרציית 78 התמונות הקיימות** מ-`/public` → Blob + שורות DB (סקריפט חד-פעמי),
-  כולל `is_cover`/`sort_order`/`categories` הקיימים לכל פרויקט.
-- רק אחרי אימות שהניהול יציב — כדי לא לסכן את האתר הציבורי.
+### מנהל גלריה — סבב 3 (ניקוי /public)
+- **תלוי בסבב 2** (`feature/gallery-projects-db`, הקריאה מ-DB) ובאימות שהגלריה
+  הציבורית יציבה מ-DB.
+- העלאת 73 התמונות מ-`/public` ל-Vercel Blob + עדכון ה-`url` בשורות `gallery_images`
+  מ-`/foo.jpg` ל-URL של Blob, ואז מחיקתן מה-repo (מסיר את ~38MB).
+- רק אחרי שרואים שהכל מוגש נכון מה-DB — כדי לא לסכן את האתר הציבורי.
 
 ### שכבה 2 — השלמות רווחיות פר-פרויקט
 - **עלות עבודה פר-פרויקט** — סיכום `attendance × rates` לפי project_id.

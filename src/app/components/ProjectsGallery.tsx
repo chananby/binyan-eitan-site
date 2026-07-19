@@ -52,15 +52,18 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
   const dir = lang === "he" ? "rtl" : "ltr";
   const homeHref = lang === "he" ? "/he" : "/en";
 
-  // Start with static data (instant render), then hydrate from Cloudinary API
+  // Start with the hard-coded GALLERY_PROJECTS (instant render + safe fallback),
+  // then hydrate from the DB-backed /api/gallery on mount.
   const [projects, setProjects] = useState<GalleryProject[]>(GALLERY_PROJECTS);
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
   const [openProject, setOpenProject] = useState<number | null>(null);
   const [activeImage, setActiveImage] = useState(0);
 
-  // Fetch live data from Cloudinary on mount — silently replaces static data
+  // Fetch live gallery from the DB on mount. It only replaces the static data
+  // when the response is a NON-EMPTY array — so a failed/empty fetch silently
+  // keeps the hard-coded fallback and the public site never breaks.
   useEffect(() => {
-    fetch("/api/cloudinary-gallery")
+    fetch("/api/gallery")
       .then((r) => r.json())
       .then((data: GalleryProject[]) => {
         if (Array.isArray(data) && data.length > 0) setProjects(data);
@@ -243,7 +246,9 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
                 className="columns-1 sm:columns-2 lg:columns-3 gap-4"
               >
                 {filtered.map((proj, idx) => {
-                  const projIdx = GALLERY_PROJECTS.indexOf(proj);
+                  // Index into `projects` (the live state — static OR API data),
+                  // NOT the static array; openProject indexes into `projects`.
+                  const projIdx = projects.indexOf(proj);
                   const aspectClass =
                     proj.aspect === "3/4"
                       ? "aspect-[3/4]"
