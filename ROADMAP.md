@@ -274,8 +274,10 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
-- **דף הבית — גלריית פרויקטים מה-DB עם `is_featured`** (`feature/home-gallery-db`,
-  מקומי — ממתין ל-push + **מיגרציה ידנית**). `PortfolioGallery` השתמשה במערך
+- **דף הבית — גלריית פרויקטים מה-DB עם `is_featured`** — **נפרס** (19.7.26,
+  `feature/home-gallery-db` → main `0285b50`, `dpl_emdy8XHG2Fv`; המיגרציה הורצה
+  ידנית. **אומת בייצור:** `?featured=1` מחזיר בדיוק את 5 המקוריים, ו-`/api/gallery`
+  הרגיל עדיין 8 פרויקטים במספור 01-08 — אין נסיגה). `PortfolioGallery` השתמשה במערך
   `PROJECTS` קשיח משלה, כך שפרויקטים שחנן מוסיף הופיעו ב-`/he/projects` אבל **לא
   בדף הבית**. **מיגרציה** [`20260719_gallery_is_featured.sql`](supabase/migrations/20260719_gallery_is_featured.sql):
   עמודת `is_featured boolean NOT NULL DEFAULT false` (false בכוונה — פרויקט חדש
