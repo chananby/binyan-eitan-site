@@ -274,6 +274,25 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **מנהל גלריה — סבב 2 (מעבר האתר הציבורי ל-DB + ניהול פרויקטים)** — **נפרס**
+  (19.7.26, `feature/gallery-projects-db` → main `f5c6bc7`, deploy `2g3xs9z1f`;
+  2 מיגרציות הורצו ידנית בסדר projects→content; **אימות ייצור:**
+  `/api/gallery` מחזיר 5 פרויקטים מה-DB — לא `[]`). משלים את סבב 1: הגלריה
+  הציבורית (`/projects`) עברה מהמערך הקשיח לקריאה מ-DB, וחנן מנהל פרויקטים
+  במלואם (כותרת/תיאור/קטגוריה he+en, aspect, url_slug, פרסום, סדר) — כולל
+  הוספת פרויקטים חדשים בלי קוד.
+  - **2 טבלאות:** `gallery_projects` (slug=`gallery_images.project_slug`) +
+    ייבוא 5 פרויקטים ו-75 שורות תמונה (73 refs + 2 שערים שהיו מחוץ ל-images[])
+    מ-`GALLERY_PROJECTS`; url=נתיב `/public` הנוכחי. **התמונות נשארות ב-`/public`**.
+  - **קריאה ציבורית** [`GET /api/gallery`](src/app/api/gallery/route.ts)
+    (force-dynamic + CDN 60ש') → `GalleryProject[]` (published, לא-מחוק, לפי
+    sort_order). **fallback:** ProjectsGallery מחליף רק על מערך לא-ריק — כשל/ריק
+    שומר את המערך הקשיח, האתר לא נשבר. `next/image` נשמר + hostname של Blob
+    ב-`next.config`. מסלול `api/cloudinary-gallery` הרדום הוסר. תוקן באג
+    `GALLERY_PROJECTS.indexOf`→`projects.indexOf` (lightbox).
+  - **ניהול:** CRUD `api/admin/gallery/projects[/[id]]` (admin-gated) + GalleryTab
+    מורחב (רשימה/הוסף/ערוך/פרסום/סדר/מחיקה; הבורר קורא מה-DB). `lib/projects.ts`
+    נשמר כ-fallback. **סבב 3 בתור:** ניקוי `/public` (73 תמונות→Blob).
 - **מנהל גלריה באדמין — סבב 1 (ניהול בלבד)** — **נפרס** (19.7.26,
   `feature/gallery-manager` → main `0868b67`, `dpl_4UzH5RoVcmoR`; מיגרציה
   `20260719_gallery_images.sql` **הורצה** ידנית; `BLOB_READ_WRITE_TOKEN`
@@ -850,34 +869,8 @@
 
 ## בתהליך / פתוח
 
-- **מנהל גלריה — סבב 2 (מעבר האתר הציבורי ל-DB + ניהול פרויקטים)**
-  (`feature/gallery-projects-db`, מקומי — ממתין ל-push + **2 מיגרציות ידניות**).
-  משלים את הפער מסבב 1: הגלריה הציבורית עברה מהמערך הקשיח לקריאה מ-DB, וחנן
-  יכול לנהל פרויקטים במלואם (לא רק תמונות) — כולל להוסיף 5 פרויקטים חדשים בלי קוד.
-  - **2 מיגרציות (סדר הרצה):** (1)
-    [`20260719_gallery_projects.sql`](supabase/migrations/20260719_gallery_projects.sql)
-    — טבלת `gallery_projects` (slug, url_slug, title_he/en, category_he/en,
-    description_he/en, categories[], aspect, sort_order, is_published, soft-delete;
-    DEFAULT מפורש). (2)
-    [`20260719_gallery_content_migration.sql`](supabase/migrations/20260719_gallery_content_migration.sql)
-    — ייבוא 5 הפרויקטים + 75 שורות תמונה (73 refs + 2 קבצי-שער שהיו מחוץ ל-images[]
-    → נכנסו כתמונה מובילה) מ-`GALLERY_PROJECTS`; url=נתיב `/public` הנוכחי;
-    idempotent. **התמונות נשארות ב-`/public`** — רק הרישום עבר ל-DB.
-  - **קריאה ציבורית:** [`GET /api/gallery`](src/app/api/gallery/route.ts) (ציבורי,
-    ISR/CDN 60ש') מרכיב `GalleryProject[]` מ-`gallery_projects`+`gallery_images`
-    (published, לא-מחוק, לפי sort_order). **fallback בטוח:** ProjectsGallery
-    מתחיל מהמערך הקשיח ומחליף רק אם התשובה מערך לא-ריק → כשל/ריק שומר את ה-fallback,
-    האתר לא נשבר. `next/image` נשמר; הוסף hostname של Blob ל-`next.config`.
-    **מסלול Cloudinary הרדום הוסר** (`api/cloudinary-gallery`; `lib/cloudinary.ts`
-    נשאר כ-helper ל-`/public`). תוקן באג נגרר: `GALLERY_PROJECTS.indexOf` → `projects.indexOf`.
-  - **ניהול פרויקטים באדמין:** endpoints CRUD (`GET/POST api/admin/gallery/projects`,
-    `PATCH/DELETE .../[id]`, admin-gated) + GalleryTab מורחב (רשימה + הוסף/ערוך,
-    כותרות/תיאורים he/en, קטגוריות, aspect, פרסום, סדר, מחיקה רכה; הבורר קורא
-    מה-DB). build + 408 טסטים.
-  - **בתור אחרי אימות:** ניקוי `/public` (העלאת 73 התמונות ל-Blob + מחיקה מה-repo) —
-    לא בסבב זה, אחרי שנוודא שהכל עובד.
-
-_(שאר הפריטים: כל המיגרציות הישנות אומתו כמוחלות.)_
+_(ריק — כל המיגרציות הידניות שהיו ממתינות אומתו כמוחלות. פריטי החלטה עתידית
+עברו ל"החלטות שננעלו — בתור לבנייה" למטה.)_
 
 ---
 
