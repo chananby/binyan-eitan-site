@@ -613,6 +613,16 @@
   .doc-notes li { margin-bottom: 3px; line-height: 1.5; }
   .doc-notes p { line-height: 1.6; }
 
+  .payment-terms-warning {
+    margin-top: 6px;
+    padding: 6px 10px;
+    border: 1px solid #fcd34d;
+    background: #fffbeb;
+    color: #92400e;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
   .doc-payment-terms {
     background: var(--brand-light);
     border-radius: 4px;
@@ -1648,10 +1658,15 @@
     </div>
 
     <div class="form-section">
-      <h2>תנאי תשלום</h2>
+      <h2>תנאי תשלום <small style="font-weight:400;color:var(--text-muted);font-size:11px">(הערה משלימה — מודפסת מתחת ללוח התשלומים)</small></h2>
       <div class="form-row full">
         <div class="form-group">
-          <input type="text" data-field="paymentTerms" placeholder='למשל: מקדמה 20%, היתרה לפי התקדמות ע"פ לוח תשלומים שיצורף'>
+          <input type="text" data-field="paymentTerms" placeholder='הערה משלימה ללוח התשלומים — למשל: "התשלום בהעברה בנקאית בלבד"'>
+          <!-- Warns (never blocks) when this free text sits alongside a
+               structured schedule — the pair used to contradict each other. -->
+          <div id="payment-terms-warning" class="payment-terms-warning" hidden>
+            ⚠ שים לב — יש כבר לוח תשלומים מפורט. ודא שהטקסט כאן לא סותר אותו.
+          </div>
         </div>
       </div>
     </div>
@@ -1858,7 +1873,12 @@
         ]
       }
     ],
-    paymentTerms: 'מקדמה 20%, היתרה לפי התקדמות ע"פ לוח תשלומים שיצורף',
+    // Empty by default ON PURPOSE. This used to ship "מקדמה 20%, היתרה לפי
+    // התקדמות ע"פ לוח תשלומים שיצורף", which contradicted the structured
+    // milestone block seeded into every new quote (and "שיצורף" was wrong —
+    // the schedule is printed in the document). Kept as an optional NOTE that
+    // renders directly under the schedule; existing quotes keep their text.
+    paymentTerms: '',
     notes: [
       'הצעת המחיר מבוססת על התכניות שסופקו.',
       'הצעת המחיר אינה כוללת חומר לבן.',
@@ -2619,6 +2639,16 @@
 
       ${renderBlocksPreview()}
 
+      ${/* The payment note normally prints inside the schedule block, right under
+            the table. If this quote has no payment block at all (older quotes,
+            or one the admin deleted) it would otherwise vanish — so fall back to
+            printing it standalone here, still adjacent to the blocks. */''}
+      ${state.paymentTerms && !state.blocks.some(b => b.type === 'payment') ? `
+        <div class="doc-payment-terms">
+          <strong>תנאי תשלום:</strong> ${esc(state.paymentTerms)}
+        </div>
+      ` : ''}
+
       ${state.images.length > 0 ? `
         <div class="doc-images-section">
           <h3>תמונות והדמיות</h3>
@@ -2631,12 +2661,6 @@
             `).join('')}
           </div>
           ${state.imagesDisclaimer ? `<div class="doc-images-disclaimer">${esc(state.imagesDisclaimer)}</div>` : ''}
-        </div>
-      ` : ''}
-
-      ${state.paymentTerms ? `
-        <div class="doc-payment-terms">
-          <strong>תנאי תשלום:</strong> ${esc(state.paymentTerms)}
         </div>
       ` : ''}
 
@@ -2828,7 +2852,10 @@
   }
   
   function renderPaymentBody(b) {
-    const baseTotal = effectiveBase();
+    // Post-discount base — the same figure the totals table calls
+    // "סה"כ לפני מע"מ". Using effectiveBase() here made the milestones add up
+    // to MORE than the customer actually owes whenever a discount existed.
+    const baseTotal = subtotalAfterDiscount();
     const totalPct = b.milestones.reduce((s, m) => s + (Number(m.percentage) || 0), 0);
     return `
       <label class="field-label">כותרת</label>
@@ -2951,7 +2978,13 @@
   function renderPaymentPreview(b) {
     const validMilestones = b.milestones.filter(m => m.description || Number(m.percentage));
     if (!b.title && !b.intro && validMilestones.length === 0) return '';
-    const baseTotal = effectiveBase();
+    // Same post-discount base as the totals table (see renderPaymentBody).
+    const baseTotal = subtotalAfterDiscount();
+    // Two money columns only when VAT actually applies — at 0% the second
+    // column would repeat the first, which is noise rather than information.
+    const vatPct = Number(state.vatRate) || 0;
+    const showVatCol = vatPct > 0;
+    const vatMult = 1 + vatPct / 100;
     return `
       <div class="doc-payment-section">
         ${b.title ? `<h3>${esc(b.title)}</h3>` : ''}
@@ -2962,7 +2995,8 @@
               <tr>
                 <th>שלב</th>
                 <th class="num">אחוז</th>
-                <th class="price">סכום (לפני מע"מ)</th>
+                <th class="price">לפני מע"מ</th>
+                ${showVatCol ? '<th class="price">כולל מע"מ</th>' : ''}
               </tr>
             </thead>
             <tbody>
@@ -2974,12 +3008,20 @@
                     <td>${esc(m.description)}</td>
                     <td class="num">${pct}%</td>
                     <td class="price">${money(amount)}</td>
+                    ${showVatCol ? `<td class="price">${money(amount * vatMult)}</td>` : ''}
                   </tr>
                 `;
               }).join('')}
             </tbody>
           </table>
-          <div class="doc-payment-vat-note">מע"מ ${state.vatRate}% מתווסף לכל חשבון.</div>
+          <div class="doc-payment-vat-note">${showVatCol
+            ? `הסכומים כוללים מע"מ ${state.vatRate}% בעמודה הימנית.`
+            : 'מע"מ אינו חל על הצעה זו.'}</div>
+        ` : ''}
+        ${state.paymentTerms ? `
+          <div class="doc-payment-terms">
+            <strong>תנאי תשלום:</strong> ${esc(state.paymentTerms)}
+          </div>
         ` : ''}
       </div>
     `;
@@ -3020,6 +3062,15 @@
     `;
   }
 
+  // Amber notice when the free-text payment note coexists with a structured
+  // schedule. Advisory only — the admin may legitimately want both.
+  function renderPaymentTermsWarning() {
+    const el = document.getElementById('payment-terms-warning');
+    if (!el) return;
+    const hasSchedule = state.blocks.some(b => b.type === 'payment');
+    el.hidden = !(hasSchedule && (state.paymentTerms || '').trim());
+  }
+
   function render() {
     fillTopFields();
     renderSections();
@@ -3031,6 +3082,7 @@
     renderBlocks();
     renderCompanyLock();
     renderDefaultMilestones();
+    renderPaymentTermsWarning();
     renderPreview();
     // No saveState() here — render() is also called at init time when the
     // state hasn't actually changed, and calling saveState() then would burn
@@ -3275,7 +3327,7 @@
           const infoEl = oldCard.querySelector('.milestone-pct-info');
           const totalPct = b.milestones.reduce((s, x) => s + (Number(x.percentage) || 0), 0);
           if (infoEl) {
-            infoEl.innerHTML = `סך אחוזים: <strong style="color:${Math.abs(totalPct-100)<0.01?'var(--success)':'var(--danger)'}">${totalPct}%</strong>${effectiveBase() ? ` · בסיס לחישוב: ${money(effectiveBase())} (סה"כ לפני מע"מ)` : ''}`;
+            infoEl.innerHTML = `סך אחוזים: <strong style="color:${Math.abs(totalPct-100)<0.01?'var(--success)':'var(--danger)'}">${totalPct}%</strong>${subtotalAfterDiscount() ? ` · בסיס לחישוב: ${money(subtotalAfterDiscount())} (סה"כ לפני מע"מ)` : ''}`;
           }
         }
         renderPreview();
