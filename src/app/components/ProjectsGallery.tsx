@@ -45,24 +45,20 @@ const SLUGS_WITHHELD = new Set([
   "jerusalem-luxury-residence",
 ]);
 
-// The "Project Page" tag is shown only when a detail page ACTUALLY EXISTS for
-// the slug. `detailSlugs` is passed in from the server page and is the detail
-// route's own source of truth (PROJECT_SLUGS in src/data/projects), so a
-// project added in the admin — which has no hand-written detail page — simply
-// gets no tag instead of a link to a 404. A hard-coded deny-list could never
-// know about DB-added projects; this check needs no maintenance.
-function hasDetailPage(urlSlug: string, detailSlugs: Set<string>): boolean {
-  return detailSlugs.has(urlSlug) && !SLUGS_WITHHELD.has(urlSlug);
+// Every published project now has a page: the five originals have hand-written
+// rich pages, and anything added in the admin gets a slim page generated from
+// its gallery_projects row. So the tag shows for all of them EXCEPT the four
+// deliberately withheld above (their content is still in preparation and the
+// proxy redirects them home — exposing them here would send visitors bouncing
+// back to the home page). An empty url_slug is guarded so we can never link to
+// the bare /projects/ path.
+function hasDetailPage(urlSlug: string): boolean {
+  return Boolean(urlSlug) && !SLUGS_WITHHELD.has(urlSlug);
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export default function ProjectsGallery(
-  { lang, detailSlugs = [] }: { lang: Lang; detailSlugs?: string[] },
-) {
-  // Only 5 short strings cross to the client — the rich project content stays
-  // on the server (importing PROJECT_SLUGS here would pull all of it in).
-  const detailSlugSet = useMemo(() => new Set(detailSlugs), [detailSlugs]);
+export default function ProjectsGallery({ lang }: { lang: Lang }) {
   const dir = lang === "he" ? "rtl" : "ltr";
   const homeHref = lang === "he" ? "/he" : "/en";
 
@@ -341,7 +337,7 @@ export default function ProjectsGallery(
                             <span className="inline-block text-[10px] uppercase tracking-widest text-bone/70 border border-bone/30 px-3 py-1.5">
                               {lang === "he" ? "פתח גלריה" : "View Gallery"}
                             </span>
-                            {hasDetailPage(proj.urlSlug, detailSlugSet) && (
+                            {hasDetailPage(proj.urlSlug) && (
                               <Link
                                 href={`/${lang}/projects/${proj.urlSlug}`}
                                 onClick={(e) => e.stopPropagation()}

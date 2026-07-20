@@ -5,6 +5,8 @@ import Link from "next/link";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import ProjectGalleryClient from "../../../components/ProjectGalleryClient";
+import DbProjectPage from "../../../components/DbProjectPage";
+import { loadDbProjectPage } from "../../../../lib/gallery-project-page";
 import { ALL_PROJECTS, getProjectBySlug, PROJECT_SLUGS } from "../../../../data/projects";
 
 // ── Static generation ──────────────────────────────────────────────────────────
@@ -12,6 +14,12 @@ import { ALL_PROJECTS, getProjectBySlug, PROJECT_SLUGS } from "../../../../data/
 export function generateStaticParams() {
   return PROJECT_SLUGS.map((slug) => ({ slug }));
 }
+
+// dynamicParams stays at its default (true) ON PURPOSE: slugs that aren't in
+// the list above are rendered on demand, which is exactly what a project added
+// in the admin needs — it works immediately, with no redeploy. Listing DB slugs
+// here instead would freeze them at build time and reintroduce the 404.
+export const revalidate = 60; // matches /api/gallery's 60 s freshness
 
 // ── Metadata ───────────────────────────────────────────────────────────────────
 
@@ -22,7 +30,27 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const params = await props.params;
   const project = getProjectBySlug(params.slug);
-  if (!project) return {};
+  if (!project) {
+    // Not a hand-written page — try the DB-backed slim page.
+    const db = await loadDbProjectPage(params.slug, "en");
+    if (!db) return {};
+    const canonical = `https://binyaneitan.com/en/projects/${params.slug}`;
+    return {
+      title: db.title,
+      description: db.description || undefined,
+      alternates: { canonical },
+      openGraph: {
+        title: db.title,
+        description: db.description || undefined,
+        url: canonical,
+        siteName: "Binyan Eitan",
+        locale: "en_US",
+        type: "article",
+        images: [{ url: db.cover, alt: db.title }],
+      },
+      twitter: { card: "summary_large_image" },
+    };
+  }
 
   const { metadata, heroImage, en } = project;
   const canonicalEn = `https://binyaneitan.com/en/projects/${params.slug}`;
@@ -97,7 +125,13 @@ function buildJsonLd(slug: string) {
 export default async function EnProjectDetailPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   const project = getProjectBySlug(params.slug);
-  if (!project) notFound();
+  if (!project) {
+    // No hand-written page: fall back to the slim page generated from the
+    // gallery_projects row. Still 404 if that lookup finds nothing.
+    const db = await loadDbProjectPage(params.slug, "en");
+    if (!db) notFound();
+    return <DbProjectPage project={db} lang="en" />;
+  }
 
   const { en, heroImage, galleryImages, num, aspect } = project;
   const jsonLd = buildJsonLd(params.slug);
