@@ -429,14 +429,40 @@ flowchart TD
 - **עמודים** (נתיבים כפולים `src/app/he/*` ו-`en/*`; לעברית עמודים נוספים):
   - **בית** — `he/page.tsx` → `ClientLayouts/HeHomeClient.tsx`: Navbar, Hero, Pillars, ProcessSection, TechnicalAnatomy, PortfolioGallery, EngineeringExcellence, Testimonials, FounderQuote, ContactForm, Footer.
   - **אודות** — `AboutPage.tsx` (מוטי איתן, מייסד, ג1, 20+ שנה).
-  - **תיק עבודות** — `ProjectsGallery.tsx`: masonry, 15 פילטרים, lightbox, עמוד פרויקט ייעודי (חלק חסום ב-`SLUGS_WITHOUT_DETAIL_PAGE`).
+  - **תיק עבודות** — `ProjectsGallery.tsx`: masonry, 15 פילטרים, lightbox. קורא מ-`GET /api/gallery`
+    (טבלאות `gallery_projects`+`gallery_images`), עם נפילה בטוחה למערך הקשיח `lib/projects.ts`.
+    עמוד פרויקט: 5 המקוריים = דפים עשירים מ-`src/data/projects`; פרויקטים מה-DB = דף מצומצם
+    שנבנה אוטומטית (`DbProjectPage` + `lib/gallery-project-page.ts`).
+    ⚠️ **`SLUGS_WITHHELD` מוגדר בשני מקומות שחייבים להישאר מסונכרנים:**
+    [`ProjectsGallery.tsx`](src/app/components/ProjectsGallery.tsx) (מסתיר את תג "דף פרויקט")
+    ו-`BLOCKED_PROJECT_SLUGS` ב-[`proxy.ts`](src/proxy.ts) (מפנה את אותם slugs לדף הבית).
   - **מאמרי מומחיות** — `ExpertiseArticle.tsx` + `he/expertise/[slug]` → `ArticleDetailPage.tsx` (~10+ מאמרים).
   - **שאלות נפוצות** — `FaqPage.tsx` (FAQPage JSON-LD).
   - **יצירת קשר** — `#contact` → `ContactForm.tsx`.
   - **משפטי** — `LegalPage.tsx` (תנאי/פרטיות/נגישות, noindex).
   - **דפי נחיתה** — `lp/{overseas,jerusalem,givat-zeev}` מ-`LPTemplate.tsx` (layout נפרד).
   - **עברית ייחודי** — `he/quizzes`, `he/voucher`, `he/join`, `he/change-order`.
-- **פיצ'רים:** גלריית Cloudinary (`api/cloudinary-gallery`, ISR 60ש'; **כרגע `SERVE_FROM="public"` — מוגש מ-`/public`, לא מ-Cloudinary בפועל**); Testimonials (5.0/19); XRaySlider (before/after, RTL); TechnicalAnatomy (hotspots); חידונים עבריים (עצמאות/פסח/פורים, `data/quizzes.ts`); FloatingWhatsApp (חנן `+972585008447`); AccessibilityMenu (ניגודיות+פונט, localStorage); VoucherGenerator (כלי canvas פנימי, noindex).
+- **מי עורך מה (שני עורכים, שני פורטלים):**
+
+  | לערוך | לאן ללכת |
+  |---|---|
+  | כותרת/תיאור/קטגוריה בגלריה ובדף הפרויקט, תמונות, שער, סדר, פרסום | `/admin` ← לשונית **גלריה** (`GalleryTab`) → `gallery_projects`/`gallery_images` |
+  | כותרת/קטגוריה של **5 המקוריים בדף הבית** | `/internal/content-editor` ← לשונית **"תיק עבודות"** → מפתחות `portfolio.proj_N_*` ב-Vercel KV |
+  | כל דבר ב-**3 הפרויקטים החדשים** (כולל דף הבית) | `/admin` ← **גלריה** — הם אינם קיימים בתרגומים |
+  | 5 הדפים העשירים (hero, פס מטא, `keyFeatures`, metadata) | **קוד בלבד** — `src/data/projects/*.ts`, דורש commit+פריסה |
+
+  ⚠️ **שתי נקודות בלבול שעולות שוב ושוב:**
+  1. **דף הבית שואב את כותרות 5 המקוריים מהתרגומים (KV), לא מהגלריה.** `PortfolioGallery` קורא
+     `portfolio.proj_N_title/category` וממפה אותם **לפי slug** (`LEGACY_TRANSLATION_INDEX`). זו החלטה
+     מכוונת מ-`feature/home-gallery-db`: הטקסטים בתרגומים שונים מאלה שב-DB ("תשתיות ומבני ציבור" מול
+     "תשתיות ציבוריות"), והמיפוי שמר על דף הבית **זהה** אחרי המעבר ל-DB. המשמעות: לחמשת המקוריים
+     הכותרת בדף הבית והכותרת בגלריה הן **שני שדות נפרדים**.
+  2. **לשונית "פרויקטים" ב-content-editor = תוכן מת.** המפתחות `projects.proj_N_description`,
+     `proj_N_feature_*`, `proj_N_xray_*` **אינם נצרכים ע"י אף רכיב**, ו-`XRaySlider` אינו מרונדר
+     בשום דף ציבורי. הלשונית סומנה בבאנר והשדות בה מושבתים (read-only) — התוכן נשמר לשימוש עתידי.
+     הלשונית החיה באותו עורך היא **"תיק עבודות"**.
+
+- **פיצ'רים:** גלריה מ-DB (`api/gallery`, force-dynamic + CDN 60ש'; מסלול `api/cloudinary-gallery` הרדום **הוסר**, `lib/cloudinary.ts` נשאר כ-helper לנתיבי `/public`); Testimonials (5.0/19); XRaySlider (before/after, RTL); TechnicalAnatomy (hotspots); חידונים עבריים (עצמאות/פסח/פורים, `data/quizzes.ts`); FloatingWhatsApp (חנן `+972585008447`); AccessibilityMenu (ניגודיות+פונט, localStorage); VoucherGenerator (כלי canvas פנימי, noindex).
 - **שפות:** `page.tsx` קורא `Accept-Language` → he*→`/he`, השאר→`/en`. `LangContext` (default עברית, `he/layout` = rtl). `TranslationsProvider` טוען מ-`api/translations` (Vercel KV + deepMerge עם `lib/translations.json`), רענון כל 90ש' + `visibilitychange` + `BroadcastChannel`. חלק מהתוכן hard-coded he/en.
 - **זרימות:**
   - לקוח/משקיע: כניסה → זיהוי שפה → בית → גלישה → CTA → וואטסאפ/`ContactForm` → מייל ל-`office@binyaneitan.com`.
@@ -464,7 +490,7 @@ flowchart TD
 
 ## ג.3 — פורטל פנים-ארגוני / החזקות (Internal / Holding)
 
-- **מה:** פורטל פנימי (noindex) לשתי חברות בקבוצה — "Binyan Eitan" ו-"Prime Steel" — עם לוח משימות משותף (concurrency אופטימי לפי `version`, 409 על התנגשות) ו-**content-editor** (עריכת `translations.json`, מדיה, מאמרים draft/published) + banner.
+- **מה:** פורטל פנימי (noindex) לשתי חברות בקבוצה — "Binyan Eitan" ו-"Prime Steel" — עם לוח משימות משותף (concurrency אופטימי לפי `version`, 409 על התנגשות) ו-**content-editor** (עריכת `translations.json` → Vercel KV, מדיה, מאמרים draft/published) + banner. ⚠️ **עורך משיק לגלריה** — ראו "מי עורך מה" באזור ב (האתר השיווקי): הלשונית "תיק עבודות" כאן שולטת בכותרות 5 הפרויקטים המקוריים **בדף הבית**, בעוד הגלריה ב-`/admin` שולטת בכל השאר. לשונית "פרויקטים" כאן היא **תוכן מת** (מסומנת ומושבתת).
 - **מי:** צוות פנימי (Chanan/Moti/Nachman/Akiva); אימות דרך `internal-auth`/`exec-auth` cookie.
 - **סטטוס:** פעיל.
 - **קבצים:** `src/app/internal/*` (`InternalClientLayout`, `binyan-eitan/`, `prime-steel/` משתפים `DashboardClient` עם prop company, `content-editor/`, `banner/`), `api/holding/{companies,tasks,upload}`, `api/internal-auth`, `lib/exec-auth.ts`. טבלאות: `holding_tasks`, `holding_companies`.

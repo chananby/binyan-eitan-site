@@ -1695,6 +1695,28 @@ export default function ContentEditorPage() {
                       {copiedKey === activeTab ? "✓ הועתק!" : "העתק סקשן"}
                     </button>
                   </div>
+                  {activeTab === "projects" && (
+                    <div className="mb-5 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900">
+                      <p className="font-bold mb-1">⚠ הסקשן הזה אינו מוצג באתר כרגע</p>
+                      <p>
+                        אף רכיב באתר לא קורא את המפתחות האלה (<code>proj_N_description</code>,
+                        {" "}<code>proj_N_feature_*</code>, <code>proj_N_xray_*</code>), ו-<code>XRaySlider</code>
+                        {" "}אינו מרונדר בשום דף ציבורי. עריכה כאן <strong>לא תשנה דבר באתר</strong>.
+                      </p>
+                      <p className="mt-2">
+                        לעריכת פרויקטים (כותרות, תיאורים, תמונות, שער) ← <strong>פורטל האדמין ← גלריה</strong>.
+                        <br />
+                        לטקסטי תיק העבודות בדף הבית ← לשונית <strong>&quot;תיק עבודות&quot;</strong> כאן בעורך.
+                      </p>
+                      <p className="mt-2 text-amber-800/80">
+                        השדות מושבתים לקריאה בלבד כדי למנוע עבודה מיותרת. התוכן נשמר ולא נמחק —
+                        אם הסקשן יחובר לאתר בעתיד, אפשר להסיר את החסימה.
+                      </p>
+                    </div>
+                  )}
+                  {/* Read-only when the section is dead — a disabled <fieldset>
+                      natively disables every control inside it. */}
+                  <fieldset disabled={activeTab === "projects"} className="m-0 min-w-0 border-0 p-0">
                   <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                     <table className="w-full text-sm">
                       <thead>
@@ -1746,6 +1768,7 @@ export default function ContentEditorPage() {
                       </tbody>
                     </table>
                   </div>
+                  </fieldset>
                 </div>
               )}
             </div>
