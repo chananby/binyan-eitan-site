@@ -35,20 +35,34 @@ const FILTERS: { key: FilterKey; he: string; en: string }[] = [
   { key: "before-after",  he: "לפני ואחרי",      en: "Before & After" },
 ];
 
-// Slugs whose dedicated detail page is still in preparation — must mirror
-// the BLOCKED_PROJECT_SLUGS set in src/proxy.ts. Photos still appear in
-// the in-page lightbox (the gallery's main draw), but the "Project Page"
-// link is hidden for these until the content lands.
-const SLUGS_WITHOUT_DETAIL_PAGE = new Set([
+// Slugs whose dedicated detail page EXISTS but is deliberately withheld until
+// the content lands — must mirror BLOCKED_PROJECT_SLUGS in src/proxy.ts (which
+// redirects them home). Photos still appear in the in-page lightbox.
+const SLUGS_WITHHELD = new Set([
   "bayit-vegan-luxury-apartment",
   "ohel-avshalom-synagogue-jerusalem",
   "ramat-eshkol-penthouse",
   "jerusalem-luxury-residence",
 ]);
 
+// The "Project Page" tag is shown only when a detail page ACTUALLY EXISTS for
+// the slug. `detailSlugs` is passed in from the server page and is the detail
+// route's own source of truth (PROJECT_SLUGS in src/data/projects), so a
+// project added in the admin — which has no hand-written detail page — simply
+// gets no tag instead of a link to a 404. A hard-coded deny-list could never
+// know about DB-added projects; this check needs no maintenance.
+function hasDetailPage(urlSlug: string, detailSlugs: Set<string>): boolean {
+  return detailSlugs.has(urlSlug) && !SLUGS_WITHHELD.has(urlSlug);
+}
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export default function ProjectsGallery({ lang }: { lang: Lang }) {
+export default function ProjectsGallery(
+  { lang, detailSlugs = [] }: { lang: Lang; detailSlugs?: string[] },
+) {
+  // Only 5 short strings cross to the client — the rich project content stays
+  // on the server (importing PROJECT_SLUGS here would pull all of it in).
+  const detailSlugSet = useMemo(() => new Set(detailSlugs), [detailSlugs]);
   const dir = lang === "he" ? "rtl" : "ltr";
   const homeHref = lang === "he" ? "/he" : "/en";
 
@@ -327,7 +341,7 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
                             <span className="inline-block text-[10px] uppercase tracking-widest text-bone/70 border border-bone/30 px-3 py-1.5">
                               {lang === "he" ? "פתח גלריה" : "View Gallery"}
                             </span>
-                            {!SLUGS_WITHOUT_DETAIL_PAGE.has(proj.urlSlug) && (
+                            {hasDetailPage(proj.urlSlug, detailSlugSet) && (
                               <Link
                                 href={`/${lang}/projects/${proj.urlSlug}`}
                                 onClick={(e) => e.stopPropagation()}

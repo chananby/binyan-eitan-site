@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import ProjectsGallery from "../../components/ProjectsGallery";
+// Source of truth for "does a detail page exist" — the same list the
+// [slug] route generates its pages from. Passed down so the client
+// component never imports the rich project content.
+import { PROJECT_SLUGS } from "../../../data/projects";
 
 export const metadata: Metadata = {
   title: "תיק עבודות | פרויקטים נבחרים בבנייה ושיפוץ",
@@ -47,7 +51,7 @@ export default function ProjectsPageHE() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ProjectsGallery lang="he" />
+      <ProjectsGallery lang="he" detailSlugs={PROJECT_SLUGS} />
     </>
   );
 }
