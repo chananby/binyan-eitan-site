@@ -248,6 +248,32 @@ export default function GalleryTab() {
   const videoFileRef = useRef<File | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
+  // ── Full-size preview ───────────────────────────────────────────────────────
+  // The grid thumbnails are too small to pick a cover with confidence, so a
+  // click opens the image large. Deliberately a small admin-only viewer rather
+  // than the public ProjectGalleryClient: that component exposes only
+  // images/title/lang and renders its own grid, with no hook for an action —
+  // and the "set as cover" button here is the whole point.
+  const [viewerIdx, setViewerIdx] = useState<number | null>(null);
+
+  // Esc closes, ←/→ step through the project's images.
+  useEffect(() => {
+    if (viewerIdx === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setViewerIdx(null);
+      if (e.key === "ArrowRight") setViewerIdx((i) => (i === null ? null : (i - 1 + images.length) % images.length));
+      if (e.key === "ArrowLeft") setViewerIdx((i) => (i === null ? null : (i + 1) % images.length));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewerIdx, images.length]);
+
+  // Keep the viewer in range if the list shrinks (e.g. the open image is deleted).
+  useEffect(() => {
+    if (viewerIdx !== null && viewerIdx >= images.length) setViewerIdx(images.length ? images.length - 1 : null);
+  }, [images.length, viewerIdx]);
+
   const loadImages = useCallback(async (s: string) => {
     if (!s) return;
     setLoading(true);
@@ -770,7 +796,10 @@ export default function GalleryTab() {
               <div key={im.id}
                 className="relative group border border-charcoal/10 rounded-md overflow-hidden bg-charcoal/[0.03]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={im.url} alt={im.alt_he ?? ""} className="w-full aspect-square object-cover" loading="lazy" />
+                <img src={im.url} alt={im.alt_he ?? ""} loading="lazy"
+                  onClick={() => setViewerIdx(idx)}
+                  title="לחץ להגדלה"
+                  className="w-full aspect-square object-cover cursor-zoom-in" />
                 {im.is_cover && (
                   <span className="absolute top-1 start-1 inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-500 text-white text-caption font-bold rounded">
                     <Star size={10} strokeWidth={2.5} /> שער
@@ -778,21 +807,21 @@ export default function GalleryTab() {
                 )}
                 <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 p-1 bg-gradient-to-t from-black/60 to-transparent">
                   <div className="flex items-center gap-0.5">
-                    <button onClick={() => moveImage(idx, -1)} disabled={idx === 0} title="הזז שמאלה"
+                    <button onClick={(e) => { e.stopPropagation(); moveImage(idx, -1); }} disabled={idx === 0} title="הזז שמאלה"
                       className="p-1 text-white/90 hover:text-white disabled:opacity-30">
                       <ChevronUp size={15} className="rotate-[-90deg]" />
                     </button>
-                    <button onClick={() => moveImage(idx, 1)} disabled={idx === images.length - 1} title="הזז ימינה"
+                    <button onClick={(e) => { e.stopPropagation(); moveImage(idx, 1); }} disabled={idx === images.length - 1} title="הזז ימינה"
                       className="p-1 text-white/90 hover:text-white disabled:opacity-30">
                       <ChevronDown size={15} className="rotate-[-90deg]" />
                     </button>
                   </div>
                   <div className="flex items-center gap-0.5">
-                    <button onClick={() => setCover(im.id)} title="סמן כתמונת שער"
+                    <button onClick={(e) => { e.stopPropagation(); setCover(im.id); }} title="סמן כתמונת שער"
                       className={`p-1 hover:text-amber-300 ${im.is_cover ? "text-amber-300" : "text-white/90"}`}>
                       <Star size={15} strokeWidth={im.is_cover ? 2.5 : 1.8} />
                     </button>
-                    <button onClick={() => deleteImage(im.id)} title="מחק" className="p-1 text-white/90 hover:text-red-400">
+                    <button onClick={(e) => { e.stopPropagation(); deleteImage(im.id); }} title="מחק" className="p-1 text-white/90 hover:text-red-400">
                       <Trash2 size={15} />
                     </button>
                   </div>
@@ -802,6 +831,73 @@ export default function GalleryTab() {
           </div>
         )}
       </Card>
+
+      {/* ── Full-size preview ─────────────────────────────────────────────── */}
+      {viewerIdx !== null && images[viewerIdx] && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/90 flex flex-col"
+          onClick={() => setViewerIdx(null)}   /* backdrop click closes */
+        >
+          {/* Top bar */}
+          <div className="flex items-center justify-between px-4 py-3 shrink-0 text-white/80"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <span className="text-caption tabular-nums">{viewerIdx + 1} / {images.length}</span>
+              {images[viewerIdx].is_cover && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-500 text-white text-caption font-bold rounded">
+                  <Star size={11} strokeWidth={2.5} /> תמונת השער
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {/* The reason this viewer exists: pick the cover while seeing it big. */}
+              <button
+                onClick={() => setCover(images[viewerIdx].id)}
+                disabled={images[viewerIdx].is_cover}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded font-bold bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:cursor-default transition-colors"
+              >
+                <Star size={14} strokeWidth={2.5} />
+                {images[viewerIdx].is_cover ? "זו תמונת השער" : "קבע כשער"}
+              </button>
+              <button onClick={() => setViewerIdx(null)} title="סגור (Esc)"
+                className="p-1.5 text-white/70 hover:text-white">
+                <X size={22} />
+              </button>
+            </div>
+          </div>
+
+          {/* Image + arrows */}
+          <div className="flex-1 relative flex items-center justify-center overflow-hidden px-14 pb-6"
+            onClick={(e) => e.stopPropagation()}>
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={() => setViewerIdx((i) => (i === null ? null : (i - 1 + images.length) % images.length))}
+                  title="הקודם" aria-label="הקודם"
+                  className="absolute end-3 z-10 p-3 text-white/50 hover:text-white transition-colors"
+                >
+                  <ChevronUp size={30} className="rotate-90" />
+                </button>
+                <button
+                  onClick={() => setViewerIdx((i) => (i === null ? null : (i + 1) % images.length))}
+                  title="הבא" aria-label="הבא"
+                  className="absolute start-3 z-10 p-3 text-white/50 hover:text-white transition-colors"
+                >
+                  <ChevronUp size={30} className="-rotate-90" />
+                </button>
+              </>
+            )}
+            {/* Plain <img>: these are Blob/public URLs shown once at full size —
+                next/image optimisation buys nothing here. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={images[viewerIdx].url}
+              alt={images[viewerIdx].alt_he ?? ""}
+              className="max-h-full max-w-full object-contain"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
