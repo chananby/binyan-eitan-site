@@ -274,8 +274,8 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
-- **content-editor — לשונית תוכן מת נחסמה + תיעוד "מי עורך מה"**
-  (`fix/content-editor-dead-tab`, מקומי — ממתין ל-push+deploy). חקירת עורכי התוכן
+- **content-editor — לשונית תוכן מת נחסמה + תיעוד "מי עורך מה"** — **נפרס**
+  (20.7.26, `fix/content-editor-dead-tab` → main `650eff4`, `dpl_4Gjq1rvSgZn`). חקירת עורכי התוכן
   גילתה ש**לשונית "פרויקטים"** ב-`/internal/content-editor` עורכת מפתחות שאף רכיב
   לא צורך (`proj_N_description`, `proj_N_feature_*`, `proj_N_xray_*`; `XRaySlider`
   לא מרונדר בשום דף ציבורי) — מלכודת זמן. נוסף **באנר אזהרה** עם הפניה
