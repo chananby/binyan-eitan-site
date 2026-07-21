@@ -19,6 +19,7 @@ import {
   Plus, Pencil, Eye, EyeOff, Save, X, Film, Check, Home, CloudUpload, Copy,
 } from "lucide-react";
 import { Card } from "../shared/Card";
+import ImageViewer from "../shared/ImageViewer";
 import { GALLERY_PROJECTS } from "../../../../lib/projects";
 import { resizeImageToBlob } from "../../../../lib/image-resize";
 import {
@@ -255,6 +256,9 @@ export default function GalleryTab() {
   // images/title/lang and renders its own grid, with no hook for an action —
   // and the "set as cover" button here is the whole point.
   const [viewerIdx, setViewerIdx] = useState<number | null>(null);
+  // Same treatment for the extracted-frame grid: the thumbnails are far too
+  // small to tell a sharp frame from a blurred one.
+  const [frameViewerIdx, setFrameViewerIdx] = useState<number | null>(null);
 
   // ── /public → Blob migration (one-off maintenance) ──────────────────────────
   // Batched because 74 files in one request would exceed the function's time
@@ -267,18 +271,7 @@ export default function GalleryTab() {
   const [migMsg, setMigMsg] = useState<string | null>(null);
   const [migCopied, setMigCopied] = useState(false);
 
-  // Esc closes, ←/→ step through the project's images.
-  useEffect(() => {
-    if (viewerIdx === null) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setViewerIdx(null);
-      if (e.key === "ArrowRight") setViewerIdx((i) => (i === null ? null : (i - 1 + images.length) % images.length));
-      if (e.key === "ArrowLeft") setViewerIdx((i) => (i === null ? null : (i + 1) % images.length));
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewerIdx, images.length]);
+  // Keyboard handling lives in ImageViewer (shared by both grids).
 
   // Keep the viewer in range if the list shrinks (e.g. the open image is deleted).
   useEffect(() => {
@@ -802,22 +795,31 @@ export default function GalleryTab() {
                 {frames.map((f, i) => {
                   const on = picked.has(i);
                   return (
-                    <button key={f.previewUrl} type="button" onClick={() => togglePick(i)}
+                    // Same convention as the image grid: clicking the picture
+                    // enlarges it, the badge toggles selection. Judging whether a
+                    // frame is sharp needs the big view.
+                    <div key={f.previewUrl}
                       className={`relative rounded-md overflow-hidden border-2 transition-colors ${
                         on ? "border-accent" : "border-transparent hover:border-charcoal/25"
                       }`}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={f.previewUrl} alt={`פריים ${Math.round(f.time)} שניות`}
-                        className="w-full aspect-video object-cover" />
-                      <span className={`absolute top-1 start-1 w-4 h-4 rounded flex items-center justify-center ${
-                        on ? "bg-accent text-white" : "bg-black/40 text-white/70"
-                      }`}>
-                        {on && <Check size={11} strokeWidth={3} />}
-                      </span>
-                      <span className="absolute bottom-0 inset-x-0 bg-black/50 text-white text-caption tabular-nums">
+                        onClick={() => setFrameViewerIdx(i)}
+                        title="לחץ להגדלה"
+                        className="w-full aspect-video object-cover cursor-zoom-in" />
+                      <button type="button"
+                        onClick={(e) => { e.stopPropagation(); togglePick(i); }}
+                        title={on ? "בטל בחירה" : "בחר"}
+                        aria-label={on ? "בטל בחירה" : "בחר"}
+                        className={`absolute top-1 start-1 w-5 h-5 rounded flex items-center justify-center transition-colors ${
+                          on ? "bg-accent text-white" : "bg-black/40 text-white/70 hover:bg-black/60"
+                        }`}>
+                        {on && <Check size={12} strokeWidth={3} />}
+                      </button>
+                      <span className="absolute bottom-0 inset-x-0 bg-black/50 text-white text-caption tabular-nums pointer-events-none">
                         {Math.round(f.time)}s
                       </span>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -978,71 +980,45 @@ export default function GalleryTab() {
         )}
       </Card>
 
-      {/* ── Full-size preview ─────────────────────────────────────────────── */}
+      {/* ── Full-size preview — project images ────────────────────────────── */}
       {viewerIdx !== null && images[viewerIdx] && (
-        <div
-          className="fixed inset-0 z-[100] bg-black/90 flex flex-col"
-          onClick={() => setViewerIdx(null)}   /* backdrop click closes */
-        >
-          {/* Top bar */}
-          <div className="flex items-center justify-between px-4 py-3 shrink-0 text-white/80"
-            onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-3">
-              <span className="text-caption tabular-nums">{viewerIdx + 1} / {images.length}</span>
-              {images[viewerIdx].is_cover && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-500 text-white text-caption font-bold rounded">
-                  <Star size={11} strokeWidth={2.5} /> תמונת השער
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              {/* The reason this viewer exists: pick the cover while seeing it big. */}
-              <button
-                onClick={() => setCover(images[viewerIdx].id)}
-                disabled={images[viewerIdx].is_cover}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded font-bold bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:cursor-default transition-colors"
-              >
-                <Star size={14} strokeWidth={2.5} />
-                {images[viewerIdx].is_cover ? "זו תמונת השער" : "קבע כשער"}
-              </button>
-              <button onClick={() => setViewerIdx(null)} title="סגור (Esc)"
-                className="p-1.5 text-white/70 hover:text-white">
-                <X size={22} />
-              </button>
-            </div>
-          </div>
+        <ImageViewer
+          urls={images.map((im) => im.url)}
+          index={viewerIdx}
+          onIndexChange={setViewerIdx}
+          onClose={() => setViewerIdx(null)}
+          alt={images[viewerIdx].alt_he ?? ""}
+          action={{
+            label: "קבע כשער",
+            activeLabel: "זו תמונת השער",
+            activeBadge: "תמונת השער",
+            icon: <Star size={14} strokeWidth={2.5} />,
+            isActive: images[viewerIdx].is_cover,
+            onAction: () => setCover(images[viewerIdx].id),
+          }}
+        />
+      )}
 
-          {/* Image + arrows */}
-          <div className="flex-1 relative flex items-center justify-center overflow-hidden px-14 pb-6"
-            onClick={(e) => e.stopPropagation()}>
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={() => setViewerIdx((i) => (i === null ? null : (i - 1 + images.length) % images.length))}
-                  title="הקודם" aria-label="הקודם"
-                  className="absolute end-3 z-10 p-3 text-white/50 hover:text-white transition-colors"
-                >
-                  <ChevronUp size={30} className="rotate-90" />
-                </button>
-                <button
-                  onClick={() => setViewerIdx((i) => (i === null ? null : (i + 1) % images.length))}
-                  title="הבא" aria-label="הבא"
-                  className="absolute start-3 z-10 p-3 text-white/50 hover:text-white transition-colors"
-                >
-                  <ChevronUp size={30} className="-rotate-90" />
-                </button>
-              </>
-            )}
-            {/* Plain <img>: these are Blob/public URLs shown once at full size —
-                next/image optimisation buys nothing here. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={images[viewerIdx].url}
-              alt={images[viewerIdx].alt_he ?? ""}
-              className="max-h-full max-w-full object-contain"
-            />
-          </div>
-        </div>
+      {/* ── Full-size preview — extracted video frames ─────────────────────── */}
+      {frameViewerIdx !== null && frames[frameViewerIdx] && (
+        <ImageViewer
+          urls={frames.map((f) => f.previewUrl)}
+          index={frameViewerIdx}
+          onIndexChange={setFrameViewerIdx}
+          onClose={() => setFrameViewerIdx(null)}
+          alt={`פריים ${Math.round(frames[frameViewerIdx].time)} שניות`}
+          action={{
+            label: "בחר",
+            activeLabel: "בטל בחירה",
+            activeBadge: "נבחר",
+            icon: <Check size={14} strokeWidth={3} />,
+            isActive: picked.has(frameViewerIdx),
+            onAction: () => togglePick(frameViewerIdx),
+            repeatable: true,
+            className:
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded font-bold bg-accent text-white hover:bg-accent/90 transition-colors",
+          }}
+        />
       )}
     </div>
   );
