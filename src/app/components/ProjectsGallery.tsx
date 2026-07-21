@@ -322,14 +322,6 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
 
                         {/* Slide-up info on hover */}
                         <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
-                          {/* Display number = position in the list actually on
-                              screen, so it always reads 01,02,03… with no holes
-                              — whatever the sort_order values are and whichever
-                              category filter is active. Purely cosmetic; the
-                              ordering itself still comes from sort_order. */}
-                          <p className="text-white/60 text-[10px] font-semibold uppercase tracking-[0.2em] mb-1">
-                            {String(idx + 1).padStart(2, "0")}
-                          </p>
                           <h2 className="text-white text-xl font-light mb-3">
                             {lang === "he" ? proj.he.title : proj.en.title}
                           </h2>
