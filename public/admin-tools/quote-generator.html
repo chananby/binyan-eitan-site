@@ -1339,6 +1339,11 @@
     text-align: left;
     font-variant-numeric: tabular-nums;
   }
+  .doc-table-vat-note {
+    font-size: 9pt;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
   .doc-payment-vat-note {
     font-size: 9pt;
     color: var(--text-muted);
@@ -2521,8 +2526,8 @@
             ${esc(state.companyWebsite)}
           </div>
           <dl class="doc-meta">
-            <dt>תאריך:</dt><dd>${fmtDate(state.date)}</dd>
-            <dt>תקף עד:</dt><dd>${fmtDate(state.validUntil)}</dd>
+            ${state.date ? `<dt>תאריך:</dt><dd>${fmtDate(state.date)}</dd>` : ''}
+            ${state.validUntil ? `<dt>תקף עד:</dt><dd>${fmtDate(state.validUntil)}</dd>` : ''}
             <dt>ח.פ:</dt><dd>${esc(state.companyId)}</dd>
           </dl>
         </div>
@@ -2555,6 +2560,7 @@
         </div>
       ` : ''}
 
+      ${showPrices ? '<div class="doc-table-vat-note">כל הסכומים בטבלה זו הם לפני מע"מ</div>' : ''}
       <table class="doc-table">
         <thead>
           <tr>
@@ -2595,9 +2601,9 @@
                 </tr>
               `;
               }).join('')}
-              ${showPrices && (validItems.length > 0 || section.name) && state.sections.length > 1 ? `
+              ${showPrices && section.name && validItems.length > 0 && state.sections.length > 1 ? `
                 <tr class="subtotal-row">
-                  <td colspan="${showQty ? 3 : 2}">סה"כ ${esc(section.name || '')}</td>
+                  <td colspan="${showQty ? 3 : 2}">סה"כ ${esc(section.name)}</td>
                   <td class="price">${money(total)}</td>
                 </tr>
               ` : ''}
@@ -2610,7 +2616,7 @@
         <table>
           ${hasDiscount ? `
           <tr>
-            <td class="label">סה"כ ביניים</td>
+            <td class="label">סה"כ ביניים (לפני מע"מ)</td>
             <td class="value">${money(effectiveBase())}</td>
           </tr>
           <tr>
@@ -2631,7 +2637,7 @@
             <td class="value">${money(totalWithVat())}</td>
           </tr>` : `
           <tr class="grand">
-            <td class="label">סה"כ</td>
+            <td class="label">סה"כ (מע"מ אינו חל)</td>
             <td class="value">${money(subtotalAfterDiscount())}</td>
           </tr>`}
         </table>
@@ -2967,7 +2973,7 @@
             </tbody>
           </table>
           <div class="doc-options-summary">
-            ${b.summaryLabel ? esc(b.summaryLabel) + ': ' : 'סה"כ תוספת: '}${money(total)}
+            ${b.summaryLabel ? esc(b.summaryLabel) + ': ' : 'סה"כ תוספת (לפני מע"מ): '}${money(total)}
           </div>
           <div class="doc-options-note">התוספת אינה כלולה בסה"כ הבסיסי למעלה. אם המזמין יבחר לכלול, יש להוסיף את הסכום הנבחר.</div>
         ` : ''}
