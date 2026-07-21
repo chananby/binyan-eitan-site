@@ -32,6 +32,19 @@ export function resizeImageToBlob(file: File, opts: ResizeOptions = {}): Promise
       img.onload = () => {
         let w = img.naturalWidth;
         let h = img.naturalHeight;
+
+        // Already a JPEG within bounds → hand back the original untouched.
+        // Re-encoding it could only add generation loss: the canvas would decode
+        // and re-compress pixels that need no resizing. This matters most for
+        // extracted video frames, which arrive as high-quality JPEGs already
+        // sized to the source video. Anything oversized, or in another format
+        // (PNG/HEIC/WebP), still goes through the canvas — the upload endpoint
+        // only accepts jpeg/png/webp, so the conversion is doing real work there.
+        if (file.type === "image/jpeg" && w <= maxDim && h <= maxDim) {
+          resolve(file);
+          return;
+        }
+
         if (w > maxDim || h > maxDim) {
           const ratio = Math.min(maxDim / w, maxDim / h);
           w = Math.round(w * ratio);

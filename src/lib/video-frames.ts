@@ -21,8 +21,10 @@ const EDGE_SKIP = 0.05;
 /** Give up waiting for metadata / a seek after this long. */
 const METADATA_TIMEOUT_MS = 20_000;
 const SEEK_TIMEOUT_MS = 10_000;
-/** JPEG quality of the extracted frame. Kept high — resizeImageToBlob re-encodes. */
-const FRAME_QUALITY = 0.92;
+/** JPEG quality of the extracted frame. High on purpose: a frame that is already
+ *  within the upload size bounds is sent as-is (resizeImageToBlob skips the
+ *  re-encode), so this is the only encode it gets. */
+const FRAME_QUALITY = 0.95;
 
 export class VideoFrameError extends Error {}
 
@@ -35,7 +37,8 @@ export class VideoFrameError extends Error {}
  */
 const CODEC_HELP =
   "לא ניתן לקרוא את הסרטון הזה בדפדפן (כנראה HEVC מאייפון).\n" +
-  "פתרון: הגדרות ← תמונות ← העברה למחשב ← 'אוטומטי', והעבר את הסרטון שוב.";
+  "העבר את הסרטון מהאייפון בכבל או ב-AirDrop. אל תשלח בוואטסאפ — הוא דוחס ומקטין את האיכות.\n" +
+  "לצילום עתידי: הגדרות ← מצלמה ← פורמטים ← 'תאימות מרבית' (מצלם ישר ב-H.264).";
 
 export interface ExtractedFrame {
   /** Object URL for the preview <img>. Caller must revoke it (revokeFrames). */
@@ -43,6 +46,18 @@ export interface ExtractedFrame {
   blob: Blob;
   /** Timestamp in the source video, seconds. */
   time: number;
+}
+
+/**
+ * Extraction result. Carries the SOURCE resolution alongside the frames so the
+ * UI can show it — a frame is only ever as sharp as the video it came from, and
+ * without this the admin has no way to tell a low-res source from a bug.
+ */
+export interface ExtractionResult {
+  frames: ExtractedFrame[];
+  /** Source video dimensions, 0 when they could not be determined. */
+  width: number;
+  height: number;
 }
 
 export interface ExtractOptions {
@@ -77,7 +92,7 @@ function waitForEvent(el: HTMLElement, event: string, timeoutMs: number, what: s
  * Extract evenly-spaced frames from a video File, entirely in the browser.
  * Throws VideoFrameError (Hebrew message) if the browser can't decode it.
  */
-export async function extractFrames(file: File, opts: ExtractOptions = {}): Promise<ExtractedFrame[]> {
+export async function extractFrames(file: File, opts: ExtractOptions = {}): Promise<ExtractionResult> {
   const count = opts.count ?? FRAME_COUNT;
   const phase = opts.phase ?? 0;
 
@@ -137,7 +152,7 @@ export async function extractFrames(file: File, opts: ExtractOptions = {}): Prom
     if (frames.length === 0) {
       throw new VideoFrameError(CODEC_HELP);
     }
-    return frames;
+    return { frames, width: video.videoWidth, height: video.videoHeight };
   } finally {
     // Always release the decoder + the blob URL, even on failure — large videos
     // otherwise leak hundreds of MB per attempt.
@@ -173,7 +188,7 @@ const FFMPEG_CDN = `https://unpkg.com/@ffmpeg/core@${FFMPEG_CORE_VERSION}/dist/u
 
 const FFMPEG_FAILED =
   "גם הפענוח המורחב נכשל — לא הצלחנו לקרוא את הסרטון.\n" +
-  "נסה סרטון אחר, או שלח אותו לעצמך בוואטסאפ והעלה את הקובץ שהתקבל (וואטסאפ ממיר ל-MP4).";
+  "נסה סרטון אחר, או צלם ב'תאימות מרבית' (הגדרות ← מצלמה ← פורמטים) והעבר בכבל/AirDrop.";
 
 /** Distinct from a decode failure: the engine itself never arrived. */
 const FFMPEG_CDN_DOWN =
@@ -195,7 +210,7 @@ interface FFmpegLike {
  * Extract frames using ffmpeg.wasm. Same timestamps/logic as the fast path.
  * Only called after the browser-native attempt has failed.
  */
-export async function extractFramesFfmpeg(file: File, opts: ExtractOptions = {}): Promise<ExtractedFrame[]> {
+export async function extractFramesFfmpeg(file: File, opts: ExtractOptions = {}): Promise<ExtractionResult> {
   const count = opts.count ?? FRAME_COUNT;
   const phase = opts.phase ?? 0;
 
@@ -220,9 +235,16 @@ export async function extractFramesFfmpeg(file: File, opts: ExtractOptions = {})
     // ffmpeg prints "Duration: HH:MM:SS.ss" to its log — the only way to learn
     // the length, and we need it to space the timestamps evenly.
     let duration = 0;
+    let vidW = 0;
+    let vidH = 0;
     ffmpeg.on("log", ({ message }) => {
       const m = message.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
       if (m) duration = Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]);
+      // "Stream #0:0: Video: hevc ..., 1920x1080 [SAR 1:1 DAR 16:9], ..."
+      if (/Video:/.test(message)) {
+        const r = message.match(/\b(\d{2,5})x(\d{2,5})\b/);
+        if (r) { vidW = Number(r[1]); vidH = Number(r[2]); }
+      }
     });
 
     // Fetching the 31 MB core is the one step that depends on the network.
@@ -267,7 +289,7 @@ export async function extractFramesFfmpeg(file: File, opts: ExtractOptions = {})
     }
 
     if (frames.length === 0) throw new VideoFrameError(FFMPEG_FAILED);
-    return frames;
+    return { frames, width: vidW, height: vidH };
   } catch (e) {
     if (e instanceof VideoFrameError) throw e;
     throw new VideoFrameError(FFMPEG_FAILED);
@@ -288,7 +310,7 @@ export async function extractFramesFfmpeg(file: File, opts: ExtractOptions = {})
 export async function extractFramesAuto(
   file: File,
   opts: ExtractOptions & { onFallback?: () => void } = {},
-): Promise<ExtractedFrame[]> {
+): Promise<ExtractionResult> {
   try {
     return await extractFrames(file, opts);
   } catch {

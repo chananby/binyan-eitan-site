@@ -68,6 +68,8 @@ const CATEGORY_OPTIONS: { key: string; he: string }[] = [
 ];
 const ASPECT_OPTIONS = ["4/3", "3/4", "16/9", "1/1"];
 const UPLOAD_CONCURRENCY = 3;
+/** Below this width a frame will visibly pixelate in the enlarged viewer. */
+const LOW_RES_WIDTH = 1280;
 
 type EditState = null | "new" | string; // null=closed, "new"=create, otherwise project id
 
@@ -246,6 +248,10 @@ export default function GalleryTab() {
   // longer" notice so a slow decode doesn't look like a hang.
   const [slowPath, setSlowPath] = useState(false);
   const [passCount, setPassCount] = useState(0); // how many extraction passes so far
+  // Source video resolution. Surfaced because a frame can never be sharper than
+  // the video it came from — without this there is no way to tell a compressed
+  // source from a bug in the extractor.
+  const [videoDims, setVideoDims] = useState<{ w: number; h: number } | null>(null);
   const videoFileRef = useRef<File | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
@@ -362,15 +368,16 @@ export default function GalleryTab() {
     setExtractDone(0);
     setExtractTotal(FRAME_COUNT);
     try {
-      const got = await extractFramesAuto(file, {
+      const result = await extractFramesAuto(file, {
         phase,
         onProgress: (done, total) => { setExtractDone(done); setExtractTotal(total); },
         onFallback: () => { setSlowPath(true); setExtractDone(0); },
       });
+      if (result.width && result.height) setVideoDims({ w: result.width, h: result.height });
       if (append) {
-        setFrames((prev) => [...prev, ...got]);
+        setFrames((prev) => [...prev, ...result.frames]);
       } else {
-        setFrames((prev) => { revokeFrames(prev); return got; });
+        setFrames((prev) => { revokeFrames(prev); return result.frames; });
         setPicked(new Set());
       }
       setPassCount((n) => n + 1);
@@ -411,6 +418,7 @@ export default function GalleryTab() {
     setPicked(new Set());
     setVideoErr(null);
     setPassCount(0);
+    setVideoDims(null);
     videoFileRef.current = null;
     if (videoInputRef.current) videoInputRef.current.value = "";
   }
@@ -786,6 +794,21 @@ export default function GalleryTab() {
             <div className="flex items-start gap-1.5 text-caption text-red-600 border border-red-200 bg-red-50 rounded p-2">
               <AlertCircle size={13} className="mt-0.5 shrink-0" />
               <span className="whitespace-pre-line">{videoErr}</span>
+            </div>
+          )}
+
+          {videoDims && (
+            <div className="space-y-1">
+              <p className="text-caption text-charcoal/60">
+                חולץ מסרטון <strong className="tabular-nums">{videoDims.w}×{videoDims.h}</strong>
+              </p>
+              {videoDims.w < LOW_RES_WIDTH && (
+                <div className="text-caption text-amber-800 bg-amber-50 border border-amber-300 rounded p-2 leading-relaxed">
+                  ⚠ רזולוציית הסרטון נמוכה ({videoDims.w}×{videoDims.h}). התמונות שיחולצו יהיו באיכות נמוכה.
+                  <br />
+                  אם הסרטון עבר בוואטסאפ — הוא נדחס; העבר אותו בכבל או ב-AirDrop לאיכות מלאה.
+                </div>
+              )}
             </div>
           )}
 
