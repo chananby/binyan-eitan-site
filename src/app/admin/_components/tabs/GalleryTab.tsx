@@ -16,7 +16,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Upload, Star, Trash2, ChevronUp, ChevronDown, Loader2, AlertCircle, Images,
-  Plus, Pencil, Eye, EyeOff, Save, X, Film, Check, Home,
+  Plus, Pencil, Eye, EyeOff, Save, X, Film, Check, Home, CloudUpload, Copy,
 } from "lucide-react";
 import { Card } from "../shared/Card";
 import { GALLERY_PROJECTS } from "../../../../lib/projects";
@@ -256,6 +256,17 @@ export default function GalleryTab() {
   // and the "set as cover" button here is the whole point.
   const [viewerIdx, setViewerIdx] = useState<number | null>(null);
 
+  // ── /public → Blob migration (one-off maintenance) ──────────────────────────
+  // Batched because 74 files in one request would exceed the function's time
+  // limit. The endpoint uploads and returns SQL; it never writes to the DB.
+  const [migBusy, setMigBusy] = useState(false);
+  const [migTotal, setMigTotal] = useState<number | null>(null);
+  const [migDone, setMigDone] = useState(0);
+  const [migSql, setMigSql] = useState("");
+  const [migFailures, setMigFailures] = useState<{ url: string; reason: string }[]>([]);
+  const [migMsg, setMigMsg] = useState<string | null>(null);
+  const [migCopied, setMigCopied] = useState(false);
+
   // Esc closes, ←/→ step through the project's images.
   useEffect(() => {
     if (viewerIdx === null) return;
@@ -460,6 +471,60 @@ export default function GalleryTab() {
       }),
     ]);
     if (!ra.ok || !rb.ok) await loadImages(slug);
+  }
+
+  async function migPreview() {
+    setMigBusy(true); setMigMsg(null); setMigSql(""); setMigFailures([]); setMigDone(0);
+    try {
+      const res = await fetch("/api/admin/gallery/migrate-to-blob", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "dry-run" }),
+      });
+      const d = await res.json();
+      if (!res.ok) { setMigMsg(d.error ?? `שגיאה ${res.status}`); return; }
+      setMigTotal(d.total);
+      setMigMsg(d.message);
+    } catch (e) {
+      setMigMsg(String(e));
+    } finally { setMigBusy(false); }
+  }
+
+  async function migRun() {
+    if (!window.confirm(
+      "פעולה זו מעלה את התמונות ל-Blob.\n\nאין מחיקה — הקבצים ב-/public נשארים, וה-DB לא משתנה.\nבסיום תקבל SQL להרצה ידנית ב-Supabase.\n\nלהמשיך?"
+    )) return;
+    setMigBusy(true); setMigMsg(null); setMigSql(""); setMigFailures([]); setMigDone(0);
+    let offset = 0;
+    const sqlParts: string[] = [];
+    const fails: { url: string; reason: string }[] = [];
+    try {
+      // Walk the batches until the endpoint reports done.
+      for (;;) {
+        const res = await fetch("/api/admin/gallery/migrate-to-blob", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "execute", offset }),
+        });
+        const d = await res.json();
+        if (!res.ok) { setMigMsg(d.error ?? `שגיאה ${res.status}`); break; }
+        setMigTotal(d.total);
+        setMigDone(d.processed);
+        if (Array.isArray(d.migrated) && d.migrated.length) sqlParts.push(d.sql);
+        if (Array.isArray(d.failures)) fails.push(...d.failures);
+        if (d.done || d.nextOffset == null) break;
+        offset = d.nextOffset;
+      }
+      setMigFailures(fails);
+      // Keep one header/BEGIN/COMMIT rather than one per batch.
+      const statements = sqlParts.flatMap((p) => p.split("\n").filter((l) => l.startsWith("UPDATE")));
+      setMigSql(statements.length
+        ? ["-- התמונות כבר הועלו ל-Blob. ה-SQL הזה רק מעדכן את הכתובות.",
+           "-- ניתן להרצה חוזרת: כל שורה מותנית ב-url הישן.", "", "BEGIN;", "",
+           ...statements, "", "COMMIT;", ""].join("\n")
+        : "");
+      if (statements.length) setMigMsg(`הועלו ${statements.length} תמונות. העתק את ה-SQL והרץ ב-Supabase.`);
+    } catch (e) {
+      setMigMsg(String(e));
+    } finally { setMigBusy(false); }
   }
 
   const uploadPct = uploadTotal > 0 ? Math.round((uploadDone / uploadTotal) * 100) : 0;
@@ -828,6 +893,87 @@ export default function GalleryTab() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </Card>
+
+      {/* ── One-off maintenance: move /public images to Blob ──────────────── */}
+      <Card title="תחזוקה — העברת תמונות ל-Blob">
+        <p className="text-caption text-charcoal/60">
+          חלק מתמונות הגלריה עדיין מוגשות מתוך קוד האתר (<code>/public</code>).
+          ההעברה ל-Blob מוציאה את המשקל מהקוד. <strong>אין מחיקה</strong> — הקבצים
+          נשארים במקומם, ו<strong>ה-DB לא משתנה</strong>: בסיום תקבל SQL להרצה ידנית.
+        </p>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={migPreview} disabled={migBusy}
+            className="px-3 py-1.5 border border-charcoal/20 rounded text-charcoal/70 hover:border-accent hover:text-accent disabled:opacity-50">
+            בדיקה מקדימה
+          </button>
+          <button onClick={migRun} disabled={migBusy || migTotal === 0}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white font-bold rounded hover:bg-accent/90 disabled:opacity-50">
+            {migBusy ? <Loader2 size={15} className="animate-spin" /> : <CloudUpload size={15} />}
+            העבר ל-Blob
+          </button>
+          {migTotal !== null && !migBusy && (
+            <span className="text-caption text-charcoal/60">{migTotal} תמונות ממתינות להעברה</span>
+          )}
+        </div>
+
+        {migBusy && migTotal !== null && migTotal > 0 && (
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-caption text-charcoal/70">
+              <Loader2 size={13} className="animate-spin" />
+              הועברו {migDone} מתוך {migTotal}
+            </div>
+            <div className="h-1.5 bg-charcoal/10 rounded overflow-hidden">
+              <div className="h-full bg-accent transition-all"
+                style={{ width: `${Math.round((migDone / migTotal) * 100)}%` }} />
+            </div>
+          </div>
+        )}
+
+        {migMsg && (
+          <div className="text-caption text-charcoal/80 border border-charcoal/15 rounded p-2 bg-charcoal/[0.02]">
+            {migMsg}
+          </div>
+        )}
+
+        {migFailures.length > 0 && (
+          <div className="border border-amber-300 bg-amber-50 rounded p-2 space-y-1">
+            <div className="flex items-center gap-1.5 text-caption font-bold text-amber-700">
+              <AlertCircle size={13} /> {migFailures.length} תמונות נכשלו (השאר הועלו)
+            </div>
+            <ul className="text-caption text-amber-800/90 list-disc list-inside">
+              {migFailures.map((f, i) => <li key={i}>{f.url} — {f.reason}</li>)}
+            </ul>
+          </div>
+        )}
+
+        {migSql && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <p className="text-caption font-bold text-charcoal/80">
+                העתק והרץ ב-Supabase SQL Editor — התמונות כבר הועלו; ה-SQL רק מעדכן את הכתובות.
+              </p>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(migSql).then(
+                    () => { setMigCopied(true); setTimeout(() => setMigCopied(false), 2000); },
+                    () => setMigMsg("ההעתקה נכשלה — סמן ידנית והעתק"),
+                  );
+                }}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded font-bold border transition-colors ${
+                  migCopied ? "border-green-400 text-green-700 bg-green-50"
+                            : "border-charcoal/20 text-charcoal/70 hover:border-accent hover:text-accent"
+                }`}>
+                {migCopied ? <Check size={14} /> : <Copy size={14} />}
+                {migCopied ? "הועתק!" : "העתק SQL"}
+              </button>
+            </div>
+            <textarea readOnly value={migSql} rows={10} dir="ltr"
+              onFocus={(e) => e.currentTarget.select()}
+              className="w-full border border-charcoal/20 rounded p-2 font-mono text-caption bg-white resize-y" />
           </div>
         )}
       </Card>
