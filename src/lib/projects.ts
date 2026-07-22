@@ -146,7 +146,6 @@ export const GALLERY_PROJECTS: GalleryProject[] = [
     categories: ["renovations", "infrastructure"],
     images: [
       img("ohel-avshalom-1.jpg"),
-      img("ohel-avshalom-2.jpg"),
       img("ohel-avshalom-3.jpg"),
       img("ohel-avshalom-4.jpg"),
       img("ohel-avshalom-5.jpg"),

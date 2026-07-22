@@ -122,11 +122,6 @@ const amshinov: ProjectData = {
       altHE: "שירותים ציבוריים חדשים — שורת אסלות תלויות וכיורי הדחה מותקנים",
       altEN: "New public restrooms — a row of wall-hung toilets with installed flush cisterns",
     },
-    {
-      src: img("amshinov-23.jpg"),
-      altHE: "מבט נוסף על מתחם השירותים — חיווט תקרה גלוי, שלב הגמר עדיין לא הושלם",
-      altEN: "Another view of the restroom block — exposed ceiling wiring, finish phase still in progress",
-    },
   ],
   dateCompleted: "",
   projectSize: undefined,

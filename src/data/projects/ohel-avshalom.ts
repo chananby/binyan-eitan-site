@@ -9,7 +9,6 @@ const ohelAvshalom: ProjectData = {
   galleryImages: [
     { src: img("ohel-avshalom.jpg") },
     { src: img("ohel-avshalom-1.jpg") },
-    { src: img("ohel-avshalom-2.jpg") },
     { src: img("ohel-avshalom-3.jpg") },
     { src: img("ohel-avshalom-4.jpg") },
     { src: img("ohel-avshalom-5.jpg") },

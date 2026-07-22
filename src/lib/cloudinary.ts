@@ -1,25 +1,29 @@
 /**
- * Image URL helper for the project gallery and per-project pages.
+ * Image URL helper for the project gallery and per-project (rich) pages.
  *
- * ─── Current behaviour (May 2026) ──────────────────────────────────────────
- *  Serves images directly from /public. The "binyan-eitan" folder on
- *  Cloudinary (account da5fksoyc) is empty, so building Cloudinary URLs
- *  here would produce 404s and break /he/projects. /public works on every
- *  deploy because the files ship with the bundle.
+ * ─── Current behaviour (July 2026) ─────────────────────────────────────────
+ *  Serves the gallery images from Vercel Blob. They were migrated there in
+ *  gallery round 3 (stage A), under a deterministic gallery/_migrated/ prefix
+ *  whose object names are exactly the old /public filenames. Serving from Blob
+ *  lets the /public copies be removed AND keeps this path working during a
+ *  Supabase outage — Blob is a separate service, so the hard-coded fallbacks
+ *  (GALLERY_PROJECTS, the rich pages) stay usable when the DB is down.
  *
- * ─── Phase B (planned) ────────────────────────────────────────────────────
- *  Once images are uploaded to the binyan-eitan/ folder on Cloudinary
- *  (with the public_ids matching the filenames here, sans extension), flip
- *  SERVE_FROM to "cloudinary". The Cloudinary branch below is exercised
- *  again automatically. No call sites need to change.
+ *  Every gallery filename passed here (verified in stage 0) exists on Blob at
+ *  ${BLOB_BASE}/<filename>.
  *
- *  Folder structure expected on Cloudinary:
- *    binyan-eitan/amshinov-1.jpg
- *    binyan-eitan/bayit-vegan-1.jpg
- *    ... (same filenames as in /public)
+ * ─── Modes ─────────────────────────────────────────────────────────────────
+ *  "blob"       → Vercel Blob (current).
+ *  "public"     → /public paths (pre-migration; kept for a quick rollback).
+ *  "cloudinary" → the old, never-populated Cloudinary path (dormant).
  */
 
-const SERVE_FROM: "public" | "cloudinary" = "public";
+const SERVE_FROM: "blob" | "public" | "cloudinary" = "blob";
+
+/** Vercel Blob base for the migrated gallery images (host is the project's
+ *  Blob store; the prefix mirrors the migration's BLOB_PREFIX). */
+const BLOB_BASE =
+  "https://gz8avf0tzwxeqwsx.public.blob.vercel-storage.com/gallery/_migrated";
 
 /** Base Cloudinary folder — used only when SERVE_FROM === "cloudinary" */
 const FOLDER = "binyan-eitan";
@@ -48,6 +52,10 @@ function extractCloudName(value: string | undefined): string | undefined {
  * /public assets.
  */
 export function img(filename: string, transforms = "f_auto,q_auto,w_1920"): string {
+  // Blob object names are the bare filenames (no leading slash). next/image
+  // still optimises delivery, so the Cloudinary-style transforms are ignored
+  // here just as they were for /public.
+  if (SERVE_FROM === "blob") return `${BLOB_BASE}/${filename}`;
   if (SERVE_FROM === "public") return `/${filename}`;
   const cloud = extractCloudName(process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME);
   if (!cloud) return `/${filename}`;
