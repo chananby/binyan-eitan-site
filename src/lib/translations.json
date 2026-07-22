@@ -925,6 +925,13 @@
   ],
   "projects": {
     "en": {
+      "page_eyebrow": "Portfolio",
+      "page_title": "Our Projects",
+      "page_subtitle": "From institutional complexes to luxury renovations — every project built to engineering exactitude.",
+      "cta_eyebrow": "Ready to start?",
+      "cta_heading": "Your project is next",
+      "cta_sub": "Get in touch and let's build something that lasts.",
+      "cta_button": "Contact Us",
       "pageTitle": "Our Projects",
       "subtitle": "Bringing the plans to life with high-quality, uncompromising execution",
       "backToHome": "Back to Home",
@@ -954,8 +961,14 @@
       "proj_1_xray_after": ""
     },
     "he": {
+      "page_eyebrow": "תיק עבודות",
+      "page_title": "הפרויקטים שלנו",
+      "page_subtitle": "ממתחמים ציבוריים ועד שיפוצי יוקרה — כל פרויקט בנוי לרמת דיוק הנדסי.",
+      "cta_eyebrow": "מוכנים להתחיל?",
+      "cta_heading": "הפרויקט שלכם הוא הבא",
+      "cta_sub": "צרו קשר ונבנה יחד משהו שעומד בזמן.",
+      "cta_button": "צרו קשר",
       "pageTitle": "הפרויקטים שלנו",
-      "subtitle": "מביאים את התוכנית לשטח בביצוע איכותי וללא פשרות",
       "backToHome": "חזרה לדף הבית",
       "featuresLabel": "תכונות עיקריות",
       "learnMore": "קרא עוד",

@@ -8,6 +8,7 @@ import Link from "next/link";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useLightboxHistory } from "../hooks/useLightboxHistory";
+import { useTranslations } from "./TranslationsProvider";
 import { GALLERY_PROJECTS, type GalleryProject, type ProjectCategory } from "../../lib/projects";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -61,6 +62,13 @@ function hasDetailPage(urlSlug: string): boolean {
 export default function ProjectsGallery({ lang }: { lang: Lang }) {
   const dir = lang === "he" ? "rtl" : "ltr";
   const homeHref = lang === "he" ? "/he" : "/en";
+
+  // Page-chrome copy (heading, subtitle, CTA) is editable via the content
+  // editor's "projects" section. Every read falls back to the original
+  // hard-coded string, so a missing key or an unavailable KV never blanks the
+  // page. The 20 other ternaries here (filter labels, aria) stay hard-coded.
+  const t = useTranslations("projects", lang) as Record<string, string | undefined>;
+  const tx = (key: string, fallback: string) => t?.[key] ?? fallback;
 
   // Start with the hard-coded GALLERY_PROJECTS (instant render + safe fallback),
   // then hydrate from the DB-backed /api/gallery on mount.
@@ -176,15 +184,15 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
           </nav>
 
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent mb-3">
-            {lang === "he" ? "תיק עבודות" : "Portfolio"}
+            {tx("page_eyebrow", lang === "he" ? "תיק עבודות" : "Portfolio")}
           </p>
           <h1 className="text-5xl md:text-6xl font-light text-charcoal mb-4 leading-tight">
-            {lang === "he" ? "הפרויקטים שלנו" : "Our Projects"}
+            {tx("page_title", lang === "he" ? "הפרויקטים שלנו" : "Our Projects")}
           </h1>
           <p className="text-lg font-light text-charcoal/60 max-w-2xl leading-relaxed">
-            {lang === "he"
+            {tx("page_subtitle", lang === "he"
               ? "ממתחמים ציבוריים ועד שיפוצי יוקרה — כל פרויקט בנוי לרמת דיוק הנדסי."
-              : "From institutional complexes to luxury renovations — every project built to engineering exactitude."}
+              : "From institutional complexes to luxury renovations — every project built to engineering exactitude.")}
           </p>
         </motion.div>
       </section>
@@ -369,21 +377,21 @@ export default function ProjectsGallery({ lang }: { lang: Lang }) {
           transition={{ duration: 0.6 }}
         >
           <p className="text-[11px] uppercase tracking-[0.3em] text-accent mb-4">
-            {lang === "he" ? "מוכנים להתחיל?" : "Ready to start?"}
+            {tx("cta_eyebrow", lang === "he" ? "מוכנים להתחיל?" : "Ready to start?")}
           </p>
           <h2 className="text-3xl md:text-4xl font-light text-charcoal mb-4">
-            {lang === "he" ? "הפרויקט שלכם הוא הבא" : "Your project is next"}
+            {tx("cta_heading", lang === "he" ? "הפרויקט שלכם הוא הבא" : "Your project is next")}
           </h2>
           <p className="text-charcoal/65 font-light mb-8 max-w-md mx-auto leading-relaxed">
-            {lang === "he"
+            {tx("cta_sub", lang === "he"
               ? "צרו קשר ונבנה יחד משהו שעומד בזמן."
-              : "Get in touch and let's build something that lasts."}
+              : "Get in touch and let's build something that lasts.")}
           </p>
           <Link
             href={`${homeHref}#contact`}
             className="inline-block px-10 py-3.5 bg-charcoal text-bone text-xs font-light uppercase tracking-[0.2em] hover:bg-accent transition-colors duration-300"
           >
-            {lang === "he" ? "צרו קשר" : "Contact Us"}
+            {tx("cta_button", lang === "he" ? "צרו קשר" : "Contact Us")}
           </Link>
         </motion.div>
       </section>

@@ -94,6 +94,14 @@ const SECTIONS: { key: SectionKey; label: string }[] = [
   { key: "projects",    label: "פרויקטים" },
 ];
 
+// The only keys in the "projects" section that the site actually reads
+// (ProjectsGallery, /projects page chrome). Everything else in that section is
+// legacy — shown read-only so it can't be mistaken for live copy.
+const PROJECTS_LIVE_KEYS = new Set<string>([
+  "page_eyebrow", "page_title", "page_subtitle",
+  "cta_eyebrow", "cta_heading", "cta_sub", "cta_button",
+]);
+
 type ActiveTab = SectionKey | "faqs" | "testimonials";
 type EditorMode = "content" | "media" | "articles";
 
@@ -1697,26 +1705,25 @@ export default function ContentEditorPage() {
                   </div>
                   {activeTab === "projects" && (
                     <div className="mb-5 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900">
-                      <p className="font-bold mb-1">⚠ הסקשן הזה אינו מוצג באתר כרגע</p>
+                      <p className="font-bold mb-1">חלק מהשדות כאן חיים, וחלק לא בשימוש</p>
                       <p>
-                        אף רכיב באתר לא קורא את המפתחות האלה (<code>proj_N_description</code>,
-                        {" "}<code>proj_N_feature_*</code>, <code>proj_N_xray_*</code>), ו-<code>XRaySlider</code>
-                        {" "}אינו מרונדר בשום דף ציבורי. עריכה כאן <strong>לא תשנה דבר באתר</strong>.
+                        <strong>חיים (משפיעים על עמוד הפרויקטים <code>/projects</code>):</strong> המפתחות
+                        {" "}<code>page_eyebrow</code>, <code>page_title</code>, <code>page_subtitle</code>,
+                        {" "}<code>cta_eyebrow</code>, <code>cta_heading</code>, <code>cta_sub</code>,
+                        {" "}<code>cta_button</code>. עריכה שלהם משתקפת באתר תוך ~90 שניות.
+                      </p>
+                      <p className="mt-2 text-amber-800/90">
+                        <strong>לא בשימוש</strong> (מושבתים): <code>proj_N_*</code> ושאר המפתחות הישנים —
+                        אף רכיב לא קורא אותם ו-<code>XRaySlider</code> אינו מרונדר בשום דף. נשמרו, לא נמחקו.
                       </p>
                       <p className="mt-2">
-                        לעריכת פרויקטים (כותרות, תיאורים, תמונות, שער) ← <strong>פורטל האדמין ← גלריה</strong>.
-                        <br />
-                        לטקסטי תיק העבודות בדף הבית ← לשונית <strong>&quot;תיק עבודות&quot;</strong> כאן בעורך.
-                      </p>
-                      <p className="mt-2 text-amber-800/80">
-                        השדות מושבתים לקריאה בלבד כדי למנוע עבודה מיותרת. התוכן נשמר ולא נמחק —
-                        אם הסקשן יחובר לאתר בעתיד, אפשר להסיר את החסימה.
+                        לעריכת פרויקטים בודדים (כותרות/תיאורים/תמונות/שער) ← <strong>פורטל האדמין ← גלריה</strong>.
                       </p>
                     </div>
                   )}
-                  {/* Read-only when the section is dead — a disabled <fieldset>
-                      natively disables every control inside it. */}
-                  <fieldset disabled={activeTab === "projects"} className="m-0 min-w-0 border-0 p-0">
+                  {/* On the projects section only the seven page_/cta_ keys are
+                      live; every other key is legacy and stays read-only. Each
+                      row is disabled individually via PROJECTS_LIVE_KEYS below. */}
                   <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                     <table className="w-full text-sm">
                       <thead>
@@ -1739,11 +1746,15 @@ export default function ContentEditorPage() {
                           const isLong = heVal.length > 50 || enVal.length > 50 || heVal.includes("\n") || enVal.includes("\n");
                           const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(heVal || enVal) ||
                             ["image", "cover", "photo", "src", "url"].some((w) => key.toLowerCase().includes(w));
+                          // In the projects section only the seven page_/cta_ keys
+                          // are wired to the site; the rest are legacy → read-only.
+                          const dead = activeTab === "projects" && !PROJECTS_LIVE_KEYS.has(key);
 
                           return (
-                            <tr key={key} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50">
+                            <tr key={key} className={`border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 ${dead ? "opacity-50" : ""}`}>
                               <td className="px-5 py-4 font-mono text-xs text-gray-500 align-top">
                                 {key}
+                                {dead && <span className="ml-1 text-[10px] text-gray-400">(לא בשימוש)</span>}
                                 {isImg && (heVal || enVal) && (
                                   <div className="mt-1.5 w-12 h-9 rounded overflow-hidden border border-gray-200">
                                     <ImageThumb src={heVal || enVal} className="w-full h-full" />
@@ -1752,14 +1763,14 @@ export default function ContentEditorPage() {
                               </td>
                               <td className="px-5 py-4 align-top" dir="rtl">
                                 {isLong
-                                  ? <BoldTextarea value={heVal} onChange={(e) => handleChange("he", key, e.target.value)} rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" dir="rtl" />
-                                  : <input type="text" value={heVal} onChange={(e) => handleChange("he", key, e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" dir="rtl" />
+                                  ? <BoldTextarea value={heVal} onChange={(e) => handleChange("he", key, e.target.value)} disabled={dead} rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white disabled:bg-gray-100 disabled:cursor-not-allowed" dir="rtl" />
+                                  : <input type="text" value={heVal} onChange={(e) => handleChange("he", key, e.target.value)} disabled={dead} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold text-right focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed" dir="rtl" />
                                 }
                               </td>
                               <td className="px-5 py-4 align-top" dir="ltr">
                                 {isLong
-                                  ? <BoldTextarea value={enVal} onChange={(e) => handleChange("en", key, e.target.value)} rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white" />
-                                  : <input type="text" value={enVal} onChange={(e) => handleChange("en", key, e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white" />
+                                  ? <BoldTextarea value={enVal} onChange={(e) => handleChange("en", key, e.target.value)} disabled={dead} rows={3} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none resize-y bg-white disabled:bg-gray-100 disabled:cursor-not-allowed" />
+                                  : <input type="text" value={enVal} onChange={(e) => handleChange("en", key, e.target.value)} disabled={dead} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-black font-semibold focus:ring-2 focus:ring-[#8D775F] focus:border-transparent outline-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed" />
                                 }
                               </td>
                             </tr>
@@ -1768,7 +1779,6 @@ export default function ContentEditorPage() {
                       </tbody>
                     </table>
                   </div>
-                  </fieldset>
                 </div>
               )}
             </div>

@@ -449,6 +449,7 @@ flowchart TD
   | כותרת/תיאור/קטגוריה בגלריה ובדף הפרויקט, תמונות, שער, סדר, פרסום | `/admin` ← לשונית **גלריה** (`GalleryTab`) → `gallery_projects`/`gallery_images` |
   | כותרת/קטגוריה של **5 המקוריים בדף הבית** | `/internal/content-editor` ← לשונית **"תיק עבודות"** → מפתחות `portfolio.proj_N_*` ב-Vercel KV |
   | כל דבר ב-**3 הפרויקטים החדשים** (כולל דף הבית) | `/admin` ← **גלריה** — הם אינם קיימים בתרגומים |
+  | טקסטי **עמוד** `/projects` (כותרת, תת-כותרת, CTA) | `/internal/content-editor` ← לשונית **"פרויקטים"** → מפתחות `page_*`/`cta_*` |
   | 5 הדפים העשירים (hero, פס מטא, `keyFeatures`, metadata) | **קוד בלבד** — `src/data/projects/*.ts`, דורש commit+פריסה |
 
   ⚠️ **שתי נקודות בלבול שעולות שוב ושוב:**
@@ -457,10 +458,11 @@ flowchart TD
      מכוונת מ-`feature/home-gallery-db`: הטקסטים בתרגומים שונים מאלה שב-DB ("תשתיות ומבני ציבור" מול
      "תשתיות ציבוריות"), והמיפוי שמר על דף הבית **זהה** אחרי המעבר ל-DB. המשמעות: לחמשת המקוריים
      הכותרת בדף הבית והכותרת בגלריה הן **שני שדות נפרדים**.
-  2. **לשונית "פרויקטים" ב-content-editor = תוכן מת.** המפתחות `projects.proj_N_description`,
-     `proj_N_feature_*`, `proj_N_xray_*` **אינם נצרכים ע"י אף רכיב**, ו-`XRaySlider` אינו מרונדר
-     בשום דף ציבורי. הלשונית סומנה בבאנר והשדות בה מושבתים (read-only) — התוכן נשמר לשימוש עתידי.
-     הלשונית החיה באותו עורך היא **"תיק עבודות"**.
+  2. **לשונית "פרויקטים" ב-content-editor — חלקית חיה.** שבעת המפתחות `page_*`/`cta_*`
+     **חיים** ומזינים את טקסטי עמוד `/projects` (`ProjectsGallery`, חובר לתרגומים ב-2026). שאר
+     המפתחות (`proj_N_description`, `proj_N_feature_*`, `proj_N_xray_*` + orphans ישנים) עדיין
+     **מתים** — אף רכיב לא קורא אותם, `XRaySlider` אינו מרונדר — ומוצגים read-only (מסומנים
+     "לא בשימוש") ב-`PROJECTS_LIVE_KEYS` allowlist.
 
 - **פיצ'רים:** גלריה מ-DB (`api/gallery`, force-dynamic + CDN 60ש'; מסלול `api/cloudinary-gallery` הרדום **הוסר**, `lib/cloudinary.ts` נשאר כ-helper לנתיבי `/public`); Testimonials (5.0/19); XRaySlider (before/after, RTL); TechnicalAnatomy (hotspots); חידונים עבריים (עצמאות/פסח/פורים, `data/quizzes.ts`); FloatingWhatsApp (חנן `+972585008447`); AccessibilityMenu (ניגודיות+פונט, localStorage); VoucherGenerator (כלי canvas פנימי, noindex).
 - **שפות:** `page.tsx` קורא `Accept-Language` → he*→`/he`, השאר→`/en`. `LangContext` (default עברית, `he/layout` = rtl). `TranslationsProvider` טוען מ-`api/translations` (Vercel KV + deepMerge עם `lib/translations.json`), רענון כל 90ש' + `visibilitychange` + `BroadcastChannel`. חלק מהתוכן hard-coded he/en.
