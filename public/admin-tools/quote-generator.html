@@ -1663,20 +1663,6 @@
     </div>
 
     <div class="form-section">
-      <h2>תנאי תשלום <small style="font-weight:400;color:var(--text-muted);font-size:11px">(הערה משלימה — מודפסת מתחת ללוח התשלומים)</small></h2>
-      <div class="form-row full">
-        <div class="form-group">
-          <input type="text" data-field="paymentTerms" placeholder='הערה משלימה ללוח התשלומים — למשל: "התשלום בהעברה בנקאית בלבד"'>
-          <!-- Warns (never blocks) when this free text sits alongside a
-               structured schedule — the pair used to contradict each other. -->
-          <div id="payment-terms-warning" class="payment-terms-warning" hidden>
-            ⚠ שים לב — יש כבר לוח תשלומים מפורט. ודא שהטקסט כאן לא סותר אותו.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-section">
       <h2>הערות כלליות <button class="btn-small" id="btn-add-note">+ הוסף הערה</button></h2>
       <div id="notes-container"></div>
     </div>
@@ -1699,6 +1685,20 @@
         <button class="add-block-btn" data-add-block="narrative"><span class="emoji">📝</span>פסקת הסבר</button>
         <button class="add-block-btn" data-add-block="bullets"><span class="emoji">•</span>רשימת בולטים</button>
         <button class="add-block-btn" data-add-block="internal"><span class="emoji">🔒</span>הערה פנימית</button>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2>תנאי תשלום <small style="font-weight:400;color:var(--text-muted);font-size:11px">(הערה משלימה — מודפסת מתחת ללוח התשלומים)</small></h2>
+      <div class="form-row full">
+        <div class="form-group">
+          <input type="text" data-field="paymentTerms" placeholder='הערה משלימה ללוח התשלומים — למשל: "התשלום בהעברה בנקאית בלבד"'>
+          <!-- Warns (never blocks) when this free text sits alongside a
+               structured schedule — the pair used to contradict each other. -->
+          <div id="payment-terms-warning" class="payment-terms-warning" hidden>
+            ⚠ שים לב — יש כבר לוח תשלומים מפורט. ודא שהטקסט כאן לא סותר אותו.
+          </div>
+        </div>
       </div>
     </div>
 
