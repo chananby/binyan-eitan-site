@@ -274,6 +274,20 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **גלריה שלב ב'-1 — מחיקת 22 תמונות יתומות** (`chore/delete-orphan-images`,
+  מקומי — ממתין ל-push+deploy). מהחקירה: 22 קבצי תמונה ב-`/public` (10.12MB)
+  שאף קוד ב-repo לא מפנה אליהם. **אימות מחדש עצמאי** (grep על כל שם קובץ בכל
+  ה-repo מלבד `/public`/`.git`/`.next`/`node_modules`, + בדיקת בנייה-דינמית של
+  נתיבים + og/manifest/config): כולם 0 הפניות → **0 הוצאו מהרשימה**. הגדולים:
+  `jerusalem-demo-worker.jpg` (2.4MB), `jerusalem-access-panel.jpg` (2MB).
+  `/public` ירד מ-38MB ל-28MB; build + 408 טסטים עברו אחרי המחיקה (הוכחה שאף
+  תמונה בשימוש לא נמחקה). **לא נגעתי** ב-76 תמונות הגלריה, ב-72 הנכסים בשימוש,
+  או ב-6 ה-favicons. **הערת git:** ההיסטוריה (153MB) לא מתכווצת — החיסכון בעץ
+  העבודה ובפריסת Vercel בלבד.
+  - **שלב ב'-2 בתור:** הפניית 3 המקורות (`GALLERY_PROJECTS`, `PORTFOLIO`,
+    `src/data/projects`) ל-URLs של Blob (deterministic, `gallery/_migrated/`),
+    ואז מחיקת 76 תמונות הגלריה (עוד ~19MB). שומר fallbacks שמישים (Blob עצמאי
+    מ-Supabase). דורש עריכת קוד + אימות זהיר — לכן נפרד משלב ב'-1.
 - **עמוד `/projects` — חובר למערכת התרגומים** — **נפרס** (22.7.26,
   `feature/projects-page-translations` → main `0cc8029`, `dpl_3zes7kN6uYo`;
   **אומת בייצור:** כל הטקסטים המקוריים בעמוד — כותרת, תת-כותרת, CTA, eyebrow —
