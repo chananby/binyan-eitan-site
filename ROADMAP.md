@@ -274,8 +274,9 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
-- **פורטל עובד — מניעת לחיצה כפולה + הודעות חסימה מדויקות** — **מקומי, ממתין ל-push+deploy**
-  (`fix/worker-submit-lock` @ `9ac0da4`). **טיפול בשורש** של הרעש שסיננו קודם: הסינון
+- **פורטל עובד — מניעת לחיצה כפולה + הודעות חסימה מדויקות** — **נפרס**
+  (26.7.26, `fix/worker-submit-lock` → main `2213f65`, `dpl_6UR9mnvjbFgs`,
+  אימות `x-matched-path: /he`). **טיפול בשורש** של הרעש שסיננו קודם: הסינון
   הסתיר את הסימפטום, זה מייבש את המקור.
   - **נעילת in-flight ל-`submit()`** ([`AttendanceForm.tsx`](src/app/components/AttendanceForm.tsx)):
     `submittingRef` (**ref, לא state** — state לא מתעדכן מיד, שתי הקשות מהירות היו קוראות
@@ -1369,6 +1370,9 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
     `corrTypeMissingExit`/`MissingEntry`/`FixTime`, `corrTimeExitLabel`/
     `EntryLabel`, `corrTimeRequired`, `corrDayHasExit`/`DayHasEntry`,
     `corrCountNormal`/`corrCountHigh`. SI/HI/ZH best-effort → **לתקף מול native.**
+  - **סבב הודעות חסימת יציאה:** `alreadyClockedOut` (חדש) + נוסח מחדש ל-
+    `noOpenEntryToClose`. HE/EN/RU מלאות ומאומתות; **SI/HI/ZH best-effort → לתקף מול native.**
+    (טקסט מלא בשפת האם, ללא fallback לאנגלית — לפי החלטת חנן.)
 
 ### חוב טכני ידוע
 - **`attendance.status` — ברירת המחדל (`'approved'`) אינה מוגדרת באף מיגרציה.**
