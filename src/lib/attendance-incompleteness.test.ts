@@ -114,6 +114,65 @@ describe("computeIncompleteDays — six issue types", () => {
   });
 });
 
+describe("stuck_failure — double-tap OUT is noise, real orphan is kept", () => {
+  // Failures are built with raw ISO so we get second precision the att()
+  // helper (minute + ":00") can't express. All on TODAY so the no_exit /
+  // no_entry loop (past-days only) never adds incidental items — leaving
+  // stuck_failure as the sole thing under test.
+  const failAt = (id: string, hhmmss: string, code = "no_open_entry_to_close"): EngineFailureRow => ({
+    id, staff_id: "s1", staff_name: "name-s1",
+    attempted_at: `${TODAY}T${hhmmss}+03:00`, project_id: "p1", project_name: "Proj 1", error_code: code,
+  });
+
+  it("drops a no_open_entry_to_close logged seconds after the worker's own exit", () => {
+    // Yitzhak Sayeg pattern: a successful exit, then two blocked OUT taps.
+    const items = run({
+      attendance: [
+        att("in1", "s1", TODAY, "07:53", "in"),
+        att("out1", "s1", TODAY, "13:04", "out"), // 13:04:00
+      ],
+      failures: [
+        failAt("f-a", "13:04:57"), // +57s
+        failAt("f-b", "13:05:11"), // +71s
+      ],
+    });
+    // both taps are noise → no stuck_failure item survives.
+    expect(items.some((i) => i.issue === "stuck_failure")).toBe(false);
+  });
+
+  it("keeps a genuine orphan OUT — a block with NO preceding exit", () => {
+    const items = run({ failures: [failAt("f-c", "09:00:00")] });
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ issue: "stuck_failure", error_code: "no_open_entry_to_close" });
+  });
+
+  it("keeps the failure when the exit is OUTSIDE the 5-min window", () => {
+    const items = run({
+      attendance: [att("out2", "s1", TODAY, "13:00", "out")], // 13:00:00
+      failures: [failAt("f-d", "13:10:00")], // 10 min later
+    });
+    expect(items.some((i) => i.issue === "stuck_failure")).toBe(true);
+  });
+
+  it("does NOT treat a manual/admin exit as the double-tap trigger", () => {
+    const items = run({
+      attendance: [att("out3", "s1", TODAY, "13:04", "out", { is_manual: true })],
+      failures: [failAt("f-e", "13:04:57")],
+    });
+    // manual backfill ≠ a live double-tap → the failure is still surfaced.
+    expect(items.some((i) => i.issue === "stuck_failure")).toBe(true);
+  });
+
+  it("only the no_open_entry_to_close code is double-tap filtered", () => {
+    // a nearby exit must NOT silence an unrelated code (e.g. server_error).
+    const items = run({
+      attendance: [att("out4", "s1", TODAY, "13:04", "out")],
+      failures: [failAt("f-f", "13:04:57", "server_error")],
+    });
+    expect(items.some((i) => i.issue === "stuck_failure")).toBe(true);
+  });
+});
+
 describe("computeIncompleteDays — edge cases", () => {
   it("does NOT flag today's open entry as no_exit (in-progress)", () => {
     const items = run({ attendance: [att("e3", "s1", TODAY, "07:00", "כניסה")] });

@@ -113,6 +113,40 @@ function todayIsrael(): string {
 }
 
 /**
+ * A `no_open_entry_to_close` failure logged within this window AFTER the
+ * worker's OWN successful clock-out is a double-tap, not a stuck worker: the
+ * shift was already closed, and the extra OUT was correctly blocked. We treat
+ * it as noise and drop it from the center (it inflated the counter with
+ * non-issues). This mirrors the IN side, where a repeat click yields
+ * `already_clocked_in` — logged as category `noise` and already never seen
+ * by this engine. 5 minutes comfortably covers frustrated repeat-taps /
+ * "did it work? let me try again" while staying far tighter than any later
+ * manual-correction exit (hours away), so a genuine orphan OUT — one with NO
+ * preceding successful exit — is never hidden.
+ */
+export const DOUBLE_CLICK_EXIT_WINDOW_MS = 5 * 60 * 1000;
+
+/**
+ * True when the worker had a live (non-manual) successful exit at or shortly
+ * before `failureAtISO` — the signature of a double-tapped clock-out. Only
+ * meaningful for `no_open_entry_to_close`; other error codes don't imply a
+ * prior exit. A real stuck OUT has no such exit, so it returns false and the
+ * item is kept.
+ */
+export function hasRecentLiveExit(
+  exitEpochs: number[] | undefined,
+  failureAtISO: string,
+): boolean {
+  if (!exitEpochs || exitEpochs.length === 0) return false;
+  const t = new Date(failureAtISO).getTime();
+  if (!Number.isFinite(t)) return false;
+  for (const e of exitEpochs) {
+    if (e <= t && t - e <= DOUBLE_CLICK_EXIT_WINDOW_MS) return true;
+  }
+  return false;
+}
+
+/**
  * Suggested fix for a worker_stuck failure, chosen by its error_code. See the
  * stuck_failure block for the rationale. Unknown/absent codes fall back to
  * "add_day" — the behaviour before error_code was threaded through — so a code
@@ -150,6 +184,9 @@ export function computeIncompleteDays(
     exits: EngineAttendanceRow[];
   }
   const days = new Map<string, DayBucket>();
+  // Live (non-manual) successful exit times per staff, epoch-ms — used to
+  // recognise double-tapped clock-outs among the failures below.
+  const liveExitsByStaff = new Map<string, number[]>();
 
   for (const r of input.attendance) {
     // Absence markers (vacation / sick) carry clock_at = null — not a damaged
@@ -164,7 +201,16 @@ export function computeIncompleteDays(
     }
     const entry = isEntry(r.action);
     if (entry) b.entries.push(r);
-    else if (isExit(r.action)) b.exits.push(r);
+    else if (isExit(r.action)) {
+      b.exits.push(r);
+      // A live clock-out (not an admin/manual backfill) is what a double-tap
+      // follows; record its time so the failures loop can spot the repeat.
+      if (r.is_manual !== true && r.clock_at) {
+        const arr = liveExitsByStaff.get(r.staff_id);
+        if (arr) arr.push(new Date(r.clock_at).getTime());
+        else liveExitsByStaff.set(r.staff_id, [new Date(r.clock_at).getTime()]);
+      }
+    }
 
     // no_project — an ENTRY with no project assigned. Independent of pairing
     // and applies to any day (incl. today): a project-less shift is always
@@ -222,6 +268,17 @@ export function computeIncompleteDays(
   //       default (also the pre-error_code behaviour); the UI flags the code so
   //       the admin reviews rather than blindly adds.
   for (const f of input.failures) {
+    // Double-tap filter: a no_open_entry_to_close logged right after the
+    // worker's own successful exit is noise, not a stuck worker — the shift
+    // was already closed and the extra tap was correctly blocked. Drop it so
+    // it neither shows in the center nor inflates the counter. A genuine
+    // orphan OUT (no preceding live exit) has no match here and is kept.
+    if (
+      f.error_code === "no_open_entry_to_close" &&
+      hasRecentLiveExit(liveExitsByStaff.get(f.staff_id), f.attempted_at)
+    ) {
+      continue;
+    }
     items.push({
       staff_id: f.staff_id, staff_name: f.staff_name,
       date: israelYMD(new Date(f.attempted_at)),
