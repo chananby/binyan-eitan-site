@@ -274,6 +274,28 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **מרכז החוסרים — פעולת "כשל החתמה" מותאמת ל-error_code + תווית בממשק**
+  (`fix/failure-action-mapping`, מקומי — ממתין ל-push+deploy). המנוע מיפה **כל**
+  `stuck_failure` ל-`add_day` בלי קשר לסיבה; הנתונים החיים הראו שכל 4 הכשלים
+  הם `no_open_entry_to_close` (ניסיון יציאה בלי כניסה פתוחה), ששם "הוסף יום"
+  עלול להכפיל יום כי הכניסה אולי נרשמה בערוץ אחר.
+  - **`error_code` מוזרם מקצה לקצה:** נוסף ל-`attendance_failures` SELECT בלואודר,
+    ל-`EngineFailureRow`, ול-`IncompleteItem`.
+  - **הפעולה נגזרת מ-error_code** ([`actionForFailureCode`](src/lib/attendance-incompleteness.ts)):
+    `no_open_entry_to_close`→`complete_entry` · `monthly_remote_exit_cap_reached`→`complete_exit`
+    · `gps_out_of_range`/`location_required`/`server_error`/`account_inactive`/לא-מוכר→`add_day`
+    (ברירת מחדל בטוחה = ההתנהגות הישנה, כך שקוד לא-מוכר לא מאבד פריט).
+  - **תווית error_code בעברית בממשק** — תג לצד הפרויקט ("יציאה בלי כניסה פתוחה",
+    "מחוץ לרדיוס", "אין מיקום"...) + **תווית כפתור מותאמת** (no_open_entry→"בדוק/
+    השלם כניסה", cap→"השלם יציאה", server_error→"בדוק (ייתכן שנרשם)"...). **כל**
+    הכפתורים ממשיכים לנווט ל-`onViewWorkerHistoryForDay` (מסך בטוח) — רק ההנחיה
+    השתנתה, אין מסלול לפעולה אוטומטית שגויה.
+  - שאר 5 סוגי החוסר, דדופ ה-stale-opens, ו-`failClock` (רישום הכשלים) **לא נגעו**.
+    +טסט חדש למיפוי. build + 409 טסטים.
+  - **הקשר תפעולי (לא לחקור מחדש):** אכיפת ה-GPS **כבויה** (`attendance_gps_enforce=off`,
+    רדיוס 120 מוגדר אך לא פעיל). לכן המיפוי של `gps_out_of_range`/`location_required`
+    הוא **תיאורטי** כרגע — כשלים כאלה לא ייווצרו עד שהאכיפה תודלק. כל 4 הכשלים
+    הנוכחיים הם `no_open_entry_to_close`.
 - **מחולל ההצעות — סבב ג': סדר הטופס** — **נפרס** (22.7.26,
   `fix/quote-form-order` → main `3fecc50`, `dpl_2VUV96vXy1p`; אומת בייצור:
   סדר הטופס בקובץ המוגש הוא בלוקים→תנאי תשלום→תמונות). **הסבב האחרון מסריקת המחולל — הסריקה הושלמה במלואה.**

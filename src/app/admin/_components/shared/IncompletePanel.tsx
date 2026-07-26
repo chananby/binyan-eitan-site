@@ -37,6 +37,30 @@ const ISSUE_ORDER: IncompleteIssue[] = [
   "stuck_failure", "no_project", "no_exit", "no_entry", "pending_correction", "pending_manual",
 ];
 
+// Short Hebrew label per attendance_failures.error_code, so a "כשל החתמה" row
+// says WHAT failed instead of leaving the admin to guess.
+const FAILURE_CODE_LABEL: Record<string, string> = {
+  gps_out_of_range:                "מחוץ לרדיוס",
+  location_required:               "אין מיקום",
+  no_open_entry_to_close:          "יציאה בלי כניסה פתוחה",
+  account_inactive:                "חשבון מושבת",
+  monthly_remote_exit_cap_reached: "חריגת מכסת יציאה מרחוק",
+  server_error:                    "תקלת שרת",
+};
+
+// The suggested-fix wording for the row's action button, chosen so it never
+// pushes "add a day" for a failure where that would double-count. All of these
+// still open the worker's history for that day — a safe review screen — so the
+// admin decides there; only the guidance changes.
+const FAILURE_ACTION_LABEL: Record<string, string> = {
+  gps_out_of_range:                "הוסף יום ←",
+  location_required:               "הוסף יום ←",
+  no_open_entry_to_close:          "בדוק/השלם כניסה ←",
+  monthly_remote_exit_cap_reached: "השלם יציאה ←",
+  account_inactive:                "בדוק חשבון ←",
+  server_error:                    "בדוק (ייתכן שנרשם) ←",
+};
+
 const APPROVAL_ISSUES = new Set<IncompleteIssue>(["pending_correction", "pending_manual"]);
 
 function fmtDate(ymd: string): string {
@@ -132,6 +156,13 @@ export default function IncompletePanel(p: {
                     ? <span className="text-charcoal/60 truncate max-w-[9rem]">{it.project_name}</span>
                     : <span className="text-charcoal/30">—</span>}
 
+                  {/* What exactly failed — only stuck_failure carries an error_code. */}
+                  {it.issue === "stuck_failure" && it.error_code && (
+                    <span className="px-1.5 py-0.5 rounded bg-charcoal/[0.06] text-charcoal/70 whitespace-nowrap">
+                      {FAILURE_CODE_LABEL[it.error_code] ?? it.error_code}
+                    </span>
+                  )}
+
                   <span className="ms-auto">
                     {it.issue === "no_project" ? (
                       <span className="inline-flex items-center gap-1">
@@ -160,7 +191,9 @@ export default function IncompletePanel(p: {
                     ) : (
                       <button type="button" onClick={() => p.onViewWorkerHistoryForDay(it.staff_id, it.date)}
                         className="font-semibold text-amber-900 underline underline-offset-2 hover:text-accent">
-                        {it.issue === "stuck_failure" ? "הוסף יום ←" : "לתיקון ←"}
+                        {it.issue === "stuck_failure"
+                          ? ((it.error_code && FAILURE_ACTION_LABEL[it.error_code]) ?? "בדיקה ←")
+                          : "לתיקון ←"}
                       </button>
                     )}
                   </span>

@@ -64,7 +64,7 @@ export async function loadIncompleteness(
   // ── worker_stuck failures ──────────────────────────────────────────────
   let failQuery = supabase
     .from("attendance_failures")
-    .select("id, staff_id, attempted_at, project_id, staff:staff_id(name), project:project_id(name)")
+    .select("id, staff_id, attempted_at, error_code, project_id, staff:staff_id(name), project:project_id(name)")
     .eq("category", "worker_stuck")
     .gte("attempted_at", fromISO)
     .lt("attempted_at", toISO);
@@ -105,6 +105,7 @@ export async function loadIncompleteness(
     attempted_at: r.attempted_at,
     project_id: r.project_id ?? null,
     project_name: one<{ name: string }>(r.project)?.name ?? null,
+    error_code: r.error_code ?? null,
   }));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pendingCorrections: EngineCorrectionRow[] = ((corrRaw ?? []) as any[])

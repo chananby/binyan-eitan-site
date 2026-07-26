@@ -55,7 +55,7 @@ describe("computeIncompleteDays — six issue types", () => {
     expect(items[0]).toMatchObject({ issue: "no_project", action: "assign_project", ref_id: "e2", project_id: null });
   });
 
-  it("stuck_failure — a worker_stuck row", () => {
+  it("stuck_failure — a worker_stuck row (no error_code → add_day fallback)", () => {
     const failures: EngineFailureRow[] = [{
       id: "f1", staff_id: "s1", staff_name: "name-s1",
       attempted_at: "2026-07-11T09:00:00+03:00", project_id: "p1", project_name: "Proj 1",
@@ -63,6 +63,28 @@ describe("computeIncompleteDays — six issue types", () => {
     const items = run({ failures });
     expect(items).toHaveLength(1);
     expect(items[0]).toMatchObject({ issue: "stuck_failure", action: "add_day", ref_id: "f1", date: "2026-07-11" });
+  });
+
+  it("stuck_failure — action is chosen by error_code, not always add_day", () => {
+    const mk = (code: string): EngineFailureRow => ({
+      id: "f-" + code, staff_id: "s1", staff_name: "name-s1",
+      attempted_at: "2026-07-11T09:00:00+03:00", project_id: "p1", project_name: "Proj 1",
+      error_code: code,
+    });
+    // a blocked EXIT with no open entry → check/complete the entry, NOT add a day
+    expect(run({ failures: [mk("no_open_entry_to_close")] })[0]).toMatchObject({
+      action: "complete_entry", error_code: "no_open_entry_to_close",
+    });
+    // remote-exit cap → the open entry just needs its exit completed
+    expect(run({ failures: [mk("monthly_remote_exit_cap_reached")] })[0]).toMatchObject({
+      action: "complete_exit",
+    });
+    // off-site clock-in was rejected → worker was there, no row exists → add_day
+    expect(run({ failures: [mk("gps_out_of_range")] })[0]).toMatchObject({ action: "add_day" });
+    // unknown code → safe add_day fallback, code still carried for the UI
+    expect(run({ failures: [mk("something_new")] })[0]).toMatchObject({
+      action: "add_day", error_code: "something_new",
+    });
   });
 
   it("pending_correction — a pending request", () => {

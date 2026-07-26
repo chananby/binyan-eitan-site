@@ -59,6 +59,9 @@ export interface IncompleteItem {
   project_name: string | null;
   /** id of the underlying row (attendance / failure / correction) the fix targets. */
   ref_id: string | null;
+  /** For stuck_failure only: the attendance_failures.error_code, so the UI can
+   *  show WHAT failed and suggest the right fix (a blocked exit ≠ a missing day). */
+  error_code?: string | null;
 }
 
 // ── Flat input rows (the endpoint flattens Supabase joins before calling) ──
@@ -81,6 +84,8 @@ export interface EngineFailureRow {
   attempted_at: string;
   project_id: string | null;
   project_name: string | null;
+  /** attendance_failures.error_code — decides the suggested action (below). */
+  error_code?: string | null;
 }
 export interface EngineCorrectionRow {
   id: string;
@@ -105,6 +110,23 @@ export interface IncompleteSummary {
 
 function todayIsrael(): string {
   return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Jerusalem" });
+}
+
+/**
+ * Suggested fix for a worker_stuck failure, chosen by its error_code. See the
+ * stuck_failure block for the rationale. Unknown/absent codes fall back to
+ * "add_day" — the behaviour before error_code was threaded through — so a code
+ * we don't recognise never silently loses its item.
+ */
+export function actionForFailureCode(code: string | null | undefined): IncompleteAction {
+  switch (code) {
+    case "no_open_entry_to_close":
+      return "complete_entry"; // check/add the missing ENTRY, not a whole day
+    case "monthly_remote_exit_cap_reached":
+      return "complete_exit"; // clocked in fine; only the remote exit was capped
+    default:
+      return "add_day"; // gps_out_of_range, location_required, server_error, …
+  }
 }
 
 /**
@@ -187,13 +209,25 @@ export function computeIncompleteDays(
     }
   }
 
-  // ── stuck_failure — a blocked clock attempt (no record exists → add_day). ──
+  // ── stuck_failure — a blocked clock attempt. The right fix depends on WHY it
+  //   was blocked (error_code), not "add a day" for everything:
+  //     • gps_out_of_range / location_required → the worker was on site and the
+  //       clock was rejected, so no row exists → add_day.
+  //     • no_open_entry_to_close → a clock-OUT with no open entry; the entry may
+  //       have been recorded on another channel, so the fix is to check/complete
+  //       the ENTRY, not add a whole day (which would double-count).
+  //     • monthly_remote_exit_cap_reached → they clocked IN fine and only the
+  //       remote EXIT was capped → the open entry needs its exit completed.
+  //     • server_error / account_inactive / unknown → keep add_day as the safe
+  //       default (also the pre-error_code behaviour); the UI flags the code so
+  //       the admin reviews rather than blindly adds.
   for (const f of input.failures) {
     items.push({
       staff_id: f.staff_id, staff_name: f.staff_name,
       date: israelYMD(new Date(f.attempted_at)),
-      issue: "stuck_failure", action: "add_day",
+      issue: "stuck_failure", action: actionForFailureCode(f.error_code),
       project_id: f.project_id, project_name: f.project_name, ref_id: f.id,
+      error_code: f.error_code ?? null,
     });
   }
 
