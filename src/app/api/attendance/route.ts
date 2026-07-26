@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../lib/supabase";
 import { israelDayStartISO } from "../../../lib/israel-time";
 import { hasOpenRecord } from "../../../lib/attendance-logic";
+import { isExit } from "../../../lib/attendance-time";
 import { getWorkerStaffIdFromRequest } from "../../../lib/admin-auth";
 import { checkRateLimit } from "../../../lib/rate-limit";
 import {
@@ -36,6 +37,11 @@ interface FailureDetails {
   uaFp?: string | null;
   /** Extra HTTP headers to include on the response (e.g. Retry-After). */
   headers?: Record<string, string>;
+  /** Optional sub-reason surfaced in the response body as `detail`, so the
+   *  client can pick a precise message when one error_code has two causes
+   *  (e.g. no_open_entry_to_close: already-exited vs no-entry). Response-only —
+   *  never written to attendance_failures, so classification stays unchanged. */
+  responseDetail?: string | null;
 }
 
 /**
@@ -84,7 +90,7 @@ async function failClock(
     }
   }
   return NextResponse.json(
-    { success: false, error: code },
+    { success: false, error: code, ...(details?.responseDetail ? { detail: details.responseDetail } : {}) },
     { status: httpStatus, ...(details?.headers ? { headers: details.headers } : {}) },
   );
 }
@@ -292,8 +298,17 @@ export async function POST(req: NextRequest) {
     if (!hasOpenRecord(recent ?? [], cutoffISO)) {
       // Classic worker-stuck signal — this is the exact class of block
       // that hit 15+ workers on 2026-07-06. Panel-worthy.
+      //
+      // Distinguish the two causes for the WORKER'S MESSAGE only (the block
+      // itself is identical): a successful exit already exists in the window
+      // → "already clocked out" (the double-tap case); no exit at all → "no
+      // open entry, clock in first". Response-only `detail` — the logged row
+      // keeps the same error_code, so the incompleteness double-tap filter is
+      // untouched. hasOpenRecord / the block decision are NOT changed.
+      const alreadyExited = (recent ?? []).some((r) => isExit(r.action));
       return await failClock(supabase, "no_open_entry_to_close", "worker_stuck", 409, {
         staffId: staff.id, action: normalizedAction, projectId: project_id ?? null, uaFp,
+        responseDetail: alreadyExited ? "already_exited" : "no_entry",
       });
     }
   }

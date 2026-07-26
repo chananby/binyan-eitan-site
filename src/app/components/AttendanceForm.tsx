@@ -10,7 +10,7 @@
 // have no network side-effects. The translations and the shared Screen
 // wrapper are likewise extracted under ./attendance/.
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useFeedback } from "../hooks/useFeedback";
 import { T, detectInitialLang, SUPPORTED_LANGS, bilingualForForeman, type Lang } from "./attendance/i18n";
 import { countMissingExitDays } from "../../lib/worker-missing-exits";
@@ -250,11 +250,18 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
     );
   }, [identifiedStaffId, lang, feedback]);
 
+  // In-flight lock for submit(). A ref, not state: state updates are async,
+  // so two fast taps could both read the old `false` before React re-renders.
+  // The ref flips synchronously, so the second tap is dropped before its POST.
+  const submittingRef = useRef(false);
+
   const submit = useCallback(async (selectedAction: "in" | "out") => {
+    if (submittingRef.current) return; // a POST is already in flight — ignore the repeat tap
     if (!coords) return;
-    setAction(selectedAction); setStep("submitting");
-    const ts = nowLabel(); setTimestamp(ts);
+    submittingRef.current = true;
     try {
+      setAction(selectedAction); setStep("submitting");
+      const ts = nowLabel(); setTimestamp(ts);
       const res = await fetch("/api/attendance", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -282,8 +289,13 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         feedback.error();
         setErrorMsg(T[lang].alreadyClockedIn); setStep("error");
       } else if (data.error === "no_open_entry_to_close") {
+        // Two causes, two messages (server tells them apart via `detail`):
+        //  • already_exited → the worker already clocked out today (double-tap)
+        //    → calm "you already clocked out", not an alarming error.
+        //  • no_entry / absent → no open clock-in → "clock in first" guidance.
         feedback.error();
-        setErrorMsg(T[lang].noOpenEntryToClose); setStep("error");
+        setErrorMsg(data.detail === "already_exited" ? T[lang].alreadyClockedOut : T[lang].noOpenEntryToClose);
+        setStep("error");
       } else if (data.error === "gps_out_of_range") {
         feedback.error();
         setErrorMsg(bilingualForForeman(lang, "gpsOutOfRange")); setStep("error");
@@ -333,6 +345,7 @@ export default function AttendanceForm({ siteLang = "he" }: { siteLang?: "he" | 
         setErrorMsg(T[lang].unknownError); setStep("error");
       }
     } catch { feedback.error(); setErrorMsg(T[lang].unknownError); setStep("error"); }
+    finally { submittingRef.current = false; } // ALWAYS release — a stuck worker is worse than a double tap
   }, [coords, workerName, selectedProjectId, lang, feedback]);
 
   // reset() returns to the action menu after a single clock-in/out cycle.

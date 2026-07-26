@@ -114,10 +114,13 @@ export interface ScreenStrings {
   // — points unknown workers to the public /he/join form so they can ask
   // to be added to the staff list instead of getting stuck on this screen.
   joinCta: string;
-  // Clock-out was rejected because the worker has no open clock-in
-  // within the last 24h — the B3 guard. Backend returns error code
-  // "no_open_entry_to_close"; the frontend must localize before showing.
+  // Clock-out was rejected (no_open_entry_to_close) and the worker has NO
+  // open clock-in — genuinely never clocked in. "Clock in first" guidance.
   noOpenEntryToClose: string;
+  // Clock-out was rejected (no_open_entry_to_close) but the worker ALREADY
+  // clocked out today (server sends detail="already_exited"). This is the
+  // double-tap case — a calm "already done", not an alarming error.
+  alreadyClockedOut: string;
   // Clock-in was rejected because the worker is farther than the
   // enforcement radius from the site (attendance_gps_enforce_radius_m).
   // Backend returns error code "gps_out_of_range".
@@ -249,7 +252,8 @@ const HE: ScreenStrings = {
   corrOutOfWindow: "ניתן לדווח על טעות רק לרשומות מהחודש הנוכחי או הקודם.",
   corrGeneric: "שגיאה — נסה שוב.",
   joinCta: "עובד חדש? בקש הצטרפות",
-  noOpenEntryToClose: "אין כניסה פתוחה לסגירה. אם צריך תיקון, פנה למנהל.",
+  noOpenEntryToClose: "לא נמצאה כניסה פתוחה — ודא שהחתמת כניסה הבוקר. אם צריך תיקון, פנה למנהל.",
+  alreadyClockedOut: "כבר החתמת יציאה היום. הכל תקין — אין צורך להחתים שוב.",
   gpsOutOfRange: "אתה מחוץ לטווח האתר. פנה למנהל העבודה שיזין את ההחתמה שלך מהפורטל שלו.",
   monthlyRemoteExitCap: "הגעת למכסת היציאות מרחוק החודש. פנה למנהל.",
   corrRecordNotFound: "הרשומה לא נמצאה. פנה למנהל.",
@@ -353,7 +357,8 @@ const RU: ScreenStrings = {
   corrOutOfWindow: "Можно отправить запрос только за текущий или предыдущий месяц.",
   corrGeneric: "Ошибка — попробуйте снова.",
   joinCta: "Новый сотрудник? Подать заявку",
-  noOpenEntryToClose: "Нет открытого прихода для закрытия. Если нужна коррекция — обратитесь к менеджеру.",
+  noOpenEntryToClose: "Открытый приход не найден — убедитесь, что вы отметили приход утром. Если нужна коррекция — обратитесь к менеджеру.",
+  alreadyClockedOut: "Вы уже отметили выход сегодня. Всё в порядке — повторно отмечать не нужно.",
   gpsOutOfRange: "Вы находитесь вне зоны объекта. Попросите бригадира отметить приход за вас со своего портала.",
   monthlyRemoteExitCap: "Вы исчерпали месячный лимит удалённых отметок ухода. Обратитесь к менеджеру.",
   corrRecordNotFound: "Запись не найдена. Обратитесь к менеджеру.",
@@ -457,7 +462,8 @@ const EN: ScreenStrings = {
   corrOutOfWindow: "You can only report a mistake for records from the current or previous month.",
   corrGeneric: "Error — try again.",
   joinCta: "New worker? Request to join",
-  noOpenEntryToClose: "No open clock-in to close. Contact the manager if a correction is needed.",
+  noOpenEntryToClose: "No open clock-in found — make sure you clocked in this morning. Contact the manager if a correction is needed.",
+  alreadyClockedOut: "You've already clocked out today. All good — no need to clock out again.",
   gpsOutOfRange: "You're outside the site's range. Ask your foreman to enter the clock-in for you from their portal.",
   monthlyRemoteExitCap: "You've reached this month's remote clock-out limit. Contact the manager.",
   corrRecordNotFound: "Record not found. Contact the manager.",
@@ -561,7 +567,8 @@ const SI: ScreenStrings = {
   corrOutOfWindow: "වත්මන් හෝ පෙර මාසයේ වාර්තා සඳහා පමණක් වැරැද්දක් වාර්තා කළ හැක.",
   corrGeneric: "දෝෂයක් — නැවත උත්සාහ කරන්න.",
   joinCta: "නව සේවකයෙක්ද? එක්වීමට ඉල්ලීමක් කරන්න",
-  noOpenEntryToClose: "වසා දැමීමට විවෘත ඇතුළු වීමක් නැත. නිවැරදි කිරීමක් අවශ්‍ය නම් — කළමනාකරු අමතන්න.",
+  noOpenEntryToClose: "විවෘත ඇතුළු වීමක් හමු නොවීය — ඔබ උදෑසන ඇතුළු වීම සටහන් කළාදැයි තහවුරු කරගන්න. නිවැරදි කිරීමක් අවශ්‍ය නම් — කළමනාකරු අමතන්න.",
+  alreadyClockedOut: "ඔබ අද දැනටමත් පිටවීම සටහන් කර ඇත. සියල්ල හරි — නැවත සටහන් කිරීම අවශ්‍ය නැත.",
   gpsOutOfRange: "ඔබ ස්ථානයේ පරාසයෙන් පිටත සිටී. ඔබේ ස්ථාන කළමනාකරු ඔවුන්ගේ ද්වාරයෙන් ඔබ වෙනුවෙන් සටහන් කිරීමට ඉල්ලන්න.",
   monthlyRemoteExitCap: "ඔබ මෙම මාසයේ දුරස්ථ පිටවීමේ සීමාව සම්පූර්ණ කර ඇත. කළමනාකරු අමතන්න.",
   corrRecordNotFound: "වාර්තාව හමු නොවීය. කළමනාකරු අමතන්න.",
@@ -665,7 +672,8 @@ const ZH: ScreenStrings = {
   corrOutOfWindow: "只能报告本月或上月记录中的错误。",
   corrGeneric: "错误 — 请重试。",
   joinCta: "新员工？申请加入",
-  noOpenEntryToClose: "没有可关闭的上班打卡记录。如需更正，请联系管理员。",
+  noOpenEntryToClose: "未找到开放的上班打卡 — 请确认您今早已打上班卡。如需更正，请联系管理员。",
+  alreadyClockedOut: "您今天已经打过下班卡了。一切正常 — 无需再次打卡。",
   gpsOutOfRange: "您在工地范围之外。请工地负责人从其门户为您登记打卡。",
   monthlyRemoteExitCap: "您已达到本月远程下班打卡的上限。请联系管理员。",
   corrRecordNotFound: "未找到记录。请联系管理员。",
@@ -769,7 +777,8 @@ const HI: ScreenStrings = {
   corrOutOfWindow: "आप केवल वर्तमान या पिछले महीने के रिकॉर्ड की गलती रिपोर्ट कर सकते हैं।",
   corrGeneric: "त्रुटि — पुनः प्रयास करें।",
   joinCta: "नया कर्मचारी? शामिल होने का अनुरोध करें",
-  noOpenEntryToClose: "बंद करने के लिए कोई खुला प्रवेश नहीं है। यदि सुधार चाहिए — प्रबंधक से संपर्क करें।",
+  noOpenEntryToClose: "कोई खुला प्रवेश नहीं मिला — सुनिश्चित करें कि आपने आज सुबह प्रवेश दर्ज किया था। सुधार के लिए प्रबंधक से संपर्क करें।",
+  alreadyClockedOut: "आपने आज पहले ही निकास दर्ज कर दिया है। सब ठीक है — दोबारा दर्ज करने की ज़रूरत नहीं।",
   gpsOutOfRange: "आप स्थल की सीमा के बाहर हैं। अपने साइट प्रबंधक से उनके पोर्टल से आपके लिए दर्ज करने के लिए कहें।",
   monthlyRemoteExitCap: "आप इस महीने की दूरस्थ निकास सीमा तक पहुँच गए हैं। प्रबंधक से संपर्क करें।",
   corrRecordNotFound: "रिकॉर्ड नहीं मिला। प्रबंधक से संपर्क करें।",
