@@ -274,8 +274,9 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
-- **דשבורד — הרחבת רוחב + ניקוי שורות "מי באתר כרגע"** — **מקומי, ממתין ל-push+deploy**
-  (`feature/dashboard-width-and-onsite-cleanup` @ `941829d`). צילום מסך ברוחב מלא (1900px)
+- **דשבורד — הרחבת רוחב + ניקוי שורות "מי באתר כרגע"** — **נפרס**
+  (27.7.26, `feature/dashboard-width-and-onsite-cleanup` → main `36fcf78`, `dpl_GcvR8CLgJHpq`,
+  אימות `x-matched-path: /admin`). צילום מסך ברוחב מלא (1900px)
   הראה שהדשבורד היה נעול ל-`max-w-2xl` (672px) — 3 עמודות נדחסות ושמות אתרים נחתכים.
   - **רוחב:** המכל של תוכן הלשוניות ([AdminPortal](src/app/components/AdminPortal.tsx))
     הגביל כל לשונית שאינה `board` ל-`max-w-2xl`. הדשבורד הצטרף ל-`board` ב-**`max-w-7xl`**
