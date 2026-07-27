@@ -86,12 +86,15 @@ export function AttendanceBySiteGrid<T extends BySiteRecord>({
     <div className={`grid ${columnsClassName} gap-3 items-start`}>
       {groups.map(g => (
         <div key={g.key} className={`border rounded-md overflow-hidden ${g.isNoSite ? "border-amber-200" : "border-charcoal/15"}`}>
-          <div className="flex items-center justify-between gap-2 px-3 py-2 bg-bone/40 border-b border-charcoal/10">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <Building2 size={13} strokeWidth={1.5} className={g.isNoSite ? "text-amber-500" : "text-charcoal/60"} />
-              <span className="font-heading text-sm font-bold truncate">{g.name}</span>
+          {/* items-start so a site name that wraps to two lines keeps the
+              worker-count aligned to the top. The name is NOT truncated — it
+              shows in full (wrapping if needed) rather than being cut off. */}
+          <div className="flex items-start justify-between gap-2 px-3 py-2 bg-bone/40 border-b border-charcoal/10">
+            <div className="flex items-start gap-1.5 min-w-0">
+              <Building2 size={13} strokeWidth={1.5} className={`mt-0.5 shrink-0 ${g.isNoSite ? "text-amber-500" : "text-charcoal/60"}`} />
+              <span className="font-heading text-sm font-bold leading-tight break-words">{g.name}</span>
             </div>
-            <span className="flex items-center gap-1 text-caption text-charcoal/70 shrink-0 tabular-nums">
+            <span className="flex items-center gap-1 text-caption text-charcoal/70 shrink-0 tabular-nums whitespace-nowrap">
               <Users size={12} strokeWidth={1.5} /> {g.workerCount} {g.workerCount === 1 ? "עובד" : "עובדים"}
             </span>
           </div>

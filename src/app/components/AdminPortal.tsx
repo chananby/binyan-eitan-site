@@ -1578,7 +1578,7 @@ export default function AdminPortal() {
           site grid can't breathe in 640px. Every other tab keeps
           the narrow column the rest of the admin portal is tuned
           for (forms, dashboards, single-column lists). */}
-      <div className={`mx-auto space-y-5 ${tab === "board" ? "max-w-7xl" : "max-w-2xl"}`}>
+      <div className={`mx-auto space-y-5 ${tab === "board" || tab === "dashboard" ? "max-w-7xl" : "max-w-2xl"}`}>
 
         {/* Header */}
         <div className="flex items-center justify-between">

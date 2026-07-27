@@ -115,39 +115,36 @@ export default function DashboardTab(p: Props) {
       <Card title="⚡ מי באתר כרגע">
         {p.onSite.length === 0 ? (
           <p className="text-content text-charcoal text-center py-2">אין עובדים מדווחים כרגע</p>
-        ) : (() => {
-          // daily_rate lives on the joined `worker`, not the attendance record —
-          // build a quick per-staff lookup so the trimmed row can still show it.
-          const rateByStaff = new Map<string, number | null | undefined>();
-          for (const e of p.onSite) {
-            if (e.record.staff?.id) rateByStaff.set(e.record.staff.id, e.worker?.daily_rate);
-          }
-          return (
-            <AttendanceBySiteGrid
-              records={p.onSite.map((e) => e.record)}
-              renderRow={(record) => {
-                const t = record.clock_at
-                  ? new Date(record.clock_at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" })
-                  : new Date(record.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
-                const rate = record.staff?.id ? rateByStaff.get(record.staff.id) : undefined;
-                return (
-                  <div className="flex items-center justify-between py-2 gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-content font-semibold text-charcoal truncate">{record.staff?.name ?? "—"}</p>
-                      <p className="text-caption text-charcoal/85">{record.staff?.role ?? ""}</p>
-                    </div>
-                    {/* > 0 guard so an hourly/global worker's 0 rate doesn't
-                        render a literal "₪0/יום". */}
-                    {p.isAdmin && !!rate && rate > 0 && (
-                      <span className="text-caption font-semibold text-accent-dark shrink-0">₪{rate}/יום</span>
+        ) : (
+          <AttendanceBySiteGrid
+            records={p.onSite.map((e) => e.record)}
+            // The container is now wide (max-w-7xl), so allow a 4th column on
+            // very wide screens — often all sites fit in a single row.
+            columnsClassName="grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+            renderRow={(record) => {
+              const t = record.clock_at
+                ? new Date(record.clock_at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" })
+                : new Date(record.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+              // Role only when it adds information: the generic "עובד" repeats
+              // under every name (no signal), so hide it; "ממונה" etc. still show.
+              // The daily rate was removed here — it crowded the name and doesn't
+              // belong in a "who's here now" glance (it lives in Payroll + the
+              // worker card).
+              const role = record.staff?.role;
+              return (
+                <div className="flex items-center justify-between py-2 gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-content font-semibold text-charcoal truncate">{record.staff?.name ?? "—"}</p>
+                    {role && role !== "עובד" && (
+                      <p className="text-caption text-charcoal/85">{role}</p>
                     )}
-                    <span className="text-caption font-semibold text-green-700 tabular-nums shrink-0">מ-{t}</span>
                   </div>
-                );
-              }}
-            />
-          );
-        })()}
+                  <span className="text-caption font-semibold text-green-700 tabular-nums shrink-0">מ-{t}</span>
+                </div>
+              );
+            }}
+          />
+        )}
       </Card>
 
       {/* Admin: collections — only renders when there IS something to
