@@ -230,7 +230,8 @@
   העבודה". `insertPhoneAttendance` עצמו אומת — כותב תמיד `action` באנגלית,
   עקבי עם עצמו. 4 tests חדשים ב-`attendance-logic.test.ts` עם BUG REPRO
   של "prior manual יציאה + Twilio OUT" ועם הכיוון הפוך (manual כניסה
-  + טלפוני OUT — חייב לעבוד). **ממצא לטנטי שנשאר בתור:**
+  + טלפוני OUT — חייב לעבוד). **ממצא לטנטי שנשאר בתור [✅ שניהם טופלו 27.7.26 —
+  ראו "שני הבאגים הלטנטיים" בראש הרשימה]:**
   `AdminPortal.tsx:553` מסמן "מי על האתר" לפי newest-by-`created_at`,
   לא לפי `last-event-by-clock_at` — סיכון בינוני (תצוגה בלבד, לא כסף),
   נדחה לפיצ'ר "תמונת חוסרים" שממילא ידרוש רה-לוגיקה. ממצא לטנטי שני
@@ -274,6 +275,27 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **שני הבאגים הלטנטיים — טופלו** — **מקומי, ממתין ל-push+deploy**
+  (`fix/latent-bugs`, קומיטים `c7d2d4b` + `00655c4`). שני הממצאים הלטנטיים שתועדו
+  בסבב ה-Twilio dup-guard (ראו הרשומה "מרוץ כפילות בהחתמה טלפונית" למטה) נסגרו:
+  - **on-site created_at → clock_at** (`c7d2d4b`): "מי באתר כרגע" סימן עובד לפי
+    הרשומה **החדשה-בהזנה** (`created_at desc`, `rows[0]`), לא לפי **האירוע האחרון-בפועל**
+    (`clock_at`). הזנה רטרואקטיבית/ידנית עם clock_at מוקדם ו-created_at מאוחר גרמה להצגה
+    שגויה. תוקן לבחירת האירוע האחרון לפי `clock_at ?? created_at ?? recorded_at` (סמנטיקת
+    last-event כמו `hasOpenRecord`, שתי אוצרות המילה). תצוגה בלבד. **grep על הדפוס** —
+    כל שאר מופעי `created_at` תקינים (זמן הגשה מכוון / תור אישורים / clock_at-ראשי /
+    סדר הזנה בגלריה-משימות).
+  - **voice/project TOCTOU** (`00655c4`, **אפשרות B — גייט משותף**): הגייט רץ ב-`/action`
+    אבל `/project` הכניס שניות אחר-כך **בלי לבדוק שוב** → חלון מרוץ לכפילות IN / יציאה
+    יתומה. (ה-TOCTOU של **סטטוס הפרויקט** כבר היה מטופל.) חולץ `checkPhoneClockGate`
+    ([`lib/twilio.ts`](src/lib/twilio.ts)) **verbatim** מ-`/action` (2 אוצרות מילה,
+    hasOpenRecord, אותן הודעות), נקרא משני הנתיבים; `insertPhoneAttendance` מריץ אותו שוב
+    ממש לפני ה-insert. **3 הגנות:** (1) **fail-open** בכשל שאילתה (log ל-attendance_failures
+    `phone_gate_query_failed`/noise + ממשיך ל-insert — כמו fail-open של GPS); (2) החזרה
+    **מובנית** `PhoneClockOutcome` (`inserted`/`blocked`/`insert_error` + response, לא זורק);
+    (3) חילוץ ללא "שיפור". חלון-מיקרו שיורי (SELECT→INSERT) מקובל. +9 טסטים. build + 423 טסטים.
+    **`/api/attendance` והחתמת האפליקציה לא נגעו.**
+
 - **דשבורד — הרחבת רוחב + ניקוי שורות "מי באתר כרגע"** — **נפרס**
   (27.7.26, `feature/dashboard-width-and-onsite-cleanup` → main `36fcf78`, `dpl_GcvR8CLgJHpq`,
   אימות `x-matched-path: /admin`). צילום מסך ברוחב מלא (1900px)
