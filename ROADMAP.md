@@ -275,6 +275,22 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **TechnicalAnatomy — חיבור הטקסט (כולל hotspots) לתרגומים** — **מקומי, ממתין ל-push+deploy**
+  (`feature/anatomy-hotspots-translations` @ `bbe9b45`). הרכיב היה **קשיח לגמרי** (גם
+  כותרת הסקשן וגם 3 ה-hotspots) — לא "מעורב" כפי שחשבנו. השלמה ל-ProjectsGallery.
+  - **10 מפתחות חדשים (he+en)** בסקשן `engineering` עם prefix `anatomy_`:
+    `anatomy_overline`/`_heading`/`_sub`/`_image_alt` + לכל hotspot
+    `anatomy_hotspot_{conduit,columns,subfloor}_{label,desc}`.
+  - **התנגשות שנמנעה (בדיוק כמו ProjectsGallery):** הסקשן `engineering` כבר מכיל
+    `overline`/`title`/`sub` — אבל **של EngineeringExcellence** ("מאחורי הקלעים"/"מצוינות בביצוע"),
+    קופי שונה. שימוש חוזר היה מושך את הטקסט הלא-נכון. ה-prefix מפריד בין שני הרכיבים באותו סקשן.
+  - **`tx(key, fallback)`** — ה-fallback הוא הליטרל הקשיח המקורי. ערכי ברירת המחדל
+    ב-`translations.json` **חולצו verbatim מהרכיב** (סקריפט) → העמוד **byte-for-byte זהה**.
+    KV לא זמין → נופל לליטרל, זהה.
+  - **עריך בעורך התוכן:** מופיע תחת לשונית **"הנדסה"** (הסקשן כבר ב-`SECTIONS`, שדות
+    מרונדרים דינמית) — ללא שינוי בעורך. גיאומטריית/אינטראקציית ה-hotspots לא נגעו.
+    build + 423 טסטים. **SYSTEM_MAP** עודכן (טבלת "מי עורך מה").
+
 - **שני הבאגים הלטנטיים — טופלו** — **נפרס**
   (27.7.26, `fix/latent-bugs` → main `0ae006c`, `dpl_EHPna9Woc9jX`, אימות `x-matched-path: /admin`;
   קומיטים `c7d2d4b` + `00655c4`). שני הממצאים הלטנטיים שתועדו

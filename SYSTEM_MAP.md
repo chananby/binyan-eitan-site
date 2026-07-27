@@ -450,6 +450,7 @@ flowchart TD
   | כותרת/קטגוריה של **5 המקוריים בדף הבית** | `/internal/content-editor` ← לשונית **"תיק עבודות"** → מפתחות `portfolio.proj_N_*` ב-Vercel KV |
   | כל דבר ב-**3 הפרויקטים החדשים** (כולל דף הבית) | `/admin` ← **גלריה** — הם אינם קיימים בתרגומים |
   | טקסטי **עמוד** `/projects` (כותרת, תת-כותרת, CTA) | `/internal/content-editor` ← לשונית **"פרויקטים"** → מפתחות `page_*`/`cta_*` |
+  | טקסטי **TechnicalAnatomy** בדף הבית (כותרת סקשן + 3 hotspots: תווית+תיאור + alt) | `/internal/content-editor` ← לשונית **"הנדסה"** → מפתחות `anatomy_*` (מ-2026; prefix כדי לא להתנגש ב-overline/title/sub של EngineeringExcellence באותו סקשן) |
   | 5 הדפים העשירים (hero, פס מטא, `keyFeatures`, metadata) | **קוד בלבד** — `src/data/projects/*.ts`, דורש commit+פריסה |
 
   ⚠️ **שתי נקודות בלבול שעולות שוב ושוב:**
