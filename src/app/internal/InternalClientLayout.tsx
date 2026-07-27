@@ -51,7 +51,12 @@ export function TaskProvider({ company = "Binyan Eitan", children }: { company?:
 
   useEffect(() => {
     fetchTasks();
-    const id = setInterval(fetchTasks, 3000);
+    // 30s (was 3s) + skip while backgrounded. A shared task queue doesn't need
+    // second-level freshness, and 3s was ~1,200 needless calls/hour per open tab.
+    const id = setInterval(() => {
+      if (document.hidden) return;
+      fetchTasks();
+    }, 30_000);
     return () => clearInterval(id);
   }, [company]);
 

@@ -809,6 +809,7 @@ export default function AdminPortal() {
   useEffect(() => {
     if (authState !== "admin" && authState !== "foreman") return;
     const iv = setInterval(async () => {
+      if (document.hidden) return; // skip while backgrounded; the next tick after refocus refetches (≤60s)
       const res = await fetch("/api/admin/attendance/today").catch(() => null);
       if (res?.ok) { const d = await res.json(); setTodayLogs(d.records ?? []); }
     }, 60_000);

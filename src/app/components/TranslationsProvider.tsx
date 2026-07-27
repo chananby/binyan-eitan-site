@@ -33,11 +33,16 @@ export function TranslationsProvider({ children }: { children: React.ReactNode }
 
     loadTranslations();
 
-    // Periodic refetch as a safety net. BroadcastChannel handles instant
-    // cross-tab sync after an editor save, and visibilitychange handles the
-    // common case of returning to a tab — so 90s is a generous fallback and
-    // cuts KV read load by ~3x vs the previous 30s cadence.
-    const interval = setInterval(loadTranslations, 90_000);
+    // Periodic refetch as a last-resort safety net. BroadcastChannel gives
+    // instant cross-tab sync on an editor save, and visibilitychange covers
+    // returning to a tab — so this interval only matters for a tab left open
+    // and focused for a very long time. 10 min (was 90s) slashes the poll
+    // volume, and the visibility guard means a backgrounded tab never polls
+    // at all (it refetches on refocus via the handler below).
+    const interval = setInterval(() => {
+      if (document.hidden) return;
+      loadTranslations();
+    }, 600_000);
 
     // Refetch when tab regains focus
     const handleVisibility = () => {

@@ -18,6 +18,12 @@ export const dynamic = "force-dynamic";
 const KV_KEY     = "site_translations";
 const KV_VERSION = "site_translations_version";   // monotonically-increasing int
 const NO_CACHE   = { "Cache-Control": "no-store, no-cache, must-revalidate" };
+// CDN edge cache for the read path only (same policy as /api/gallery). Collapses
+// the every-tab poll into ~one function invocation per 60s per region, killing
+// the 158KB deep-merge CPU cost on repeat reads. Editor saves still land within
+// ≤60s: same-origin tabs update instantly via BroadcastChannel, and the s-maxage
+// window bounds propagation for everyone else; PUT/errors stay NO_CACHE.
+const CDN_CACHE  = { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" };
 
 const REVALIDATE_PATHS = [
   "/en", "/he",
@@ -87,7 +93,7 @@ export async function GET() {
         )
       : (defaultTranslations as unknown as Record<string, unknown>);
     // _version is a meta field — clients use it for optimistic-concurrency on PUT.
-    return NextResponse.json({ ...merged, _version: version }, { headers: NO_CACHE });
+    return NextResponse.json({ ...merged, _version: version }, { headers: CDN_CACHE });
   } catch (err) {
     console.error("[translations/GET] KV unavailable:", err);
     return NextResponse.json({ ...defaultTranslations, _version: 0 }, { headers: NO_CACHE });
