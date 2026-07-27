@@ -11,6 +11,9 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
+import { hasOpenRecord } from "./attendance-logic";
+import { isEntry, isExit } from "./attendance-time";
+import { israelDayStartISO } from "./israel-time";
 
 // ── TwiML helpers ──────────────────────────────────────────────────────────
 
@@ -142,21 +145,138 @@ export function attendanceActionNoun(
   return form === "subject" ? "יציאתך" : "מאתר";
 }
 
+/**
+ * Duplicate / open-record gate for a phone clock, shared by /action's early
+ * check AND the insert-time re-check in insertPhoneAttendance below.
+ *
+ * This is a VERBATIM extraction of the gate /action has always run — fetch
+ * today's rows in BOTH action vocabularies ("in"/"out" + "כניסה"/"יציאה"),
+ * day-scoped by clock_at, routed through hasOpenRecord:
+ *   IN  → block when the last event today is an entry (unclosed shift; a
+ *         second IN would overlap).
+ *   OUT → block when there's no open entry (no event today, or the last event
+ *         is already an exit) — else the OUT is an orphan.
+ * The block wording matches /action byte-for-byte.
+ *
+ * A query failure is RETURNED (kind:"query_error"), never thrown, so each
+ * caller picks its policy: /action fails closed (system-error TwiML, its
+ * historical behaviour); the insert-time check fails OPEN — see below.
+ */
+export type PhoneClockGate =
+  | { kind: "pass" }
+  | { kind: "block"; response: NextResponse }
+  | { kind: "query_error"; error: unknown };
+
+export async function checkPhoneClockGate(args: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any;
+  staffId: string;
+  action: "in" | "out";
+}): Promise<PhoneClockGate> {
+  const { supabase, staffId, action } = args;
+  const todayStart = israelDayStartISO(israelTodayYMD());
+  const { data: todays, error: openErr } = await supabase
+    .from("attendance")
+    .select("action, clock_at")
+    .is("deleted_at", null)
+    .eq("staff_id", staffId)
+    .in("action", ["in", "כניסה", "out", "יציאה"])
+    .gte("clock_at", todayStart)
+    .order("clock_at", { ascending: false });
+  if (openErr) return { kind: "query_error", error: openErr };
+  const rows = (todays ?? []) as Array<{ action: string; clock_at: string | null }>;
+  const openNow = hasOpenRecord(rows, todayStart);
+
+  if (action === "in" && openNow) {
+    // Latest entry (rows is ordered desc by clock_at) → read its time aloud.
+    const openRow = rows.filter((r) => isEntry(r.action))[0];
+    const when = openRow?.clock_at ? israelHHMM(new Date(openRow.clock_at)) : "";
+    const msg = when
+      ? `כבר רשומה כניסה פתוחה היום בשעה ${when}. להתראות.`
+      : `כבר רשומה כניסה פתוחה היום. להתראות.`;
+    return { kind: "block", response: twimlResponse(say(msg) + "<Hangup/>") };
+  }
+  if (action === "out" && !openNow) {
+    const lastExit = rows.filter((r) => isExit(r.action))[0];
+    if (lastExit) {
+      const when = lastExit.clock_at ? israelHHMM(new Date(lastExit.clock_at)) : "";
+      const msg = when
+        ? `כבר רשומה יציאה היום בשעה ${when}. להתראות.`
+        : `כבר רשומה יציאה היום. להתראות.`;
+      return { kind: "block", response: twimlResponse(say(msg) + "<Hangup/>") };
+    }
+    return { kind: "block", response: twimlResponse(say("אין כניסה פתוחה לסגירה היום. אנא פנו למנהל העבודה.") + "<Hangup/>") };
+  }
+  return { kind: "pass" };
+}
+
+/** Record a fail-open event (gate query failed → we clocked anyway) to
+ *  attendance_failures. Fire-and-forget: a logging failure must NEVER block the
+ *  clock insert. category='noise' keeps it out of the worker-stuck panel. */
+async function logPhoneGateQueryFailure(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  staffId: string,
+  action: "in" | "out",
+  projectId: string,
+  err: unknown,
+): Promise<void> {
+  console.error("[twilio gate] open-record query failed — failing open:", JSON.stringify(err));
+  try {
+    await supabase.from("attendance_failures").insert({
+      staff_id:    staffId,
+      error_code:  "phone_gate_query_failed",
+      category:    "noise",
+      http_status: 500,
+      action,
+      project_id:  projectId ?? null,
+    });
+  } catch (e) {
+    console.error("[twilio gate] failure-log insert failed:", e);
+  }
+}
+
+/** Outcome of a phone clock attempt. Structured (not a bare NextResponse and
+ *  never a thrown error) so the caller knows what happened — but each variant
+ *  carries a ready-to-return `response` so the caller just plays it. */
+export type PhoneClockOutcome =
+  | { status: "inserted";     response: NextResponse }
+  | { status: "blocked";      response: NextResponse }
+  | { status: "insert_error"; response: NextResponse };
+
 /** Insert a phone-call attendance row and build the TwiML confirmation.
- *  Returns the NextResponse ready to be returned by the route handler.
  *
  *  Shared between two call sites:
  *    1. /api/twilio/voice/action — single-active-project shortcut
  *    2. /api/twilio/voice/project — after the caller picks from the menu
  *  Keeping the INSERT shape in one place guarantees both paths produce
- *  identical rows (same columns, same source='phone-call', no lat/lng). */
+ *  identical rows (same columns, same source='phone-call', no lat/lng).
+ *
+ *  Runs the open-record gate ONE MORE TIME right before the insert. /action
+ *  already ran it, but between there and here — especially on the multi-project
+ *  path, where the caller spends seconds pressing a digit — a concurrent clock
+ *  (web / another call) can flip the state, and /project used to insert blind.
+ *  This closes that TOCTOU. FAIL-OPEN: if the gate's own QUERY fails we log and
+ *  insert anyway — a worker who can't clock in is worse than a rare duplicate
+ *  (same stance as GPS enforcement's fail-open). */
 export async function insertPhoneAttendance(args: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any;
   staffId: string;
   action: "in" | "out";
   project: { id: string; name: string };
-}): Promise<NextResponse> {
+}): Promise<PhoneClockOutcome> {
+  const gate = await checkPhoneClockGate({
+    supabase: args.supabase, staffId: args.staffId, action: args.action,
+  });
+  if (gate.kind === "block") {
+    return { status: "blocked", response: gate.response };
+  }
+  if (gate.kind === "query_error") {
+    await logPhoneGateQueryFailure(args.supabase, args.staffId, args.action, args.project.id, gate.error);
+    // fall through — fail open and insert
+  }
+
   const now = new Date();
   const hhmm = israelHHMM(now);
   const payload: Record<string, unknown> = {
@@ -172,7 +292,7 @@ export async function insertPhoneAttendance(args: {
   const { error: insertErr } = await args.supabase.from("attendance").insert(payload);
   if (insertErr) {
     console.error("[twilio insert]", JSON.stringify(insertErr));
-    return twimlResponse(say("שגיאה ברישום הנוכחות. אנא נסו שוב.") + "<Hangup/>");
+    return { status: "insert_error", response: twimlResponse(say("שגיאה ברישום הנוכחות. אנא נסו שוב.") + "<Hangup/>") };
   }
 
   const subject = attendanceActionNoun(args.action, "subject");
@@ -180,5 +300,5 @@ export async function insertPhoneAttendance(args: {
   const closing = args.action === "in" ? "יום עבודה מבורך." : "להתראות.";
   const msg = `נרשמה ${subject} ${toFrom} ${args.project.name} בשעה ${hhmm}. ${closing}`;
   console.info("[twilio insert] recorded:", args.action, "staff:", args.staffId, "project:", args.project.id);
-  return twimlResponse(say(msg) + "<Hangup/>");
+  return { status: "inserted", response: twimlResponse(say(msg) + "<Hangup/>") };
 }

@@ -21,11 +21,8 @@ import { NextRequest } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
 import {
   twimlResponse, say, gatherDigits, readVerifiedForm,
-  israelHHMM, israelTodayYMD, insertPhoneAttendance,
+  insertPhoneAttendance, checkPhoneClockGate,
 } from "../../../../../lib/twilio";
-import { israelDayStartISO } from "../../../../../lib/israel-time";
-import { isEntry, isExit } from "../../../../../lib/attendance-time";
-import { hasOpenRecord } from "../../../../../lib/attendance-logic";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -94,50 +91,17 @@ export async function POST(req: NextRequest) {
   // today could call in, get "no existing OUT found", and mint a
   // duplicate. Weiss on the phone. Also: no hasOpenRecord check meant
   // pressing 2 with no IN would create an orphan exit.
-  const todayStart = israelDayStartISO(israelTodayYMD());
-  const { data: todays, error: openErr } = await supabase
-    .from("attendance")
-    .select("action, clock_at")
-    .is("deleted_at", null)
-    .eq("staff_id", staffId)
-    .in("action", ["in", "כניסה", "out", "יציאה"])
-    .gte("clock_at", todayStart)
-    .order("clock_at", { ascending: false });
-  if (openErr) {
-    console.error("[twilio/voice/action] dup-check error:", JSON.stringify(openErr));
+  // Gate is now the shared checkPhoneClockGate (same query + hasOpenRecord +
+  // block wording, extracted verbatim). /action keeps its historical
+  // fail-CLOSED policy on a query error — nothing has been committed yet, so
+  // aborting with a retry prompt is safe. (The insert-time re-check fails OPEN
+  // instead; see insertPhoneAttendance.)
+  const gate = await checkPhoneClockGate({ supabase, staffId, action });
+  if (gate.kind === "query_error") {
+    console.error("[twilio/voice/action] dup-check error:", JSON.stringify(gate.error));
     return twimlResponse(say("שגיאת מערכת זמנית. נסו שוב בעוד רגע.") + "<Hangup/>");
   }
-  const rows = todays ?? [];
-  const openNow = hasOpenRecord(rows, todayStart);
-
-  if (action === "in" && openNow) {
-    // Latest entry (rows is ordered desc by clock_at) → read its time aloud.
-    const openRow = rows.filter((r) => isEntry(r.action))[0];
-    const when = openRow?.clock_at ? israelHHMM(new Date(openRow.clock_at)) : "";
-    const msg = when
-      ? `כבר רשומה כניסה פתוחה היום בשעה ${when}. להתראות.`
-      : `כבר רשומה כניסה פתוחה היום. להתראות.`;
-    return twimlResponse(say(msg) + "<Hangup/>");
-  }
-  if (action === "out" && !openNow) {
-    // No open entry to close. Distinguish two shapes for the caller so
-    // they know whether the office should hear about it:
-    //   • last event today was already an OUT → "כבר רשומה יציאה"
-    //     (they double-called; harmless, no admin action needed).
-    //   • no relevant events today at all → "אין כניסה פתוחה" (worker
-    //     never clocked in — probably needs a foreman to help).
-    const lastExit = rows.filter((r) => isExit(r.action))[0];
-    if (lastExit) {
-      const when = lastExit.clock_at ? israelHHMM(new Date(lastExit.clock_at)) : "";
-      const msg = when
-        ? `כבר רשומה יציאה היום בשעה ${when}. להתראות.`
-        : `כבר רשומה יציאה היום. להתראות.`;
-      return twimlResponse(say(msg) + "<Hangup/>");
-    }
-    return twimlResponse(
-      say("אין כניסה פתוחה לסגירה היום. אנא פנו למנהל העבודה.") + "<Hangup/>",
-    );
-  }
+  if (gate.kind === "block") return gate.response;
 
   // ── Fetch active projects ───────────────────────────────────────────────
   // project_type='site' keeps overhead projects out of the voice IVR's
@@ -161,13 +125,16 @@ export async function POST(req: NextRequest) {
   }
 
   if (projectList.length === 1) {
-    // Single-project shortcut: insert immediately, no second Gather.
-    return await insertPhoneAttendance({
+    // Single-project shortcut: insert immediately, no second Gather. The gate
+    // ran above and again inside insertPhoneAttendance (read-only, no double
+    // message — a block short-circuits before the success TwiML).
+    const outcome = await insertPhoneAttendance({
       supabase,
       staffId,
       action,
       project: projectList[0],
     });
+    return outcome.response;
   }
 
   // ── Multi-project: build second Gather ──────────────────────────────────

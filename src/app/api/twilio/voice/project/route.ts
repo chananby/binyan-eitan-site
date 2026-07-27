@@ -82,10 +82,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  return await insertPhoneAttendance({
+  const outcome = await insertPhoneAttendance({
     supabase,
     staffId,
     action,
     project: { id: proj.id, name: proj.name },
   });
+  // outcome may be blocked (insert-time gate caught a race), insert_error, or
+  // inserted — each carries the right TwiML to play back.
+  return outcome.response;
 }
