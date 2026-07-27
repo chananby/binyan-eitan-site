@@ -318,6 +318,10 @@ export async function POST(req: NextRequest) {
     action:   normalizedAction,
     lat,
     lng,
+    // Explicit — a live worker clock is approved immediately. Matches the DB
+    // column default ('approved'); written here so the row is correct even if
+    // that default is ever dropped (see 20260727_attendance_status_default.sql).
+    status:   "approved",
   };
 
   if (timestamp)  attendancePayload.timestamp_label = timestamp;

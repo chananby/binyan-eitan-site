@@ -114,6 +114,10 @@ export async function POST(req: NextRequest) {
       clock_at:        clockAtIso,
       project_id:      project_id || null,
       source:          "manual",
+      // Explicit — an admin "complete exit" is approved immediately (same
+      // value the DB default gives); written so the row is correct even if
+      // that default is ever dropped (see 20260727_attendance_status_default.sql).
+      status:          "approved",
       edited_by:       editedBy,
       edited_at:       new Date().toISOString(),
       // lat/lng intentionally omitted — manual clock-out has no GPS

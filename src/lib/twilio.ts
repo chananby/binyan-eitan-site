@@ -286,6 +286,10 @@ export async function insertPhoneAttendance(args: {
     clock_at:        now.toISOString(),
     timestamp_label: hhmm,
     source:          "phone-call",
+    // Explicit — a phone clock is approved immediately (same value the DB
+    // default gives); written so the row is correct even if that default is
+    // ever dropped (see 20260727_attendance_status_default.sql).
+    status:          "approved",
     // intentionally no lat/lng — phone calls have no GPS
   };
 
