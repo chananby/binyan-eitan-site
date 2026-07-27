@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import {
   BarChart2, Loader2, Download, AlertCircle, Calendar, Plus,
-  AlertTriangle, RefreshCw, Building2, Pencil, History, Phone, UserX,
+  AlertTriangle, RefreshCw, Building2, Pencil, History, Phone, UserX, Users,
   ChevronDown, ChevronUp, XCircle, MessageCircle,
 } from "lucide-react";
 import { WORKER_LANG_FLAGS, WORKER_LANG_LABEL_HE, isWorkerLangCode } from "../../../../lib/worker-language";
@@ -986,6 +986,94 @@ function FailureRow({ f }: { f: AttendanceFailure }) {
 }
 
 // ── 4. Today's log ───────────────────────────────────────────────────────────
+// Today-log view mode ("chrono" = the original flat chronological list;
+// "site" = grouped into a card per site). Persisted so the admin's choice
+// sticks across sessions. Default is chrono — zero behaviour change on first load.
+const TODAY_VIEW_KEY = "att_today_view";
+type TodayView = "chrono" | "site";
+
+interface TodaySiteGroup {
+  key: string;
+  name: string;
+  rows: AttendanceRecord[];
+  workerCount: number;
+  isNoSite: boolean;
+}
+
+// Pure regroup of the SAME rows by site — no fetch, no filtering of content,
+// so foreman-scope (already applied upstream) is preserved. Row order within a
+// group is kept as-is (source is created_at desc), matching the flat view.
+// Cards: most workers first, then site name; the "no site" bucket is pinned last.
+function groupTodayBySite(rows: AttendanceRecord[]): TodaySiteGroup[] {
+  const map = new Map<string, AttendanceRecord[]>();
+  for (const r of rows) {
+    const key = r.project?.id ?? "__none__";
+    const arr = map.get(key);
+    if (arr) arr.push(r);
+    else map.set(key, [r]);
+  }
+  const groups: TodaySiteGroup[] = [];
+  for (const [key, groupRows] of map) {
+    const isNoSite = key === "__none__";
+    const workerCount = new Set(
+      groupRows.map(r => r.staff?.id).filter((id): id is string => !!id),
+    ).size;
+    groups.push({
+      key,
+      name: isNoSite ? "ללא אתר" : (groupRows[0].project?.name ?? "אתר"),
+      rows: groupRows,
+      workerCount,
+      isNoSite,
+    });
+  }
+  groups.sort((a, b) => {
+    if (a.isNoSite !== b.isNoSite) return a.isNoSite ? 1 : -1; // no-site always last
+    if (b.workerCount !== a.workerCount) return b.workerCount - a.workerCount;
+    return a.name.localeCompare(b.name, "he");
+  });
+  return groups;
+}
+
+// Grouped-by-site rendering. Reuses TodayLogRow verbatim, so every per-row
+// detail (time, action, phone, distance flag, phone-call chip, edit/history
+// buttons, inline edit) works identically to the chronological view.
+function TodayLogBySite({
+  todayLogs, edit, projects, onStartEditAtt, onViewHistory, farThresholdM,
+}: {
+  todayLogs: AttendanceRecord[];
+  edit: EditAttSlice;
+  projects: ProjectLite[];
+  onStartEditAtt: (r: AttendanceRecord, isPending?: boolean) => void;
+  onViewHistory: (staffId: string) => void;
+  farThresholdM: number;
+}) {
+  const groups = groupTodayBySite(todayLogs);
+  return (
+    <div className="space-y-3">
+      {groups.map(g => (
+        <div key={g.key} className={`border rounded-md overflow-hidden ${g.isNoSite ? "border-amber-200" : "border-charcoal/15"}`}>
+          <div className="flex items-center justify-between gap-2 px-3 py-2 bg-bone/40 border-b border-charcoal/10">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Building2 size={13} strokeWidth={1.5} className={g.isNoSite ? "text-amber-500" : "text-charcoal/60"} />
+              <span className="font-heading text-sm font-bold truncate">{g.name}</span>
+            </div>
+            <span className="flex items-center gap-1 text-caption text-charcoal/70 shrink-0 tabular-nums">
+              <Users size={12} strokeWidth={1.5} /> {g.workerCount} {g.workerCount === 1 ? "עובד" : "עובדים"}
+            </span>
+          </div>
+          <div className="divide-y divide-charcoal/15 px-3">
+            {g.rows.map(r => (
+              <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
+                onStartEditAtt={onStartEditAtt} onViewHistory={onViewHistory}
+                farThresholdM={farThresholdM} dim={!!r.staff?.attendance_exempt} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function TodayLog({
   todayLogs, dataLoading, attLoadErr,
   onReload, onStartEditAtt, onViewHistory,
@@ -1001,6 +1089,20 @@ function TodayLog({
   projects: ProjectLite[];
   farThresholdM: number;
 }) {
+  // View toggle (chrono default). Read the saved choice after mount to avoid an
+  // SSR/client hydration mismatch — same pattern as WorkersTab's accordion.
+  const [view, setView] = useState<TodayView>("chrono");
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem(TODAY_VIEW_KEY);
+      if (v === "site" || v === "chrono") setView(v);
+    } catch { /* localStorage unavailable — keep default */ }
+  }, []);
+  function selectView(v: TodayView) {
+    setView(v);
+    try { localStorage.setItem(TODAY_VIEW_KEY, v); } catch { /* ignore */ }
+  }
+
   return (
     <Card>
       <div className="flex items-center justify-between mb-3">
@@ -1036,7 +1138,23 @@ function TodayLog({
         {todayLogs.length === 0 && (
           <p className="text-sm text-charcoal/70 text-center py-4">אין דיווחים היום — לחץ &quot;רענן עכשיו&quot; אם עובדים כבר דיווחו</p>
         )}
-        {todayLogs.length > 0 && (() => {
+        {todayLogs.length > 0 && (
+          <div className="inline-flex rounded-md border border-charcoal/15 overflow-hidden text-content mb-3">
+            <button type="button" onClick={() => selectView("chrono")}
+              className={`px-3 py-1.5 transition-colors ${view === "chrono" ? "bg-accent text-bone" : "text-charcoal/70 hover:bg-bone/60"}`}>
+              כרונולוגי
+            </button>
+            <button type="button" onClick={() => selectView("site")}
+              className={`px-3 py-1.5 border-r border-charcoal/15 transition-colors ${view === "site" ? "bg-accent text-bone" : "text-charcoal/70 hover:bg-bone/60"}`}>
+              לפי אתר
+            </button>
+          </div>
+        )}
+        {todayLogs.length > 0 && view === "site" && (
+          <TodayLogBySite todayLogs={todayLogs} edit={edit} projects={projects}
+            onStartEditAtt={onStartEditAtt} onViewHistory={onViewHistory} farThresholdM={farThresholdM} />
+        )}
+        {todayLogs.length > 0 && view === "chrono" && (() => {
           // Regular workers first; "exempt-from-attendance" staff (managers,
           // global-salary roles) get a separate dimmed group at the bottom
           // so they don't clutter the operational view — they still appear
