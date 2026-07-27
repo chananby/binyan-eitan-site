@@ -274,6 +274,26 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **הפחתת צריכת CPU ב-Vercel (Fluid Active CPU)** — **מקומי, ממתין ל-push+deploy**
+  (`perf/reduce-cpu-usage` @ `9a74793`). Vercel התריע על 75% מהמכסה החינמית; בחריגה
+  הפרויקטים **נעצרים** (כולל פורטל עובד + החתמה). חקירה זיהתה את `/api/translations`
+  כחשוד #1: deep-merge של **158KB** + serialize בכל קריאה, בלי cache, נצרך ע"י כל
+  טאב ציבורי כל 90ש'. (הבחנה: Fluid מודד CPU אקטיבי בלבד — חילוץ ה-AI ממתין ל-Anthropic
+  ולכן **לא** חשוד למרות `maxDuration=60`.)
+  - **Cache ל-`/api/translations`** (מסלול הקריאה בלבד): `s-maxage=60, stale-while-revalidate=300`
+    (זהה ל-`/api/gallery`). מכווץ N קריאות לקריאת-פונקציה אחת ל-60ש'/region. PUT וכל
+    מסלולי השגיאה נשארים `NO_CACHE`. **אין רגרסיה לעורך:** התצוגה שלו היא state אופטימי
+    מקומי, וה-`version` נקרא מתשובת ה-PUT (NO_CACHE) → אין 409-שווא בשמירות רצופות;
+    revalidatePath ממשיך → טעינות דף טריות; טאבים ציבוריים פתוחים מתעדכנים תוך ≤60ש'.
+  - **visibility guards:** loop ה-60ש' (`/today`, [AdminPortal](src/app/components/AdminPortal.tsx))
+    + interval ה-translations — `if (document.hidden) return`. טאב ברקע לא יורה כלל.
+  - **interval translations 90ש' → 10 דק'** (BroadcastChannel + visibilitychange כבר מכסים
+    את המקרים האמיתיים; ה-interval הוא רשת ביטחון אחרונה).
+  - **InternalClientLayout poll 3ש' → 30ש'** + visibility guard (‎~1,200 קריאות/שעה מיותרות).
+  - **לא נגעו:** `/api/attendance` ומסלולי החתמה, שום לוגיקה. build + 414 טסטים.
+  - **בתור (אם עדיין צריך אחרי מדידת ההשפעה):** cache קצר ל-`incomplete` (`s-maxage=30`)
+    + חלון ברירת-מחדל של חודש במקום 3 חודשים ברענון האוטומטי.
+
 - **פורטל עובד — מניעת לחיצה כפולה + הודעות חסימה מדויקות** — **נפרס**
   (26.7.26, `fix/worker-submit-lock` → main `2213f65`, `dpl_6UR9mnvjbFgs`,
   אימות `x-matched-path: /he`). **טיפול בשורש** של הרעש שסיננו קודם: הסינון
