@@ -71,6 +71,53 @@ export async function getServerArticleBySlug(slug: string): Promise<MinimalArtic
   return list.find((a) => a.slug === slug) ?? null;
 }
 
+/** ratingValue: clamped to [1,5] and formatted to one decimal. Empty/garbage
+ *  → "5.0". Guarantees a schema-valid number so the JSON-LD never breaks. */
+function normalizeRatingValue(raw: unknown): string {
+  const n = parseFloat(String(raw ?? "").trim());
+  if (!Number.isFinite(n)) return "5.0";
+  return Math.min(5, Math.max(1, n)).toFixed(1);
+}
+
+/** reviewCount: the leading integer of the count string (≥ 0). Empty/garbage
+ *  → "19". So "19 Google Reviews" / "19 ביקורות בגוגל" → "19". */
+function normalizeReviewCount(raw: unknown): string {
+  const n = parseInt(String(raw ?? "").trim(), 10);
+  if (!Number.isFinite(n) || n < 0) return "19";
+  return String(n);
+}
+
+/**
+ * Rating + review count for the home-page JSON-LD AggregateRating. Sourced from
+ * the SAME editable Hero keys (hero.googleRatingValue / hero.googleRatingCount)
+ * that render the visible Google chip — Google requires the schema rating to be
+ * visible on the page, so one source keeps them in lock-step. Both values are
+ * validated/normalized: a bad or empty editor entry can NEVER emit invalid
+ * JSON — it falls back to the current 5.0 / 19.
+ */
+export async function getServerRating(
+  lang: "he" | "en",
+): Promise<{ ratingValue: string; reviewCount: string }> {
+  try {
+    const stored = await kv.get(KV_KEY);
+    const merged = stored
+      ? deepMerge(
+          defaultTranslations as unknown as Record<string, unknown>,
+          stored as Record<string, unknown>,
+        )
+      : (defaultTranslations as unknown as Record<string, unknown>);
+    const hero =
+      (merged as { hero?: Record<string, Record<string, unknown>> }).hero?.[lang] ?? {};
+    return {
+      ratingValue: normalizeRatingValue(hero.googleRatingValue),
+      reviewCount: normalizeReviewCount(hero.googleRatingCount),
+    };
+  } catch {
+    // KV unavailable → the shipped defaults (5.0 / 19).
+    return { ratingValue: "5.0", reviewCount: "19" };
+  }
+}
+
 /** True iff the article should be visible to the public.
  *  - `published === false` → draft, not public
  *  - `archived === true`   → hidden, not public

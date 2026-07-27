@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getServerRating } from "../../lib/server-translations";
 
 
 export const metadata: Metadata = {
@@ -75,10 +76,11 @@ const heLocalBusiness = {
       { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "גמר פרימיום — ריצוף, איטום, צבע" } },
     ],
   },
-  // Aggregate rating mirrors the Google rating chip shown in the Testimonials
-  // section (and now in Hero). Google requires the rating to be visible on the
-  // page itself when claimed in schema; both surfaces use the same 5.0/19
-  // numbers sourced from the public Google Business profile.
+  // Aggregate rating mirrors the visible Google chip in Hero. ratingValue /
+  // reviewCount below are DEFAULTS — at render they're overridden from the
+  // editable hero.googleRatingValue / hero.googleRatingCount keys (see the
+  // component), so updating the rating in the content editor updates both the
+  // chip and this schema together.
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": "5.0",
@@ -91,10 +93,15 @@ const heLocalBusiness = {
 
 import HeHomeClient from "../components/ClientLayouts/HeHomeClient";
 
-export default function MaintenanceHebrew() {
+export default async function MaintenanceHebrew() {
+  const { ratingValue, reviewCount } = await getServerRating("he");
+  const jsonLd = {
+    ...heLocalBusiness,
+    aggregateRating: { ...heLocalBusiness.aggregateRating, ratingValue, reviewCount },
+  };
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(heLocalBusiness) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <HeHomeClient />
     </>
   );
