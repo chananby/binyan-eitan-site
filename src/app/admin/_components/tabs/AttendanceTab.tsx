@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import {
   BarChart2, Loader2, Download, AlertCircle, Calendar, Plus,
-  AlertTriangle, RefreshCw, Building2, Pencil, History, Phone, UserX, Users,
+  AlertTriangle, RefreshCw, Building2, Pencil, History, Phone, UserX,
   ChevronDown, ChevronUp, XCircle, MessageCircle,
 } from "lucide-react";
 import { WORKER_LANG_FLAGS, WORKER_LANG_LABEL_HE, isWorkerLangCode } from "../../../../lib/worker-language";
@@ -14,6 +14,7 @@ import { TabRefreshBar } from "../shared/TabRefreshBar";
 import { StaleRefresh } from "../shared/StaleRefresh";
 import { INPUT } from "../shared/constants";
 import DistanceFlag from "../shared/DistanceFlag";
+import { AttendanceBySiteGrid } from "../shared/AttendanceBySiteGrid";
 import CorrectionRequestsPanel, { type CorrectionRequest } from "../shared/CorrectionRequestsPanel";
 import MonthlyReportPanel from "../shared/MonthlyReportPanel";
 import IncompletePanel from "../shared/IncompletePanel";
@@ -992,51 +993,12 @@ function FailureRow({ f }: { f: AttendanceFailure }) {
 const TODAY_VIEW_KEY = "att_today_view";
 type TodayView = "chrono" | "site";
 
-interface TodaySiteGroup {
-  key: string;
-  name: string;
-  rows: AttendanceRecord[];
-  workerCount: number;
-  isNoSite: boolean;
-}
-
-// Pure regroup of the SAME rows by site — no fetch, no filtering of content,
-// so foreman-scope (already applied upstream) is preserved. Row order within a
-// group is kept as-is (source is created_at desc), matching the flat view.
-// Cards: most workers first, then site name; the "no site" bucket is pinned last.
-function groupTodayBySite(rows: AttendanceRecord[]): TodaySiteGroup[] {
-  const map = new Map<string, AttendanceRecord[]>();
-  for (const r of rows) {
-    const key = r.project?.id ?? "__none__";
-    const arr = map.get(key);
-    if (arr) arr.push(r);
-    else map.set(key, [r]);
-  }
-  const groups: TodaySiteGroup[] = [];
-  for (const [key, groupRows] of map) {
-    const isNoSite = key === "__none__";
-    const workerCount = new Set(
-      groupRows.map(r => r.staff?.id).filter((id): id is string => !!id),
-    ).size;
-    groups.push({
-      key,
-      name: isNoSite ? "ללא אתר" : (groupRows[0].project?.name ?? "אתר"),
-      rows: groupRows,
-      workerCount,
-      isNoSite,
-    });
-  }
-  groups.sort((a, b) => {
-    if (a.isNoSite !== b.isNoSite) return a.isNoSite ? 1 : -1; // no-site always last
-    if (b.workerCount !== a.workerCount) return b.workerCount - a.workerCount;
-    return a.name.localeCompare(b.name, "he");
-  });
-  return groups;
-}
-
-// Grouped-by-site rendering. Reuses TodayLogRow verbatim, so every per-row
-// detail (time, action, phone, distance flag, phone-call chip, edit/history
-// buttons, inline edit) works identically to the chronological view.
+// Grouped-by-site rendering. Delegates the grid/card-shell/grouping to the
+// shared AttendanceBySiteGrid and injects TodayLogRow verbatim as the row, so
+// every per-row detail (time, action, phone, distance flag, phone-call chip,
+// edit/history buttons, inline edit) works identically to the chronological
+// view. Capped at 2 columns because these rows are wide (they carry the
+// edit/history controls); the dashboard's compact rows use the 3-col default.
 function TodayLogBySite({
   todayLogs, edit, projects, onStartEditAtt, onViewHistory, farThresholdM,
 }: {
@@ -1047,30 +1009,16 @@ function TodayLogBySite({
   onViewHistory: (staffId: string) => void;
   farThresholdM: number;
 }) {
-  const groups = groupTodayBySite(todayLogs);
   return (
-    <div className="space-y-3">
-      {groups.map(g => (
-        <div key={g.key} className={`border rounded-md overflow-hidden ${g.isNoSite ? "border-amber-200" : "border-charcoal/15"}`}>
-          <div className="flex items-center justify-between gap-2 px-3 py-2 bg-bone/40 border-b border-charcoal/10">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <Building2 size={13} strokeWidth={1.5} className={g.isNoSite ? "text-amber-500" : "text-charcoal/60"} />
-              <span className="font-heading text-sm font-bold truncate">{g.name}</span>
-            </div>
-            <span className="flex items-center gap-1 text-caption text-charcoal/70 shrink-0 tabular-nums">
-              <Users size={12} strokeWidth={1.5} /> {g.workerCount} {g.workerCount === 1 ? "עובד" : "עובדים"}
-            </span>
-          </div>
-          <div className="divide-y divide-charcoal/15 px-3">
-            {g.rows.map(r => (
-              <TodayLogRow key={r.id} r={r} edit={edit} projects={projects}
-                onStartEditAtt={onStartEditAtt} onViewHistory={onViewHistory}
-                farThresholdM={farThresholdM} dim={!!r.staff?.attendance_exempt} />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
+    <AttendanceBySiteGrid
+      records={todayLogs}
+      columnsClassName="grid-cols-1 md:grid-cols-2"
+      renderRow={(r) => (
+        <TodayLogRow r={r} edit={edit} projects={projects}
+          onStartEditAtt={onStartEditAtt} onViewHistory={onViewHistory}
+          farThresholdM={farThresholdM} dim={!!r.staff?.attendance_exempt} />
+      )}
+    />
   );
 }
 

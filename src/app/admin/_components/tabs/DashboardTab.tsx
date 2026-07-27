@@ -7,6 +7,7 @@ import AttentionPanel, { type AttentionItem } from "../shared/AttentionPanel";
 import { TabRefreshBar } from "../shared/TabRefreshBar";
 import ForecastDetailDialog, { type ForecastLine } from "../shared/ForecastDetailDialog";
 import MonthlyPnlCard from "../shared/MonthlyPnlCard";
+import { AttendanceBySiteGrid } from "../shared/AttendanceBySiteGrid";
 import type { CollectionsData } from "./CollectionsTab";
 import type {
   StaffMember, AttendanceRecord, Project, Task, BudgetLine,
@@ -106,44 +107,47 @@ export default function DashboardTab(p: Props) {
           see it (financial detail is out of scope for the field portal). */}
       {p.isAdmin && <MonthlyPnlCard data={p.pnl} loading={p.pnlLoading} />}
 
-      {/* On-site */}
+      {/* On-site — grouped by site (a coverage-at-a-glance grid) rather than a
+          flat list. Same currently-on-site data as before, just regrouped via
+          the shared AttendanceBySiteGrid; the site name moves to the card
+          header, and rows stay read-only (no edit/history — this is a
+          dashboard). */}
       <Card title="⚡ מי באתר כרגע">
         {p.onSite.length === 0 ? (
           <p className="text-content text-charcoal text-center py-2">אין עובדים מדווחים כרגע</p>
-        ) : (
-          <div className="divide-y divide-charcoal/15">
-            {p.onSite.map(({ record, worker }) => {
-              const t = record.clock_at
-                ? new Date(record.clock_at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" })
-                : new Date(record.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
-              return (
-                <div key={record.id} className="flex items-center justify-between py-2.5 gap-3 flex-wrap">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-content font-semibold text-charcoal truncate">{record.staff?.name ?? "—"}</p>
-                    <p className="text-caption text-charcoal/85">{record.staff?.role ?? ""}</p>
-                  </div>
-                  {record.project && (
-                    <div
-                      className="flex items-center gap-1 text-caption text-charcoal/85"
-                      title={record.project.name}
-                    >
-                      <Building2 size={12} strokeWidth={2} className="shrink-0" />
-                      <span className="truncate max-w-[160px]">{record.project.name}</span>
+        ) : (() => {
+          // daily_rate lives on the joined `worker`, not the attendance record —
+          // build a quick per-staff lookup so the trimmed row can still show it.
+          const rateByStaff = new Map<string, number | null | undefined>();
+          for (const e of p.onSite) {
+            if (e.record.staff?.id) rateByStaff.set(e.record.staff.id, e.worker?.daily_rate);
+          }
+          return (
+            <AttendanceBySiteGrid
+              records={p.onSite.map((e) => e.record)}
+              renderRow={(record) => {
+                const t = record.clock_at
+                  ? new Date(record.clock_at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" })
+                  : new Date(record.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+                const rate = record.staff?.id ? rateByStaff.get(record.staff.id) : undefined;
+                return (
+                  <div className="flex items-center justify-between py-2 gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-content font-semibold text-charcoal truncate">{record.staff?.name ?? "—"}</p>
+                      <p className="text-caption text-charcoal/85">{record.staff?.role ?? ""}</p>
                     </div>
-                  )}
-                  {/* `worker?.daily_rate && (...)` rendered the literal "0"
-                      next to workers whose daily_rate is 0 (hourly/global
-                      workers). Coerce to boolean + require > 0 so the
-                      span is either shown or omitted, never replaced by 0. */}
-                  {p.isAdmin && !!worker?.daily_rate && worker.daily_rate > 0 && (
-                    <span className="text-caption font-semibold text-accent-dark shrink-0">₪{worker.daily_rate}/יום</span>
-                  )}
-                  <span className="text-caption font-semibold text-green-700 tabular-nums shrink-0">מ-{t}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                    {/* > 0 guard so an hourly/global worker's 0 rate doesn't
+                        render a literal "₪0/יום". */}
+                    {p.isAdmin && !!rate && rate > 0 && (
+                      <span className="text-caption font-semibold text-accent-dark shrink-0">₪{rate}/יום</span>
+                    )}
+                    <span className="text-caption font-semibold text-green-700 tabular-nums shrink-0">מ-{t}</span>
+                  </div>
+                );
+              }}
+            />
+          );
+        })()}
       </Card>
 
       {/* Admin: collections — only renders when there IS something to
