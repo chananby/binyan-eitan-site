@@ -275,8 +275,9 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
-- **TechnicalAnatomy — חיבור הטקסט (כולל hotspots) לתרגומים** — **מקומי, ממתין ל-push+deploy**
-  (`feature/anatomy-hotspots-translations` @ `bbe9b45`). הרכיב היה **קשיח לגמרי** (גם
+- **TechnicalAnatomy — חיבור הטקסט (כולל hotspots) לתרגומים** — **נפרס**
+  (27.7.26, `feature/anatomy-hotspots-translations` → main `7a87502`, `dpl_Gf2RuL8cKEsw`,
+  אימות `x-matched-path: /he`). הרכיב היה **קשיח לגמרי** (גם
   כותרת הסקשן וגם 3 ה-hotspots) — לא "מעורב" כפי שחשבנו. השלמה ל-ProjectsGallery.
   - **10 מפתחות חדשים (he+en)** בסקשן `engineering` עם prefix `anatomy_`:
     `anatomy_overline`/`_heading`/`_sub`/`_image_alt` + לכל hotspot
