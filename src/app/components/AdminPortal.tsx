@@ -562,13 +562,22 @@ export default function AdminPortal() {
     // clock-in/clock-out events itself.
     const attendedToday: Array<{ worker?: StaffMember; events: AttendanceRecord[] }> = [];
 
+    // "On site" = the worker's LATEST event by WORK time (clock_at) is a
+    // clock-in — the same last-event semantics hasOpenRecord uses. Picking
+    // rows[0] (newest by created_at / insertion order) was the latent bug: a
+    // retroactive or manual entry inserted later carries an EARLIER clock_at,
+    // so the most-recently-inserted row is not the most-recent event. clock_at
+    // falls back to created_at then recorded_at when absent. Both action
+    // vocabularies (in / כניסה) count as a clock-in.
+    const workTs = (r: AttendanceRecord) =>
+      new Date(r.clock_at ?? r.created_at ?? r.recorded_at).getTime();
     for (const [sid, rows] of byStaff) {
       const worker = staff.find(s => s.id === sid);
       attendedToday.push({ worker, events: rows });
-      // rows[0] is the newest because todayLogs arrives created_at desc.
-      const newest = rows[0];
-      if (newest && (newest.action === "כניסה" || newest.action === "in")) {
-        onSiteList.push({ record: newest, worker });
+      let latest = rows[0];
+      for (const r of rows) if (workTs(r) > workTs(latest)) latest = r;
+      if (latest && (latest.action === "כניסה" || latest.action === "in")) {
+        onSiteList.push({ record: latest, worker });
       }
     }
 
