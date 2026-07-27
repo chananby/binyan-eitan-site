@@ -275,10 +275,10 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
-- **`attendance.status` — כתיבה מפורשת בקוד + מיגרציה מתעדת** — **נפרס** (הקוד)
+- **`attendance.status` — כתיבה מפורשת בקוד + מיגרציה מתעדת** — **נפרס + מיגרציה הורצה ✅ סגור לגמרי**
   (27.7.26, `fix/attendance-status-explicit` → main `e08544b`, `dpl_9iLem4b23uYz`,
-  אימות `x-matched-path: /admin`). **⚠️ המיגרציה טרם הורצה — חנן מריץ ידנית** (כולל בדיקת NULL
-  + NOT NULL אופציונלי). הקשחה בלבד, **אפס שינוי התנהגות**.
+  אימות `x-matched-path: /admin`). **המיגרציה הורצה בהצלחה** — בדיקת NULL החזירה **0**,
+  ו-`ALTER ... SET NOT NULL` הוחל. הקשחה בלבד, **אפס שינוי התנהגות**.
   ה-DEFAULT `'approved'` קיים ב-DB החי אך לא באף מיגרציה → rebuild היה יוצר עמודה בלי
   ברירת מחדל → החתמות כ-NULL → שכר וכל סינון status נשברים.
   - **מפת המסלולים:** 3 נשענו על ברירת המחדל (POST `/api/attendance`, `insertPhoneAttendance`,
@@ -1496,15 +1496,6 @@ _(ריק — כל המיגרציות הידניות שהיו ממתינות או
     (טקסט מלא בשפת האם, ללא fallback לאנגלית — לפי החלטת חנן.)
 
 ### חוב טכני ידוע
-- **`attendance.status` DEFAULT — ✅ טופל 27.7.26** (`fix/attendance-status-explicit`,
-  מקומי, ממתין ל-push+deploy + הרצת מיגרציה ידנית). היה: DEFAULT `'approved'` חי אך
-  לא מתועד באף מיגרציה; 3 מסלולי כתיבה (החתמה חיה / Twilio / clock-out) נשענו עליו
-  משתמע. **הפתרון (בדיוק כפי שנרשם כאן):** (1) 3 המסלולים כותבים כעת `status:'approved'`
-  **מפורש** בקוד → התנהגות לא תלויה בברירת המחדל; (2) מיגרציה מתעדת
-  [`20260727_attendance_status_default.sql`](supabase/migrations/20260727_attendance_status_default.sql)
-  — `ALTER COLUMN status SET DEFAULT 'approved'` אידמפוטנטית + COMMENT + בדיקת NULL
-  ואופציית NOT NULL (מסומנות, **חנן מריץ ידנית**). כבר אומת שאין NULL-ים. מסלולי manual
-  ('pending'/'approved') ו-corrections ('approved') כבר היו מפורשים ולא נגעו.
 - **`ForemanPortal.tsx` (~1,344 שורות)** — מועמד ל-refactor. פירוק `site` tab
   ל-4 קומפוננטות: `SiteOnSitePanel` / `SiteStaleOpensPanel` /
   `SiteMissingTodayPanel` / `SitePendingPanel`.

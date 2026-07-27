@@ -555,7 +555,7 @@ flowchart TD
 **Gotchas (מלכודות חוזרות):**
 - **`action` עברית מול אנגלית** — web כותב "כניסה"/"יציאה", Twilio/חלק מה-inserts כותבים "in"/"out". כל פילטר על action חייב לכסות **שתי אוצרות מילה** (`isEntry`/`isExit`).
 - **`clock_at` מול `created_at`** — סינון שכר/דוחות תמיד לפי `clock_at` (חודש עבודה בפועל), לא `created_at` (רגע ההזנה). חלון ה-backfill מרחיב ±35 יום ואז clamp.
-- **`attendance.status`** — `approved` (החתמה חיה: app/Twilio/clock-out/manual-admin/corrections) או `pending` (הזנת מנהל עבודה, ממתין לאישור). DEFAULT `'approved'` בקוד וב-DB. **כל מסלולי ה-insert כותבים status מפורש** (מ-27.7.26) + מיגרציה מתעדת (`20260727_attendance_status_default.sql`) — ההתנהגות לא תלויה בברירת המחדל.
+- **`attendance.status`** — `approved` (החתמה חיה: app/Twilio/clock-out/manual-admin/corrections) או `pending` (הזנת מנהל עבודה, ממתין לאישור). **כל מסלולי ה-insert כותבים status מפורש** (מ-27.7.26). מיגרציה `20260727_attendance_status_default.sql` **הורצה**: DEFAULT `'approved'` מתועד + `NOT NULL` (אומת 0 NULL-ים). ההתנהגות לא תלויה בברירת המחדל.
 - **soft-delete** — `deleted_at IS NULL` בכל טבלה מרכזית.
 - **service_role עוקף RLS** — כל ה-endpoints מוגני admin ברמת ה-API, לא ב-RLS.
 - **מסמך: single OR split, never both** — קישור project_id ישיר ופיצול הם בלעדיים (409).
