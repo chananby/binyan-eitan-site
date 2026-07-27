@@ -274,8 +274,12 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
-- **הפחתת צריכת CPU ב-Vercel (Fluid Active CPU)** — **מקומי, ממתין ל-push+deploy**
-  (`perf/reduce-cpu-usage` @ `9a74793`). Vercel התריע על 75% מהמכסה החינמית; בחריגה
+- **הפחתת צריכת CPU ב-Vercel (Fluid Active CPU)** — **נפרס**
+  (27.7.26, `perf/reduce-cpu-usage` → main `7be0ab7`, `dpl_82jLACwg2MHK`, אימות `x-matched-path: /he`).
+  **ה-cache אומת חי:** `/api/translations` מחזיר `x-vercel-cache: HIT` עם `age` עולה בבקשות
+  חוזרות — כלומר ה-edge משרת מ-cache והפונקציה (deep-merge 158KB) **מדולגת**. (הערה: Vercel
+  "בולע" את `s-maxage`/`swr` ב-edge ומחזיר ללקוח `cache-control: public` בלבד — התנהגות זהה
+  ל-`/api/gallery`; ההוכחה היא ה-HIT+age, לא הכותרת ללקוח.) Vercel התריע על 75% מהמכסה; בחריגה
   הפרויקטים **נעצרים** (כולל פורטל עובד + החתמה). חקירה זיהתה את `/api/translations`
   כחשוד #1: deep-merge של **158KB** + serialize בכל קריאה, בלי cache, נצרך ע"י כל
   טאב ציבורי כל 90ש'. (הבחנה: Fluid מודד CPU אקטיבי בלבד — חילוץ ה-AI ממתין ל-Anthropic
