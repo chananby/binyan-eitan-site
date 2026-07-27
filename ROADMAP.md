@@ -275,8 +275,10 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
-- **JSON-LD AggregateRating — דירוג/ביקורות ניתנים לעריכה** — **מקומי, ממתין ל-push+deploy**
-  (`fix/jsonld-rating-editable` @ `c4d4bdc`). ה-`AggregateRating` (5.0/19) היה **קשיח**
+- **JSON-LD AggregateRating — דירוג/ביקורות ניתנים לעריכה** — **נפרס**
+  (27.7.26, `fix/jsonld-rating-editable` → main `aadabff`, `dpl_AyBbnkGS6s6V`, אימות
+  `x-matched-path: /he` + ה-JSON-LD החי מציג `ratingValue:"5.0","reviewCount":"19"`).
+  ה-`AggregateRating` (5.0/19) היה **קשיח**
   ב-`en/page.tsx` + `he/page.tsx` → יתיישן ככל שיצטברו ביקורות.
   - **מיפוי** (כל המקומות עם 5.0/19): JSON-LD ×2 (**הקשיח, תוקן**); Hero ×3 keys
     (`hero.googleRatingValue`/`Count`/`Aria` — **כבר עריכים**); `home.google_rating_text`
