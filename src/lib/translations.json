@@ -403,7 +403,17 @@
       "imageAlt_1": "תשתית והכנה לריצוף חוץ",
       "imageAlt_2": "מערכות ושיקום חיפויי חוץ",
       "imageAlt_3": "חיפוי אבן ירושלמית",
-      "imageAlt_4": "Premium marble bathroom detailing"
+      "imageAlt_4": "Premium marble bathroom detailing",
+      "anatomy_overline": "Technical Anatomy",
+      "anatomy_heading": "Engineering Beyond the Surface",
+      "anatomy_sub": "We build what is hidden from the eye with the same level of care as the visible finishes. That's the difference between a house that looks good and one built to last for generations.",
+      "anatomy_image_alt": "Advanced engineering infrastructure",
+      "anatomy_hotspot_conduit_label": "Electrical & Plumbing Conduit",
+      "anatomy_hotspot_conduit_desc": "Electrical and plumbing conduits laid before casting — advance planning that prevents future breakdowns and ensures years of quiet.",
+      "anatomy_hotspot_columns_label": "Structural Columns & Framework",
+      "anatomy_hotspot_columns_desc": "Concrete columns exposed in full renovation — inspected, reinforced, and re-concealed behind a perfect finish.",
+      "anatomy_hotspot_subfloor_label": "Sub-floor Infrastructure",
+      "anatomy_hotspot_subfloor_desc": "Sand layer and sub-floor infrastructure — electrical, plumbing and heating. Everything invisible, making all the difference."
     },
     "he": {
       "overline": "מאחורי הקלעים",
@@ -432,7 +442,17 @@
       "imageAlt_1": "עבודת תשתית ירושלים — הכנה לריצוף חוץ | קבלן בנייה ושיפוצים",
       "imageAlt_2": "שיקום חיפוי חוץ בירושלים — עבודה עברית מקצועית | בניין איתן",
       "imageAlt_3": "חיפוי אבן ירושלמית — קבלן שיפוצים ובנייה בירושלים ובנימין",
-      "imageAlt_4": "גמר שיש פרימיום בירושלים — שיפוץ יוקרה | בניין איתן"
+      "imageAlt_4": "גמר שיש פרימיום בירושלים — שיפוץ יוקרה | בניין איתן",
+      "anatomy_overline": "לב הבניין",
+      "anatomy_heading": "האיכות שמתחת לפני השטח",
+      "anatomy_sub": "אנו מקדישים לתהליכי הביצוע והשלד את אותה רמת דיוק שאנו מעניקים לגימורים הגלויים. כי בית איכותי נמדד בראש ובראשונה ביסודות שלו.",
+      "anatomy_image_alt": "תשתיות הנדסיות מתקדמות",
+      "anatomy_hotspot_conduit_label": "צנרת חשמל ואינסטלציה",
+      "anatomy_hotspot_conduit_desc": "צינורות חשמל ואינסטלציה מונחים לפני היציקה — תכנון מוקדם שחוסך פריצות עתידיות ומבטיח שנים של שקט.",
+      "anatomy_hotspot_columns_label": "שלד ועמודי קונסטרוקציה",
+      "anatomy_hotspot_columns_desc": "עמודי בטון חשופים בשיפוץ מקיף — נבדקים, מחוזקים ומוסתרים מחדש מאחורי גמר מושלם.",
+      "anatomy_hotspot_subfloor_label": "תשתית תת-רצפתית",
+      "anatomy_hotspot_subfloor_desc": "שכבת חול ותשתיות תת-רצפתיות — חשמל, אינסטלציה וחימום. כל מה שלא נראה, ועושה את כל ההבדל."
     }
   },
   "articles": [

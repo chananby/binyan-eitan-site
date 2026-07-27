@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLang } from "./LangContext";
+import { useTranslations } from "./TranslationsProvider";
 
 type Lang = "en" | "he";
 
@@ -68,6 +69,13 @@ const ease: [number, number, number, number] = [0.16, 1, 0.3, 1];
    ═════════════════════════════════════════════════════════ */
 export default function TechnicalAnatomy() {
   const { lang } = useLang() as { lang: Lang };
+  // Editable copy (engineering section, anatomy_* keys). Fallback is the
+  // hard-coded copy below, so the section renders byte-identically if KV is
+  // unavailable. Keys live under "engineering" (already editable) with an
+  // anatomy_ prefix to avoid colliding with EngineeringExcellence's
+  // overline/title/sub in the same section.
+  const t = useTranslations("engineering", lang) as Record<string, string | undefined>;
+  const tx = (key: string, fallback: string) => t?.[key] ?? fallback;
   const { overline, heading, sub } = copy[lang];
   const [active, setActive] = useState<string | null>(null);
 
@@ -85,15 +93,15 @@ export default function TechnicalAnatomy() {
           <div className="col-span-4 md:col-span-3 md:col-start-1">
             <p className="overline-label">
               <span className="me-3 inline-block h-px w-6 bg-accent align-middle" />
-              {overline}
+              {tx("anatomy_overline", overline)}
             </p>
           </div>
           <div className="col-span-4 mt-6 md:col-span-7 md:col-start-4 md:mt-0">
             <h2 className="font-heading text-3xl leading-snug font-bold text-charcoal md:text-4xl lg:text-5xl">
-              {heading}
+              {tx("anatomy_heading", heading)}
             </h2>
             <p className="mt-5 max-w-xl font-body text-base leading-relaxed font-light text-charcoal/70 md:mt-7 md:text-lg">
-              {sub}
+              {tx("anatomy_sub", sub)}
             </p>
           </div>
         </div>
@@ -109,7 +117,7 @@ export default function TechnicalAnatomy() {
           <div className="relative z-10 aspect-[16/10] w-full overflow-hidden md:aspect-[16/9]">
             <Image
               src="/bayit-vegan-6.jpg"
-              alt={lang === "he" ? "תשתיות הנדסיות מתקדמות" : "Advanced engineering infrastructure"}
+              alt={tx("anatomy_image_alt", lang === "he" ? "תשתיות הנדסיות מתקדמות" : "Advanced engineering infrastructure")}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 90vw"
@@ -158,7 +166,7 @@ export default function TechnicalAnatomy() {
                         ? "scale-125 bg-accent shadow-lg shadow-accent/30"
                         : "bg-bone/90 hover:bg-accent hover:scale-110"
                     }`}
-                    aria-label={lang === "he" ? spot.labelHe : spot.labelEn}
+                    aria-label={tx(`anatomy_hotspot_${spot.id}_label`, lang === "he" ? spot.labelHe : spot.labelEn)}
                   >
                     <span
                       className={`block size-1.5 rounded-full transition-colors duration-300 ${
@@ -188,11 +196,11 @@ export default function TechnicalAnatomy() {
                         <div className="relative overflow-hidden bg-charcoal px-5 py-4 shadow-xl text-start">
                           {/* Label */}
                           <p className="mb-2 font-body text-[0.6rem] font-semibold tracking-[0.25em] uppercase text-accent">
-                            {lang === "he" ? spot.labelHe : spot.labelEn}
+                            {tx(`anatomy_hotspot_${spot.id}_label`, lang === "he" ? spot.labelHe : spot.labelEn)}
                           </p>
                           {/* Quote / Details */}
                           <p className="font-body text-sm leading-relaxed font-light text-bone/90">
-                            {lang === "he" ? spot.he : spot.en}
+                            {tx(`anatomy_hotspot_${spot.id}_desc`, lang === "he" ? spot.he : spot.en)}
                           </p>
                           {/* Accent bar */}
                           <div className="mt-3 h-px w-8 bg-accent/40" />
@@ -221,7 +229,7 @@ export default function TechnicalAnatomy() {
                   }`}
                 />
                 <span className="font-body text-xs font-medium tracking-wider uppercase">
-                  {lang === "he" ? spot.labelHe : spot.labelEn}
+                  {tx(`anatomy_hotspot_${spot.id}_label`, lang === "he" ? spot.labelHe : spot.labelEn)}
                 </span>
               </button>
             ))}
