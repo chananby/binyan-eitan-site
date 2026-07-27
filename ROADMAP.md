@@ -275,6 +275,22 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **JSON-LD AggregateRating — דירוג/ביקורות ניתנים לעריכה** — **מקומי, ממתין ל-push+deploy**
+  (`fix/jsonld-rating-editable` @ `c4d4bdc`). ה-`AggregateRating` (5.0/19) היה **קשיח**
+  ב-`en/page.tsx` + `he/page.tsx` → יתיישן ככל שיצטברו ביקורות.
+  - **מיפוי** (כל המקומות עם 5.0/19): JSON-LD ×2 (**הקשיח, תוקן**); Hero ×3 keys
+    (`hero.googleRatingValue`/`Count`/`Aria` — **כבר עריכים**); `home.google_rating_text`
+    (Testimonials, טקסט); LP stats ×3 (`lp/{givat-zeev,jerusalem,overseas}` — "5.0★" קשיח,
+    **לא נגעו** לפי scope). דווחו כולם.
+  - **פתרון (מקור אמת יחיד):** ה-JSON-LD קורא כעת server-side (`getServerRating` ב-
+    [`server-translations.ts`](src/lib/server-translations.ts)) מ-**אותם keys של ה-Hero**
+    (`hero.googleRatingValue`/`googleRatingCount`) — עריכה אחת ב-"פתיחה (Hero)" מעדכנת גם
+    את הצ'יפ הגלוי וגם את הסכימה. **אין keys חדשים, אין collision** (ה-keys חיים ומכילים 5.0/19).
+  - **ולידציה:** `ratingValue`→float clamped [1,5] עם עשרון אחד; `reviewCount`→integer מוביל
+    ≥0. ריק/זבל/מחוץ-לטווח → fallback 5.0/19. **JSON פגום בלתי אפשרי** (אומת מול קלטים גרועים).
+  - **סעיף 7 (Google self-serve):** ה-markup ככל הנראה **דקורטיבי** — ראה דיווח. לא שונה.
+    build + 423 טסטים.
+
 - **`attendance.status` — כתיבה מפורשת בקוד + מיגרציה מתעדת** — **נפרס + מיגרציה הורצה ✅ סגור לגמרי**
   (27.7.26, `fix/attendance-status-explicit` → main `e08544b`, `dpl_9iLem4b23uYz`,
   אימות `x-matched-path: /admin`). **המיגרציה הורצה בהצלחה** — בדיקת NULL החזירה **0**,

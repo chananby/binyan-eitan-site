@@ -451,6 +451,7 @@ flowchart TD
   | כל דבר ב-**3 הפרויקטים החדשים** (כולל דף הבית) | `/admin` ← **גלריה** — הם אינם קיימים בתרגומים |
   | טקסטי **עמוד** `/projects` (כותרת, תת-כותרת, CTA) | `/internal/content-editor` ← לשונית **"פרויקטים"** → מפתחות `page_*`/`cta_*` |
   | טקסטי **TechnicalAnatomy** בדף הבית (כותרת סקשן + 3 hotspots: תווית+תיאור + alt) | `/internal/content-editor` ← לשונית **"הנדסה"** → מפתחות `anatomy_*` (מ-2026; prefix כדי לא להתנגש ב-overline/title/sub של EngineeringExcellence באותו סקשן) |
+  | **דירוג/ביקורות גוגל** — הצ'יפ ב-Hero **וגם** ה-JSON-LD `AggregateRating` בדף הבית | `/internal/content-editor` ← לשונית **"פתיחה (Hero)"** → `googleRatingValue`/`googleRatingCount`. ה-JSON-LD (`en`/`he` `page.tsx`) קורא אותם server-side (`getServerRating`) עם ולידציה+fallback 5.0/19 — מקור אמת יחיד |
   | 5 הדפים העשירים (hero, פס מטא, `keyFeatures`, metadata) | **קוד בלבד** — `src/data/projects/*.ts`, דורש commit+פריסה |
 
   ⚠️ **שתי נקודות בלבול שעולות שוב ושוב:**
