@@ -275,8 +275,10 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
-- **`attendance.status` — כתיבה מפורשת בקוד + מיגרציה מתעדת** — **מקומי, ממתין ל-push+deploy**
-  (`fix/attendance-status-explicit` @ `7a7f2ba`). הקשחה בלבד, **אפס שינוי התנהגות**.
+- **`attendance.status` — כתיבה מפורשת בקוד + מיגרציה מתעדת** — **נפרס** (הקוד)
+  (27.7.26, `fix/attendance-status-explicit` → main `e08544b`, `dpl_9iLem4b23uYz`,
+  אימות `x-matched-path: /admin`). **⚠️ המיגרציה טרם הורצה — חנן מריץ ידנית** (כולל בדיקת NULL
+  + NOT NULL אופציונלי). הקשחה בלבד, **אפס שינוי התנהגות**.
   ה-DEFAULT `'approved'` קיים ב-DB החי אך לא באף מיגרציה → rebuild היה יוצר עמודה בלי
   ברירת מחדל → החתמות כ-NULL → שכר וכל סינון status נשברים.
   - **מפת המסלולים:** 3 נשענו על ברירת המחדל (POST `/api/attendance`, `insertPhoneAttendance`,
