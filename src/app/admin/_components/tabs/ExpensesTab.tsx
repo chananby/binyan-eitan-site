@@ -72,7 +72,7 @@ export default function ExpensesTab(p: Props) {
           <Package size={16} strokeWidth={1.5} className="text-accent" />
           <h2 className="font-heading text-base font-bold">רישום הוצאה</h2>
         </div>
-        <form onSubmit={p.onAddMaterial} className="space-y-3">
+        <form onSubmit={p.onAddMaterial} className="space-y-3 max-w-2xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="פרויקט">
               <select value={p.matProjectId} onChange={e => p.setMatProjectId(e.target.value)} required className={INPUT}>

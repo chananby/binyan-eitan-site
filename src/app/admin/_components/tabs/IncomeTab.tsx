@@ -83,7 +83,7 @@ export default function IncomeTab({
             : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
         </button>
         {addOpen && (
-        <form onSubmit={onAddIncome} className="space-y-3 mt-3">
+        <form onSubmit={onAddIncome} className="space-y-3 mt-3 max-w-2xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="פרויקט">
               <select value={incProjectId} onChange={e => setIncProjectId(e.target.value)} required className={INPUT}>

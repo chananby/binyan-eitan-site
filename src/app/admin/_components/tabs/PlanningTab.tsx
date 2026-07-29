@@ -139,7 +139,7 @@ export default function PlanningTab(p: Props) {
             : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
         </button>
         {msOpen && (
-        <form onSubmit={p.onAddMilestone} className="space-y-3 mt-3">
+        <form onSubmit={p.onAddMilestone} className="space-y-3 mt-3 max-w-2xl">
           <div className="grid grid-cols-2 gap-3">
             <Field label="פרויקט">
               <select value={p.newMsProjectId} onChange={e => { p.setNewMsProjectId(e.target.value); p.setNewTaskMilestoneId(""); }} required className={INPUT}>
@@ -176,7 +176,7 @@ export default function PlanningTab(p: Props) {
             : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
         </button>
         {taskOpen && (
-        <form onSubmit={p.onAddTask} className="space-y-3 mt-3">
+        <form onSubmit={p.onAddTask} className="space-y-3 mt-3 max-w-2xl">
           <div className="grid grid-cols-2 gap-3">
             <Field label="פרויקט">
               <select value={p.newTaskProjectId} onChange={e => { p.setNewTaskProjectId(e.target.value); p.setNewTaskMilestoneId(""); }} required className={INPUT}>

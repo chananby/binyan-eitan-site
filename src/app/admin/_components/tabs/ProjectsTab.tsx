@@ -104,7 +104,7 @@ export default function ProjectsTab(p: Props) {
             : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
         </button>
         {addOpen && (
-        <form onSubmit={p.onAddProject} className="space-y-3 mt-3">
+        <form onSubmit={p.onAddProject} className="space-y-3 mt-3 max-w-2xl">
           <Field label="שם הפרויקט / אתר">
             <AutoGrowTextarea value={p.newProjectName} onChange={e => p.setNewProjectName(e.target.value)} required placeholder="פרויקט רחוב הרצל 12" className={INPUT} />
           </Field>

@@ -250,7 +250,7 @@ export default function WorkersTab(p: Props) {
             : <ChevronDown size={16} strokeWidth={1.5} className="text-charcoal/70" />}
         </button>
         {addOpen && (
-        <form onSubmit={p.onAddWorker} className="space-y-3 mt-3">
+        <form onSubmit={p.onAddWorker} className="space-y-3 mt-3 max-w-2xl">
           {/* Sticky header — stays in view while admin scrolls the long
               add form so they always remember they're adding a new worker
               (and not editing an existing one). */}
@@ -421,7 +421,7 @@ function renderStaffRow(
 ) {
   if (p.editingId === s.id) {
     return (
-      <form key={s.id} onSubmit={p.onEditWorker} className="py-4 space-y-3">
+      <form key={s.id} onSubmit={p.onEditWorker} className="py-4 space-y-3 max-w-2xl">
         {/* Sticky header — the edit form is long enough (rate + bank
             details + dates + pension + notes) that without an anchored
             label the admin can lose track of which worker they're filling

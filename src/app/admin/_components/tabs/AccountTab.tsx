@@ -75,7 +75,7 @@ export default function AccountTab({
 
       <Card title="הגדרות מערכת — נוכחות">
         <Field label="סף מרחק מאתר העבודה (מטרים)">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 max-w-md">
             <input
               type="number"
               min={0}
@@ -105,7 +105,7 @@ export default function AccountTab({
       </Card>
 
       <Card title="הגדרות מערכת — אכיפת מיקום">
-        <div className="space-y-3">
+        <div className="space-y-3 max-w-md">
           <label className="flex items-center gap-2 select-none">
             <input
               type="checkbox"
@@ -170,7 +170,7 @@ export default function AccountTab({
       </Card>
 
       <Card title="שנה סיסמה">
-        <form onSubmit={onChangePassword} className="space-y-3">
+        <form onSubmit={onChangePassword} className="space-y-3 max-w-md">
           <Field label="סיסמה נוכחית">
             <input
               type="password"
