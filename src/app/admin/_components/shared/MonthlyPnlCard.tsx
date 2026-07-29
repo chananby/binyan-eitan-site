@@ -83,7 +83,8 @@ function Content({ data }: { data: PnlResult }) {
       {/* Current-month headline */}
       <div>
         <p className="text-caption text-muted mb-2">{fullMonthLabel(cur.month)}</p>
-        <div className="grid grid-cols-3 gap-3">
+        {/* max-w so the 3 figures stay grouped, not spread across the wide card */}
+        <div className="grid grid-cols-3 gap-3 max-w-2xl">
           <Stat label="הכנסה" value={cur.income} tone="income" />
           <Stat label="הוצאה" value={cur.expense} tone="expense" />
           <Stat label="יתרה"  value={cur.net}     tone="net" signed />

@@ -1587,7 +1587,7 @@ export default function AdminPortal() {
           site grid can't breathe in 640px. Every other tab keeps
           the narrow column the rest of the admin portal is tuned
           for (forms, dashboards, single-column lists). */}
-      <div className={`mx-auto space-y-5 ${tab === "board" || tab === "dashboard" ? "max-w-7xl" : "max-w-2xl"}`}>
+      <div className="mx-auto space-y-5 max-w-7xl">
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -1614,8 +1614,10 @@ export default function AdminPortal() {
           </div>
         </div>
 
-        {/* Stats strip */}
-        <div className={`grid gap-2 ${isAdmin ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
+        {/* Stats strip — capped so the tiles stay compact and grouped at the
+            start instead of each 2-digit number stretching across ~⅓ of the
+            now-wide (max-w-7xl) container. */}
+        <div className={`grid gap-2 max-w-2xl ${isAdmin ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
           {isAdmin && (
             <>
               {[

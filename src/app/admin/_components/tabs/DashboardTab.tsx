@@ -201,7 +201,8 @@ export default function DashboardTab(p: Props) {
       {/* Admin: daily spend */}
       {p.isAdmin && (
         <Card title="💰 עלויות היום">
-          <div className="space-y-1.5">
+          {/* max-w so the label↔value gap stays tight at the wide width */}
+          <div className="space-y-1.5 max-w-md">
             <div className="flex justify-between items-center py-1.5 border-b border-charcoal/15">
               <span className="text-content text-charcoal">שכר עובדים (אומדן)</span>
               <span className="text-content font-semibold text-charcoal tabular-nums">₪{Math.round(p.laborEstimate).toLocaleString("he-IL")}</span>
@@ -241,7 +242,7 @@ export default function DashboardTab(p: Props) {
             className={`w-full text-start rounded-md border border-charcoal/10 bg-white shadow-sm transition-colors ${canOpen ? "cursor-pointer hover:border-accent/40 hover:bg-bone-dark/40" : "cursor-default"}`}
           >
             <Card title="📅 צפי שכר חודשי (אומדן)">
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 max-w-md">
                 <div className="flex justify-between items-center py-1.5">
                   <span className="text-content text-charcoal">חודש מלא צפוי</span>
                   {p.monthlySalaryForecastLoading ? (
