@@ -275,6 +275,23 @@
   עלה מ-0 שורות → 12 שורות (6 משמרות מלאות).
 
 ### תשתית וחוויית משתמש
+- **פאנל בקשות תיקון — תצוגה נכונה לכל סוג + תרגום + התראת עריכה** — **מקומי, ממתין ל-push+deploy**
+  (`fix/corrections-panel-clarity` @ `f79aa14`). הפאנל השתמש בתבנית אחת ("X ← Y" עם קו חוצה)
+  ל-3 סוגי בקשה — נכונה רק ל-`fix_time`. **תצוגה בלבד, לוגיקת האישור לא נגעה.**
+  - **כיוון החץ (`fix_time`):** ה-"←" מצביע כעת על הערך **החדש**. השורה RTL, סדר DOM
+    [ישן(קו-חוצה), ←, חדש(מודגש)] → הישן נקרא ראשון (ימין), החץ פונה שמאלה לחדש. כל שעה `dir="ltr"`.
+  - **`missing_exit`/`missing_entry`:** בלי קו חוצה (שום דבר לא נמחק) — "כניסה קיימת 07:26 ·
+    הוסף יציאה 16:00", ה-badge מציין את ה**הוספה** ("הוספת יציאה") ומסכים עם התגית (לא עוד "כניסה" סותר).
+  - **כפתור "תרגם":** on-demand ליד סיבה לא-עברית → endpoint חדש admin/foreman-gated
+    `POST /api/admin/attendance/corrections/translate` → `translateToHebrew` מעל Anthropic הקיים.
+    טעינה+שגיאה, מוצג **לצד** המקור, `staff.language` כרמז מקור.
+  - **התראת עריכה ממתינה:** `AttendanceRowEditor` מציג התראה ענבר (לא חוסמת) כשלרשומה יש
+    בקשת תיקון פתוחה — ה-ids מוזרמים AttendanceTab→WorkerHistoryPanel→editor מהרשימה הטעונה.
+    **בלי סגירה אוטומטית** (ניחוש כוונה).
+  - **SQL הדגמה** (`scripts/demo_correction_requests.sql`, **לא הורץ**): בקשה מכל סוג על "ניסיון"
+    (כולל reason בסינהלית), מתויג `[הדגמה]` + בלוק ניקוי. build + 423 טסטים
+    (תוקן גם date-drift ב-`twilio-gate.test.ts`).
+
 - **JSON-LD AggregateRating — דירוג/ביקורות ניתנים לעריכה** — **נפרס**
   (27.7.26, `fix/jsonld-rating-editable` → main `aadabff`, `dpl_AyBbnkGS6s6V`, אימות
   `x-matched-path: /he` + ה-JSON-LD החי מציג `ratingValue:"5.0","reviewCount":"19"`).

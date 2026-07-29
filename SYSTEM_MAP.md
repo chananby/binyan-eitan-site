@@ -104,7 +104,9 @@ flowchart TB
   - ממונה מגיש רשומה/תיקון → תור `pending`/corrections → אדמין מאשר → נכתב ל-`attendance` + audit.
   - סוף חודש → טווח → דוח שעות מצטבר פר-עובד → הדפסה/PDF.
 - **מחובר ל:** דשבורד (כרטיס "טרם החתימו" זהה), עובדים (כפתור היסטוריה), פורטל ממונה (מקור pending/corrections), שכר (אותה נוכחות), חשבון (אכיפת GPS), `/admin/health`. טבלאות: `attendance`, `attendance_corrections`, `attendance_failures`, `staff`, `projects`, `vacation_days`.
-- **קבצים:** [`AttendanceTab.tsx`](src/app/admin/_components/tabs/AttendanceTab.tsx), `tabs/WorkerHistoryPanel.tsx`, `shared/{CorrectionRequestsPanel,MonthlyReportPanel,DistanceFlag,StaleRefresh,AttendanceRowEditor}.tsx`; endpoints `api/admin/attendance/{today,recent,pending,manual,clock-out,failures,report,monthly-report,corrections,corrections/[id],stale-opens,[id]}`.
+- **קבצים:** [`AttendanceTab.tsx`](src/app/admin/_components/tabs/AttendanceTab.tsx), `tabs/WorkerHistoryPanel.tsx`, `shared/{CorrectionRequestsPanel,MonthlyReportPanel,DistanceFlag,StaleRefresh,AttendanceRowEditor}.tsx`; endpoints `api/admin/attendance/{today,recent,pending,manual,clock-out,failures,report,monthly-report,corrections,corrections/[id],corrections/translate,stale-opens,[id]}`. **פאנל בקשות התיקון:
+תצוגה נפרדת לכל `request_type` (fix_time = שינוי עם חץ לערך החדש; missing_* = הקשר+הוספה, בלי קו חוצה)
++ כפתור "תרגם" (Anthropic) + התראת "בקשה ממתינה" ב-AttendanceRowEditor.**
 
 **תרשים: 3 מסלולי החתמה → רשומה אחת.** שים לב ל-gotcha של `action` בתחתית.
 
