@@ -133,6 +133,26 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(dest);
   }
 
+  // ── PROBE A: edge-cache ONLY the two home pages (/he, /en) ─────────────────
+  // Purpose: test whether an s-maxage header from middleware makes Vercel edge-
+  // cache a dynamically-rendered App Router page (the root layout's headers()
+  // call forces the whole site dynamic). If x-vercel-cache flips to HIT, this is
+  // the cheap win; if it stays MISS, Next's no-store on dynamic pages wins and
+  // we revert.
+  //
+  // Scoped to the EXACT home paths only:
+  //   • sub-pages (/he/about, /en/expertise…) — NOT cached (exact match).
+  //   • /admin — never even matched by config.matcher, so never reaches here.
+  //   • /api, /internal — returned early far above; never reach here.
+  //   • preview / maintenance / redirects — all early-returned above.
+  // The home pages are public and carry no per-user content, so edge caching
+  // them is safe. Content stays fresh: TranslationsProvider fetches translations
+  // client-side (already CDN-cached), and the JSON-LD rating refreshes within
+  // the 60s window.
+  if (pathname === "/he" || pathname === "/en") {
+    response.headers.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
+  }
+
   return response;
 }
 
