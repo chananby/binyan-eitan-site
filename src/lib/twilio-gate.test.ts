@@ -25,6 +25,11 @@ function stub(opts: {
 const IN = (clock_at: string) => ({ action: "in", clock_at });
 const OUT = (clock_at: string) => ({ action: "out", clock_at });
 
+// The gate day-scopes by the REAL "today" (israelTodayYMD), so an "open shift"
+// fixture must be timestamped today — a hard-coded date silently falls out of
+// the window as the clock advances. "now" is always inside the current day.
+const OPEN_TODAY = new Date().toISOString();
+
 describe("checkPhoneClockGate — verbatim gate, structured result", () => {
   it("passes when no open record (IN with no rows today)", async () => {
     const { supabase } = stub({ selectResult: { data: [], error: null } });
@@ -33,7 +38,7 @@ describe("checkPhoneClockGate — verbatim gate, structured result", () => {
   });
 
   it("blocks a second IN when a clock-in is already open", async () => {
-    const { supabase } = stub({ selectResult: { data: [IN("2026-07-27T07:00:00Z")], error: null } });
+    const { supabase } = stub({ selectResult: { data: [IN(OPEN_TODAY)], error: null } });
     const g = await checkPhoneClockGate({ supabase, staffId: "s1", action: "in" });
     expect(g.kind).toBe("block");
   });
@@ -45,13 +50,13 @@ describe("checkPhoneClockGate — verbatim gate, structured result", () => {
   });
 
   it("allows an OUT when a shift is open (last event is an entry)", async () => {
-    const { supabase } = stub({ selectResult: { data: [IN("2026-07-27T07:00:00Z")], error: null } });
+    const { supabase } = stub({ selectResult: { data: [IN(OPEN_TODAY)], error: null } });
     const g = await checkPhoneClockGate({ supabase, staffId: "s1", action: "out" });
     expect(g.kind).toBe("pass");
   });
 
   it("recognises the Hebrew vocabulary too (כניסה blocks a second IN)", async () => {
-    const { supabase } = stub({ selectResult: { data: [{ action: "כניסה", clock_at: "2026-07-27T07:00:00Z" }], error: null } });
+    const { supabase } = stub({ selectResult: { data: [{ action: "כניסה", clock_at: OPEN_TODAY }], error: null } });
     const g = await checkPhoneClockGate({ supabase, staffId: "s1", action: "in" });
     expect(g.kind).toBe("block");
   });
@@ -75,7 +80,7 @@ describe("insertPhoneAttendance — outcome + fail-open", () => {
   });
 
   it("blocks (no insert) when the gate blocks", async () => {
-    const { supabase, inserted } = stub({ selectResult: { data: [IN("2026-07-27T07:00:00Z")], error: null } });
+    const { supabase, inserted } = stub({ selectResult: { data: [IN(OPEN_TODAY)], error: null } });
     const out = await insertPhoneAttendance({ supabase, staffId: "s1", action: "in", project });
     expect(out.status).toBe("blocked");
     expect(inserted.some((r) => (r as { source?: string }).source === "phone-call")).toBe(false);

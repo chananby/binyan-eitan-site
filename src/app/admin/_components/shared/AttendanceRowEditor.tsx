@@ -23,7 +23,7 @@
  */
 
 import { useState } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, AlertTriangle } from "lucide-react";
 import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
 
 export type EditorMode = "edit" | "complete" | "complete-entry" | "add";
@@ -33,6 +33,10 @@ interface Props {
   day: WorkerHistoryDay;
   staffId: string;
   colSpan: number;
+  /** True when this day's record has an OPEN worker correction request. Shows a
+   *  non-blocking heads-up so the admin considers approving/rejecting it instead
+   *  of a silent manual edit that leaves the request dangling. */
+  hasPendingCorrection?: boolean;
   onCancel: () => void;
   onSuccess: () => void; // parent reloads + closes
 }
@@ -176,6 +180,12 @@ export default function AttendanceRowEditor(p: Props) {
           <div className="flex items-center gap-2 text-[0.75rem] font-semibold text-charcoal">
             {title}
           </div>
+          {p.hasPendingCorrection && (
+            <div className="flex items-start gap-1.5 bg-amber-50 border border-amber-300 text-amber-800 px-2.5 py-1.5 text-caption leading-snug">
+              <AlertTriangle size={13} strokeWidth={2} className="shrink-0 mt-0.5" />
+              <span>לרשומה זו יש <strong>בקשת תיקון ממתינה</strong> — שקול לאשר/לדחות אותה בפאנל &quot;בקשות תיקון&quot; במקום לערוך ידנית.</span>
+            </div>
+          )}
           <div className="flex flex-wrap items-end gap-3">
             {showStart && (
               <label className="flex flex-col gap-1">

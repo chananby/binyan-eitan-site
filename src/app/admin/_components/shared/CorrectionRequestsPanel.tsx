@@ -37,6 +37,19 @@ const REQ_TYPE_LABEL: Record<string, string> = {
   fix_time:      "שעה שגויה",
 };
 
+// For the ADD types, the action badge names what will be ADDED — so it agrees
+// with the type tag above instead of showing the linked record's opposite
+// action (which read as a contradiction: "forgot exit" + a green "כניסה" chip).
+const ADD_BADGE_LABEL: Record<string, string> = {
+  missing_exit:  "הוספת יציאה",
+  missing_entry: "הוספת כניסה",
+};
+// The word for the row being ADDED, per type.
+const ADD_WORD: Record<string, string> = {
+  missing_exit:  "יציאה",
+  missing_entry: "כניסה",
+};
+
 export interface CorrectionRequest {
   id: string;
   attendance_id: string;
@@ -88,6 +101,30 @@ export default function CorrectionRequestsPanel(p: {
   // without blocking the others.
   const [pending, setPending] = useState<string | null>(null);
 
+  // On-demand Hebrew translation of the (often foreign-language) reason, keyed
+  // by request id. Shown ALONGSIDE the original, never replacing it.
+  const [tx, setTx] = useState<Record<string, { loading: boolean; text?: string; error?: string }>>({});
+
+  async function translate(r: CorrectionRequest) {
+    if (!r.reason || tx[r.id]?.loading || tx[r.id]?.text) return;
+    const langLabel = isWorkerLangCode(r.staff?.language) && r.staff!.language !== "he"
+      ? WORKER_LANG_LABEL_HE[r.staff!.language as "en" | "ru" | "si" | "zh" | "hi"]
+      : undefined;
+    setTx((s) => ({ ...s, [r.id]: { loading: true } }));
+    try {
+      const res = await fetch("/api/admin/attendance/corrections/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: r.reason, sourceLangLabel: langLabel }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "התרגום נכשל");
+      setTx((s) => ({ ...s, [r.id]: { loading: false, text: data.translation } }));
+    } catch (e) {
+      setTx((s) => ({ ...s, [r.id]: { loading: false, error: e instanceof Error ? e.message : "התרגום נכשל" } }));
+    }
+  }
+
   async function resolve(id: string, status: "approved" | "rejected", confirmMsg?: string) {
     if (pending) return;
     // Money-critical: a suspicious entry-move demands an explicit confirm so a
@@ -136,6 +173,10 @@ export default function CorrectionRequestsPanel(p: {
             const act = actionLabel(r.attendance?.action ?? "");
             const reqType = r.request_type || "fix_time";
             const typeLabel = REQ_TYPE_LABEL[reqType] ?? "";
+            // missing_* are ADDITIONS (a new row), not edits — so no strikethrough
+            // and the linked record is shown as CONTEXT, not a value that changes.
+            const isAdd = reqType === "missing_exit" || reqType === "missing_entry";
+            const addWord = ADD_WORD[reqType]; // "יציאה" / "כניסה" being added
             // Danger = a fix_time (or legacy null) that would move an ENTRY to
             // a suspicious time. missing_* types ADD rows, never destructive.
             const danger =
@@ -164,10 +205,20 @@ export default function CorrectionRequestsPanel(p: {
                         {typeLabel}
                       </span>
                     )}
-                    <span className={`text-caption font-semibold px-1.5 py-0.5
-                      ${act === "כניסה" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-                      {act}
-                    </span>
+                    {/* Badge: for ADD types it names what's being added (agrees
+                        with the type tag); for fix_time it's the record's action
+                        being changed. */}
+                    {isAdd ? (
+                      <span className={`text-caption font-semibold px-1.5 py-0.5 rounded
+                        ${addWord === "כניסה" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+                        {ADD_BADGE_LABEL[reqType]}
+                      </span>
+                    ) : (
+                      <span className={`text-caption font-semibold px-1.5 py-0.5
+                        ${act === "כניסה" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
+                        {act}
+                      </span>
+                    )}
                     {date && <span className="text-caption text-charcoal/70 tabular-nums">{date}</span>}
                     {/* Monthly correction count for this worker (all statuses).
                         Awareness only — never blocks. Amber at 3+ so chnn spots
@@ -187,12 +238,28 @@ export default function CorrectionRequestsPanel(p: {
                     })()}
                   </div>
 
-                  {/* השינוי: מה היה ← מה ביקש */}
-                  {r.proposed_time ? (
-                    <div className="flex items-center gap-2" dir="ltr">
-                      <span className="text-sm text-charcoal/60 tabular-nums line-through">{time}</span>
+                  {/* מה מבוקש — תצוגה נפרדת לכל סוג */}
+                  {isAdd ? (
+                    /* ADD: the existing record is CONTEXT (no strikethrough); the
+                       proposed time is the NEW row being added. */
+                    <div className="flex items-center gap-2 flex-wrap text-sm">
+                      <span className="text-charcoal/60">
+                        {act} קיימת <span className="tabular-nums" dir="ltr">{time}</span>
+                      </span>
+                      <span className="text-charcoal/30">·</span>
+                      <span className="font-bold text-amber-700">
+                        הוסף {addWord}{r.proposed_time && <> <span className="tabular-nums" dir="ltr">{r.proposed_time}</span></>}
+                      </span>
+                    </div>
+                  ) : r.proposed_time ? (
+                    /* fix_time: a real change. RTL container → old (strikethrough)
+                       is read first on the right, the ← points to the requested
+                       new value on the left. Each time is dir="ltr" so digits
+                       render correctly. */
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-charcoal/60 tabular-nums line-through" dir="ltr">{time}</span>
                       <span className="text-charcoal/40 text-base leading-none">←</span>
-                      <span className="text-base font-bold text-amber-700 tabular-nums">{r.proposed_time}</span>
+                      <span className="text-base font-bold text-amber-700 tabular-nums" dir="ltr">{r.proposed_time}</span>
                     </div>
                   ) : (
                     <p className="text-caption text-charcoal/70" dir="ltr">
@@ -208,11 +275,31 @@ export default function CorrectionRequestsPanel(p: {
                     </div>
                   )}
 
-                  {/* למה (אם נכתב) */}
+                  {/* למה (אם נכתב) + כפתור תרגום on-demand */}
                   {r.reason && (
-                    <p className="text-caption text-charcoal/70 leading-snug">
+                    <div className="text-caption text-charcoal/70 leading-snug">
                       <span className="text-charcoal/70">סיבה: </span>{r.reason}
-                    </p>
+                      {/* Offer translate when the worker's portal language isn't
+                          Hebrew (or is unknown) — the reason is likely foreign. */}
+                      {r.staff?.language !== "he" && !tx[r.id]?.text && (
+                        <button
+                          type="button"
+                          onClick={() => translate(r)}
+                          disabled={tx[r.id]?.loading}
+                          className="ms-2 text-accent underline underline-offset-2 hover:text-accent-dark disabled:opacity-50"
+                        >
+                          {tx[r.id]?.loading ? "מתרגם…" : "תרגם"}
+                        </button>
+                      )}
+                      {tx[r.id]?.error && (
+                        <span className="ms-2 text-red-500">{tx[r.id]!.error}</span>
+                      )}
+                      {tx[r.id]?.text && (
+                        <p className="mt-1 bg-charcoal/[0.04] px-2 py-1 rounded text-charcoal/80">
+                          <span className="text-charcoal/50">תרגום: </span>{tx[r.id]!.text}
+                        </p>
+                      )}
+                    </div>
                   )}
 
                   {/* מתי הוגש */}

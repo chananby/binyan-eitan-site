@@ -67,6 +67,9 @@ type Props = {
   loading: boolean;
   error: string | null;
   onReload: () => void;
+  /** attendance_ids that have an OPEN correction request — the editor flags a
+   *  day whose entry/exit row is among them. */
+  pendingCorrectionAttIds?: Set<string>;
 };
 
 const STATUS_STYLE: Record<
@@ -353,6 +356,10 @@ export default function WorkerHistoryPanel(p: Props) {
                           day={d}
                           staffId={p.selectedStaffId}
                           colSpan={7}
+                          hasPendingCorrection={
+                            !!((d.entryId && p.pendingCorrectionAttIds?.has(d.entryId)) ||
+                               (d.exitId && p.pendingCorrectionAttIds?.has(d.exitId)))
+                          }
                           onCancel={closeEditor}
                           onSuccess={handleEditorSuccess}
                         />

@@ -1717,6 +1717,7 @@ export default function AttendanceTab(p: Props) {
           loading={p.historyLoading}
           error={p.historyError}
           onReload={p.onLoadHistory}
+          pendingCorrectionAttIds={new Set(p.correctionRequests.map((c) => c.attendance_id))}
         />
       )}
 
