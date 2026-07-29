@@ -76,6 +76,26 @@ function actionLabel(action: string): string {
        : action;
 }
 
+// Whether to offer "תרגם" — decided by the TEXT, not the worker's language
+// field (which is often stale or wrong). We count LETTERS: Hebrew block
+// (U+0590–U+05FF) vs any other-script letter (\p{L} that isn't Hebrew —
+// Latin, Sinhala, Devanagari, Cyrillic, CJK…). Digits, punctuation and spaces
+// are ignored. Show the button only when non-Hebrew letters OUTNUMBER Hebrew
+// ones, so a lone foreign word inside a Hebrew sentence ("הכל בסדר OK") stays
+// button-less, while a foreign reason (or a foreign sentence with a short
+// Hebrew tag like "[הדגמה]") gets one.
+function reasonLooksForeign(reason: string | null | undefined): boolean {
+  if (!reason) return false;
+  let hebrew = 0;
+  let other = 0;
+  for (const ch of reason) {
+    const code = ch.codePointAt(0)!;
+    if (code >= 0x0590 && code <= 0x05ff) { hebrew++; continue; }
+    if (/\p{L}/u.test(ch)) other++;
+  }
+  return other > hebrew;
+}
+
 // Split the original record into a short date ("5.5.26") and a HH:MM time, so
 // the card can render a compact "action date:  old → requested" line. Falls
 // back to timestamp_label when clock_at is missing (older rows).
@@ -279,9 +299,10 @@ export default function CorrectionRequestsPanel(p: {
                   {r.reason && (
                     <div className="text-caption text-charcoal/70 leading-snug">
                       <span className="text-charcoal/70">סיבה: </span>{r.reason}
-                      {/* Offer translate when the worker's portal language isn't
-                          Hebrew (or is unknown) — the reason is likely foreign. */}
-                      {r.staff?.language !== "he" && !tx[r.id]?.text && (
+                      {/* Offer translate when the REASON TEXT is predominantly
+                          non-Hebrew — independent of the staff.language field
+                          (which stays only as the source-language hint below). */}
+                      {reasonLooksForeign(r.reason) && !tx[r.id]?.text && (
                         <button
                           type="button"
                           onClick={() => translate(r)}
