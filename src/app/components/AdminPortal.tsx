@@ -15,7 +15,7 @@ import {
   AlertCircle, DollarSign, Target,
   ChevronLeft, Grid3x3, Download, Plus,
   UserCog, MapPin, UserX, FileText, Inbox, Users, Coins,
-  AlertTriangle, XCircle, Images,
+  AlertTriangle, XCircle, Images, Menu, PanelRight,
 } from "lucide-react";
 import { Card } from "../admin/_components/shared/Card";
 import AttentionPanel, { type AttentionItem } from "../admin/_components/shared/AttentionPanel";
@@ -25,6 +25,7 @@ import { TabRefreshBar } from "../admin/_components/shared/TabRefreshBar";
 import { INPUT } from "../admin/_components/shared/constants";
 import IncomeTab from "../admin/_components/tabs/IncomeTab";
 import AccountTab from "../admin/_components/tabs/AccountTab";
+import AdminSidebar, { type SidebarGroup } from "../admin/_components/shared/AdminSidebar";
 import { ReportsTabPanel, MatrixTabPanel } from "../admin/_components/tabs/ReportsAndMatrixTabs";
 import WorkersTab from "../admin/_components/tabs/WorkersTab";
 import ProjectsTab from "../admin/_components/tabs/ProjectsTab";
@@ -85,6 +86,21 @@ const HASH_TO_TAB: Record<string, AdminTab> = {
   documents:  "documents",
   account:    "account",
 };
+
+// Sidebar grouping of the admin tabs (order + Hebrew group labels). dashboard
+// sits alone on top; account is pinned to the bottom; the rest are grouped by
+// domain. Every one of the 17 tabs appears exactly once. The actual label/icon/
+// badge for each key is pulled from the (permission-filtered) TABS at render, so
+// a hidden tab never shows and never reserves space in its group.
+const SIDEBAR_GROUP_DEFS: { label: string | null; keys: AdminTab[]; footer?: boolean }[] = [
+  { label: null,              keys: ["dashboard"] },
+  { label: "נוכחות ואנשים",    keys: ["attendance", "workers", "payroll", "reports", "join_requests"] },
+  { label: "לקוחות ופרויקטים", keys: ["quotes", "projects", "collections"] },
+  { label: "שטח ותכנון",       keys: ["board", "planning", "matrix"] },
+  { label: "כספים",            keys: ["documents", "income", "expenses"] },
+  { label: "אתר",              keys: ["gallery"] },
+  { label: null,              keys: ["account"], footer: true },
+];
 
 // Entity types are exported from ../admin/_components/types — imported above.
 
@@ -159,6 +175,33 @@ export default function AdminPortal() {
   const [authState,      setAuthState]      = useState<AuthState>("loading");
   const [loginMode,      setLoginMode]      = useState<LoginMode>("pin");
   const [tab,            setTab]            = useState<AdminTab>("dashboard");
+  // Navigation mode — the new sidebar is built ALONGSIDE the classic tab row and
+  // toggled here (stage 2, behind a flag). Default "tabs" (zero surprise); read
+  // the saved choice after mount to avoid a hydration mismatch. Hanan flips it
+  // himself from the header, no deploy needed.
+  const [navMode,          setNavMode]          = useState<"tabs" | "sidebar">("tabs");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileNavOpen,    setMobileNavOpen]    = useState(false);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("admin_nav") === "sidebar") setNavMode("sidebar");
+      if (localStorage.getItem("admin_sidebar_collapsed") === "1") setSidebarCollapsed(true);
+    } catch { /* localStorage unavailable — keep defaults */ }
+  }, []);
+  function toggleNavMode() {
+    setNavMode((m) => {
+      const next = m === "sidebar" ? "tabs" : "sidebar";
+      try { localStorage.setItem("admin_nav", next); } catch { /* ignore */ }
+      return next;
+    });
+  }
+  function toggleSidebarCollapsed() {
+    setSidebarCollapsed((c) => {
+      const next = !c;
+      try { localStorage.setItem("admin_sidebar_collapsed", next ? "1" : "0"); } catch { /* ignore */ }
+      return next;
+    });
+  }
   const [foremanName,    setForemanName]    = useState<string | null>(null);
   const [foremanStaffId, setForemanStaffId] = useState<string | null>(null);
   // Set when this "foreman" session is actually an admin viewing-as-foreman.
@@ -1479,6 +1522,27 @@ export default function AdminPortal() {
     goToTab(key);
   }
 
+  // Same three badge counts the tab row shows, from already-loaded state.
+  const tabBadge = (key: AdminTab): number =>
+    key === "attendance"    ? pendingRecords.length :
+    key === "join_requests" ? joinRequests.length :
+    key === "collections"   ? (collections?.totals.count ?? 0) : 0;
+
+  // Build the grouped sidebar from the SAME (permission-filtered) TABS + badges,
+  // so it stays 1:1 with the tab row and respects adminOnly. Empty groups drop
+  // out. Items are real anchors driven by the existing tabHref/onTabClick.
+  const tabByKey = new Map(TABS.map((t) => [t.key, t]));
+  const sidebarGroups: SidebarGroup[] = SIDEBAR_GROUP_DEFS
+    .map((g) => ({
+      label: g.label,
+      footer: g.footer,
+      items: g.keys
+        .map((k) => tabByKey.get(k))
+        .filter((t): t is TabDef => !!t)
+        .map((t) => ({ key: t.key, label: t.label, icon: t.icon, badge: tabBadge(t.key), href: tabHref(t.key) })),
+    }))
+    .filter((g) => g.items.length > 0);
+
   // ── AttentionPanel inputs ──────────────────────────────────────────────────
   // All counts are derived from state already loaded by the dashboard; no
   // new endpoint required. The "not clocked in" item runs all day (no hour
@@ -1581,7 +1645,23 @@ export default function AdminPortal() {
   return (
     <>
     <SuccessFlash show={showFlash} onDone={() => setShowFlash(false)} />
-    <div dir="rtl" className="min-h-screen bg-bone-dark px-4 py-8 font-body text-charcoal">
+    {/* Sidebar (admin, flag on). Fixed rail on the RTL start; the outer
+        padding below makes room WITHOUT changing the content's max-w-7xl —
+        full layout integration is stage 3. */}
+    {isAdmin && navMode === "sidebar" && (
+      <AdminSidebar
+        groups={sidebarGroups}
+        activeKey={tab}
+        onItemClick={(e, key) => onTabClick(e, key as AdminTab)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={toggleSidebarCollapsed}
+        mobileOpen={mobileNavOpen}
+        onCloseMobile={() => setMobileNavOpen(false)}
+      />
+    )}
+    <div dir="rtl" className={`min-h-screen bg-bone-dark px-4 py-8 font-body text-charcoal ${
+      isAdmin && navMode === "sidebar" ? (sidebarCollapsed ? "md:pe-[68px]" : "md:pe-[248px]") : ""
+    }`}>
       {/* Container width: the assignment tab (live board + weekly
           schedule) needs a wider canvas — its tables and 3-column
           site grid can't breathe in 640px. Every other tab keeps
@@ -1600,6 +1680,23 @@ export default function AdminPortal() {
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            {/* Mobile hamburger — only in sidebar mode, opens the drawer. */}
+            {isAdmin && navMode === "sidebar" && (
+              <button onClick={() => setMobileNavOpen(true)} aria-label="פתח תפריט ניווט"
+                className="md:hidden flex items-center border border-charcoal/15 p-1.5 text-charcoal/70 hover:border-accent hover:text-accent transition-colors duration-200">
+                <Menu size={16} strokeWidth={1.5} />
+              </button>
+            )}
+            {/* Nav-mode toggle — flips between the classic tab row and the new
+                sidebar. Persisted; Hanan can switch back instantly, no deploy. */}
+            {isAdmin && (
+              <button onClick={toggleNavMode}
+                title={navMode === "sidebar" ? "חזרה לשורת הלשוניות" : "מעבר לתפריט צד (ניסיוני)"}
+                className="flex items-center gap-1.5 border border-charcoal/15 px-3 py-1.5 text-xs text-charcoal/70 hover:border-accent hover:text-accent transition-colors duration-200">
+                <PanelRight size={12} strokeWidth={1.5} />
+                {navMode === "sidebar" ? "שורת לשוניות" : "תפריט צד"}
+              </button>
+            )}
             {isAdmin && (
               <Link href="/admin/health"
                 className="flex items-center gap-1.5 border border-charcoal/15 px-3 py-1.5 text-xs text-charcoal/70 hover:border-accent hover:text-accent transition-colors duration-200">
@@ -1663,6 +1760,7 @@ export default function AdminPortal() {
             - The border-b-2 inside each tab now sits over a thicker hairline
               under the bar (border-charcoal/15), so the active-tab accent
               line still wins visually. */}
+        {navMode === "tabs" && (
         <div className="flex flex-wrap gap-y-2 border-b border-charcoal/15">
           {TABS.map(t => {
             // Tab badges — each surfaces its own "waiting for you" count.
@@ -1693,6 +1791,7 @@ export default function AdminPortal() {
             );
           })}
         </div>
+        )}
 
         {/* ── DASHBOARD ─────────────────────────────────────────────────────── */}
         {tab === "dashboard" && (
