@@ -310,6 +310,27 @@
   - **שלב 3ב — בתור:** החלפת ברירת המחדל ל-sidebar + הסרת שורת הלשוניות הישנה, אחרי
     שחנן מתרגל לכיוון.
 
+- **דף הבית הדינמי — B-static (root סטטי, האתר הציבורי נעשה static)** — **נפרס**
+  (30.7.26, `perf/static-root-layout` → main `0b761b7`, `dpl_6gQM4rsAtTkxA6MtJUyxnqKMgqtm`).
+  ה-root layout קרא `headers()` (x-pathname) לבחירת lang/dir → **כל** האתר הציבורי היה
+  `ƒ`. הפתרון (לא route groups — root יחיד, revert נקי):
+  - **שלב 1** — `getServerRating` עטוף ב-`unstable_cache` (tag `translations`, revalidate
+    60). ה-PUT של העורך כבר קורא `revalidateTag("translations")` + `revalidatePath("/he"|"/en")`
+    → רעננות נשמרת. `getServerArticles` **לא** נגע (expertise force-dynamic צריך תוכן חי).
+  - **שלב 2** — `dir/lang` על ה-wrappers: `en/layout` ← `dir="ltr" lang="en"` (**קריטי**);
+    `he/layout` ← `rtl/he`; `LPTemplate` ← `lang` נגזר (תיקן `/lp/overseas` אנגלי).
+  - **שלב 3** — root = `<html lang="he" dir="rtl">` סטטי, בלי `headers()`; `x-pathname`
+    הוסר מ-`proxy.ts` (root היה הקורא היחיד). skip-link נשאר עברי ב-root.
+  - **ריפל 4** — `force-dynamic` על `admin/layout.tsx` (admin ניסה prerender ונפל על
+    `useSearchParams`), ועל `he/internal/admin/page.tsx` (auth-gated + שליפת פרויקטים חיה
+    — כסטטי אפה redirect בלתי-מותנה). **בדיקת אבטחה:** אושר שאף עמוד סטטי לא אופה עם
+    נתונים רגישים (redirect shells / client components / JSON-LD ציבורי בלבד).
+  - **תמורה בפועל (44 `○` + 2 `●`):** `/he`,`/en` (`○` revalidate 1m), about/faq/legal/
+    change-order/projects/lp(3)/internal/quizzes/attendance → static. **`/he` בפרודקשן:
+    `x-vercel-cache: HIT` ×3.** `/en` נטען LTR (html `rtl/he` סטטי + wrapper `ltr/en`).
+    נשארו `ƒ`: `/admin/*`, `/he/internal/admin`, expertise/[slug] (force-dynamic משלהם), math דינמי.
+  - **פשרה ידועה:** `<html lang="he">` גם ב-`/en` (תוכן `lang="en"` ב-wrapper). זו העלות של
+    root יחיד מול route groups — התצוגה נכונה, ה-hreflang/alternate מכסים SEO.
 - **רוחב אחיד לכל לשוניות האדמין + ריסון אלמנטים מתוחים** — **נפרס**
   (29.7.26, `fix/admin-uniform-width` → main `e85a978`, `dpl_DV32AitmYE9Q`, אימות `x-matched-path: /admin`).
   קודם רק דשבורד+board היו `max-w-7xl`, השאר
@@ -1543,30 +1564,8 @@
 
 ## בתהליך / פתוח
 
-- **דף הבית הדינמי — B-static** — **מוכן, לא נפרס** (`perf/static-root-layout`,
-  4 קומיטים על main; build + 423 tests עוברים; ממתין לאישור פריסה). ה-root layout
-  קרא `headers()` (x-pathname) לבחירת lang/dir → **כל** האתר הציבורי היה `ƒ`. הפתרון
-  (לא route groups — root יחיד, revert נקי):
-  - **שלב 1** — `getServerRating` עטוף ב-`unstable_cache` (tag `translations`,
-    revalidate 60). ה-PUT של העורך כבר קורא `revalidateTag("translations")` +
-    `revalidatePath("/he"|"/en")` → רעננות נשמרת. `getServerArticles` **לא** נגע
-    (expertise force-dynamic צריך תוכן חי לתצוגה מקדימה).
-  - **שלב 2** — `dir/lang` על ה-wrappers: `en/layout` ← `dir="ltr" lang="en"`
-    (**קריטי** — בלעדיו `/en` יורש rtl); `he/layout` ← `dir="rtl" lang="he"`;
-    `LPTemplate` ← `lang` נגזר (מתקן באג קיים: `/lp/overseas` אנגלית קיבל html he/rtl).
-  - **שלב 3** — root = `<html lang="he" dir="rtl">` סטטי, בלי `headers()`;
-    `x-pathname` הוסר מ-`proxy.ts` (root היה הקורא היחיד). skip-link נשאר עברי ב-root.
-  - **ריפל (שלב 4)** — הסרת ה-`headers()` חשפה ש-`/admin/*` ניסה prerender ונפל על
-    `useSearchParams` (quotes + reset-password). תוקן ב-`force-dynamic` על
-    `admin/layout.tsx` — משחזר את ההתנהגות הקודמת של כל תת-העץ במקום אחד.
-  - **תמורה בפועל:** `/he`,`/en`,about,faq,legal,change-order,projects,lp (3),
-    internal,quizzes → `○/●` (היו `ƒ`). נשארו `ƒ` (כמצופה): `/admin/*`,
-    expertise/[slug] (force-dynamic משלו), math-app דינמי.
-  - **לאמת בפריסה:** `/en` נטען LTR (הסיכון היחיד); פורטלים פנימיים (`/he/internal/*`)
-    שנהיו `○` — client-gated, לוודא שהגייט עדיין עובד.
-
-_(מיגרציות: כל הידניות שהיו ממתינות אומתו כמוחלות. פריטי החלטה עתידית עברו
-ל"החלטות שננעלו — בתור לבנייה" למטה.)_
+_(ריק — כל המיגרציות הידניות שהיו ממתינות אומתו כמוחלות. פריטי החלטה עתידית
+עברו ל"החלטות שננעלו — בתור לבנייה" למטה.)_
 
 ---
 
