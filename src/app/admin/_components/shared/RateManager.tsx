@@ -175,7 +175,7 @@ export default function RateManager(p: Props) {
             </label>
           </div>
           {formErr && (
-            <p className="flex items-center gap-1.5 text-micro text-red-600">
+            <p className="flex items-center gap-1.5 text-caption text-red-600">
               <AlertCircle size={11} /> {formErr}
             </p>
           )}
@@ -199,10 +199,10 @@ export default function RateManager(p: Props) {
         </form>
       )}
 
-      {loading && <p className="text-micro text-charcoal/70">טוען…</p>}
-      {error && <p className="flex items-center gap-1 text-micro text-red-600"><AlertCircle size={10}/> {error}</p>}
+      {loading && <p className="text-caption text-charcoal/70">טוען…</p>}
+      {error && <p className="flex items-center gap-1 text-caption text-red-600"><AlertCircle size={10}/> {error}</p>}
       {!loading && !error && rates.length === 0 && (
-        <p className="text-micro text-amber-700">⚠️ אין שורות תעריף — לחץ "עדכן תעריף" כדי להוסיף.</p>
+        <p className="text-caption text-amber-700">⚠️ אין שורות תעריף — לחץ "עדכן תעריף" כדי להוסיף.</p>
       )}
       {!loading && !error && rates.length > 0 && (
         <table className="w-full text-content">
