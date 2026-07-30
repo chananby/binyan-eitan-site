@@ -331,6 +331,21 @@
     נשארו `ƒ`: `/admin/*`, `/he/internal/admin`, expertise/[slug] (force-dynamic משלהם), math דינמי.
   - **פשרה ידועה:** `<html lang="he">` גם ב-`/en` (תוכן `lang="en"` ב-wrapper). זו העלות של
     root יחיד מול route groups — התצוגה נכונה, ה-hreflang/alternate מכסים SEO.
+- **סולם טיפוגרפיה + תיקון Tier 1** — **נפרס** (30.7.26, `fix/typography-scale-tier1`
+  → main `bd87c14`, `dpl_BPR25PBiL2FjV3oPGzGpBkwLuiAq`; אומת: `.text-micro{font-size:.75rem}`
+  חי ב-CSS המוגש, `/admin` `x-matched-path`). סריקה מצאה **18 גדלים מתחת ל-15px** ו-~40%
+  מהקוד עוקף טוקנים.
+  - **הסולם (4 גדלים):** `text-body` 16 · `text-content` 15 (רצפת תוכן) · `text-caption`
+    14 (תוויות) · `text-micro` 12 (רצפת chrome — טוקן חדש; עברית לא נקראת מתחת ל-12px).
+    תועד ב-`DEVELOPMENT_PRINCIPLES` עקרון 14: **אפס `text-[…]` שרירותי בקוד חדש**.
+  - **Tier 1 — 64 החלפות ב-9 קבצים** (מה שחנן פותח יומית עם כסף): RateManager (טבלת
+    תעריפים 12→15, תוויות 10→14, שגיאות→14, 100% טוקנים), Collections (Tab+ItemCard),
+    QuotesList (תאים 14→15, כותרות→14, badge→12), PayrollTab, Documents
+    (Inbox/Card/ReviewForm — שמות ספקים+ערכי שדות→15, תוויות→14, chip→12), ותפריט הצד
+    (כותרות/תגים/"ניווט"→12). **גודל+טוקן בלבד** — אפס פריסה/לוגיקה/נתונים; טבלאות לא נשברו.
+  - **Tier 2/3 בתור:** AttendanceTab, IncompletePanel, ScheduleTable, ProjectsTab,
+    AccountTab, StaffDocumentsSection, MilestoneCard, AdminPortal, HistoryScreen,
+    ForemanPortal. **Tier 4 (חידונים/שיווקי/math — 253 מקומות, קהל אחר) — לא נוגעים.**
 - **רוחב אחיד לכל לשוניות האדמין + ריסון אלמנטים מתוחים** — **נפרס**
   (29.7.26, `fix/admin-uniform-width` → main `e85a978`, `dpl_DV32AitmYE9Q`, אימות `x-matched-path: /admin`).
   קודם רק דשבורד+board היו `max-w-7xl`, השאר
@@ -1564,27 +1579,8 @@
 
 ## בתהליך / פתוח
 
-- **סולם טיפוגרפיה + תיקון Tier 1** — **מוכן, לא נפרס** (`fix/typography-scale-tier1`,
-  2 קומיטים; build + 423 tests עוברים). סריקה מצאה **18 גדלים שונים מתחת ל-15px**
-  ו-~40% מהקוד עוקף את הטוקנים.
-  - **הסולם (מאומץ, 4 גדלים):** `text-body` 16 הדגשה · `text-content` 15 **רצפת
-    תוכן** · `text-caption` 14 תוויות · `text-micro` 12 **רצפת chrome** (חדש — הוסף
-    ל-`tailwind.config.js`; עברית לא נקראת מתחת ל-12px). תועד ב-`DEVELOPMENT_PRINCIPLES`
-    (עקרון 14): **אפס `text-[…]` שרירותי בקוד חדש**.
-  - **Tier 1 תוקן — 64 החלפות ב-9 קבצים** (מה שחנן פותח יומית עם כסף): RateManager
-    (טבלת תעריפים 12→15, תוויות 10→14, הקובץ 100% טוקנים), Collections (Tab+ItemCard,
-    סכומים/פרטים→15), QuotesList (תאים 14→15, כותרות→14, badge→12), PayrollTab
-    (טקסט/אזהרות/שורות→15, כפתורים→12), Documents (Inbox/Card/ReviewForm — שמות
-    ספקים+ערכי שדות→15, תוויות→14, chip-ים→12), ותפריט הצד (כותרות/תגים/"ניווט"→12).
-  - **גודל+טוקן בלבד** — אפס שינוי פריסה/לוגיקה/נתונים. טבלאות: RateManager (סאב-פאנל),
-    QuotesList (`overflow-x-auto`) — לא נשברו.
-  - **Tier 2/3 בתור** (סבב המשך אחרי שחנן יראה את Tier 1): AttendanceTab, IncompletePanel,
-    ScheduleTable, ProjectsTab, AccountTab, StaffDocumentsSection, MilestoneCard,
-    AdminPortal, HistoryScreen, ForemanPortal. **Tier 4 (חידונים/שיווקי/math — 253
-    מקומות, קהל אחר) — לא נוגעים.**
-
-_(מיגרציות: כל הידניות שהיו ממתינות אומתו כמוחלות. פריטי החלטה עתידית עברו
-ל"החלטות שננעלו — בתור לבנייה" למטה.)_
+_(ריק — כל המיגרציות הידניות שהיו ממתינות אומתו כמוחלות. פריטי החלטה עתידית
+עברו ל"החלטות שננעלו — בתור לבנייה" למטה.)_
 
 ---
 
