@@ -10,6 +10,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// Auth-gated + live-data page: isAdminAuthed() reads the admin cookie and, if
+// absent, redirects. It MUST render per-request. Before B-static it was dynamic
+// via the root layout's headers(); with the static root removed it prerendered
+// with no cookie → isAdminAuthed() false → it baked an UNCONDITIONAL redirect to
+// /he/internal that would be served to authed admins too (no data leaked — the
+// project fetch never ran). force-dynamic restores the per-request auth check.
+export const dynamic = "force-dynamic";
+
 // Canonical status vocabulary is {active, inactive}. 'completed' and
 // 'paused' are kept as best-effort labels so any pre-unification legacy
 // row still renders a friendly chip rather than the raw enum string.
