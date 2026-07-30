@@ -1090,6 +1090,13 @@
     border: 1px solid var(--border-strong);
     border-radius: 4px;
   }
+  /* Section name is the PARENT of its items, so it must read stronger than the
+     item-name fields (13px/600) beneath it — bigger + heavier. Width/position
+     are unchanged (still the flexed textarea in the section header). */
+  .section-card-header .section-name-input {
+    font-size: 15px;
+    font-weight: 700;
+  }
   .item-row-rich .item-name.is-empty-required {
     border-color: #ef4444;
     background: #fef2f2;
@@ -2038,13 +2045,17 @@
   // When embedded in an iframe (the /admin/quotes page) the parent tab's title
   // is independent — postMessage so the host page can mirror it.
   function updateDocumentTitle() {
-    const num = state.quoteNumber ? '#' + state.quoteNumber : '';
+    const num = state.quoteNumber ? '#' + state.quoteNumber : '';        // sticky UI label keeps the #
+    // The title also becomes the "Save as PDF" filename. A "#" makes some
+    // browsers truncate the download name at the "#" → an empty/generic file,
+    // so the title uses the PLAIN number.
+    const numPlain = state.quoteNumber ? String(state.quoteNumber) : '';
     const customer = (state.customerName || '').trim();
     let title;
-    if (num && customer) {
-      title = `הצעת מחיר ${num} - ${customer}`;
-    } else if (num) {
-      title = `הצעת מחיר ${num}`;
+    if (numPlain && customer) {
+      title = `הצעת מחיר ${numPlain} - ${customer}`;
+    } else if (numPlain) {
+      title = `הצעת מחיר ${numPlain}`;
     } else if (customer) {
       title = `הצעת מחיר חדשה - ${customer}`;
     } else {
@@ -2296,7 +2307,7 @@
       <div class="section-card" data-section-id="${section.id}">
         <div class="section-card-header">
           <button class="section-toggle" data-toggle-section="${section.id}" aria-expanded="${!collapsed}" title="${collapsed ? 'הרחב פרק' : 'כווץ פרק'}">${collapsed ? '◂' : '▾'}</button>
-          <textarea class="auto-grow" rows="1" placeholder="שם הפרק (למשל: עבודות הריסה ופירוק)"
+          <textarea class="section-name-input auto-grow" rows="1" placeholder="שם הפרק (למשל: עבודות הריסה ופירוק)"
                     data-section-name="${section.id}">${esc(section.name)}</textarea>
           <button class="btn-icon" data-delete-section="${section.id}" title="מחק פרק">🗑</button>
         </div>
@@ -2560,7 +2571,7 @@
         </div>
       ` : ''}
 
-      ${showPrices ? '<div class="doc-table-vat-note">כל הסכומים בטבלה זו הם לפני מע"מ</div>' : ''}
+      ${showPrices && grandTotal() > 0 ? '<div class="doc-table-vat-note">כל הסכומים בטבלה זו הם לפני מע"מ</div>' : ''}
       <table class="doc-table">
         <thead>
           <tr>
@@ -2601,7 +2612,7 @@
                 </tr>
               `;
               }).join('')}
-              ${showPrices && section.name && validItems.length > 0 && state.sections.length > 1 ? `
+              ${showPrices && total > 0 && section.name && validItems.length > 0 && state.sections.length > 1 ? `
                 <tr class="subtotal-row">
                   <td colspan="${showQty ? 3 : 2}">סה"כ ${esc(section.name)}</td>
                   <td class="price">${money(total)}</td>
