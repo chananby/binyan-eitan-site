@@ -7,9 +7,27 @@
  * relying on the static translations.json shipped with the build.
  */
 import { kv } from "@vercel/kv";
+import { unstable_cache } from "next/cache";
 import defaultTranslations from "@/src/lib/translations.json";
 
 const KV_KEY = "site_translations";
+
+/**
+ * Cached KV read for the home-page rating ONLY. Wrapping the `kv.get` in
+ * unstable_cache removes the dynamic-forcing data access, so the home pages
+ * (`/he`, `/en`) — which call getServerRating — can prerender instead of being
+ * `ƒ` on every request. The `translations` tag ties the entry to the content
+ * editor: its PUT already calls `revalidateTag("translations")`, so a rating
+ * change still lands within one request. `revalidate: 60` is a backstop.
+ *
+ * NOTE: getServerArticles is deliberately NOT routed through this — the article
+ * slug pages are `force-dynamic` and want LIVE editor content for draft preview.
+ */
+const getCachedTranslationsKV = unstable_cache(
+  async () => kv.get(KV_KEY),
+  ["site-translations-kv-rating"],
+  { tags: ["translations"], revalidate: 60 },
+);
 
 function deepMerge(
   defaults: Record<string, unknown>,
@@ -99,7 +117,7 @@ export async function getServerRating(
   lang: "he" | "en",
 ): Promise<{ ratingValue: string; reviewCount: string }> {
   try {
-    const stored = await kv.get(KV_KEY);
+    const stored = await getCachedTranslationsKV();
     const merged = stored
       ? deepMerge(
           defaultTranslations as unknown as Record<string, unknown>,
