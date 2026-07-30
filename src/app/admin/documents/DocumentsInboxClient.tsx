@@ -278,7 +278,7 @@ export default function DocumentsInboxClient() {
           <span className="text-[#2D2926]/40">/</span>
           <span className="text-[#2D2926] font-semibold flex items-center gap-1.5"><Inbox size={14} strokeWidth={2} />אסמכתאות</span>
         </div>
-        {adminName && <div className="text-[#2D2926]/60 text-xs">מחובר כ-<span className="font-semibold text-[#2D2926]">{adminName}</span></div>}
+        {adminName && <div className="text-[#2D2926]/60 text-micro">מחובר כ-<span className="font-semibold text-[#2D2926]">{adminName}</span></div>}
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-4 space-y-4">
@@ -299,11 +299,11 @@ export default function DocumentsInboxClient() {
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white border border-[#2D2926]/10 rounded-md shadow-sm p-3 text-center">
             <p className="text-2xl font-bold text-amber-600 leading-none">{pendingCount ?? "—"}</p>
-            <p className="text-xs text-[#2D2926]/60 mt-1">ממתינים לאישור</p>
+            <p className="text-caption text-[#2D2926]/60 mt-1">ממתינים לאישור</p>
           </div>
           <div className="bg-white border border-[#2D2926]/10 rounded-md shadow-sm p-3 text-center">
             <p className="text-2xl font-bold text-emerald-700 leading-none">{monthApproved == null ? "—" : fmtCurrency(monthApproved)}</p>
-            <p className="text-xs text-[#2D2926]/60 mt-1">מאושר החודש</p>
+            <p className="text-caption text-[#2D2926]/60 mt-1">מאושר החודש</p>
           </div>
         </div>
 
@@ -362,10 +362,10 @@ export default function DocumentsInboxClient() {
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <AlertCircle size={16} className="text-amber-700 shrink-0" />
               <div className="min-w-0">
-                <p className="text-sm font-bold text-amber-900">
+                <p className="text-content font-bold text-amber-900">
                   {unlinkedCount} {unlinkedCount === 1 ? "אסמכתא ללא פרויקט" : "אסמכתאות ללא פרויקט"}
                 </p>
-                <p className="text-xs text-amber-800">
+                <p className="text-caption text-amber-800">
                   שיוך פרויקט חשוב לחישוב הוצאות פר-פרויקט.
                 </p>
               </div>
@@ -373,14 +373,14 @@ export default function DocumentsInboxClient() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 shrink-0">
               <Link
                 href="/admin/documents/triage"
-                className="inline-flex items-center justify-center text-xs font-semibold bg-amber-700 text-white border border-amber-700 px-2.5 py-1.5 rounded hover:bg-amber-800 whitespace-nowrap"
+                className="inline-flex items-center justify-center text-micro font-semibold bg-amber-700 text-white border border-amber-700 px-2.5 py-1.5 rounded hover:bg-amber-800 whitespace-nowrap"
               >
                 סקור בטריאז' →
               </Link>
               <button
                 type="button"
                 onClick={() => setFilters({ ...EMPTY_FILTERS, no_project: "1" })}
-                className="inline-flex items-center justify-center text-xs font-semibold bg-amber-200 text-amber-900 border border-amber-400 px-2.5 py-1.5 rounded hover:bg-amber-300 whitespace-nowrap"
+                className="inline-flex items-center justify-center text-micro font-semibold bg-amber-200 text-amber-900 border border-amber-400 px-2.5 py-1.5 rounded hover:bg-amber-300 whitespace-nowrap"
               >
                 סנן ברשימה
               </button>

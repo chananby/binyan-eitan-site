@@ -86,12 +86,12 @@ export default function DocumentCard({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-[#2D2926] truncate">{displayVendor(doc)}</p>
+              <p className="text-content font-semibold text-[#2D2926] truncate">{displayVendor(doc)}</p>
               <span className="shrink-0 font-mono font-bold text-[#2D2926]">
                 {fmtCurrency(doc.total_amount, doc.currency ?? "ILS")}
               </span>
             </div>
-            <div className="mt-1 flex items-center gap-2 flex-wrap text-xs text-[#2D2926]/60">
+            <div className="mt-1 flex items-center gap-2 flex-wrap text-caption text-[#2D2926]/60">
               <span>{DOC_TYPE_LABELS[doc.doc_type ?? ""] ?? "—"}</span>
               <span>·</span>
               <span className="tabular-nums">{fmtDate(doc.doc_date)}</span>
@@ -115,7 +115,7 @@ export default function DocumentCard({
           </div>
         </div>
         <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-          <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold ${chip.className}`}>
+          <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-micro font-semibold ${chip.className}`}>
             {chip.warn && <AlertTriangle size={11} />}
             {chip.label}
           </span>
@@ -125,7 +125,7 @@ export default function DocumentCard({
               onClick={retryExtract}
               onMouseDown={(e) => e.stopPropagation()}
               disabled={retrying}
-              className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold border border-indigo-300 text-indigo-700 bg-white hover:bg-indigo-50 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-micro font-semibold border border-indigo-300 text-indigo-700 bg-white hover:bg-indigo-50 disabled:opacity-50 transition-colors"
               title="הפעל מחדש את חילוץ ה-AI עבור המסמך"
               aria-label="המשך עיבוד"
             >
@@ -136,7 +136,7 @@ export default function DocumentCard({
             </button>
           )}
           {fieldUpload && (
-            <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-[#8D775F]/10 text-[#8D775F]">
+            <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-micro font-semibold bg-[#8D775F]/10 text-[#8D775F]">
               <Camera size={11} />{fieldUpload}
             </span>
           )}
@@ -148,7 +148,7 @@ export default function DocumentCard({
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreviewOpen(true); }}
             onMouseDown={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-[#2D2926]/[0.06] text-[#2D2926]/80 hover:bg-[#2D2926]/[0.12] transition-colors"
+            className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-micro font-semibold bg-[#2D2926]/[0.06] text-[#2D2926]/80 hover:bg-[#2D2926]/[0.12] transition-colors"
             title="תצוגה מקדימה"
             aria-label="תצוגה מקדימה של המסמך"
           >
@@ -163,7 +163,7 @@ export default function DocumentCard({
               deliberate state the admin set on the detail screen. */}
           {doc.include_in_actuals === false && (
             <span
-              className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold bg-[#2D2926]/[0.06] text-[#2D2926]/70"
+              className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-micro font-semibold bg-[#2D2926]/[0.06] text-[#2D2926]/70"
               title="המסמך לא נספר בחישובי הרווחיות — ארכיון בלבד"
             >
               <Archive size={11} /> לא נכלל בחישוב

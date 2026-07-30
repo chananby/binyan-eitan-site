@@ -68,7 +68,7 @@ export default function PayrollTab(p: Props) {
           <DollarSign size={16} strokeWidth={1.5} className="text-accent" />
           <h2 className="font-heading text-base font-bold">דוח שכר חודשי</h2>
         </div>
-        <p className="text-xs text-charcoal/65 mb-4 leading-relaxed">
+        <p className="text-content text-charcoal/65 mb-4 leading-relaxed">
           בחר חודש ולחץ &quot;טען&quot; לראות סיכום ימי עבודה, שעות, חופשה ושכר ברוטו לכל עובד שעבד החודש (כולל עובד שהושבת אך עבד בחודש זה).
           ייצוא ל-XLSX מוכן לשליחה לרוא&quot;ח.
         </p>
@@ -99,7 +99,7 @@ export default function PayrollTab(p: Props) {
             <button
               onClick={p.onLoadPayroll}
               disabled={p.payrollLoading}
-              className="w-full bg-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
+              className="w-full bg-accent py-2.5 text-micro font-semibold tracking-wider uppercase text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
             >
               {p.payrollLoading ? <><Loader2 size={13} className="animate-spin" /> טוען…</> : "טען נתונים"}
             </button>
@@ -112,7 +112,7 @@ export default function PayrollTab(p: Props) {
           <button
             onClick={() => p.onExportPayroll("employees")}
             disabled={p.payrollExporting !== null || p.payrollLoading}
-            className="border border-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-accent hover:bg-accent/[0.08] disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
+            className="border border-accent py-2.5 text-micro font-semibold tracking-wider uppercase text-accent hover:bg-accent/[0.08] disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
             title='ייצוא XLSX של שכירים בלבד (כולל פנסיה וזכאות לחגים)'
           >
             {p.payrollExporting === "employees"
@@ -122,7 +122,7 @@ export default function PayrollTab(p: Props) {
           <button
             onClick={() => p.onExportPayroll("freelancers")}
             disabled={p.payrollExporting !== null || p.payrollLoading}
-            className="border border-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-accent hover:bg-accent/[0.08] disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
+            className="border border-accent py-2.5 text-micro font-semibold tracking-wider uppercase text-accent hover:bg-accent/[0.08] disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
             title='ייצוא XLSX של עצמאים בלבד (ללא עמודות פנסיה/חגים)'
           >
             {p.payrollExporting === "freelancers"
@@ -145,7 +145,7 @@ export default function PayrollTab(p: Props) {
             <div className="text-amber-900 bg-amber-50 border border-amber-200">
               <div className="flex items-start gap-2 px-3 py-2.5">
                 <AlertTriangle size={15} strokeWidth={1.5} className="text-amber-600 mt-0.5 shrink-0" />
-                <div className="text-xs leading-relaxed flex-1">
+                <div className="text-content leading-relaxed flex-1">
                   <span className="font-bold tabular-nums">{summary.day_count}</span> ימים לא שלמים בחודש זה — הם עלולים להשפיע על התלוש.
                   <div className="mt-0.5 text-charcoal/70">{breakdown.join(" · ")}</div>
                   <button
@@ -167,11 +167,11 @@ export default function PayrollTab(p: Props) {
                         <button
                           type="button"
                           onClick={() => goApproval ? p.onGoToApprovals() : p.onViewWorkerHistoryForDay(it.staff_id, it.date)}
-                          className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-start hover:bg-amber-100/60 transition-colors"
+                          className="w-full flex items-center gap-2 px-3 py-1.5 text-content text-start hover:bg-amber-100/60 transition-colors"
                         >
                           <span className="font-semibold min-w-[6.5rem] truncate">{it.staff_name ?? "—"}</span>
                           <span className="tabular-nums text-charcoal/70" dir="ltr">{it.date}</span>
-                          <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 font-semibold rounded">{ISSUE_LABEL[it.issue]}</span>
+                          <span className="text-micro px-1.5 py-0.5 bg-amber-100 text-amber-800 font-semibold rounded">{ISSUE_LABEL[it.issue]}</span>
                           {it.project_name && <span className="text-charcoal/60 truncate">{it.project_name}</span>}
                           <span className="ms-auto text-amber-900 font-semibold">{goApproval ? "לאישור ←" : "לתיקון ←"}</span>
                         </button>
@@ -195,7 +195,7 @@ export default function PayrollTab(p: Props) {
           <Card>
             <div className="flex items-start gap-2 text-amber-800 bg-amber-50 border border-amber-200 px-3 py-2.5">
               <AlertTriangle size={15} strokeWidth={1.5} className="text-amber-600 mt-0.5 shrink-0" />
-              <div className="text-xs leading-relaxed">
+              <div className="text-content leading-relaxed">
                 שים לב: ל-<span className="font-bold tabular-nums">{missing.length}</span> עובדים חסר תעריף לחודש זה
                 — הם יופיעו בדוח עם 0. ניתן להשלים תעריף בטאב עובדים.
               </div>

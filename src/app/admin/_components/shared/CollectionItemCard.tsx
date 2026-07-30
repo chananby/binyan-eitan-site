@@ -117,22 +117,22 @@ export default function CollectionItemCard(p: Props) {
           <p className="text-lg font-bold text-charcoal tabular-nums leading-tight">
             {fmt(remaining)}
             {isPartial && (
-              <span className="ms-1.5 text-xs font-semibold text-amber-900">
+              <span className="ms-1.5 text-content font-semibold text-amber-900">
                 מתוך {fmt(amount)}
               </span>
             )}
           </p>
-          <p className="text-sm font-semibold text-charcoal leading-snug">{p.milestone.title}</p>
-          <p className="text-xs text-charcoal/75 mt-0.5 flex items-center gap-1">
+          <p className="text-content font-semibold text-charcoal leading-snug">{p.milestone.title}</p>
+          <p className="text-content text-charcoal/75 mt-0.5 flex items-center gap-1">
             <Clock size={11} strokeWidth={2} /> {ripenedAgo(p.milestone.marked_due_at)}
           </p>
           {p.milestone.expected_date && (
-            <p className="text-xs text-charcoal/70 flex items-center gap-1">
+            <p className="text-content text-charcoal/70 flex items-center gap-1">
               <Calendar size={11} strokeWidth={2} /> צפי: {fmtDate(p.milestone.expected_date)}
             </p>
           )}
         </div>
-        <span className={`text-xs font-bold px-2 py-1 rounded-md border whitespace-nowrap ${badgeTone}`}>
+        <span className={`text-micro font-bold px-2 py-1 rounded-md border whitespace-nowrap ${badgeTone}`}>
           {badgeText}
         </span>
       </div>
@@ -141,7 +141,7 @@ export default function CollectionItemCard(p: Props) {
           memory carries between the two screens. */}
       {payOpen ? (
         <div className="bg-white/80 border border-charcoal/25 rounded p-2 space-y-2">
-          <label className="block text-xs font-semibold text-charcoal/85">
+          <label className="block text-caption font-semibold text-charcoal/85">
             סכום ששולם עד כה (מצטבר)
           </label>
           <input
@@ -151,12 +151,12 @@ export default function CollectionItemCard(p: Props) {
             className="w-full text-base font-semibold tabular-nums border border-charcoal/25 px-2 py-2 bg-white focus:border-accent focus:outline-none"
           />
           {Number.isFinite(payTyped) && payDelta !== 0 && (
-            <p className="text-xs text-charcoal/80">
+            <p className="text-content text-charcoal/80">
               תוספת: <span className="font-bold tabular-nums">{payDelta > 0 ? "+" : ""}{fmt(payDelta)}</span>
               {payTyped >= amount && <span className="text-green-700"> · שולם במלואו</span>}
             </p>
           )}
-          {payErr && <p className="text-xs text-red-700 font-semibold">{payErr}</p>}
+          {payErr && <p className="text-caption text-red-700 font-semibold">{payErr}</p>}
           <div className="flex gap-2">
             <button onClick={submitPay} disabled={p.busy}
               className="flex-1 text-sm font-semibold bg-accent text-bone px-3 py-1.5 rounded hover:bg-accent-dark disabled:opacity-40 flex items-center justify-center gap-1">

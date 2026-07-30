@@ -26,8 +26,8 @@ interface Opt { id: string; name: string }
 interface VendorOpt extends Opt { staff_id?: string | null }
 interface StaffOpt { id: string; name: string; is_freelancer?: boolean }
 
-const FIELD = "w-full border border-[#2D2926]/15 rounded-md bg-white px-3 py-2 text-sm focus:outline-none focus:border-[#8D775F]";
-const LABEL = "text-xs text-[#2D2926]/60 mb-1 block";
+const FIELD = "w-full border border-[#2D2926]/15 rounded-md bg-white px-3 py-2 text-content focus:outline-none focus:border-[#8D775F]";
+const LABEL = "text-caption text-[#2D2926]/60 mb-1 block";
 
 function numOrNull(v: string): number | null {
   const t = v.trim();
@@ -322,7 +322,7 @@ export default function DocumentReviewForm({
               {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
             </select>
             <button type="button" onClick={() => setNewVendorOpen(true)}
-              className="shrink-0 flex items-center gap-1 text-xs font-semibold text-[#8D775F] border border-[#8D775F]/40 rounded px-2 hover:bg-[#8D775F]/10 whitespace-nowrap">
+              className="shrink-0 flex items-center gap-1 text-micro font-semibold text-[#8D775F] border border-[#8D775F]/40 rounded px-2 hover:bg-[#8D775F]/10 whitespace-nowrap">
               <Plus size={13} /> ספק חדש
             </button>
           </div>
@@ -330,7 +330,7 @@ export default function DocumentReviewForm({
           <div className="flex gap-2">
             <input value={newVendorName} onChange={e => setNewVendorName(e.target.value)} placeholder="שם הספק החדש" className={FIELD} />
             <button type="button" onClick={createVendor} disabled={creatingVendor}
-              className="shrink-0 flex items-center gap-1 text-xs font-semibold text-white bg-[#8D775F] rounded px-3 disabled:opacity-50">
+              className="shrink-0 flex items-center gap-1 text-micro font-semibold text-white bg-[#8D775F] rounded px-3 disabled:opacity-50">
               {creatingVendor ? <Loader2 size={13} className="animate-spin" /> : "צור"}
             </button>
             <button type="button" onClick={() => { setNewVendorOpen(false); setNewVendorName(""); }}
@@ -338,7 +338,7 @@ export default function DocumentReviewForm({
           </div>
         )}
         {doc.vendor_name_raw && !form.vendor_id && (
-          <p className="text-xs text-[#2D2926]/45 mt-1">זוהה במסמך: {doc.vendor_name_raw}</p>
+          <p className="text-caption text-[#2D2926]/45 mt-1">זוהה במסמך: {doc.vendor_name_raw}</p>
         )}
         {/* Vendor → staff link. Kept compact: one small select right under
             the vendor row so the mapping happens where the admin already
@@ -347,12 +347,12 @@ export default function DocumentReviewForm({
         {staff && staff.length > 0 && form.vendor_id && (
           <div className="mt-1.5 flex items-center gap-2">
             <Link2 size={12} className="shrink-0 text-[#8D775F]" />
-            <label className="text-xs text-[#2D2926]/60 shrink-0">עובד מקושר:</label>
+            <label className="text-caption text-[#2D2926]/60 shrink-0">עובד מקושר:</label>
             <select
               value={currentVendorStaffId ?? ""}
               onChange={(e) => updateVendorStaff(e.target.value)}
               disabled={linkingStaff}
-              className="flex-1 min-w-0 border border-[#2D2926]/15 rounded bg-white px-2 py-1 text-xs focus:outline-none focus:border-[#8D775F] disabled:opacity-50"
+              className="flex-1 min-w-0 border border-[#2D2926]/15 rounded bg-white px-2 py-1 text-content focus:outline-none focus:border-[#8D775F] disabled:opacity-50"
             >
               <option value="">— לא מקושר —</option>
               {staff.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -361,7 +361,7 @@ export default function DocumentReviewForm({
           </div>
         )}
         {linkStaffError && (
-          <p className="text-xs text-red-600 mt-1">{linkStaffError}</p>
+          <p className="text-caption text-red-600 mt-1">{linkStaffError}</p>
         )}
       </div>
 
@@ -464,7 +464,7 @@ export default function DocumentReviewForm({
           )}
           {splitsEnabled && canSuggest && suggestPickerOpen && (
             <div className="mt-2 border border-amber-300 bg-amber-50/50 rounded-md p-2.5 space-y-2">
-              <p className="flex items-center gap-1.5 text-xs text-amber-900 font-semibold">
+              <p className="flex items-center gap-1.5 text-caption text-amber-900 font-semibold">
                 <Sparkles size={12} /> חודש הנוכחות לחישוב
               </p>
               {/* Default is the calendar month BEFORE doc_date — matches
@@ -496,7 +496,7 @@ export default function DocumentReviewForm({
             </div>
           )}
           {suggestError && (
-            <p className="text-xs text-amber-800 mt-1.5 flex items-center gap-1"><X size={11} />{suggestError}</p>
+            <p className="text-caption text-amber-800 mt-1.5 flex items-center gap-1"><X size={11} />{suggestError}</p>
           )}
         </div>
       ) : (

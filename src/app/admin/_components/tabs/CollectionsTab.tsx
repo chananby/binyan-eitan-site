@@ -134,13 +134,13 @@ export default function CollectionsTab({ data, loading, error, onReload, onPayme
     <div className="space-y-4">
       {/* Top bar — refresh button + status. */}
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-charcoal/75 leading-snug">
+        <p className="text-content text-charcoal/75 leading-snug">
           כל אבני הדרך המוכנות לגבייה. סמן תשלום כאן כדי לעדכן את הפרויקט.
         </p>
         <button
           type="button"
           onClick={() => onReload()}
-          className="flex items-center gap-1 text-xs text-charcoal/70 hover:text-accent shrink-0"
+          className="flex items-center gap-1 text-micro text-charcoal/70 hover:text-accent shrink-0"
         >
           <RefreshCw size={12} /> רענן
         </button>
@@ -183,7 +183,7 @@ export default function CollectionsTab({ data, loading, error, onReload, onPayme
           {/* Hero summary — only when there IS something to collect. */}
           {data && data.items.length > 0 && (
             <div className="bg-red-50 border-2 border-red-300 rounded-md p-4 space-y-1 mb-4">
-              <p className="text-xs font-bold text-red-700 tracking-wide uppercase flex items-center gap-1">
+              <p className="text-micro font-bold text-red-700 tracking-wide uppercase flex items-center gap-1">
                 <Coins size={14} strokeWidth={2} /> לגבייה עכשיו
               </p>
               <p className="text-3xl font-bold text-red-800 tabular-nums leading-tight">
@@ -213,14 +213,14 @@ export default function CollectionsTab({ data, loading, error, onReload, onPayme
                 <Building2 size={14} strokeWidth={2} className="text-accent-dark shrink-0" />
                 <p className="text-sm font-bold text-charcoal truncate">{group.name}</p>
                 {isInactive && (
-                  <span className="text-xs font-semibold bg-charcoal/[0.08] text-charcoal/80 border border-charcoal/25 px-1.5 py-0.5 rounded shrink-0">
+                  <span className="text-micro font-semibold bg-charcoal/[0.08] text-charcoal/80 border border-charcoal/25 px-1.5 py-0.5 rounded shrink-0">
                     לא פעיל
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-sm font-bold text-red-700 tabular-nums">{fmt(group.total)}</span>
-                <span className="text-xs text-charcoal/70">
+                <span className="text-micro text-charcoal/70">
                   ({group.items.length})
                 </span>
                 {isCollapsed

@@ -162,7 +162,7 @@ export default function QuotesListClient() {
           </span>
         </div>
         {adminName && (
-          <div className="text-[#2D2926]/60 text-xs">
+          <div className="text-[#2D2926]/60 text-micro">
             מחובר כ-<span className="font-semibold text-[#2D2926]">{adminName}</span>
           </div>
         )}
@@ -234,9 +234,9 @@ export default function QuotesListClient() {
         {!loading && !error && quotes.length > 0 && (
           <div className="bg-white border border-[#2D2926]/10 rounded-md overflow-hidden">
             <div className="overflow-x-auto -mx-4 px-4">
-              <table className="w-full text-sm">
+              <table className="w-full text-content">
               <thead className="bg-[#F5F4F0] border-b border-[#2D2926]/10">
-                <tr className="text-right text-[#2D2926]/70 text-xs uppercase tracking-wider">
+                <tr className="text-right text-[#2D2926]/70 text-caption uppercase tracking-wider">
                   <th className="px-4 py-3 font-semibold">#</th>
                   <th className="px-4 py-3 font-semibold">לקוח</th>
                   <th className="px-4 py-3 font-semibold">תאריך</th>
@@ -267,11 +267,11 @@ export default function QuotesListClient() {
                       {fmtCurrency(q.total_before_vat)}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${STATUS_STYLE[q.status] || "bg-gray-100 text-gray-700"}`}>
+                      <span className={`inline-block px-2 py-0.5 rounded text-micro font-semibold ${STATUS_STYLE[q.status] || "bg-gray-100 text-gray-700"}`}>
                         {STATUS_LABELS[q.status] || q.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-[#2D2926]/60 text-xs">
+                    <td className="px-4 py-3 text-[#2D2926]/60 text-caption">
                       {fmtRelative(q.updated_at)}
                     </td>
                     <td className="px-4 py-3">

@@ -67,7 +67,7 @@ export default function AdminSidebar(p: {
         {!collapsed && <span className="flex-1 truncate">{it.label}</span>}
         {it.badge > 0 && (
           <span
-            className={`bg-red-500 text-white text-[0.65rem] font-bold rounded-full flex items-center justify-center leading-none ${
+            className={`bg-red-500 text-white text-micro font-bold rounded-full flex items-center justify-center leading-none ${
               collapsed ? "absolute top-1 end-1 min-w-[15px] h-[15px] px-1" : "min-w-[16px] h-4 px-1"
             }`}
             aria-label={`${it.badge} ממתינים`}
@@ -85,7 +85,7 @@ export default function AdminSidebar(p: {
         {p.groups.map((g, gi) => (
           <div key={gi} className={g.footer ? "mt-auto pt-2 border-t border-charcoal/10" : ""}>
             {g.label && !collapsed && (
-              <p className="px-2.5 pt-4 pb-1 text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-charcoal/45">
+              <p className="px-2.5 pt-4 pb-1 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal/45">
                 {g.label}
               </p>
             )}
@@ -108,7 +108,7 @@ export default function AdminSidebar(p: {
       >
         <div className="flex items-center justify-between px-2.5 py-3 border-b border-charcoal/10">
           {!p.collapsed && (
-            <span className="text-[0.7rem] font-bold tracking-wider uppercase text-accent/70">ניווט</span>
+            <span className="text-micro font-bold tracking-wider uppercase text-accent/70">ניווט</span>
           )}
           <button
             onClick={p.onToggleCollapse}
@@ -128,7 +128,7 @@ export default function AdminSidebar(p: {
           <div className="absolute inset-0 bg-charcoal/40" onClick={p.onCloseMobile} />
           <aside className="absolute top-0 bottom-0 start-0 w-[260px] bg-white shadow-xl flex flex-col">
             <div className="flex items-center justify-between px-3 py-3 border-b border-charcoal/10">
-              <span className="text-[0.7rem] font-bold tracking-wider uppercase text-accent/70">ניווט</span>
+              <span className="text-micro font-bold tracking-wider uppercase text-accent/70">ניווט</span>
               <button onClick={p.onCloseMobile} aria-label="סגור תפריט" className="p-1.5 text-charcoal/60 hover:text-accent">
                 <X size={18} />
               </button>
