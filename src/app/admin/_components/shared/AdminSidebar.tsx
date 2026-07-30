@@ -61,13 +61,13 @@ export default function AdminSidebar(p: {
         title={collapsed ? it.label : undefined}
         className={`relative flex items-center gap-2.5 rounded-md px-2.5 py-2 text-content font-semibold no-underline transition-colors ${
           collapsed ? "justify-center" : ""
-        } ${active ? "bg-accent/10 text-accent" : "text-charcoal/70 hover:bg-charcoal/[0.04] hover:text-charcoal"}`}
+        } ${active ? "bg-accent/10 text-accent" : "text-charcoal/80 hover:bg-charcoal/[0.04] hover:text-charcoal"}`}
       >
         <span className="shrink-0 flex items-center">{it.icon}</span>
         {!collapsed && <span className="flex-1 truncate">{it.label}</span>}
         {it.badge > 0 && (
           <span
-            className={`bg-red-500 text-white text-[0.6rem] font-bold rounded-full flex items-center justify-center leading-none ${
+            className={`bg-red-500 text-white text-[0.65rem] font-bold rounded-full flex items-center justify-center leading-none ${
               collapsed ? "absolute top-1 end-1 min-w-[15px] h-[15px] px-1" : "min-w-[16px] h-4 px-1"
             }`}
             aria-label={`${it.badge} ממתינים`}
@@ -85,7 +85,7 @@ export default function AdminSidebar(p: {
         {p.groups.map((g, gi) => (
           <div key={gi} className={g.footer ? "mt-auto pt-2 border-t border-charcoal/10" : ""}>
             {g.label && !collapsed && (
-              <p className="px-2.5 pt-3 pb-1 text-[0.62rem] font-bold uppercase tracking-wider text-charcoal/40">
+              <p className="px-2.5 pt-4 pb-1 text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-charcoal/45">
                 {g.label}
               </p>
             )}
