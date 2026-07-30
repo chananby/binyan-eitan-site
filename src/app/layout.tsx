@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Assistant, Heebo } from "next/font/google";
 import Script from "next/script";
-import { headers } from "next/headers";
 import "./globals.css";
 import AccessibilityMenu from "./components/AccessibilityMenu";
 import { TranslationsProvider } from "./components/TranslationsProvider";
@@ -153,19 +152,20 @@ const jsonLd = {
   }
 };
 
-export default async function RootLayout(
+export default function RootLayout(
   {
     children,
   }: {
     children: React.ReactNode;
   }
 ) {
-  const pathname = (await headers()).get("x-pathname") ?? "";
-  const lang = pathname.startsWith("/en") ? "en" : "he";
-  const dir  = lang === "en" ? "ltr" : "rtl";
-
+  // Static he/rtl root. The document default is Hebrew (the site's canonical
+  // language); the /en subtree overrides dir/lang on its own layout wrapper
+  // (src/app/en/layout.tsx), so English pages render LTR without the root
+  // needing to read the request path. Removing the headers() read here is what
+  // lets the whole public tree prerender instead of being forced dynamic.
   return (
-    <html suppressHydrationWarning lang={lang} dir={dir} className={`${assistant.variable} ${heebo.variable}`}>
+    <html suppressHydrationWarning lang="he" dir="rtl" className={`${assistant.variable} ${heebo.variable}`}>
       <head>
         <script
           type="application/ld+json"
@@ -175,12 +175,17 @@ export default async function RootLayout(
       </head>
       <body className="bg-bone text-charcoal antialiased overflow-x-hidden selection:bg-accent selection:text-bone">
         {/* Skip link — visible only on keyboard focus; lets keyboard / screen-reader
-            users jump past the nav directly to page content. */}
+            users jump past the nav directly to page content. The root is now
+            statically Hebrew (the site's canonical language), so this label is
+            Hebrew for every route. English visitors on /en see a Hebrew skip
+            label — an accepted minor trade-off for a rarely-triggered a11y
+            affordance; the alternative was duplicating this markup into both
+            locale layouts. */}
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-[1000] focus:bg-accent focus:text-bone focus:px-4 focus:py-2 focus:font-body focus:text-sm focus:font-semibold focus:tracking-wider focus:uppercase focus:rounded-sm focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-bone"
         >
-          {lang === "he" ? "דלג לתוכן" : "Skip to content"}
+          דלג לתוכן
         </a>
         <TranslationsProvider>
           <div id="main-content" tabIndex={-1} className="outline-none">

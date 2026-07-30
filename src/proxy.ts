@@ -84,9 +84,6 @@ export async function proxy(req: NextRequest) {
   
   const response = NextResponse.next();
 
-  // Expose pathname to server components (used by root layout for lang/dir)
-  response.headers.set("x-pathname", pathname);
-
   // Set preview_mode cookie when preview=true is detected
   if (previewQuery) {
     response.cookies.set("preview_mode", "true", {
