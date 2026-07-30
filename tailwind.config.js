@@ -6,21 +6,25 @@ module.exports = {
   ],
   theme: {
     extend: {
-      // Readability tier — three named sizes the UI is meant to lean on.
-      //   caption (14px) — auxiliary labels, table cells where 15px would
-      //                    crush the column. Only here on purpose.
+      // Readability scale — four named sizes the UI is meant to lean on.
+      // Full rationale in DEVELOPMENT_PRINCIPLES.md ("סולם טיפוגרפיה").
+      //   micro   (12px) — chrome ONLY: badges, overline/uppercase category
+      //                    labels, count pills. The HARD floor — nothing below
+      //                    12px (Hebrew reads poorly smaller than Latin).
+      //   caption (14px) — auxiliary labels: column headers, field labels,
+      //                    secondary meta. Not row content.
       //   content (15px) — the floor for everything a reader of the dashboard
       //                    actually has to read (worker names, project
-      //                    labels, form values, row content).
-      //   body    (16px) — comfortable default; section descriptions, prose.
-      // Headings stay on text-base/lg/xl with font-bold as before. text-xs
-      // (12px) is left in Tailwind's defaults so legacy callers still
-      // compile, but every new piece of UI should reach for the three
-      // tokens here instead.
+      //                    labels, form values, table-row content, amounts).
+      //   body    (16px) — emphasis / primary numbers / prose.
+      // Headings stay on text-base/lg/xl with font-bold as before. Zero
+      // arbitrary text-[…] sizes in new code — reach for these four tokens.
+      // text-xs (12px) survives only as legacy; new chrome uses text-micro.
       fontSize: {
-        caption: ['0.875rem',  { lineHeight: '1.4'  }],  // 14px
-        content: ['0.9375rem', { lineHeight: '1.55' }],  // 15px — new floor
-        body:    ['1rem',      { lineHeight: '1.6'  }],  // 16px
+        micro:   ['0.75rem',   { lineHeight: '1.35' }],  // 12px — chrome floor
+        caption: ['0.875rem',  { lineHeight: '1.4'  }],  // 14px — labels
+        content: ['0.9375rem', { lineHeight: '1.55' }],  // 15px — content floor
+        body:    ['1rem',      { lineHeight: '1.6'  }],  // 16px — emphasis
       },
       fontFamily: {
         // חיבור ישיר לפונטים שהוגדרו ב-layout כדי להבטיח מראה נקי ואחיד
