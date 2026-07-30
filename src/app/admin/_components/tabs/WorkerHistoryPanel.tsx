@@ -291,10 +291,16 @@ export default function WorkerHistoryPanel(p: Props) {
           </div>
 
           {/* Day table */}
+          {/* Table sizes to its content (no w-full) so the 7 short columns sit
+              adjacent instead of stretching across the whole width with big
+              gaps — the eye stays on one compact block from date to actions.
+              On wide screens the slack sits on the end side. min-w keeps the
+              horizontal-scroll wrapper working on mobile. Body text is the
+              15px content floor. */}
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] sm:min-w-0 text-[0.8rem] border-collapse">
+            <table className="min-w-[720px] sm:min-w-0 text-content border-collapse">
               <thead>
-                <tr className="bg-bone text-charcoal/65 text-[0.75rem]">
+                <tr className="bg-bone text-charcoal/65 text-caption">
                   <th className="text-start font-semibold px-2 py-2 border border-warm-gray-light">תאריך</th>
                   <th className="text-start font-semibold px-2 py-2 border border-warm-gray-light">יום</th>
                   <th className="text-start font-semibold px-2 py-2 border border-warm-gray-light">התחלה</th>
@@ -323,7 +329,7 @@ export default function WorkerHistoryPanel(p: Props) {
                           {d.hours != null ? d.hours.toFixed(2) : "—"}
                         </td>
                         <td className="px-2 py-1.5 border border-warm-gray-light">
-                          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 ${st.cls}`}>
+                          <span className={`inline-flex items-center gap-1 text-caption font-semibold px-1.5 py-0.5 ${st.cls}`}>
                             {st.icon} {st.label}
                             {d.halfDayVacation && <span className="text-caption"> (½)</span>}
                           </span>
