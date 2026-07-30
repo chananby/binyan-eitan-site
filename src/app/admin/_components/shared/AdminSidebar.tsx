@@ -102,7 +102,7 @@ export default function AdminSidebar(p: {
     <>
       {/* Desktop rail — fixed on the RTL start (right). */}
       <aside
-        className={`hidden md:flex fixed top-0 bottom-0 end-0 z-30 flex-col bg-white border-s border-charcoal/10 shadow-sm transition-[width] duration-200 ${
+        className={`hidden md:flex fixed top-0 bottom-0 start-0 z-30 flex-col bg-white border-e border-charcoal/10 shadow-sm transition-[width] duration-200 ${
           p.collapsed ? "w-[60px]" : "w-[240px]"
         }`}
       >
@@ -126,7 +126,7 @@ export default function AdminSidebar(p: {
       {p.mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="תפריט ניווט">
           <div className="absolute inset-0 bg-charcoal/40" onClick={p.onCloseMobile} />
-          <aside className="absolute top-0 bottom-0 end-0 w-[260px] bg-white shadow-xl flex flex-col">
+          <aside className="absolute top-0 bottom-0 start-0 w-[260px] bg-white shadow-xl flex flex-col">
             <div className="flex items-center justify-between px-3 py-3 border-b border-charcoal/10">
               <span className="text-[0.7rem] font-bold tracking-wider uppercase text-accent/70">ניווט</span>
               <button onClick={p.onCloseMobile} aria-label="סגור תפריט" className="p-1.5 text-charcoal/60 hover:text-accent">

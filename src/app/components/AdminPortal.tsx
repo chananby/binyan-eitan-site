@@ -1645,9 +1645,11 @@ export default function AdminPortal() {
   return (
     <>
     <SuccessFlash show={showFlash} onDone={() => setShowFlash(false)} />
-    {/* Sidebar (admin, flag on). Fixed rail on the RTL start; the outer
-        padding below makes room WITHOUT changing the content's max-w-7xl —
-        full layout integration is stage 3. */}
+    {/* Sidebar (admin, flag on). Fixed rail on the RTL START (right); the outer
+        ps- (padding-inline-start = right in RTL) below makes room on the SAME
+        side as the rail, without changing the content's max-width — full layout
+        integration is stage 3. When the flag is off, the ternary yields "" so
+        there is zero residual padding. */}
     {isAdmin && navMode === "sidebar" && (
       <AdminSidebar
         groups={sidebarGroups}
@@ -1660,14 +1662,17 @@ export default function AdminPortal() {
       />
     )}
     <div dir="rtl" className={`min-h-screen bg-bone-dark px-4 py-8 font-body text-charcoal ${
-      isAdmin && navMode === "sidebar" ? (sidebarCollapsed ? "md:pe-[68px]" : "md:pe-[248px]") : ""
+      isAdmin && navMode === "sidebar" ? (sidebarCollapsed ? "md:ps-[68px]" : "md:ps-[248px]") : ""
     }`}>
       {/* Container width: the assignment tab (live board + weekly
           schedule) needs a wider canvas — its tables and 3-column
           site grid can't breathe in 640px. Every other tab keeps
           the narrow column the rest of the admin portal is tuned
           for (forms, dashboards, single-column lists). */}
-      <div className="mx-auto space-y-5 max-w-7xl">
+      {/* Content width: max-w-6xl (1152px). Tuning knob — step down further
+          (5xl=1024) if Hanan wants narrower. Same in both nav modes (row +
+          sidebar) so switching the flag never jumps the content width. */}
+      <div className="mx-auto space-y-5 max-w-6xl">
 
         {/* Header */}
         <div className="flex items-center justify-between">
