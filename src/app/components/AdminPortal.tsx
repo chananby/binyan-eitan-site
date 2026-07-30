@@ -1662,7 +1662,7 @@ export default function AdminPortal() {
       />
     )}
     <div dir="rtl" className={`min-h-screen bg-bone-dark px-4 py-8 font-body text-charcoal ${
-      isAdmin && navMode === "sidebar" ? (sidebarCollapsed ? "md:ps-[68px]" : "md:ps-[248px]") : ""
+      isAdmin && navMode === "sidebar" ? (sidebarCollapsed ? "md:ps-[84px]" : "md:ps-[264px]") : ""
     }`}>
       {/* Container width: the assignment tab (live board + weekly
           schedule) needs a wider canvas — its tables and 3-column
@@ -1670,9 +1670,15 @@ export default function AdminPortal() {
           the narrow column the rest of the admin portal is tuned
           for (forms, dashboards, single-column lists). */}
       {/* Content width: max-w-6xl (1152px). Tuning knob — step down further
-          (5xl=1024) if Hanan wants narrower. Same in both nav modes (row +
-          sidebar) so switching the flag never jumps the content width. */}
-      <div className="mx-auto space-y-5 max-w-6xl">
+          (5xl=1024) if Hanan wants narrower. Same cap in both nav modes so
+          switching the flag never jumps the content width.
+          Alignment differs by mode:
+          - tabs (flag off): mx-auto — centered under the top tab row (unchanged).
+          - sidebar: start-aligned (no mx-auto) so the content HUGS the rail
+            instead of floating centered in the leftover space. On very wide
+            screens it stops at max-w-6xl and the slack sits on the end (far)
+            side, away from the rail — standard admin-panel behavior. */}
+      <div className={`space-y-5 max-w-6xl ${isAdmin && navMode === "sidebar" ? "" : "mx-auto"}`}>
 
         {/* Header */}
         <div className="flex items-center justify-between">
