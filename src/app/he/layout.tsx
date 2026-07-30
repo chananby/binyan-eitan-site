@@ -154,7 +154,7 @@ const jsonLd = {
 
 export default function HeLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={assistant.variable}>
+    <div className={assistant.variable} dir="rtl" lang="he">
       <LangProvider lang="he" dir="rtl">
         <script
           type="application/ld+json"

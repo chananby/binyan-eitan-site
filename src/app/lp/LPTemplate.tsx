@@ -52,7 +52,7 @@ export default function LPTemplate({ d }: { d: LPData }) {
   const isRtl = d.dir === "rtl";
 
   return (
-    <div className="min-h-screen bg-bone text-charcoal font-body" dir={d.dir}>
+    <div className="min-h-screen bg-bone text-charcoal font-body" dir={d.dir} lang={isRtl ? "he" : "en"}>
 
       {/* ── Sticky Header ── */}
       <header className="fixed inset-x-0 top-0 z-50 bg-bone/96 backdrop-blur-md border-b border-charcoal/[0.07]">

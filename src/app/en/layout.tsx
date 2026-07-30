@@ -83,7 +83,7 @@ const jsonLd = {
 
 export default function EnLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={assistant.variable}>
+    <div className={assistant.variable} dir="ltr" lang="en">
       <LangProvider lang="en" dir="ltr">
         <script
           type="application/ld+json"
