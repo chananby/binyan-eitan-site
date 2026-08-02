@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, AlertTriangle, BarChart2, Download, Loader2, Printer } from "lucide-react";
+import { AlertCircle, AlertTriangle, BarChart2, Loader2, Printer, User, Users } from "lucide-react";
 import { Card } from "./Card";
 import MonthField from "./MonthField";
 
@@ -208,7 +208,7 @@ export default function MonthlyReportPanel() {
           disabled={loading || !month}
           className="flex items-center justify-center gap-2 px-4 py-2 border border-accent text-accent text-sm font-semibold hover:bg-accent hover:text-bone disabled:opacity-40 transition-colors whitespace-nowrap"
         >
-          <Download size={13} /> הורד אקסל
+          <Users size={13} /> הורד אקסל — כל העובדים
         </button>
       </div>
 
@@ -290,7 +290,7 @@ function WorkerBlockCard({
             onClick={onDownloadXlsx}
             className="flex items-center gap-1 px-2.5 py-1.5 text-micro font-semibold border border-accent/40 text-accent hover:bg-accent hover:text-bone transition-colors whitespace-nowrap"
           >
-            <Download size={12} /> אקסל
+            <User size={12} /> אקסל של עובד זה
           </button>
           <button
             onClick={onPrint}
