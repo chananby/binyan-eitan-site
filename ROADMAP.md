@@ -118,6 +118,16 @@
   כך שהמסך וה-XLSX מציגים תמיד את אותם מספרים. Foreman scope כמו שאר
   ה-endpoints. **תיקון widening ±3 → ±35 גם ב-`attendance/report`** —
   שריד C2/C3 נסגר סופית. commit `a25d425`.
+  - **הרחבה — דוח לעובד בודד (XLSX + הדפסה/PDF)** — **נפרס** (2.8.26,
+    `feature/single-worker-monthly-report` → main `9377359`,
+    `dpl_DJo4TsHRFTH2yQncfWL5HHh2TFbh`; אומת: `/admin` `x-matched-path`, endpoint
+    `?staff_id=` → 401 auth-gated). כפתור **פר-בלוק** על כל עובד: "אקסל" (אותו
+    endpoint+exporter עם `staff_id` — מסונן **אחרי** scope/inclusion, מריץ את **אותו
+    `buildMonthlyReport`** על מערך בן-איבר-אחד → מספרים זהים) + "הדפס / PDF"
+    (`@media print` מדפיס רק את הבלוק המסומן; `document.title`=שם·חודש·תאריך ללא
+    `#`/`/` לשם קובץ תקין; שורת "הופק:" print-only). **המנוע, WorkerHistoryPanel,
+    והדוח לכל העובדים לא נגעו — אפס חישוב שני.** (הערה: **`ROADMAP.docx` נכנס
+    בטעות ל-`9377359` ע"י `git add -A`; הוסר והוכנס ל-`.gitignore` ב-`25fa143`.**)
 - **חבילת אכיפת נוכחות — הושלמה במלואה.** שלוש הכרעות התכנון שנעלה
   בסבב האכיפה כולן בייצור:
   - ✅ **זיהוי עובד ייחודי** — A1 (למטה) חסם רישום כפול דרך join-request.
