@@ -93,6 +93,13 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const month  = searchParams.get("month");
   const format = searchParams.get("format") ?? "json";
+  // Optional single-worker filter. When present, the report is narrowed to
+  // exactly one worker AFTER the normal scope/inclusion rules — so a foreman
+  // still can't pull a worker outside their projects, and the deactivated-but-
+  // worked inclusion still applies. The aggregation itself is UNCHANGED: the
+  // same buildMonthlyReport runs on a one-element staff array, so a single
+  // worker's numbers are byte-identical to their block in the full report.
+  const staffIdFilter = searchParams.get("staff_id");
 
   if (!month || !/^\d{4}-\d{2}$/.test(month)) {
     return NextResponse.json({ error: "month נדרש (YYYY-MM)" }, { status: 400 });
@@ -176,6 +183,9 @@ export async function GET(req: NextRequest) {
   const pendingCount = ((attRawAll ?? []) as unknown as (MonthlyReportAttendanceRow & { status?: string | null })[])
     .filter((r) => {
       if (r.status !== "pending" || !r.staff_id) return false;
+      // A single-worker report must show only that worker's pending count,
+      // not the whole company's, or the slip's warning would mislead.
+      if (staffIdFilter && r.staff_id !== staffIdFilter) return false;
       const ymd = israelYMD(workDate(r));
       return ymd >= from && ymd <= to;
     }).length;
@@ -206,8 +216,14 @@ export async function GET(req: NextRequest) {
     scopedStaff = staff.filter((s) => includeInReport(s.active ?? true, workedInMonth.has(s.id)));
   }
 
+  // Single-worker narrowing happens here — after scope + inclusion, before the
+  // (untouched) aggregation. Empty result if the id isn't in the caller's scope.
+  const reportStaff = staffIdFilter
+    ? scopedStaff.filter((s) => s.id === staffIdFilter)
+    : scopedStaff;
+
   const blocks = buildMonthlyReport(
-    scopedStaff,
+    reportStaff,
     (attRaw ?? []) as unknown as MonthlyReportAttendanceRow[],
     (vacRaw ?? []) as unknown as MonthlyReportVacationRow[],
     from,
@@ -327,7 +343,9 @@ export async function GET(req: NextRequest) {
   }
 
   const buf = await wb.xlsx.writeBuffer();
-  const filename = `attendance-monthly-${month}.xlsx`;
+  // staff_id (a UUID) is ASCII-safe in the fallback filename; the client sets a
+  // human-readable download name via the anchor's `download` attribute.
+  const filename = `attendance-monthly-${month}${staffIdFilter ? `-${staffIdFilter}` : ""}.xlsx`;
   return new NextResponse(buf, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

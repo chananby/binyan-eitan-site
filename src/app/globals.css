@@ -141,3 +141,26 @@ html.focus-ring *:focus-visible {
     color: var(--color-warm-gray);
   }
 }
+
+/* ── Single-block print — monthly attendance report ──────────────────────────
+   The per-worker "הדפס / PDF" button (MonthlyReportPanel) adds
+   `printing-report-block` to <body> and `report-print-block` to the ONE card
+   being printed, then calls window.print(). These rules hide everything else so
+   the browser's Print / Save-as-PDF captures only that worker's slip — not the
+   whole multi-worker report. `visibility` (not display) is used so the target
+   keeps its normal box; it's floated to the page origin. The all-workers report
+   and every other page are unaffected (rules apply only when the body class is
+   present, which JS sets only for the duration of the print). */
+@media print {
+  body.printing-report-block * { visibility: hidden; }
+  body.printing-report-block .report-print-block,
+  body.printing-report-block .report-print-block * { visibility: visible; }
+  body.printing-report-block .report-print-block {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    width: 100%;
+    margin: 0;
+    box-shadow: none;
+  }
+}

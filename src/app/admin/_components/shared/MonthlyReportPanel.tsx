@@ -16,8 +16,8 @@
  * whitespace + a thick border so a screenshot has a clean edge.
  */
 
-import { useState } from "react";
-import { AlertCircle, AlertTriangle, BarChart2, Download, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AlertCircle, AlertTriangle, BarChart2, Download, Loader2, Printer } from "lucide-react";
 import { Card } from "./Card";
 import MonthField from "./MonthField";
 
@@ -89,6 +89,18 @@ export default function MonthlyReportPanel() {
   const [data, setData]       = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr]         = useState<string | null>(null);
+  // Which worker block is currently being printed (its card gets the
+  // `report-print-block` class so the print stylesheet shows only it).
+  const [printingId, setPrintingId] = useState<string | null>(null);
+  const prevTitleRef = useRef<string | null>(null);
+  // Generation date stamped on the printed slip + PDF title. DD.MM.YYYY with
+  // DOTS — never "/" or "#", which browsers mangle in the Save-as-PDF filename
+  // (the lesson from the quote generator). Computed once per mount.
+  const [genDate] = useState(() =>
+    new Date().toLocaleDateString("en-GB", {
+      timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", year: "numeric",
+    }).replace(/\//g, "."),
+  );
 
   async function fetchReport() {
     if (!month) return;
@@ -118,6 +130,50 @@ export default function MonthlyReportPanel() {
     a.click();
     document.body.removeChild(a);
   }
+
+  // Per-worker XLSX: the SAME endpoint + exporter, narrowed with staff_id, so
+  // the file's numbers are identical to this worker's on-screen block. The
+  // human-readable download name is set client-side (no "#").
+  function downloadBlockXlsx(block: WorkerBlock) {
+    const a = document.createElement("a");
+    a.href = `/api/admin/attendance/monthly-report?month=${month}&staff_id=${block.staff.id}&format=xlsx`;
+    a.download = `דוח נוכחות - ${block.staff.name} - ${month}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  // Per-worker print / Save-as-PDF: names the document (→ the PDF filename) and
+  // flags the one block; the effect below drives window.print(). No endpoint
+  // hit — it prints the already-rendered DOM, so it can't diverge from the
+  // numbers on screen.
+  function printBlock(block: WorkerBlock) {
+    prevTitleRef.current = document.title;
+    document.title = `דוח נוכחות - ${block.staff.name} - ${heMonthLabel(month)} - ${genDate}`;
+    setPrintingId(block.staff.id);
+  }
+
+  useEffect(() => {
+    if (!printingId) return;
+    document.body.classList.add("printing-report-block");
+    // Print on the next frame so the block's `report-print-block` class is in
+    // the DOM before the dialog snapshots the page.
+    const raf = requestAnimationFrame(() => window.print());
+    const done = () => {
+      document.body.classList.remove("printing-report-block");
+      setPrintingId(null);
+      if (prevTitleRef.current !== null) {
+        document.title = prevTitleRef.current;
+        prevTitleRef.current = null;
+      }
+    };
+    window.addEventListener("afterprint", done, { once: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("afterprint", done);
+      document.body.classList.remove("printing-report-block");
+    };
+  }, [printingId]);
 
   return (
     <Card>
@@ -177,7 +233,15 @@ export default function MonthlyReportPanel() {
             <p className="text-content text-muted text-center py-4">אין עובדים בהיקף הדוח.</p>
           )}
           {data.blocks.map((b) => (
-            <WorkerBlockCard key={b.staff.id} block={b} month={data.month} />
+            <WorkerBlockCard
+              key={b.staff.id}
+              block={b}
+              month={data.month}
+              genDate={genDate}
+              printing={printingId === b.staff.id}
+              onDownloadXlsx={() => downloadBlockXlsx(b)}
+              onPrint={() => printBlock(b)}
+            />
           ))}
         </div>
       )}
@@ -187,21 +251,54 @@ export default function MonthlyReportPanel() {
 
 // Per-worker card. Border + background separate one block from the next
 // so a screenshot cropped to one block reads as a self-contained slip.
-function WorkerBlockCard({ block, month }: { block: WorkerBlock; month: string }) {
+// The two buttons trigger this worker's own XLSX / print — they carry
+// `print:hidden` so they never appear in the printed slip.
+function WorkerBlockCard({
+  block, month, genDate, printing, onDownloadXlsx, onPrint,
+}: {
+  block: WorkerBlock;
+  month: string;
+  genDate: string;
+  printing: boolean;
+  onDownloadXlsx: () => void;
+  onPrint: () => void;
+}) {
   const classification = block.staff.is_freelancer ? "עצמאי" : "שכיר";
   return (
-    <div className="border-2 border-charcoal/30 bg-white shadow-sm">
+    <div className={`border-2 border-charcoal/30 bg-white shadow-sm ${printing ? "report-print-block" : ""}`}>
       {/* Title bar — filled, so the screenshot's top edge is obvious */}
-      <div className="bg-bone-dark border-b-2 border-charcoal/30 px-4 py-3">
-        <p className="font-heading text-base font-bold text-charcoal">
-          {block.staff.name}
-          {block.staff.active === false && (
-            <span className="ms-2 text-caption font-normal text-muted">(לא פעיל)</span>
-          )}
-        </p>
-        <p className="text-caption text-muted mt-0.5">
-          {classification} · {heMonthLabel(month)}
-        </p>
+      <div className="bg-bone-dark border-b-2 border-charcoal/30 px-4 py-3 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-heading text-base font-bold text-charcoal">
+            {block.staff.name}
+            {block.staff.active === false && (
+              <span className="ms-2 text-caption font-normal text-muted">(לא פעיל)</span>
+            )}
+          </p>
+          <p className="text-caption text-muted mt-0.5">
+            {classification} · {heMonthLabel(month)}
+          </p>
+          {/* Print-only: generation date, so the printed slip / PDF is
+              self-identifying (name + month above, date here). */}
+          <p className="hidden print:block text-caption text-muted mt-0.5">
+            הופק: {genDate}
+          </p>
+        </div>
+        {/* Actions — hidden in print so they don't land in the PDF. */}
+        <div className="flex items-center gap-2 shrink-0 print:hidden">
+          <button
+            onClick={onDownloadXlsx}
+            className="flex items-center gap-1 px-2.5 py-1.5 text-micro font-semibold border border-accent/40 text-accent hover:bg-accent hover:text-bone transition-colors whitespace-nowrap"
+          >
+            <Download size={12} /> אקסל
+          </button>
+          <button
+            onClick={onPrint}
+            className="flex items-center gap-1 px-2.5 py-1.5 text-micro font-semibold border border-accent/40 text-accent hover:bg-accent hover:text-bone transition-colors whitespace-nowrap"
+          >
+            <Printer size={12} /> הדפס / PDF
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
