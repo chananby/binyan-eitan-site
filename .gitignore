@@ -44,6 +44,7 @@ src/data/routes-manifest.json
 PROJECT_STATUS.md
 DEAD_CODE_MAP.md
 SYSTEM_MAP.docx
+ROADMAP.docx
 
 # Generated one-off migration output (scripts/migrate-gallery-to-blob.mjs)
 scripts/out/
