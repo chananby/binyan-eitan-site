@@ -1669,16 +1669,16 @@ export default function AdminPortal() {
           site grid can't breathe in 640px. Every other tab keeps
           the narrow column the rest of the admin portal is tuned
           for (forms, dashboards, single-column lists). */}
-      {/* Content width: max-w-6xl (1152px). Tuning knob — step down further
-          (5xl=1024) if Hanan wants narrower. Same cap in both nav modes so
-          switching the flag never jumps the content width.
-          Alignment differs by mode:
-          - tabs (flag off): mx-auto — centered under the top tab row (unchanged).
-          - sidebar: start-aligned (no mx-auto) so the content HUGS the rail
-            instead of floating centered in the leftover space. On very wide
-            screens it stops at max-w-6xl and the slack sits on the end (far)
-            side, away from the rail — standard admin-panel behavior. */}
-      <div className={`space-y-5 max-w-6xl ${isAdmin && navMode === "sidebar" ? "" : "mx-auto"}`}>
+      {/* Content width — differs by mode:
+          - tabs (flag off): max-w-6xl (1152) + mx-auto — centered under the top
+            tab row. UNCHANGED — 1152 is right when the full viewport is content.
+          - sidebar: max-w-[1440px], start-aligned (no mx-auto) so it hugs the
+            rail. The ceiling is RAISED from 1152 to 1440 here: the 240px rail
+            eats into the row, so the old 1152 cap left ~500px empty on a wide
+            screen. 1440 lets every main block below (header, stats, content)
+            share ONE right/left edge instead of ending at four different points.
+          The `space-y-5` gives uniform 20px gaps between those blocks. */}
+      <div className={`space-y-5 ${isAdmin && navMode === "sidebar" ? "max-w-[1440px]" : "max-w-6xl mx-auto"}`}>
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -1722,10 +1722,15 @@ export default function AdminPortal() {
           </div>
         </div>
 
-        {/* Stats strip — capped so the tiles stay compact and grouped at the
-            start instead of each 2-digit number stretching across ~⅓ of the
-            now-wide (max-w-7xl) container. */}
-        <div className={`grid gap-2 max-w-2xl ${isAdmin ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
+        {/* Stats strip.
+            - sidebar (admin): NO max-width — the 4-col grid spans the full
+              content width so its left/right edge lines up with the header and
+              the content cards below. The old max-w-2xl (672px) was added in an
+              earlier round when there was no rail; against the raised 1440
+              container it ended mid-screen and read as a stray fourth edge.
+            - tabs / foreman: keep max-w-2xl so the tiles stay compact and
+              grouped at the start (flag-off layout unchanged). */}
+        <div className={`grid gap-2 ${isAdmin && navMode === "sidebar" ? "" : "max-w-2xl"} ${isAdmin ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
           {isAdmin && (
             <>
               {[
