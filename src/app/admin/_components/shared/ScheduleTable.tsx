@@ -92,7 +92,7 @@ export default function ScheduleTable({
   if (workers.length === 0 && tempNames.length === 0) {
     return (
       <div className="bg-white border border-charcoal/30 rounded-md p-6 text-center">
-        <p className="text-sm text-charcoal/70">אין עובדים פעילים להצגה.</p>
+        <p className="text-content text-charcoal/70">אין עובדים פעילים להצגה.</p>
       </div>
     );
   }
@@ -136,7 +136,7 @@ export default function ScheduleTable({
                     <div>{HE_DAYS[i]}</div>
                     {/* Date is auxiliary — tiered down to text-xs (12px)
                         with text-charcoal/75 to stay above AA on bone. */}
-                    <div className="text-xs text-charcoal/75 tabular-nums" dir="ltr">{dayHeader(d)}</div>
+                    <div className="text-micro text-charcoal/75 tabular-nums" dir="ltr">{dayHeader(d)}</div>
                   </div>
                 </th>
               ))}
@@ -170,7 +170,7 @@ export default function ScheduleTable({
                   {/* Section label is auxiliary — text-xs (12px) with
                       amber-800 on amber-50 keeps it above AA without
                       stealing the eye from the row content below. */}
-                  <td className="sticky start-0 bg-amber-50/60 border border-charcoal/30 px-3 py-1.5 text-xs font-semibold text-amber-800 uppercase tracking-wide text-start">
+                  <td className="sticky start-0 bg-amber-50/60 border border-charcoal/30 px-3 py-1.5 text-micro font-semibold text-amber-800 uppercase tracking-wide text-start">
                     פועלים יומיים ({tempNames.length})
                   </td>
                   <td
@@ -261,17 +261,17 @@ function WorkerRow(p: RowProps) {
               tier minimum. The colour pairs (amber-100/amber-800,
               sky-200/sky-900, charcoal-06/charcoal-80) all clear AA. */}
           {p.isTemp && (
-            <span className="font-body text-xs text-amber-800 px-1.5 py-0.5 rounded bg-amber-100 shrink-0">
+            <span className="font-body text-micro text-amber-800 px-1.5 py-0.5 rounded bg-amber-100 shrink-0">
               ידני
             </span>
           )}
           {isForeman && (
-            <span className="font-body text-xs font-bold text-sky-900 px-1.5 py-0.5 rounded bg-sky-200 shrink-0">
+            <span className="font-body text-micro font-bold text-sky-900 px-1.5 py-0.5 rounded bg-sky-200 shrink-0">
               מנהל
             </span>
           )}
           {p.tag && (
-            <span className="font-body text-xs text-charcoal/80 px-1.5 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[80px] truncate">
+            <span className="font-body text-micro text-charcoal/80 px-1.5 py-0.5 rounded bg-charcoal/[0.06] shrink-0 max-w-[80px] truncate">
               {p.tag}
             </span>
           )}
@@ -314,7 +314,7 @@ function WorkerRow(p: RowProps) {
           >
             {onVacation ? (
               <div className="px-2 py-2">
-                <span className="text-[0.7rem] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                <span className="text-micro text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
                   🌴 חופש
                 </span>
               </div>
@@ -351,7 +351,7 @@ function CellContent({ display, cell }: { display: string | null; cell: Schedule
   // = ~3.4:1 — both ≥3:1 for the icon tier.
   return (
     <span
-      className="inline-flex items-center gap-1.5 text-sm text-charcoal font-semibold truncate max-w-full"
+      className="inline-flex items-center gap-1.5 text-content text-charcoal font-semibold truncate max-w-full"
       title={display}
     >
       <Building2

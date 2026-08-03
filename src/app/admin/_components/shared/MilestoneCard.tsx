@@ -181,32 +181,32 @@ export default function MilestoneCard(p: Props) {
         <div className="min-w-0 flex-1">
           {/* Step number — small uppercase tag above the amount. Reads
               as a chip the contractor can quote back ("שלב 3 שולם"). */}
-          <p className="text-xs font-bold text-charcoal/75 tracking-wide leading-none mb-1">
+          <p className="text-micro font-bold text-charcoal/75 tracking-wide leading-none mb-1">
             שלב {p.index}
           </p>
           <p className="text-lg font-bold text-charcoal tabular-nums leading-tight">
             {fmt(amount)}
           </p>
-          <p className="text-sm font-semibold text-charcoal leading-snug">{p.milestone.title}</p>
+          <p className="text-content font-semibold text-charcoal leading-snug">{p.milestone.title}</p>
           {p.milestone.expected_date && (
-            <p className="text-xs text-charcoal/70 mt-0.5 flex items-center gap-1">
+            <p className="text-content text-charcoal/70 mt-0.5 flex items-center gap-1">
               <Calendar size={11} strokeWidth={2} /> צפי: {fmtDate(p.milestone.expected_date)}
             </p>
           )}
         </div>
-        <span className={`text-xs font-bold px-2 py-1 rounded-md border whitespace-nowrap ${tone.badge}`}>
+        <span className={`text-micro font-bold px-2 py-1 rounded-md border whitespace-nowrap ${tone.badge}`}>
           {tone.badgeText}
         </span>
       </div>
 
       {/* Partial-payment status line — only when relevant. */}
       {variant === "due-partial" && (
-        <p className="text-xs text-amber-900 font-semibold">
+        <p className="text-caption text-amber-900 font-semibold">
           שולם {fmt(paid)} מתוך {fmt(amount)} · נשאר {fmt(remaining)}
         </p>
       )}
       {variant === "paid" && (
-        <p className="text-xs text-green-800">
+        <p className="text-caption text-green-800">
           שולם במלואו{p.milestone.paid_at && ` · ${fmtDate(p.milestone.paid_at.slice(0, 10))}`}
         </p>
       )}
@@ -217,29 +217,29 @@ export default function MilestoneCard(p: Props) {
           <input
             value={editTitle} onChange={e => setEditTitle(e.target.value)}
             placeholder="כותרת"
-            className="w-full text-sm border border-charcoal/25 px-2 py-1.5 bg-white focus:border-accent focus:outline-none"
+            className="w-full text-content border border-charcoal/25 px-2 py-1.5 bg-white focus:border-accent focus:outline-none"
           />
           <input
             value={editAmount} onChange={e => setEditAmount(e.target.value)}
             placeholder="סכום"
             dir="ltr" inputMode="decimal"
-            className="w-full text-sm border border-charcoal/25 px-2 py-1.5 bg-white focus:border-accent focus:outline-none"
+            className="w-full text-content border border-charcoal/25 px-2 py-1.5 bg-white focus:border-accent focus:outline-none"
           />
           <input
             value={editDate} onChange={e => setEditDate(e.target.value)}
             placeholder="תאריך צפי (YYYY-MM-DD, אופציונלי)"
             type="date"
             dir="ltr"
-            className="w-full text-sm border border-charcoal/25 px-2 py-1.5 bg-white focus:border-accent focus:outline-none"
+            className="w-full text-content border border-charcoal/25 px-2 py-1.5 bg-white focus:border-accent focus:outline-none"
           />
-          {editErr && <p className="text-xs text-red-700 font-semibold">{editErr}</p>}
+          {editErr && <p className="text-caption text-red-700 font-semibold">{editErr}</p>}
           <div className="flex gap-2">
             <button onClick={submitEdit} disabled={p.busy}
-              className="flex-1 text-sm font-semibold bg-accent text-bone px-3 py-1.5 rounded hover:bg-accent-dark disabled:opacity-40 flex items-center justify-center gap-1">
+              className="flex-1 text-caption font-semibold bg-accent text-bone px-3 py-1.5 rounded hover:bg-accent-dark disabled:opacity-40 flex items-center justify-center gap-1">
               {p.busy ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} שמור
             </button>
             <button onClick={() => setEditing(false)}
-              className="text-sm border border-charcoal/25 text-charcoal/75 px-3 py-1.5 rounded hover:border-accent">
+              className="text-caption border border-charcoal/25 text-charcoal/75 px-3 py-1.5 rounded hover:border-accent">
               ביטול
             </button>
           </div>
@@ -249,7 +249,7 @@ export default function MilestoneCard(p: Props) {
       {/* ── Inline payment input ────────────────────────────────────── */}
       {payOpen && (
         <div className="bg-white/80 border border-charcoal/20 rounded p-2 space-y-2">
-          <label className="block text-xs font-semibold text-charcoal/85">
+          <label className="block text-caption font-semibold text-charcoal/85">
             סכום ששולם עד כה (מצטבר)
           </label>
           <input
@@ -259,19 +259,19 @@ export default function MilestoneCard(p: Props) {
             className="w-full text-base font-semibold tabular-nums border border-charcoal/25 px-2 py-2 bg-white focus:border-accent focus:outline-none"
           />
           {Number.isFinite(payTyped) && payDelta !== 0 && (
-            <p className="text-xs text-charcoal/80">
+            <p className="text-content text-charcoal/80">
               תוספת: <span className="font-bold tabular-nums">{payDelta > 0 ? "+" : ""}{fmt(payDelta)}</span>
               {payTyped >= amount && <span className="text-green-700"> · שולם במלואו</span>}
             </p>
           )}
-          {payErr && <p className="text-xs text-red-700 font-semibold">{payErr}</p>}
+          {payErr && <p className="text-caption text-red-700 font-semibold">{payErr}</p>}
           <div className="flex gap-2">
             <button onClick={submitPayment} disabled={p.busy}
-              className="flex-1 text-sm font-semibold bg-accent text-bone px-3 py-1.5 rounded hover:bg-accent-dark disabled:opacity-40 flex items-center justify-center gap-1">
+              className="flex-1 text-caption font-semibold bg-accent text-bone px-3 py-1.5 rounded hover:bg-accent-dark disabled:opacity-40 flex items-center justify-center gap-1">
               {p.busy ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} שמור
             </button>
             <button onClick={() => setPayOpen(false)}
-              className="text-sm border border-charcoal/25 text-charcoal/75 px-3 py-1.5 rounded hover:border-accent">
+              className="text-caption border border-charcoal/25 text-charcoal/75 px-3 py-1.5 rounded hover:border-accent">
               ביטול
             </button>
           </div>
@@ -283,7 +283,7 @@ export default function MilestoneCard(p: Props) {
         <div className="flex flex-wrap items-center gap-1.5 pt-1">
           {variant === "future" && (
             <button onClick={() => p.onTransition(p.milestone.id, "due")} disabled={p.busy}
-              className="text-sm font-semibold bg-red-600 text-white px-3 py-1.5 rounded hover:bg-red-700 disabled:opacity-40">
+              className="text-caption font-semibold bg-red-600 text-white px-3 py-1.5 rounded hover:bg-red-700 disabled:opacity-40">
               סמן כמוכן לגבייה
             </button>
           )}
@@ -291,12 +291,12 @@ export default function MilestoneCard(p: Props) {
           {(variant === "due-unpaid" || variant === "due-partial") && (
             <>
               <button onClick={openPay} disabled={p.busy}
-                className="text-sm font-semibold bg-accent text-bone px-3 py-1.5 rounded hover:bg-accent-dark disabled:opacity-40">
+                className="text-caption font-semibold bg-accent text-bone px-3 py-1.5 rounded hover:bg-accent-dark disabled:opacity-40">
                 {variant === "due-partial" ? "עדכן סכום שהתקבל" : "קיבלתי תשלום"}
               </button>
               <button onClick={() => p.onTransition(p.milestone.id, "future")} disabled={p.busy}
                 title="בטל סימון" aria-label="בטל סימון"
-                className="text-sm border border-charcoal/30 text-charcoal/80 px-3 py-1.5 rounded hover:border-accent flex items-center gap-1">
+                className="text-caption border border-charcoal/30 text-charcoal/80 px-3 py-1.5 rounded hover:border-accent flex items-center gap-1">
                 <RotateCcw size={12} /> בטל סימון
               </button>
             </>
@@ -305,7 +305,7 @@ export default function MilestoneCard(p: Props) {
           {variant === "paid" && (
             <button onClick={() => p.onPayment(p.milestone.id, 0)} disabled={p.busy}
               title="אפס תשלום (חוזר למוכן לגבייה)" aria-label="ביטול תשלום"
-              className="text-sm border border-charcoal/30 text-charcoal/80 px-3 py-1.5 rounded hover:border-accent flex items-center gap-1">
+              className="text-caption border border-charcoal/30 text-charcoal/80 px-3 py-1.5 rounded hover:border-accent flex items-center gap-1">
               <RotateCcw size={12} /> ביטול תשלום
             </button>
           )}

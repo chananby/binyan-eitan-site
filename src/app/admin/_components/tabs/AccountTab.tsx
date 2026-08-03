@@ -67,9 +67,9 @@ export default function AccountTab({
     <div className="space-y-3">
       <Card title="הגדרות חשבון">
         <div className="space-y-1.5 pb-2 border-b border-warm-gray-light">
-          <p className="text-xs text-charcoal/65">מחובר/ת כ:</p>
-          <p className="text-sm font-semibold text-charcoal" dir="ltr">{adminEmail ?? "—"}</p>
-          {adminName && <p className="text-xs text-charcoal/65">{adminName}</p>}
+          <p className="text-caption text-charcoal/65">מחובר/ת כ:</p>
+          <p className="text-content font-semibold text-charcoal" dir="ltr">{adminEmail ?? "—"}</p>
+          {adminName && <p className="text-content text-charcoal/65">{adminName}</p>}
         </div>
       </Card>
 
@@ -88,18 +88,18 @@ export default function AccountTab({
             <button
               onClick={onSaveFarThreshold}
               disabled={farThresholdSaving || farThresholdInput === String(farThresholdM)}
-              className="bg-accent text-bone px-3 py-2 text-xs font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors shrink-0"
+              className="bg-accent text-bone px-3 py-2 text-micro font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors shrink-0"
             >
               {farThresholdSaving ? "שומר..." : "שמור"}
             </button>
           </div>
-          <p className="text-[0.62rem] text-charcoal/70 mt-1.5 leading-relaxed">
+          <p className="text-content text-charcoal/70 mt-1.5 leading-relaxed">
             החתמה שמתבצעת מעל המרחק הזה מהאתר תקבל דגל אדום באזור הנוכחות.
             ההחתמה עדיין תקפה — זו רק התראה שמאפשרת לך לבדוק.
             ברירת מחדל מומלצת: 500 מטר (כדי לכסות חניה + סטיות ב-GPS).
           </p>
           {farThresholdMsg && (
-            <p className={`text-xs mt-2 ${farThresholdMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{farThresholdMsg}</p>
+            <p className={`text-caption mt-2 ${farThresholdMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{farThresholdMsg}</p>
           )}
         </Field>
       </Card>
@@ -113,9 +113,9 @@ export default function AccountTab({
               onChange={(e) => setGpsEnforce(e.target.checked)}
               className="accent-accent"
             />
-            <span className="text-sm font-semibold text-charcoal">אכיפת מיקום פעילה</span>
+            <span className="text-caption font-semibold text-charcoal">אכיפת מיקום פעילה</span>
           </label>
-          <p className="text-[0.62rem] text-charcoal/70 leading-relaxed">
+          <p className="text-content text-charcoal/70 leading-relaxed">
             כשמופעל: כניסה מעל הרדיוס תיחסם, יציאה מעל הרדיוס תיספר מול תקרה חודשית.
             כשמכובה: המרחק עדיין נרשם על השורה, אבל אף החתמה לא נחסמת — מתג חירום
             אם מתגלה שהרדיוס צר מדי.
@@ -132,7 +132,7 @@ export default function AccountTab({
               dir="ltr"
               disabled={gpsEnforceSaving}
             />
-            <p className="text-[0.62rem] text-charcoal/70 mt-1.5 leading-relaxed">
+            <p className="text-content text-charcoal/70 mt-1.5 leading-relaxed">
               מרחק מקסימלי בין העובד לאתר כדי לאפשר החתמת כניסה. סף האזהרה הוויזואלי
               (הצ&apos;יפ האדום) הוא הגדרה נפרדת ויכול להיות צר יותר.
             </p>
@@ -149,7 +149,7 @@ export default function AccountTab({
               dir="ltr"
               disabled={gpsEnforceSaving}
             />
-            <p className="text-[0.62rem] text-charcoal/70 mt-1.5 leading-relaxed">
+            <p className="text-content text-charcoal/70 mt-1.5 leading-relaxed">
               מעל הרדיוס = &quot;יציאה מרחוק&quot;. עד המכסה יעברו; מעליה יחסמו עם 409.
             </p>
           </Field>
@@ -158,12 +158,12 @@ export default function AccountTab({
             <button
               onClick={onSaveGpsEnforcement}
               disabled={gpsEnforceSaving}
-              className="bg-accent text-bone px-3 py-2 text-xs font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors"
+              className="bg-accent text-bone px-3 py-2 text-micro font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors"
             >
               {gpsEnforceSaving ? "שומר..." : "שמור"}
             </button>
             {gpsEnforceMsg && (
-              <p className={`text-xs ${gpsEnforceMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{gpsEnforceMsg}</p>
+              <p className={`text-caption ${gpsEnforceMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>{gpsEnforceMsg}</p>
             )}
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function AccountTab({
           </Field>
 
           {pwMsg && (
-            <div className={`flex items-center gap-2 text-sm ${pwMsg.kind === "ok" ? "text-green-600" : "text-red-500"}`}>
+            <div className={`flex items-center gap-2 text-caption ${pwMsg.kind === "ok" ? "text-green-600" : "text-red-500"}`}>
               {pwMsg.kind === "ok" ? <Check size={14} strokeWidth={2} /> : <AlertCircle size={14} strokeWidth={1.5} />}
               <span>{pwMsg.text}</span>
             </div>
@@ -212,7 +212,7 @@ export default function AccountTab({
           <button
             type="submit"
             disabled={pwSaving || !pwCurrent || !pwNew || !pwConfirm}
-            className="w-full bg-accent py-3 font-body text-sm font-semibold tracking-[0.18em] uppercase text-bone hover:bg-accent-dark disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
+            className="w-full bg-accent py-3 font-body text-caption font-semibold tracking-[0.18em] uppercase text-bone hover:bg-accent-dark disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
           >
             {pwSaving ? <><Loader2 size={14} className="animate-spin" /> שומר...</> : "שמור סיסמה חדשה"}
           </button>

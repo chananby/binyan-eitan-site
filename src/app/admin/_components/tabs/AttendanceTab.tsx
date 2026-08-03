@@ -339,22 +339,22 @@ ${detailHtml}
             <label className="block text-caption text-muted mb-1 font-body">מתאריך</label>
             <input type="date" value={attReportFrom}
               onChange={e => { setAttReportFrom(e.target.value); setAttReportData(null); }}
-              className="w-full border border-warm-gray-light bg-bone text-charcoal text-sm px-3 py-2 focus:outline-none focus:border-accent" />
+              className="w-full border border-warm-gray-light bg-bone text-charcoal text-content px-3 py-2 focus:outline-none focus:border-accent" />
           </div>
           <div>
             <label className="block text-caption text-muted mb-1 font-body">עד תאריך</label>
             <input type="date" value={attReportTo}
               onChange={e => { setAttReportTo(e.target.value); setAttReportData(null); }}
-              className="w-full border border-warm-gray-light bg-bone text-charcoal text-sm px-3 py-2 focus:outline-none focus:border-accent" />
+              className="w-full border border-warm-gray-light bg-bone text-charcoal text-content px-3 py-2 focus:outline-none focus:border-accent" />
           </div>
           <button onClick={fetchAttReport} disabled={attReportLoading || !attReportFrom || !attReportTo}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-accent text-bone text-sm font-semibold hover:bg-accent-dark disabled:opacity-40 transition-colors whitespace-nowrap">
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-accent text-bone text-caption font-semibold hover:bg-accent-dark disabled:opacity-40 transition-colors whitespace-nowrap">
             {attReportLoading
               ? <><Loader2 size={13} className="animate-spin" /> טוען...</>
               : <><BarChart2 size={13} /> הצג דוח</>}
           </button>
           <button onClick={printAttReport} disabled={attReportLoading || !attReportFrom || !attReportTo}
-            className="flex items-center justify-center gap-2 px-4 py-2 border border-accent text-accent text-sm font-semibold hover:bg-accent hover:text-bone disabled:opacity-40 transition-colors whitespace-nowrap">
+            className="flex items-center justify-center gap-2 px-4 py-2 border border-accent text-accent text-caption font-semibold hover:bg-accent hover:text-bone disabled:opacity-40 transition-colors whitespace-nowrap">
             <Download size={13} /> הורד PDF
           </button>
         </div>
@@ -399,7 +399,7 @@ ${detailHtml}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {summary.map(s => (
                 <div key={s.phone} className="bg-bone border border-warm-gray-light p-3">
-                  <p className="font-heading font-bold text-sm text-charcoal truncate">{s.name}</p>
+                  <p className="font-heading font-bold text-content text-charcoal truncate">{s.name}</p>
                   <p className="text-caption text-charcoal/70 mt-0.5">{s.phone}</p>
                   <div className="flex gap-3 mt-2">
                     <div>
@@ -420,7 +420,7 @@ ${detailHtml}
               <Card>
                 <div className="flex items-center gap-2 mb-3">
                   <Calendar size={14} strokeWidth={1.5} className="text-accent" />
-                  <h3 className="font-heading font-bold text-sm">סיכום יומי לפי עובד</h3>
+                  <h3 className="font-heading font-bold text-content">סיכום יומי לפי עובד</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-content border-collapse">
@@ -473,7 +473,7 @@ ${detailHtml}
                   <div className="flex items-center justify-between mb-3 pb-2 border-b border-warm-gray-light">
                     <div className="flex items-center gap-2">
                       <div className="w-1 h-5 bg-accent" />
-                      <p className="font-heading font-bold text-sm">{name}</p>
+                      <p className="font-heading font-bold text-content">{name}</p>
                       <span className="text-caption text-charcoal/70">{ws?.phone}</span>
                     </div>
                     <div className="flex gap-3 text-caption text-muted">
@@ -523,7 +523,7 @@ ${detailHtml}
             })}
 
             {rows.length === 0 && (
-              <div className="text-center py-10 text-charcoal/70 text-sm">
+              <div className="text-center py-10 text-charcoal/70 text-content">
                 לא נמצאו רשומות נוכחות לתקופה זו
               </div>
             )}
@@ -660,7 +660,7 @@ function ManualEntryForm({
 
             <div className="flex gap-2">
               <button type="submit" disabled={manualLoading}
-                className="flex-1 bg-accent py-2.5 text-sm font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">
+                className="flex-1 bg-accent py-2.5 text-caption font-semibold text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors">
                 {manualLoading ? <><Loader2 size={13} className="inline animate-spin me-1.5" />שומר...</> : "צור רשומה"}
               </button>
               <button type="button" onClick={() => setManualOpen(false)}
@@ -718,10 +718,10 @@ function PendingApprovals({
       <StaleRefresh
         loading={pendingLoading}
         hasContent={pendingRecords.length > 0}
-        spinner={<p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
+        spinner={<p className="text-caption text-charcoal/70 text-center py-4">טוען...</p>}
       >
         {pendingRecords.length === 0 && (
-          <p className="text-sm text-charcoal/70 text-center py-4">אין בקשות ממתינות לאישור</p>
+          <p className="text-caption text-charcoal/70 text-center py-4">אין בקשות ממתינות לאישור</p>
         )}
         {pendingRecords.length > 0 && (
         <div className="divide-y divide-charcoal/15">
@@ -734,7 +734,7 @@ function PendingApprovals({
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-semibold">{r.staff?.name ?? "—"}</p>
+                        <p className="text-content font-semibold">{r.staff?.name ?? "—"}</p>
                         <span className={`text-caption font-semibold px-1.5 py-0.5 ${r.action === "כניסה" || r.action === "in" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
                           {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
                         </span>
@@ -832,7 +832,7 @@ function AbsentTodayPanel({ absentList }: { absentList: AbsentWorker[] }) {
     <Card>
       <div className="flex items-center gap-2 mb-3">
         <UserX size={15} strokeWidth={1.5} className="text-amber-500" />
-        <h2 className="font-heading text-sm font-bold text-amber-700">
+        <h2 className="font-heading text-content font-bold text-amber-700">
           לא הגיעו היום ({sorted.length})
         </h2>
       </div>
@@ -900,7 +900,7 @@ function FailuresPanel({ failures, loading, error, onReload }: {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <XCircle size={15} strokeWidth={1.5} className="text-red-500" />
-          <h2 className="font-heading text-sm font-bold">
+          <h2 className="font-heading text-content font-bold">
             כשלי החתמה — 24 שעות אחרונות ({failures.length})
           </h2>
         </div>
@@ -916,7 +916,7 @@ function FailuresPanel({ failures, loading, error, onReload }: {
         כשלים טכניים חוזרים (session פג, retry) נשמרים אבל לא מוצגים כאן.
       </p>
       {error && (
-        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded px-3 py-2.5 text-sm text-red-700 mb-3">
+        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded px-3 py-2.5 text-caption text-red-700 mb-3">
           <AlertCircle size={15} className="shrink-0 mt-0.5" />
           <span>שגיאה בטעינת יומן הכשלים: {error}</span>
         </div>
@@ -924,10 +924,10 @@ function FailuresPanel({ failures, loading, error, onReload }: {
       <StaleRefresh
         loading={loading}
         hasContent={failures.length > 0}
-        spinner={<p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
+        spinner={<p className="text-caption text-charcoal/70 text-center py-4">טוען...</p>}
       >
         {failures.length === 0 && (
-          <p className="text-sm text-charcoal/70 text-center py-4">
+          <p className="text-caption text-charcoal/70 text-center py-4">
             אין כשלים ב-24 השעות האחרונות ✓
           </p>
         )}
@@ -962,7 +962,7 @@ function FailureRow({ f }: { f: AttendanceFailure }) {
     <div className={`py-2.5 px-2 flex items-start gap-3 ${rowClass} transition-colors`}>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-semibold text-charcoal">
+          <p className="text-content font-semibold text-charcoal">
             {f.staff?.name ?? "—"}
           </p>
           <span
@@ -1063,7 +1063,7 @@ function TodayLog({
         </button>
       </div>
       {attLoadErr && (
-        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded px-3 py-2.5 text-sm text-red-700 mb-3">
+        <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded px-3 py-2.5 text-caption text-red-700 mb-3">
           <AlertCircle size={15} className="shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold">שגיאה בטעינת דיווחי נוכחות</p>
@@ -1081,10 +1081,10 @@ function TodayLog({
       <StaleRefresh
         loading={dataLoading}
         hasContent={todayLogs.length > 0}
-        spinner={<p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
+        spinner={<p className="text-caption text-charcoal/70 text-center py-4">טוען...</p>}
       >
         {todayLogs.length === 0 && (
-          <p className="text-sm text-charcoal/70 text-center py-4">אין דיווחים היום — לחץ &quot;רענן עכשיו&quot; אם עובדים כבר דיווחו</p>
+          <p className="text-caption text-charcoal/70 text-center py-4">אין דיווחים היום — לחץ &quot;רענן עכשיו&quot; אם עובדים כבר דיווחו</p>
         )}
         {todayLogs.length > 0 && (
           <div className="inline-flex rounded-md border border-charcoal/15 overflow-hidden text-content mb-3">
@@ -1159,7 +1159,7 @@ function TodayLogRow({
     <div className={`py-2.5 space-y-0.5 ${dim ? "opacity-50" : ""}`}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate">{r.staff?.name ?? "—"}</p>
+          <p className="text-content font-semibold truncate">{r.staff?.name ?? "—"}</p>
           <p className="text-caption text-charcoal/70 tabular-nums" dir="ltr">{r.staff?.phone ?? ""}</p>
         </div>
         <span className={`text-content font-semibold shrink-0 ${r.action === "כניסה" || r.action === "in" ? "text-green-600" : "text-red-400"}`}>
@@ -1232,10 +1232,10 @@ function RecentLogs({
         </button>
       ) : (
         <>
-          {recentLogsLoading && <p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
+          {recentLogsLoading && <p className="text-caption text-charcoal/70 text-center py-4">טוען...</p>}
           {recentLogsErr && <p className="text-content text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {recentLogsErr}</p>}
           {!recentLogsLoading && !recentLogsErr && recentLogs.length === 0 && (
-            <p className="text-sm text-charcoal/70 text-center py-4">אין רשומות ב-7 הימים האחרונים — לחץ &quot;רענן עכשיו&quot; אם עובדים דיווחו בינתיים</p>
+            <p className="text-caption text-charcoal/70 text-center py-4">אין רשומות ב-7 הימים האחרונים — לחץ &quot;רענן עכשיו&quot; אם עובדים דיווחו בינתיים</p>
           )}
           {!recentLogsLoading && recentLogs.length > 0 && (() => {
             // Precompute (staff × day) buckets that already have an OUT row.
@@ -1363,7 +1363,7 @@ function RecentLogRow({
       <div className="flex items-center justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-semibold truncate">{r.staff?.name ?? "—"}</p>
+            <p className="text-content font-semibold truncate">{r.staff?.name ?? "—"}</p>
             <span className={`text-caption font-semibold px-1.5 py-0.5 ${r.action === "כניסה" || r.action === "in" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
               {r.action === "in" ? "כניסה" : r.action === "out" ? "יציאה" : r.action}
             </span>
@@ -1587,7 +1587,7 @@ export default function AttendanceTab(p: Props) {
     <Card>
       <div className="flex items-center gap-2 mb-2">
         <AlertTriangle size={15} strokeWidth={1.5} className="text-amber-600" />
-        <h2 className="font-heading text-sm font-bold text-amber-800">
+        <h2 className="font-heading text-content font-bold text-amber-800">
           כניסות פתוחות מימים קודמים ({p.staleOpens.length})
         </h2>
       </div>
@@ -1602,7 +1602,7 @@ export default function AttendanceTab(p: Props) {
             onClick={() => p.onOpenStaleDay(s.staff_id, s.day_ymd)}
             className="w-full text-start px-4 py-2.5 hover:bg-amber-100 transition-colors"
           >
-            <p className="text-sm font-semibold text-amber-900">{s.staff_name}</p>
+            <p className="text-content font-semibold text-amber-900">{s.staff_name}</p>
             <p className="text-caption text-amber-700 mt-0.5">
               כניסה מ-{fmtStaleWhen(s.clock_at)}
               {s.project_name ? ` · ${s.project_name}` : ""}

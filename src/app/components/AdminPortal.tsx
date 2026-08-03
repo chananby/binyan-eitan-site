@@ -1683,7 +1683,7 @@ export default function AdminPortal() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <Link href="/he" className="text-[0.75rem] font-bold tracking-[0.2em] uppercase text-accent/60 hover:text-accent transition-colors duration-200">
+            <Link href="/he" className="text-micro font-bold tracking-[0.2em] uppercase text-accent/60 hover:text-accent transition-colors duration-200">
               בניין איתן
             </Link>
             <h1 className="font-heading text-2xl font-bold text-charcoal">
@@ -1703,20 +1703,20 @@ export default function AdminPortal() {
             {isAdmin && (
               <button onClick={toggleNavMode}
                 title={navMode === "sidebar" ? "חזרה לשורת הלשוניות" : "מעבר לתפריט צד (ניסיוני)"}
-                className="flex items-center gap-1.5 border border-charcoal/15 px-3 py-1.5 text-xs text-charcoal/70 hover:border-accent hover:text-accent transition-colors duration-200">
+                className="flex items-center gap-1.5 border border-charcoal/15 px-3 py-1.5 text-micro text-charcoal/70 hover:border-accent hover:text-accent transition-colors duration-200">
                 <PanelRight size={12} strokeWidth={1.5} />
                 {navMode === "sidebar" ? "שורת לשוניות" : "תפריט צד"}
               </button>
             )}
             {isAdmin && (
               <Link href="/admin/health"
-                className="flex items-center gap-1.5 border border-charcoal/15 px-3 py-1.5 text-xs text-charcoal/70 hover:border-accent hover:text-accent transition-colors duration-200">
+                className="flex items-center gap-1.5 border border-charcoal/15 px-3 py-1.5 text-micro text-charcoal/70 hover:border-accent hover:text-accent transition-colors duration-200">
                 <Activity size={12} strokeWidth={1.5} />
                 סטטוס מערכת
               </Link>
             )}
             <button onClick={handleLogout}
-              className="border border-charcoal/20 px-3 py-1.5 text-xs text-charcoal/65 hover:border-accent hover:text-accent transition-colors duration-200">
+              className="border border-charcoal/20 px-3 py-1.5 text-micro text-charcoal/65 hover:border-accent hover:text-accent transition-colors duration-200">
               יציאה
             </button>
           </div>
@@ -2207,7 +2207,7 @@ export default function AdminPortal() {
           />
         )}
 
-        <p className="text-center font-body text-xs tracking-widest uppercase text-charcoal/20 pt-2">
+        <p className="text-center font-body text-micro tracking-widest uppercase text-charcoal/20 pt-2">
           בניין איתן — פורטל ניהול פנימי
         </p>
       </div>
@@ -2220,7 +2220,7 @@ export default function AdminPortal() {
             <div className="bg-bone max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
               <div className="bg-white border-b border-warm-gray-light px-5 py-4 flex items-center justify-between">
                 <div>
-                  <p className="text-[0.75rem] text-charcoal/70 uppercase tracking-widest">ימי חופשה</p>
+                  <p className="text-micro text-charcoal/70 uppercase tracking-widest">ימי חופשה</p>
                   <h3 className="font-heading text-base font-bold">{worker?.name ?? "—"}</h3>
                 </div>
                 <button onClick={() => setVacationFor(null)} className="text-charcoal/70 hover:text-charcoal transition-colors p-1">
@@ -2233,32 +2233,32 @@ export default function AdminPortal() {
                   <Field label="תאריך">
                     <input type="date" value={vacationDate} onChange={e => setVacationDate(e.target.value)} required className={INPUT} dir="ltr" />
                   </Field>
-                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <label className="flex items-center gap-2 text-caption cursor-pointer">
                     <input type="checkbox" checked={vacationHalf} onChange={e => setVacationHalf(e.target.checked)} className="accent-accent" />
                     <span className="text-charcoal/70">חצי יום</span>
                   </label>
-                  <button type="submit" disabled={vacationLoading || !vacationDate} className="w-full bg-accent py-2.5 text-xs font-semibold tracking-wider uppercase text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5">
+                  <button type="submit" disabled={vacationLoading || !vacationDate} className="w-full bg-accent py-2.5 text-micro font-semibold tracking-wider uppercase text-bone hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5">
                     {vacationLoading ? <><Loader2 size={13} className="animate-spin" /> מוסיף…</> : <><Plus size={13} /> הוסף יום חופש</>}
                   </button>
-                  {vacationMsg && <p className="text-xs text-red-500">{vacationMsg}</p>}
+                  {vacationMsg && <p className="text-caption text-red-500">{vacationMsg}</p>}
                 </form>
 
                 <div className="border-t border-warm-gray-light pt-4">
-                  <p className="text-xs text-charcoal/65 mb-2">היסטוריה ({vacationRows.length})</p>
+                  <p className="text-caption text-charcoal/65 mb-2">היסטוריה ({vacationRows.length})</p>
                   {vacationRows.length === 0 ? (
-                    <p className="text-xs text-charcoal/70 text-center py-4">אין ימי חופשה רשומים</p>
+                    <p className="text-caption text-charcoal/70 text-center py-4">אין ימי חופשה רשומים</p>
                   ) : (
                     <div className="divide-y divide-charcoal/5">
                       {vacationRows.map(v => (
                         <div key={v.id} className="flex items-center justify-between py-2.5">
                           <div>
-                            <p className="text-sm font-semibold tabular-nums" dir="ltr">
+                            <p className="text-content font-semibold tabular-nums" dir="ltr">
                               {new Date(v.date).toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit", year: "numeric" })}
                             </p>
-                            {v.half_day && <p className="text-[0.75rem] text-amber-600">חצי יום</p>}
-                            {v.notes && <p className="text-[0.75rem] text-charcoal/65">{v.notes}</p>}
+                            {v.half_day && <p className="text-content text-amber-600">חצי יום</p>}
+                            {v.notes && <p className="text-content text-charcoal/65">{v.notes}</p>}
                           </div>
-                          <button onClick={() => handleDeleteVacation(v.id)} className="text-charcoal/70 hover:text-red-500 transition-colors text-xs border border-charcoal/15 px-2 py-1">מחק</button>
+                          <button onClick={() => handleDeleteVacation(v.id)} className="text-charcoal/70 hover:text-red-500 transition-colors text-micro border border-charcoal/15 px-2 py-1">מחק</button>
                         </div>
                       ))}
                     </div>

@@ -104,7 +104,7 @@ export default function IncompletePanel(p: {
           <h2 className="font-heading text-base font-bold">מרכז החוסרים</h2>
         </div>
         <button onClick={p.onReload}
-          className="flex items-center gap-1 text-xs text-charcoal/70 hover:text-accent transition-colors">
+          className="flex items-center gap-1 text-micro text-charcoal/70 hover:text-accent transition-colors">
           <RefreshCw size={12} strokeWidth={1.5} className={p.loading ? "animate-spin" : ""} /> רענן
         </button>
       </div>
@@ -126,15 +126,15 @@ export default function IncompletePanel(p: {
       )}
 
       {p.loading && p.items.length === 0 && (
-        <p className="text-sm text-charcoal/70 text-center py-4 flex items-center justify-center gap-1.5">
+        <p className="text-caption text-charcoal/70 text-center py-4 flex items-center justify-center gap-1.5">
           <Loader2 size={13} className="animate-spin" /> טוען…
         </p>
       )}
       {p.error && (
-        <p className="text-xs text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {p.error}</p>
+        <p className="text-caption text-red-500 flex items-center gap-1.5"><AlertCircle size={12} /> {p.error}</p>
       )}
       {!p.loading && !p.error && p.items.length === 0 && (
-        <p className="text-sm text-green-700 text-center py-6 flex items-center justify-center gap-1.5">
+        <p className="text-caption text-green-700 text-center py-6 flex items-center justify-center gap-1.5">
           <CheckCircle2 size={15} /> אין ימים לא שלמים — הכל תקין 🎉
         </p>
       )}
@@ -149,7 +149,7 @@ export default function IncompletePanel(p: {
             <ul className="divide-y divide-charcoal/10 border border-charcoal/10 rounded-md overflow-hidden">
               {byIssue.get(iss)!.map((it) => (
                 <li key={`${it.issue}-${it.ref_id}-${it.staff_id}-${it.date}`}
-                  className="flex items-center gap-2 px-2.5 py-1.5 text-xs hover:bg-bone/40">
+                  className="flex items-center gap-2 px-2.5 py-1.5 text-content hover:bg-bone/40">
                   <span className="font-semibold min-w-[7rem] truncate">{it.staff_name ?? "—"}</span>
                   <span className="tabular-nums text-charcoal/70" dir="ltr">{fmtDate(it.date)}</span>
                   {it.project_name
@@ -173,7 +173,7 @@ export default function IncompletePanel(p: {
                             defaultValue=""
                             disabled={assigning !== null || !it.ref_id}
                             onChange={(e) => it.ref_id && assign(it.ref_id, e.target.value)}
-                            className="border border-charcoal/20 bg-white px-1.5 py-0.5 text-xs focus:outline-none focus:border-accent rounded"
+                            className="border border-charcoal/20 bg-white px-1.5 py-0.5 text-content focus:outline-none focus:border-accent rounded"
                             title="שייך פרויקט לרשומת הכניסה"
                           >
                             <option value="" disabled>שייך פרויקט…</option>

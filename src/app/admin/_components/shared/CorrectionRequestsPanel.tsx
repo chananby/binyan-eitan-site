@@ -165,25 +165,25 @@ export default function CorrectionRequestsPanel(p: {
           <AlertTriangle size={15} strokeWidth={1.5} className="text-amber-500" />
           <h2 className="font-heading text-base font-bold">בקשות תיקון מעובדים</h2>
           {p.requests.length > 0 && (
-            <span className="bg-amber-100 text-amber-700 text-[0.75rem] font-bold px-2 py-0.5">
+            <span className="bg-amber-100 text-amber-700 text-micro font-bold px-2 py-0.5">
               {p.requests.length}
             </span>
           )}
         </div>
         <button onClick={p.onReload}
-          className="flex items-center gap-1 text-xs text-charcoal/70 hover:text-accent transition-colors">
+          className="flex items-center gap-1 text-micro text-charcoal/70 hover:text-accent transition-colors">
           <RefreshCw size={12} strokeWidth={1.5} /> רענן
         </button>
       </div>
 
-      {p.loading && <p className="text-sm text-charcoal/70 text-center py-4">טוען...</p>}
+      {p.loading && <p className="text-caption text-charcoal/70 text-center py-4">טוען...</p>}
       {p.error && (
-        <p className="text-xs text-red-500 flex items-center gap-1.5">
+        <p className="text-caption text-red-500 flex items-center gap-1.5">
           <AlertCircle size={12} /> {p.error}
         </p>
       )}
       {!p.loading && !p.error && p.requests.length === 0 && (
-        <p className="text-sm text-charcoal/70 text-center py-4">אין בקשות תיקון פתוחות</p>
+        <p className="text-caption text-charcoal/70 text-center py-4">אין בקשות תיקון פתוחות</p>
       )}
 
       {!p.loading && p.requests.length > 0 && (
@@ -211,7 +211,7 @@ export default function CorrectionRequestsPanel(p: {
                 <div className="flex-1 min-w-0 space-y-1.5">
                   {/* מי + סוג הבקשה (תווית עברית) + פעולה + תאריך */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-semibold">{r.staff?.name ?? "—"}</p>
+                    <p className="text-content font-semibold">{r.staff?.name ?? "—"}</p>
                     {isWorkerLangCode(r.staff?.language) && r.staff!.language !== "he" && (
                       <span
                         className="text-caption text-charcoal/70 px-1 py-0.5 rounded bg-charcoal/[0.06] tabular-nums"
@@ -262,7 +262,7 @@ export default function CorrectionRequestsPanel(p: {
                   {isAdd ? (
                     /* ADD: the existing record is CONTEXT (no strikethrough); the
                        proposed time is the NEW row being added. */
-                    <div className="flex items-center gap-2 flex-wrap text-sm">
+                    <div className="flex items-center gap-2 flex-wrap text-content">
                       <span className="text-charcoal/60">
                         {act} קיימת <span className="tabular-nums" dir="ltr">{time}</span>
                       </span>
@@ -277,7 +277,7 @@ export default function CorrectionRequestsPanel(p: {
                        new value on the left. Each time is dir="ltr" so digits
                        render correctly. */
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-charcoal/60 tabular-nums line-through" dir="ltr">{time}</span>
+                      <span className="text-content text-charcoal/60 tabular-nums line-through" dir="ltr">{time}</span>
                       <span className="text-charcoal/40 text-base leading-none">←</span>
                       <span className="text-base font-bold text-amber-700 tabular-nums" dir="ltr">{r.proposed_time}</span>
                     </div>
@@ -333,7 +333,7 @@ export default function CorrectionRequestsPanel(p: {
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button onClick={() => resolve(r.id, "approved", confirmMsg)} disabled={pending !== null}
-                    className={`text-[0.75rem] font-semibold border px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                    className={`text-micro font-semibold border px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                       danger
                         ? "border-red-300 text-red-700 hover:bg-red-600 hover:text-white"
                         : "border-green-200 text-green-700 hover:bg-green-600 hover:text-white"
@@ -341,7 +341,7 @@ export default function CorrectionRequestsPanel(p: {
                     {pending === r.id ? <Loader2 size={11} className="animate-spin" /> : (danger ? "אשר בכל זאת" : "אשר")}
                   </button>
                   <button onClick={() => resolve(r.id, "rejected")} disabled={pending !== null}
-                    className="text-[0.75rem] font-semibold border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                    className="text-micro font-semibold border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-2.5 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                     {pending === r.id ? <Loader2 size={11} className="animate-spin" /> : "דחה"}
                   </button>
                 </div>

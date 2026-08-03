@@ -146,7 +146,7 @@ export default function StaffDocumentsSection({ staffId }: Props) {
 
   return (
     <details className="border border-charcoal/10 rounded-sm p-3 bg-bone-dark/30">
-      <summary className="cursor-pointer text-[0.75rem] font-semibold text-charcoal/70 uppercase tracking-wider">
+      <summary className="cursor-pointer text-micro font-semibold text-charcoal/70 uppercase tracking-wider">
         מסמכים ({docs.length})
       </summary>
       <div className="mt-3 space-y-3">
@@ -154,22 +154,22 @@ export default function StaffDocumentsSection({ staffId }: Props) {
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-3 text-charcoal/70">
             <Loader2 size={14} className="animate-spin" />
-            <span className="text-xs">טוען…</span>
+            <span className="text-caption">טוען…</span>
           </div>
         ) : err ? (
-          <p className="flex items-center gap-1.5 text-xs text-red-600">
+          <p className="flex items-center gap-1.5 text-caption text-red-600">
             <AlertCircle size={12} /> {err}
           </p>
         ) : docs.length === 0 ? (
-          <p className="text-xs text-charcoal/70 text-center py-2">אין עדיין מסמכים מצורפים</p>
+          <p className="text-caption text-charcoal/70 text-center py-2">אין עדיין מסמכים מצורפים</p>
         ) : (
           <div className="divide-y divide-charcoal/8 border border-charcoal/10 bg-white">
             {docs.map(d => (
               <div key={d.id} className="flex items-center gap-2 px-2.5 py-2">
                 <FileText size={13} strokeWidth={1.5} className="text-charcoal/70 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold truncate" title={d.file_name}>{d.file_name}</p>
-                  <p className="text-[0.62rem] text-charcoal/70">
+                  <p className="text-content font-semibold truncate" title={d.file_name}>{d.file_name}</p>
+                  <p className="text-caption text-charcoal/70">
                     {formatDate(d.uploaded_at)} · {formatSize(d.file_size)}
                   </p>
                 </div>
@@ -177,7 +177,7 @@ export default function StaffDocumentsSection({ staffId }: Props) {
                   type="button"
                   onClick={() => download(d)}
                   disabled={downloadingId === d.id}
-                  className="text-xs text-accent hover:text-accent-dark p-1 disabled:opacity-40"
+                  className="text-micro text-accent hover:text-accent-dark p-1 disabled:opacity-40"
                   title="הורד / פתח"
                 >
                   {downloadingId === d.id
@@ -188,7 +188,7 @@ export default function StaffDocumentsSection({ staffId }: Props) {
                   type="button"
                   onClick={() => remove(d)}
                   disabled={deletingId === d.id}
-                  className="text-xs text-red-500 hover:text-red-700 p-1 disabled:opacity-40"
+                  className="text-micro text-red-500 hover:text-red-700 p-1 disabled:opacity-40"
                   title="מחק"
                 >
                   {deletingId === d.id
@@ -202,7 +202,7 @@ export default function StaffDocumentsSection({ staffId }: Props) {
 
         {/* Upload form */}
         <form onSubmit={submit} className="border-t border-charcoal/10 pt-3 space-y-2">
-          <p className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">
+          <p className="text-micro font-semibold text-charcoal/70 uppercase tracking-wider">
             העלאת מסמך חדש
           </p>
           <input
@@ -210,7 +210,7 @@ export default function StaffDocumentsSection({ staffId }: Props) {
             type="file"
             accept="application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif"
             onChange={e => setFile(e.target.files?.[0] ?? null)}
-            className="w-full text-xs file:me-2 file:py-1.5 file:px-3 file:text-xs file:font-semibold file:bg-accent file:text-bone file:border-0 file:cursor-pointer cursor-pointer"
+            className="w-full text-content file:me-2 file:py-1.5 file:px-3 file:text-micro file:font-semibold file:bg-accent file:text-bone file:border-0 file:cursor-pointer cursor-pointer"
           />
           <input
             type="text"
@@ -218,17 +218,17 @@ export default function StaffDocumentsSection({ staffId }: Props) {
             onChange={e => setFileName(e.target.value)}
             placeholder='שם המסמך (לדוגמה: "ת.ז. — קדמי")'
             maxLength={200}
-            className="w-full border border-charcoal/20 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-accent"
+            className="w-full border border-charcoal/20 bg-white px-2 py-1.5 text-content focus:outline-none focus:border-accent"
           />
           {uploadErr && (
-            <p className="flex items-center gap-1.5 text-xs text-red-600">
+            <p className="flex items-center gap-1.5 text-caption text-red-600">
               <AlertCircle size={12} /> {uploadErr}
             </p>
           )}
           <button
             type="submit"
             disabled={uploading || !file}
-            className="w-full bg-accent text-bone py-1.5 text-xs font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
+            className="w-full bg-accent text-bone py-1.5 text-micro font-semibold tracking-wider uppercase hover:bg-accent-dark disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
           >
             {uploading
               ? <><Loader2 size={12} className="animate-spin" /> מעלה…</>
