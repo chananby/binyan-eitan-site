@@ -143,24 +143,22 @@ html.focus-ring *:focus-visible {
 }
 
 /* ── Single-block print — monthly attendance report ──────────────────────────
-   The per-worker "הדפס / PDF" button (MonthlyReportPanel) adds
-   `printing-report-block` to <body> and `report-print-block` to the ONE card
-   being printed, then calls window.print(). These rules hide everything else so
-   the browser's Print / Save-as-PDF captures only that worker's slip — not the
-   whole multi-worker report. `visibility` (not display) is used so the target
-   keeps its normal box; it's floated to the page origin. The all-workers report
-   and every other page are unaffected (rules apply only when the body class is
-   present, which JS sets only for the duration of the print). */
+   The per-worker "הדפס / PDF" button (MonthlyReportPanel) renders a COPY of the
+   one block into a React portal at <body> root (`.report-print-root`) and adds
+   `printing-report-block` to <body>, then calls window.print().
+
+   The portal copy is `display:none` on screen. In print, everything ELSE under
+   <body> is hidden with `display:none` and only the portal is shown — so the
+   Save-as-PDF captures exactly one worker's slip.
+
+   Why this and not the old `visibility:hidden` + `position:absolute` trick:
+   `display:none` genuinely removes the other blocks (no reserved space / blank
+   pages), and a body-root portal is immune to any ancestor `transform` /
+   `overflow` / positioned ancestor that can offset or clip an absolutely-
+   positioned element. Scoped by the body class, so a plain Ctrl+P (no block
+   selected) still prints the page normally. */
+.report-print-root { display: none; }
 @media print {
-  body.printing-report-block * { visibility: hidden; }
-  body.printing-report-block .report-print-block,
-  body.printing-report-block .report-print-block * { visibility: visible; }
-  body.printing-report-block .report-print-block {
-    position: absolute;
-    inset-block-start: 0;
-    inset-inline-start: 0;
-    width: 100%;
-    margin: 0;
-    box-shadow: none;
-  }
+  body.printing-report-block > :not(.report-print-root) { display: none !important; }
+  body.printing-report-block .report-print-root { display: block; }
 }

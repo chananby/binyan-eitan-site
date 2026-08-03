@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AlertCircle, AlertTriangle, BarChart2, Loader2, Printer, User, Users } from "lucide-react";
 import { Card } from "./Card";
 import MonthField from "./MonthField";
@@ -89,8 +90,8 @@ export default function MonthlyReportPanel() {
   const [data, setData]       = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr]         = useState<string | null>(null);
-  // Which worker block is currently being printed (its card gets the
-  // `report-print-block` class so the print stylesheet shows only it).
+  // Which worker block is currently being printed (a copy is portaled to
+  // <body> as `.report-print-root` and the print stylesheet shows only it).
   const [printingId, setPrintingId] = useState<string | null>(null);
   const prevTitleRef = useRef<string | null>(null);
   // Generation date stamped on the printed slip + PDF title. DD.MM.YYYY with
@@ -156,8 +157,8 @@ export default function MonthlyReportPanel() {
   useEffect(() => {
     if (!printingId) return;
     document.body.classList.add("printing-report-block");
-    // Print on the next frame so the block's `report-print-block` class is in
-    // the DOM before the dialog snapshots the page.
+    // Print on the next frame so the portal copy of the block is committed to
+    // the DOM before the print dialog snapshots the page.
     const raf = requestAnimationFrame(() => window.print());
     const done = () => {
       document.body.classList.remove("printing-report-block");
@@ -238,13 +239,34 @@ export default function MonthlyReportPanel() {
               block={b}
               month={data.month}
               genDate={genDate}
-              printing={printingId === b.staff.id}
               onDownloadXlsx={() => downloadBlockXlsx(b)}
               onPrint={() => printBlock(b)}
             />
           ))}
         </div>
       )}
+
+      {/* Print target — a COPY of the one block being printed, portaled to
+          <body> root. Off-screen normally (.report-print-root is display:none);
+          the print stylesheet (globals.css) shows only this and hides the rest
+          of the page. Its buttons are print:hidden so they never reach the PDF. */}
+      {printingId && data && (() => {
+        const target = data.blocks.find((b) => b.staff.id === printingId);
+        return target
+          ? createPortal(
+              <div className="report-print-root">
+                <WorkerBlockCard
+                  block={target}
+                  month={data.month}
+                  genDate={genDate}
+                  onDownloadXlsx={() => {}}
+                  onPrint={() => {}}
+                />
+              </div>,
+              document.body,
+            )
+          : null;
+      })()}
     </Card>
   );
 }
@@ -254,18 +276,17 @@ export default function MonthlyReportPanel() {
 // The two buttons trigger this worker's own XLSX / print — they carry
 // `print:hidden` so they never appear in the printed slip.
 function WorkerBlockCard({
-  block, month, genDate, printing, onDownloadXlsx, onPrint,
+  block, month, genDate, onDownloadXlsx, onPrint,
 }: {
   block: WorkerBlock;
   month: string;
   genDate: string;
-  printing: boolean;
   onDownloadXlsx: () => void;
   onPrint: () => void;
 }) {
   const classification = block.staff.is_freelancer ? "עצמאי" : "שכיר";
   return (
-    <div className={`border-2 border-charcoal/30 bg-white shadow-sm ${printing ? "report-print-block" : ""}`}>
+    <div className="border-2 border-charcoal/30 bg-white shadow-sm">
       {/* Title bar — filled, so the screenshot's top edge is obvious */}
       <div className="bg-bone-dark border-b-2 border-charcoal/30 px-4 py-3 flex items-start justify-between gap-3">
         <div className="min-w-0">

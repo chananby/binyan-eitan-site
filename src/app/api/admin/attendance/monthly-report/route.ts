@@ -343,13 +343,26 @@ export async function GET(req: NextRequest) {
   }
 
   const buf = await wb.xlsx.writeBuffer();
-  // staff_id (a UUID) is ASCII-safe in the fallback filename; the client sets a
-  // human-readable download name via the anchor's `download` attribute.
-  const filename = `attendance-monthly-${month}${staffIdFilter ? `-${staffIdFilter}` : ""}.xlsx`;
+
+  // Filename is built HERE, on the server, because the download is an anchor
+  // navigation to this route — the browser honours THIS Content-Disposition and
+  // ignores the client's `download` attribute, so a client-side name never took
+  // effect (that was the bug: the file came out as the ASCII fallback).
+  //   • Hebrew name → RFC 5987 `filename*` (UTF-8 percent-encoded), which every
+  //     modern browser prefers over plain `filename`.
+  //   • ASCII `filename=` kept as a fallback for ancient clients.
+  //   • Worker part is sanitised of "#" and "/" (both truncate the saved name)
+  //     plus quotes/control chars that would break the header.
+  const workerName = staffIdFilter ? (reportStaff[0]?.name ?? "עובד") : "כל העובדים";
+  const cleanWorker = workerName.replace(/[#/\\"\r\n\t]+/g, " ").replace(/\s+/g, " ").trim();
+  const niceName = `דוח נוכחות - ${cleanWorker} - ${month}.xlsx`;
+  const asciiFallback = `attendance-monthly-${month}${staffIdFilter ? `-${staffIdFilter}` : ""}.xlsx`;
+  const encoded = encodeURIComponent(niceName).replace(/['()*]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase());
+
   return new NextResponse(buf, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Disposition": `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encoded}`,
     },
   });
 }
