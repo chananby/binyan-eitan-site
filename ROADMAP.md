@@ -372,9 +372,19 @@
     QuotesList (תאים 14→15, כותרות→14, badge→12), PayrollTab, Documents
     (Inbox/Card/ReviewForm — שמות ספקים+ערכי שדות→15, תוויות→14, chip→12), ותפריט הצד
     (כותרות/תגים/"ניווט"→12). **גודל+טוקן בלבד** — אפס פריסה/לוגיקה/נתונים; טבלאות לא נשברו.
-  - **Tier 2/3 בתור:** AttendanceTab, IncompletePanel, ScheduleTable, ProjectsTab,
-    AccountTab, StaffDocumentsSection, MilestoneCard, AdminPortal, HistoryScreen,
-    ForemanPortal. **Tier 4 (חידונים/שיווקי/math — 253 מקומות, קהל אחר) — לא נוגעים.**
+  - **Tier 2 — נפרס** (3.8.26, `fix/typography-tier2` → main `f111c52`,
+    `dpl_ALGfMEXq8JEo2M2dA6AFeuQndYux`; `/admin` `x-matched-path`). **138 החלפות
+    ב-10 קבצים** (AttendanceTab, IncompletePanel, CorrectionRequestsPanel,
+    ProjectsTab, AccountTab, StaffDocumentsSection, ProjectBudgetSection,
+    MilestoneCard, ScheduleTable, AdminPortal). fan-out ל-4 סוכנים במקביל +
+    ביקורת שלי: **בדיקה קפדנית אישרה שכל 143 השורות זהות פרט לטוקן הגודל** (אפס
+    פריסה/לוגיקה/צבע/נתונים); יישרתי 11 הודעות סטטוס/שגיאה שסוכן אחד שם ב-content
+    → caption לעקביות. **הודעות (טוען/ריק/שגיאה) → caption(14).** נשארו במכוון
+    (דווח, לא בשקט): בסיס `<table>` ב-ScheduleTable (הגדלה תרסק את רשת הימים
+    הצפופה `min-w-[840px]`; תא שם-האתר הראשי הוגדל בנפרד), ו-2 תוויות סטטים + pill
+    בשורת הלשוניות ב-AdminPortal (מחוץ ל-scope / חשש overflow ל-"99+").
+  - **Tier 3 בתור:** HistoryScreen, ForemanPortal. **Tier 4 (חידונים/שיווקי/math
+    — קהל אחר) — לא נוגעים.**
 - **רוחב אחיד לכל לשוניות האדמין + ריסון אלמנטים מתוחים** — **נפרס**
   (29.7.26, `fix/admin-uniform-width` → main `e85a978`, `dpl_DV32AitmYE9Q`, אימות `x-matched-path: /admin`).
   קודם רק דשבורד+board היו `max-w-7xl`, השאר
