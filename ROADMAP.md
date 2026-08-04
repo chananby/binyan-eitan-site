@@ -37,6 +37,18 @@
 
 ## הושלם (בייצור)
 
+- **מסך היסטוריית מיקומים לעובד (אדמין בלבד)** — **נפרס** (4.8.26,
+  `feature/worker-location-history` → main `9de8ab9`, `dpl_54VueKfugixCGZJnXFw5ttwY6TG3`;
+  אומת: `/admin` `x-matched-path` 200, endpoint `403` ללא auth). תת-לשונית "מיקומים"
+  תחת נוכחות: בורר עובד + טווח → שורה לכל החתמה (תאריך·שעה·כניסה/יציאה·אתר·מרחק·מקור)
+  + מסנן "חריגות בלבד". עונה על "מתי העובד היה איפה" ומציף החתמות רחוקות שאכיפת ה-GPS
+  (כבויה) מעולם לא סימנה. **אדמין בלבד** — endpoint חדש `api/admin/attendance/locations`
+  מחזיר 403 לממונה (מיקום = רגיש); הפאנל חי ב-`AttendanceTab` שהממונה לא מרנדר.
+  ספי מרחק כקבועים ([`LocationHistoryPanel.tsx`](src/app/admin/_components/shared/LocationHistoryPanel.tsx)):
+  ≤1ק"מ ניטרלי · 1–3ק"מ ענבר "רחוק" · >3ק"מ אדום "חריגה" (500מ' של ה-live התברר כרעש
+  עירוני). מיחזר את `DistanceFlag` עם prop אופציונלי `warnThreshold` לרמת-הביניים —
+  ה-live לא נגע. החתמות טלפון/ידני (תמיד ללא GPS מתוכנן) → תג ניטרלי "ללא GPS", לא כחסר.
+  paginated דרך `fetchAllRows`.
 - **🔴 תיקון pagination — תקרת 1000 שורות קטעה שכר ודוחות בשקט** — **נפרס**
   (3.8.26, `fix/attendance-pagination` → main `1018c46`, `dpl_6AaSjcVxPYm2L4Gw5qerigyThAPg`).
   PostgREST חוסם תשובה ב-`max_rows`=1000 **ומקצץ בשקט**. כל שאילתה שמשכה חודש
