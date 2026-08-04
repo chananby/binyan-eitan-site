@@ -282,27 +282,34 @@ export function computeIncompleteDays(
       continue;
     }
 
-    // Resolved filter: a no_open_entry_to_close whose day now holds BOTH an
-    // entry AND an exit is already fixed — the failure's own remedy is
-    // "complete the missing entry", and a full pair means that entry exists, so
-    // the OUT is no longer orphaned. attendance_failures is append-only (no
-    // resolved flag), so without this the row would hang in the center forever
-    // (the Yitzhak-Sayeg / Osnaka pattern: fail → day completed manually → item
-    // stays). Scoped to no_open_entry_to_close ONLY — other codes mean the whole
-    // shift was rejected, where a complete day doesn't imply THIS failure closed.
-    // A still-pending completion is dropped here too, but it re-surfaces as its
-    // own pending_manual item above, so nothing is lost silently.
+    // For no_open_entry_to_close, the day's actual state (same `days` map) both
+    // resolves and chooses the action — a blocked OUT creates NO row, so the
+    // suggested fix must match what's really there, not a fixed guess:
+    //   • entry + exit (full pair) → RESOLVED, drop. attendance_failures is
+    //     append-only (no resolved flag), so otherwise the row hangs forever
+    //     (the Sayeg / Osnaka pattern: fail → day completed manually → item
+    //     stays). A still-pending completion drops here too but re-surfaces as
+    //     its own pending_manual item above — nothing lost silently.
+    //   • EMPTY day (nothing recorded) → "add_day": the whole shift is missing,
+    //     there is nothing to "complete" (the Nadika 26.07 case — history shows
+    //     no activity at all).
+    //   • a lone exit / any partial record → "complete_entry": the ENTRY is the
+    //     missing piece.
+    // Scoped to no_open_entry_to_close ONLY; other codes keep actionForFailureCode.
+    let action = actionForFailureCode(f.error_code);
     if (f.error_code === "no_open_entry_to_close") {
       const day = days.get(`${f.staff_id}|${failDate}`);
       if (day && day.entries.length > 0 && day.exits.length > 0) {
-        continue;
+        continue; // resolved
       }
+      const emptyDay = !day || (day.entries.length === 0 && day.exits.length === 0);
+      action = emptyDay ? "add_day" : "complete_entry";
     }
 
     items.push({
       staff_id: f.staff_id, staff_name: f.staff_name,
       date: failDate,
-      issue: "stuck_failure", action: actionForFailureCode(f.error_code),
+      issue: "stuck_failure", action,
       project_id: f.project_id, project_name: f.project_name, ref_id: f.id,
       error_code: f.error_code ?? null,
     });

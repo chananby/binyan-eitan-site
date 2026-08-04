@@ -192,7 +192,12 @@ export default function IncompletePanel(p: {
                       <button type="button" onClick={() => p.onViewWorkerHistoryForDay(it.staff_id, it.date)}
                         className="font-semibold text-amber-900 underline underline-offset-2 hover:text-accent">
                         {it.issue === "stuck_failure"
-                          ? ((it.error_code && FAILURE_ACTION_LABEL[it.error_code]) ?? "בדיקה ←")
+                          ? (it.error_code === "no_open_entry_to_close"
+                              // no_open_entry_to_close's label follows the engine-derived
+                              // action: an empty day (blocked OUT, no row) → "add a day";
+                              // a lone exit → complete the missing entry.
+                              ? (it.action === "add_day" ? "הוסף יום ←" : "בדוק/השלם כניסה ←")
+                              : ((it.error_code && FAILURE_ACTION_LABEL[it.error_code]) ?? "בדיקה ←"))
                           : "לתיקון ←"}
                       </button>
                     )}

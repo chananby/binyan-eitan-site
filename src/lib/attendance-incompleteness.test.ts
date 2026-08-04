@@ -71,8 +71,14 @@ describe("computeIncompleteDays — six issue types", () => {
       attempted_at: "2026-07-11T09:00:00+03:00", project_id: "p1", project_name: "Proj 1",
       error_code: code,
     });
-    // a blocked EXIT with no open entry → check/complete the entry, NOT add a day
-    expect(run({ failures: [mk("no_open_entry_to_close")] })[0]).toMatchObject({
+    // no_open_entry_to_close is context-derived: a lone exit on the day → check/
+    // complete the missing ENTRY. (Empty day → add_day; full pair → filtered —
+    // both covered in the dedicated describe block below.)
+    const looseExit = run({
+      attendance: [att("x-nooe", "s1", "2026-07-11", "16:00", "out")],
+      failures: [mk("no_open_entry_to_close")],
+    });
+    expect(looseExit.find((i) => i.issue === "stuck_failure")).toMatchObject({
       action: "complete_entry", error_code: "no_open_entry_to_close",
     });
     // remote-exit cap → the open entry just needs its exit completed
@@ -194,12 +200,20 @@ describe("stuck_failure — a resolved no_open_entry_to_close (day completed) is
     expect(items.some((i) => i.issue === "no_exit" || i.issue === "no_entry")).toBe(false);
   });
 
-  it("keeps a genuine orphan OUT — the day has NO entry", () => {
+  it("empty day (nothing recorded — the OUT was blocked) → kept with action add_day", () => {
+    // Nadika 26.07 pattern: history shows no activity at all → nothing to
+    // "complete", the whole shift is missing.
+    const items = run({ failures: [stuckFail("f2-empty")] });
+    const item = items.find((i) => i.issue === "stuck_failure");
+    expect(item).toMatchObject({ issue: "stuck_failure", action: "add_day" });
+  });
+
+  it("lone exit, no entry → kept with action complete_entry", () => {
     const items = run({
-      attendance: [att("out2", "s1", DAY, "16:00", "יציאה")], // exit only, no entry → not complete
-      failures: [stuckFail("f2")],
+      attendance: [att("out2", "s1", DAY, "16:00", "יציאה")], // exit only → the ENTRY is missing
+      failures: [stuckFail("f2-exit")],
     });
-    expect(items.some((i) => i.issue === "stuck_failure")).toBe(true);
+    expect(items.find((i) => i.issue === "stuck_failure")).toMatchObject({ action: "complete_entry" });
   });
 
   it("drops the failure on a still-pending completion, but it re-surfaces as pending_manual", () => {
