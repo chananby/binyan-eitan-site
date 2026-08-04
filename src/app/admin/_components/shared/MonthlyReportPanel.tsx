@@ -188,6 +188,13 @@ export default function MonthlyReportPanel() {
       <p className="text-caption text-muted mb-3">
         בלוק אחד לכל עובד — לצילום ושליחה לאישור לפני שכר. כולל שכירים ועצמאיים, כל יום בחודש, וסימון חופש/מחלה כשקיים.
       </p>
+      {/* PDF-target hint: the browser's "Save as PDF" reads the filename from
+          document.title; Windows' "Microsoft Print to PDF" ignores it and opens
+          a blank Save dialog. Not a bug — see SYSTEM_MAP gotcha. */}
+      <p className="text-micro text-muted mb-3 flex items-start gap-1">
+        <Printer size={11} strokeWidth={1.5} className="shrink-0 mt-0.5" />
+        <span>בהדפסה ל-PDF בחר <b>&quot;שמור כ-PDF&quot; (Save as PDF)</b> של הדפדפן — לא &quot;Microsoft Print to PDF&quot; — אחרת שם הקובץ יֵצא ריק.</span>
+      </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-3 items-end">
         <div>
@@ -318,6 +325,7 @@ function WorkerBlockCard({
           </button>
           <button
             onClick={onPrint}
+            title='לשם קובץ תקין בחר "שמור כ-PDF" (Save as PDF) — לא "Microsoft Print to PDF"'
             className="flex items-center gap-1 px-2.5 py-1.5 text-micro font-semibold border border-accent/40 text-accent hover:bg-accent hover:text-bone transition-colors whitespace-nowrap"
           >
             <Printer size={12} /> הדפס / PDF

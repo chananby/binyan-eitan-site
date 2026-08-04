@@ -568,6 +568,7 @@ flowchart TD
 - **Vercel Hobby** — cron מוגבל לפעם ביום.
 - **גלריה שיווקית מ-`/public`** — `SERVE_FROM="public"` ב-`lib/cloudinary.ts`, למרות ש-`api/cloudinary-gallery` מוכן.
 - **שמות מטעים:** `lib/projects.ts` = גלריית האתר השיווקי, לא פרויקטי הניהול. `catalog_items` = הצעות מחיר, לא הוצאות.
+- **שם קובץ PDF תלוי ב*יעד ההדפסה*, לא בקוד.** "הדפס / PDF" ב-`MonthlyReportPanel` קובע `document.title` כשם הקובץ — **אבל רק "שמור כ-PDF" (Save as PDF) של הדפדפן גוזר ממנו.** "Microsoft Print to PDF" (מדפסת וירטואלית של Windows) **מתעלם מ-`document.title`** ופותח חלון-שמירה עם שם ריק — התנהגות המדפסת, לא באג. בוזבזו 2 סבבי תיקון (afterprint-restore, ואז הפסקת-שחזור) עד שהתברר שהשורש בבחירת המשתמש. **מסקנה:** באג "שם קובץ ריק" בהדפסה — לבדוק קודם איזו "מדפסת" נבחרה. יש רמז בממשק ליד הכפתור.
 - **root layout סטטי he/rtl — dir/lang בבעלות ה-wrappers** (B-static, `perf/static-root-layout`). `app/layout.tsx` הוא `<html lang="he" dir="rtl">` קבוע, **בלי `headers()`**. `/en` הופך ל-LTR דרך `dir="ltr" lang="en"` על ה-div ב-`en/layout.tsx` — **אם ה-wrapper הזה נשבר, `/en` יורש rtl וייראה שבור** (לא ייפול). `/lp/overseas` (אנגלית מחוץ ל-`/en`) מקבל dir/lang מ-`LPTemplate` (`lang` נגזר מ-`d.dir`). ה-skip-link ב-root עברי קבוע. **תוצאה:** הבית + about/faq/legal/change-order/projects/lp נהיו `○/●`; `/admin/*` סומן `force-dynamic` ב-`admin/layout.tsx` (היה דינמי דרך ה-root); expertise/[slug] נשאר `ƒ` (force-dynamic משלו). דירוג הבית מ-`getServerRating` עטוף ב-`unstable_cache` tag `translations` (revalidate 60) — הבית `○` עם revalidate 1m.
 
 ---
