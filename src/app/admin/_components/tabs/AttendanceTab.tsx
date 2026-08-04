@@ -23,7 +23,7 @@ import WorkerHistoryPanel from "./WorkerHistoryPanel";
 import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
 import { attendanceTimeHHMM, attendanceDayTimeShort, israelYMD, isEntry, isExit } from "../../../../lib/attendance-time";
 
-export type AttendanceSubTab = "live" | "history" | "failures" | "incomplete";
+export type AttendanceSubTab = "live" | "history" | "reports" | "failures" | "incomplete";
 
 /** One row of the silent-failure log (loaded from
  *  /api/admin/attendance/failures — worker_stuck category, last 24h). */
@@ -1667,6 +1667,13 @@ export default function AttendanceTab(p: Props) {
           היסטוריית עובד
         </SubTabButton>
         <SubTabButton
+          active={p.subTab === "reports"}
+          onClick={() => p.setSubTab("reports")}
+          icon={<BarChart2 size={13} strokeWidth={1.5} />}
+        >
+          דוחות נוכחות
+        </SubTabButton>
+        <SubTabButton
           active={p.subTab === "failures"}
           onClick={() => p.setSubTab("failures")}
           badge={p.failures.length}
@@ -1721,6 +1728,20 @@ export default function AttendanceTab(p: Props) {
         />
       )}
 
+      {/* Reports (history, not "today") — moved out of the crowded live tab. */}
+      {p.subTab === "reports" && (
+        <>
+          <ReportPanel
+            attReportFrom={p.attReportFrom}       setAttReportFrom={p.setAttReportFrom}
+            attReportTo={p.attReportTo}           setAttReportTo={p.setAttReportTo}
+            attReportLoading={p.attReportLoading} setAttReportLoading={p.setAttReportLoading}
+            attReportErr={p.attReportErr}         setAttReportErr={p.setAttReportErr}
+            attReportData={p.attReportData}       setAttReportData={p.setAttReportData}
+          />
+          <MonthlyReportPanel staff={p.staff} />
+        </>
+      )}
+
       {p.subTab === "live" && (
         <>
           <p className="text-caption text-charcoal/70 text-center -mt-3">מתעדכן אוטומטית כל 2 דקות</p>
@@ -1728,16 +1749,6 @@ export default function AttendanceTab(p: Props) {
           {hasPending && pendingPanel}
           {correctionsPanel}
           {staleOpensPanel}
-
-      <ReportPanel
-        attReportFrom={p.attReportFrom}       setAttReportFrom={p.setAttReportFrom}
-        attReportTo={p.attReportTo}           setAttReportTo={p.setAttReportTo}
-        attReportLoading={p.attReportLoading} setAttReportLoading={p.setAttReportLoading}
-        attReportErr={p.attReportErr}         setAttReportErr={p.setAttReportErr}
-        attReportData={p.attReportData}       setAttReportData={p.setAttReportData}
-      />
-
-      <MonthlyReportPanel />
 
       <ManualEntryForm
         manualOpen={p.manualOpen}             setManualOpen={p.setManualOpen}

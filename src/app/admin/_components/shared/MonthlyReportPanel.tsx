@@ -85,8 +85,14 @@ function currentMonth(): string {
   return new Date().toLocaleDateString("sv", { timeZone: "Asia/Jerusalem" }).slice(0, 7);
 }
 
-export default function MonthlyReportPanel() {
+interface StaffLite { id: string; name: string; active: boolean }
+
+export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
   const [month, setMonth]     = useState<string>(currentMonth);
+  // Direct-export scope: "" = all workers (default). Picking a worker lets the
+  // top "הורד אקסל" pull ONE worker's XLSX without generating the report first
+  // (the endpoint already takes staff_id — no server change).
+  const [exportStaffId, setExportStaffId] = useState<string>("");
   const [data, setData]       = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr]         = useState<string | null>(null);
@@ -122,10 +128,14 @@ export default function MonthlyReportPanel() {
 
   function downloadXlsx() {
     // Native anchor click — lets the browser stream the XLSX response
-    // directly without buffering into memory.
+    // directly without buffering into memory. Scoped by the export selector:
+    // a worker → that worker only; "" → all. The server builds the filename
+    // (Content-Disposition), so the download attr here is just a fallback.
     const a = document.createElement("a");
-    a.href = `/api/admin/attendance/monthly-report?month=${month}&format=xlsx`;
-    a.download = `attendance-monthly-${month}.xlsx`;
+    const staffParam = exportStaffId ? `&staff_id=${exportStaffId}` : "";
+    a.href = `/api/admin/attendance/monthly-report?month=${month}${staffParam}&format=xlsx`;
+    const who = exportStaffId ? (staff.find((s) => s.id === exportStaffId)?.name ?? "עובד") : "כל העובדים";
+    a.download = `דוח נוכחות - ${who} - ${month}.xlsx`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -196,7 +206,7 @@ export default function MonthlyReportPanel() {
         <span>בהדפסה ל-PDF בחר <b>&quot;שמור כ-PDF&quot; (Save as PDF)</b> של הדפדפן — לא &quot;Microsoft Print to PDF&quot; — אחרת שם הקובץ יֵצא ריק.</span>
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-3 items-end">
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end">
         <div>
           <label className="block text-caption text-muted mb-1 font-body">חודש</label>
           <MonthField
@@ -204,6 +214,19 @@ export default function MonthlyReportPanel() {
             onChange={(v) => { setMonth(v); setData(null); }}
             max={currentMonth()}
           />
+        </div>
+        <div>
+          <label className="block text-caption text-muted mb-1 font-body">עובד (לייצוא אקסל)</label>
+          <select
+            value={exportStaffId}
+            onChange={(e) => setExportStaffId(e.target.value)}
+            className="w-full border border-warm-gray-light bg-bone text-charcoal text-content px-3 py-2 focus:outline-none focus:border-accent"
+          >
+            <option value="">כל העובדים</option>
+            {staff.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}{s.active === false ? " (לא פעיל)" : ""}</option>
+            ))}
+          </select>
         </div>
         <button
           onClick={fetchReport}
@@ -217,9 +240,12 @@ export default function MonthlyReportPanel() {
         <button
           onClick={downloadXlsx}
           disabled={loading || !month}
+          title={exportStaffId ? "הורד אקסל של העובד שנבחר" : "הורד אקסל של כל העובדים"}
           className="flex items-center justify-center gap-2 px-4 py-2 border border-accent text-accent text-sm font-semibold hover:bg-accent hover:text-bone disabled:opacity-40 transition-colors whitespace-nowrap"
         >
-          <Users size={13} /> הורד אקסל — כל העובדים
+          {exportStaffId
+            ? <><User size={13} /> הורד אקסל</>
+            : <><Users size={13} /> הורד אקסל — כל העובדים</>}
         </button>
       </div>
 
