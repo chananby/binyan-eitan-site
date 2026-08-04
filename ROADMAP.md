@@ -37,6 +37,17 @@
 
 ## הושלם (בייצור)
 
+- **"מי באתר כרגע" בלשונית נוכחות + אריחי סטטיסטיקה לחיצים** — **נפרס** (4.8.26,
+  `feature/onsite-panel-clickable-tiles` → main `bb63438`, `dpl_HmM3JGeHbokXS1ZagjDw7mthuU3H`;
+  אומת: `/admin` `x-matched-path` 200). (1) פאנל "מי באתר כרגע" נוסף ל-נוכחות ← live
+  מעל יומן היום — מציג רק את מי שעדיין באתר (יומן "לפי אתר" מציג את כל החתמות היום כולל
+  מי שיצא). מיחזר את `onSite` המחושב+foreman-scoped ואת `AttendanceBySiteGrid` — **בלי
+  fetch או חישוב חדש**. הפאנל בדשבורד לא נגע. (2) כל ארבעת אריחי הסטטיסטיקה למעלה הפכו
+  ללחיצים (`<button>`, מקלדת+focus-ring, hover/cursor): עובדים פעילים ← לשונית עובדים ·
+  באתר כרגע ← live/פאנל on-site · כניסות היום ← live/יומן היום · פרויקטים ← לשונית פרויקטים.
+  ניווט דרך `goToTab` + helper `goToAttendanceLive` (setAttendanceSubTab + scroll לעוגן) —
+  בלי מנגנון ניווט שני. בלי נגיעה בלוגיקת onSite/שליפות/endpoints. הערת ממונה: בלוק
+  אריחי הממונה הוא dead code (`isForeman = false`) — אין חשיפת ניווט לממונה.
 - **מסך היסטוריית מיקומים לעובד (אדמין בלבד)** — **נפרס** (4.8.26,
   `feature/worker-location-history` → main `9de8ab9`, `dpl_54VueKfugixCGZJnXFw5ttwY6TG3`;
   אומת: `/admin` `x-matched-path` 200, endpoint `403` ללא auth). תת-לשונית "מיקומים"
