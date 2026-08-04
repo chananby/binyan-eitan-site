@@ -23,6 +23,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../lib/admin-auth";
 import { israelDayStartISO } from "../../../../lib/israel-time";
+import { fetchAllRows } from "../../../../lib/supabase-pagination";
 import {
   aggregateAttendance,
   aggregateVacation,
@@ -121,21 +122,32 @@ export async function GET(req: NextRequest) {
   // gate. Verified safe: every live web / phone-call / clock-out row is
   // written 'approved' (column default), so nothing legitimate is dropped —
   // only pending (awaiting review) and rejected. One query serves both.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let attQuery: any = supabase
-    .from("attendance")
-    .select("staff_id, action, clock_at, created_at, project_id, status")
-    .is("deleted_at", null)
-    .gte("clock_at", israelDayStartISO(monthStart))
-    .lt("clock_at", israelDayStartISO(nextMonth));
-  if (staffId) attQuery = attQuery.eq("staff_id", staffId);
-  const { data: attRaw, error: attErr } = await attQuery;
-  if (attErr) {
-    console.error("[payroll] attendance err:", attErr.message);
-    return NextResponse.json({ error: attErr.message }, { status: 500 });
+  //
+  // MONEY-CRITICAL: paginate. A busy month across all workers exceeds the 1000-
+  // row cap and used to truncate silently → under-counted hours → wrong pay.
+  // Order (clock_at, id): chronological so aggregateAttendance reads firstIn/
+  // lastOut correctly, id tiebreaker keeps paging gap-free. fetchAllRows throws
+  // on any page error, so we never aggregate a partial (half-paid) set.
+  let attRaw: (AttendanceRow & { status?: string | null })[];
+  try {
+    attRaw = await fetchAllRows<AttendanceRow & { status?: string | null }>(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let q: any = supabase
+        .from("attendance")
+        .select("staff_id, action, clock_at, created_at, project_id, status")
+        .is("deleted_at", null)
+        .gte("clock_at", israelDayStartISO(monthStart))
+        .lt("clock_at", israelDayStartISO(nextMonth));
+      if (staffId) q = q.eq("staff_id", staffId); // filters BEFORE order
+      return q.order("clock_at", { ascending: true }).order("id", { ascending: true });
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "attendance fetch failed";
+    console.error("[payroll] attendance err:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
-  const attData = filterApprovedForPay((attRaw ?? []) as (AttendanceRow & { status?: string | null })[]);
-  const pendingCount = countPendingStatus((attRaw ?? []) as { status?: string | null }[]);
+  const attData = filterApprovedForPay(attRaw);
+  const pendingCount = countPendingStatus(attRaw as { status?: string | null }[]);
 
   // Vacation — month range, all staff (no project filter — vacation isn't per-project)
   const { data: vacData, error: vacErr } = await supabase

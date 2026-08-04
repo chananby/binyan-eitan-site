@@ -16,6 +16,7 @@ import ExcelJS from "exceljs";
 import { createServerClient } from "../../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 import { israelDayStartISO } from "../../../../../lib/israel-time";
+import { fetchAllRows } from "../../../../../lib/supabase-pagination";
 import {
   aggregateAttendance,
   aggregateVacation,
@@ -109,20 +110,34 @@ export async function GET(req: NextRequest) {
   // dropped retroactively-inserted rows from the XLSX the accountant saw,
   // producing under-payment. Same rule: absence markers with clock_at=NULL
   // live in vacation_days and aren't part of this attendance feed.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // Fetch with status, gate in JS (mirrors /api/admin/payroll). Only approved
   // reaches the accountant's file; pending (awaiting review) and rejected are
   // excluded, and pending is surfaced as a note row. Safe: live web /
   // phone-call / clock-out rows are all written 'approved'.
-  let attQuery: any = supabase
-    .from("attendance")
-    .select("staff_id, action, clock_at, created_at, status")
-    .is("deleted_at", null)
-    .gte("clock_at", israelDayStartISO(monthStart))
-    .lt("clock_at", israelDayStartISO(nextMonth));
-  if (staffId) attQuery = attQuery.eq("staff_id", staffId);
-  const { data: attRaw } = await attQuery;
-  const attData = filterApprovedForPay((attRaw ?? []) as (AttRow & { status?: string | null })[]);
+  //
+  // MONEY-CRITICAL: paginate (see /api/admin/payroll). A busy month exceeds the
+  // 1000-row cap and used to truncate silently → the accountant's file was
+  // short hours. Order (clock_at, id) = chronological + total. fetchAllRows
+  // throws on any page error, so a partial file never reaches the accountant.
+  let attRaw: (AttRow & { status?: string | null })[];
+  try {
+    attRaw = await fetchAllRows<AttRow & { status?: string | null }>(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let q: any = supabase
+        .from("attendance")
+        .select("staff_id, action, clock_at, created_at, status")
+        .is("deleted_at", null)
+        .gte("clock_at", israelDayStartISO(monthStart))
+        .lt("clock_at", israelDayStartISO(nextMonth));
+      if (staffId) q = q.eq("staff_id", staffId); // filters BEFORE order
+      return q.order("clock_at", { ascending: true }).order("id", { ascending: true });
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "attendance fetch failed";
+    console.error("[payroll/export] attendance err:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+  const attData = filterApprovedForPay(attRaw);
 
   // Incompleteness day count for the month (all six issue types) → a heads-up
   // note in the file. Non-blocking: any failure just drops the note, never

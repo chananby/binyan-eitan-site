@@ -11,6 +11,7 @@
  */
 
 import { israelDayStartISO } from "./israel-time";
+import { fetchAllRows } from "./supabase-pagination";
 import {
   computeIncompleteDays,
   summarizeIncomplete,
@@ -49,39 +50,50 @@ export async function loadIncompleteness(
   const fromISO = israelDayStartISO(from);
   const toISO = israelDayStartISO(toNext);
 
+  // Paginate all three feeds — a month across every worker/project can exceed
+  // the 1000-row cap; a truncated fetch would make the incompleteness gate MISS
+  // real gaps (or falsely flag complete days). The id tiebreaker makes each
+  // order total so paging is gap-free. fetchAllRows throws on error (as the old
+  // code did) — caught by loadIncompleteness's callers.
   // ── Attendance ─────────────────────────────────────────────────────────
-  let attQuery = supabase
-    .from("attendance")
-    .select("id, staff_id, action, clock_at, created_at, status, is_manual, project_id, staff:staff_id(name), project:project_id(name)")
-    .is("deleted_at", null)
-    .gte("clock_at", fromISO)
-    .lt("clock_at", toISO);
-  if (staffId) attQuery = attQuery.eq("staff_id", staffId);
-  if (projectIds !== null) attQuery = attQuery.in("project_id", projectIds);
-  const { data: attRaw, error: attErr } = await attQuery;
-  if (attErr) throw new Error(`incompleteness attendance: ${attErr.message}`);
+  const attRaw = await fetchAllRows<Record<string, unknown>>(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let q: any = supabase
+      .from("attendance")
+      .select("id, staff_id, action, clock_at, created_at, status, is_manual, project_id, staff:staff_id(name), project:project_id(name)")
+      .is("deleted_at", null)
+      .gte("clock_at", fromISO)
+      .lt("clock_at", toISO);
+    if (staffId) q = q.eq("staff_id", staffId);
+    if (projectIds !== null) q = q.in("project_id", projectIds);
+    return q.order("clock_at", { ascending: true }).order("id", { ascending: true });
+  });
 
   // ── worker_stuck failures ──────────────────────────────────────────────
-  let failQuery = supabase
-    .from("attendance_failures")
-    .select("id, staff_id, attempted_at, error_code, project_id, staff:staff_id(name), project:project_id(name)")
-    .eq("category", "worker_stuck")
-    .gte("attempted_at", fromISO)
-    .lt("attempted_at", toISO);
-  if (staffId) failQuery = failQuery.eq("staff_id", staffId);
-  if (projectIds !== null) failQuery = failQuery.in("project_id", projectIds);
-  const { data: failRaw, error: failErr } = await failQuery;
-  if (failErr) throw new Error(`incompleteness failures: ${failErr.message}`);
+  const failRaw = await fetchAllRows<Record<string, unknown>>(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let q: any = supabase
+      .from("attendance_failures")
+      .select("id, staff_id, attempted_at, error_code, project_id, staff:staff_id(name), project:project_id(name)")
+      .eq("category", "worker_stuck")
+      .gte("attempted_at", fromISO)
+      .lt("attempted_at", toISO);
+    if (staffId) q = q.eq("staff_id", staffId);
+    if (projectIds !== null) q = q.in("project_id", projectIds);
+    return q.order("attempted_at", { ascending: true }).order("id", { ascending: true });
+  });
 
   // ── Pending corrections ────────────────────────────────────────────────
-  let corrQuery = supabase
-    .from("attendance_corrections")
-    .select("id, staff_id, staff:staff_id(name), attendance:attendance_id(clock_at, created_at, project_id, project:project_id(name))")
-    .eq("status", "pending");
-  if (staffId) corrQuery = corrQuery.eq("staff_id", staffId);
-  if (projectIds !== null) corrQuery = corrQuery.in("attendance.project_id", projectIds);
-  const { data: corrRaw, error: corrErr } = await corrQuery;
-  if (corrErr) throw new Error(`incompleteness corrections: ${corrErr.message}`);
+  const corrRaw = await fetchAllRows<Record<string, unknown>>(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let q: any = supabase
+      .from("attendance_corrections")
+      .select("id, staff_id, staff:staff_id(name), attendance:attendance_id(clock_at, created_at, project_id, project:project_id(name))")
+      .eq("status", "pending");
+    if (staffId) q = q.eq("staff_id", staffId);
+    if (projectIds !== null) q = q.in("attendance.project_id", projectIds);
+    return q.order("id", { ascending: true });
+  });
 
   // ── Flatten joins → engine input ───────────────────────────────────────
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

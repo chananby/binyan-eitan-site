@@ -24,6 +24,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
+import { fetchAllRows } from "../../../../../lib/supabase-pagination";
 import {
   isAuthedFromRequest,
   getAdminRoleFromRequest,
@@ -92,24 +93,25 @@ export async function GET(req: NextRequest) {
   const todayStartISO = israelDayStartISO(todayYmd);
   const cutoffISO = new Date(Date.now() - 72 * 3600 * 1000).toISOString();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let query: any = supabase
-    .from("attendance")
-    .select("action, clock_at, created_at, project_id, staff:staff_id(id, name), project:project_id(id, name)")
-    .is("deleted_at", null)
-    .in("action", ["in", "כניסה", "out", "יציאה"])
-    .gte("clock_at", cutoffISO)
-    .lt("clock_at", todayStartISO)
-    .order("clock_at", { ascending: true });
-
-  if (projectIds !== null) {
-    query = query.in("project_id", projectIds);
-  }
-
-  const { data, error } = await query;
-  if (error) {
-    console.error("[attendance/stale-opens]", JSON.stringify(error));
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  // Paginate (shared helper) so a busy 72h window across all workers never
+  // truncates at the 1000-row cap. id tiebreaker on clock_at → total → gap-free.
+  let data: AttRow[];
+  try {
+    data = await fetchAllRows<AttRow>(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let q: any = supabase
+        .from("attendance")
+        .select("action, clock_at, created_at, project_id, staff:staff_id(id, name), project:project_id(id, name)")
+        .is("deleted_at", null)
+        .in("action", ["in", "כניסה", "out", "יציאה"])
+        .gte("clock_at", cutoffISO)
+        .lt("clock_at", todayStartISO);
+      if (projectIds !== null) q = q.in("project_id", projectIds);
+      return q.order("clock_at", { ascending: true }).order("id", { ascending: true });
+    });
+  } catch (e) {
+    console.error("[attendance/stale-opens]", e instanceof Error ? e.message : e);
+    return NextResponse.json({ error: e instanceof Error ? e.message : "fetch failed" }, { status: 500 });
   }
 
   // Group by (staff × Israel-local YMD). Within each group, count entries

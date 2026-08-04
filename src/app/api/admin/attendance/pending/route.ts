@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
+import { fetchAllRows } from "../../../../../lib/supabase-pagination";
 import {
   isAuthedFromRequest,
   getRoleFromRequest,
@@ -17,21 +18,9 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient();
   const role = getRoleFromRequest(req);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let query: any = supabase
-    .from("attendance")
-    // edited_by lets the admin panel show WHO submitted a foreman-created
-    // pending row ("foreman:<name>") alongside the worker's name.
-    // edit_note carries the optional reason the foreman typed when they
-    // submitted the row — surfaces as a "הערה" line so the admin can
-    // spot patterns (GPS overrides, forgotten clocks, etc.) without
-    // opening every row.
-    .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, source, edited_by, edit_note, staff:staff_id(id, name, phone, role, attendance_exempt), project:project_id(id, name)")
-    .is("deleted_at", null)
-    .eq("status", "pending")
-    .eq("is_manual", true)
-    .order("created_at", { ascending: false });
-
+  // Foreman scope — resolved ONCE (async) before paging, so we don't re-query
+  // projects on every page.
+  let foremanProjectIds: string[] | null = null;
   if (role === "foreman") {
     const staffId = getForemanStaffIdFromRequest(req);
     if (!staffId) return NextResponse.json({ records: [] });
@@ -45,14 +34,31 @@ export async function GET(req: NextRequest) {
     }
     const ids = (myProjects ?? []).map((p) => p.id);
     if (ids.length === 0) return NextResponse.json({ records: [] });
-    query = query.in("project_id", ids);
+    foremanProjectIds = ids;
   }
 
-  const { data, error } = await query;
-  if (error) {
-    console.error("[admin/attendance/pending]", JSON.stringify(error));
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  // Paginate (shared helper) — pending-manual rows are few, but one source of
+  // truth avoids ever silently capping at 1000. id tiebreaker on created_at →
+  // total order → gap-free paging.
+  let data: unknown[];
+  try {
+    data = await fetchAllRows(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let q: any = supabase
+        .from("attendance")
+        // edited_by lets the admin panel show WHO submitted a foreman-created
+        // pending row; edit_note carries the optional reason as a "הערה" line.
+        .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, source, edited_by, edit_note, staff:staff_id(id, name, phone, role, attendance_exempt), project:project_id(id, name)")
+        .is("deleted_at", null)
+        .eq("status", "pending")
+        .eq("is_manual", true);
+      if (foremanProjectIds !== null) q = q.in("project_id", foremanProjectIds);
+      return q.order("created_at", { ascending: false }).order("id", { ascending: false });
+    });
+  } catch (e) {
+    console.error("[admin/attendance/pending]", e instanceof Error ? e.message : e);
+    return NextResponse.json({ error: e instanceof Error ? e.message : "fetch failed" }, { status: 500 });
   }
 
-  return NextResponse.json({ records: data ?? [] });
+  return NextResponse.json({ records: data });
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "../../../../../lib/supabase";
+import { fetchAllRows } from "../../../../../lib/supabase-pagination";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 import { israelDayStartISO } from "../../../../../lib/israel-time";
 import { workDate, israelYMD } from "../../../../../lib/attendance-time";
@@ -31,16 +32,22 @@ export async function GET(req: NextRequest) {
   // time in code below, mirroring /api/admin/attendance/report.
   const windowStart = israelDayStartISO(shiftYMD(sinceYMD, -3));
 
-  const { data, error } = await supabase
-    .from("attendance")
-    .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, source, staff:staff_id(id, name, phone, role, attendance_exempt), project:project_id(id, name)")
-    .is("deleted_at", null)
-    .gte("created_at", windowStart)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("[admin/attendance/recent]", JSON.stringify(error));
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  // Paginate (shared helper) — one source of truth so this never truncates at
+  // the 1000-row cap. id tiebreaker on the created_at order → total → gap-free.
+  let data: Array<{ clock_at?: string | null; created_at: string }>;
+  try {
+    data = await fetchAllRows(() =>
+      supabase
+        .from("attendance")
+        .select("id, action, timestamp_label, clock_at, created_at, is_manual, status, lat, lng, distance_from_project_m, source, staff:staff_id(id, name, phone, role, attendance_exempt), project:project_id(id, name)")
+        .is("deleted_at", null)
+        .gte("created_at", windowStart)
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false }),
+    );
+  } catch (e) {
+    console.error("[admin/attendance/recent]", e instanceof Error ? e.message : e);
+    return NextResponse.json({ error: e instanceof Error ? e.message : "fetch failed" }, { status: 500 });
   }
 
   // Authoritative filter: keep rows whose WORK day (clock_at, falling back to

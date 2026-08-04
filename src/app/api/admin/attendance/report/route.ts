@@ -24,6 +24,7 @@ import {
 } from "../../../../../lib/admin-auth";
 import { createServerClient } from "../../../../../lib/supabase";
 import { israelDayStartISO, israelDayEndISO } from "../../../../../lib/israel-time";
+import { fetchAllRows } from "../../../../../lib/supabase-pagination";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -101,25 +102,32 @@ export async function GET(req: NextRequest) {
     // backfills — same C2/C3 fix applied earlier to staff/[id]/history
     // and staff/export. The in-code clock_at filter (workDate) still
     // clamps output to [from, to] so the widened SQL doesn't leak.
-    let query = supabase
-      .from("attendance")
-      .select("id, action, clock_at, created_at, staff:staff_id(id, name, phone), project:project_id(name)")
-      .is("deleted_at", null)
-      .gte("created_at", dayStartISO(shiftYMD(from, -35)))
-      .lte("created_at", dayEndISO(shiftYMD(to, +35)));
-
-    if (allowedProjectIds !== null) {
-      query = query.in("project_id", allowedProjectIds);
-    }
-
-    const { data, error } = await query.order("created_at", { ascending: true });
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    // Paginate: a wide date range across all workers exceeds the 1000-row cap
+    // and used to truncate silently. Keep the existing created_at order + an id
+    // tiebreaker so paging is total (no gaps); the grouping below re-sorts.
+    type AttReportRow = {
+      id: string; action: string; clock_at: string | null; created_at: string;
+      staff: unknown; project: unknown;
+    };
+    let data: AttReportRow[];
+    try {
+      data = await fetchAllRows<AttReportRow>(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let q: any = supabase
+          .from("attendance")
+          .select("id, action, clock_at, created_at, staff:staff_id(id, name, phone), project:project_id(name)")
+          .is("deleted_at", null)
+          .gte("created_at", dayStartISO(shiftYMD(from, -35)))
+          .lte("created_at", dayEndISO(shiftYMD(to, +35)));
+        if (allowedProjectIds !== null) q = q.in("project_id", allowedProjectIds);
+        return q.order("created_at", { ascending: true }).order("id", { ascending: true });
+      });
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : "attendance fetch failed" }, { status: 500 });
     }
 
     // ── Group: staffId → workDateStr → { entries[], exits[], projects[] } ──────
-    type Rec = typeof data[number];
+    type Rec = AttReportRow;
     const grouped = new Map<string, Map<string, { entries: Rec[]; exits: Rec[]; staffName: string; staffPhone: string; projects: string[] }>>();
 
     for (const rec of data ?? []) {

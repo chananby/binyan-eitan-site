@@ -17,6 +17,7 @@ import ExcelJS from "exceljs";
 import { createServerClient } from "../../../../../lib/supabase";
 import { isAdminAuthedFromRequest } from "../../../../../lib/admin-auth";
 import { israelDayStartISO } from "../../../../../lib/israel-time";
+import { fetchAllRows } from "../../../../../lib/supabase-pagination";
 import {
   aggregateAttendance,
   type AttendanceRec,
@@ -141,17 +142,24 @@ export async function GET(req: NextRequest) {
   queryWindow.setUTCDate(queryWindow.getUTCDate() - 35);
   const queryWindowStart = queryWindow.toISOString().slice(0, 10);
 
-  const { data: attData } = await supabase
-    .from("attendance")
-    .select("staff_id, action, clock_at, created_at")
-    .is("deleted_at", null)
-    .gte("created_at", israelDayStartISO(queryWindowStart));
+  // Paginate: this 3-month window across all workers exceeds the 1000-row cap
+  // and used to truncate silently → the export's days/hours (which must match
+  // the pay slips) were short. Order (clock_at, id) = chronological (the shared
+  // payroll-aggregate reads firstIn/lastOut in order) + total tiebreaker.
+  const attRows = await fetchAllRows<AttendanceRec>(() =>
+    supabase
+      .from("attendance")
+      .select("staff_id, action, clock_at, created_at")
+      .is("deleted_at", null)
+      .gte("created_at", israelDayStartISO(queryWindowStart))
+      .order("clock_at", { ascending: true })
+      .order("id", { ascending: true }),
+  );
 
   // Aggregation reuses the same helper that drives /api/admin/payroll/* so
   // days/hours math is byte-identical to the pay slips the accountant sees.
   // The helper expects a "YYYY-MM" prefix that gates which records count —
   // we pass empty string so EVERY record in the queried window is included.
-  const attRows = (attData ?? []) as AttendanceRec[];
   // Build a stats map covering the whole 3-month window by aggregating
   // each month separately and summing.
   const months: string[] = [];

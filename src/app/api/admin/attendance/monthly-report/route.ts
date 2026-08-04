@@ -32,6 +32,7 @@ import {
   getForemanStaffIdFromRequest,
 } from "../../../../../lib/admin-auth";
 import { israelDayStartISO, israelDayEndISO } from "../../../../../lib/israel-time";
+import { fetchAllRows } from "../../../../../lib/supabase-pagination";
 import { workDate, israelYMD } from "../../../../../lib/attendance-time";
 import { includeInReport } from "../../../../../lib/payroll-include";
 import { filterApprovedForPay } from "../../../../../lib/payroll-attendance";
@@ -148,20 +149,32 @@ export async function GET(req: NextRequest) {
   // Fetch with status, gate in JS (mirrors the payroll routes): the report
   // body shows approved only; pending (foreman awaiting review) and rejected
   // are excluded, with pending surfaced as a separate count/warning.
-  let attQuery = supabase
-    .from("attendance")
-    .select("staff_id, action, clock_at, created_at, status, project:project_id(name)")
-    .is("deleted_at", null)
-    .gte("created_at", israelDayStartISO(shiftYMD(from, -35)))
-    .lte("created_at", israelDayEndISO(shiftYMD(to, +35)))
-    .order("clock_at", { ascending: true });
-  if (allowedProjectIds !== null) {
-    attQuery = attQuery.in("project_id", allowedProjectIds);
-  }
-  const { data: attRawAll, error: attErr } = await attQuery;
-  if (attErr) {
-    console.error("[monthly-report] att", JSON.stringify(attErr));
-    return NextResponse.json({ error: attErr.message }, { status: 500 });
+  // Paginate: a full month across all workers exceeds the 1000-row cap and used
+  // to truncate silently — the report went blank from mid-month (rows past 1000
+  // in clock_at order were dropped). Order (clock_at, id) = the existing
+  // chronological order + an id tiebreaker so paging is total (no gaps).
+  // buildMonthlyReport re-sorts each day internally, so order only matters for
+  // completeness here. fetchAllRows throws on any page error → no partial report.
+  type RawRow = MonthlyReportAttendanceRow & { status?: string | null };
+  let attRawAll: RawRow[];
+  try {
+    attRawAll = await fetchAllRows<RawRow>(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let q: any = supabase
+        .from("attendance")
+        .select("staff_id, action, clock_at, created_at, status, project:project_id(name)")
+        .is("deleted_at", null)
+        .gte("created_at", israelDayStartISO(shiftYMD(from, -35)))
+        .lte("created_at", israelDayEndISO(shiftYMD(to, +35)));
+      if (allowedProjectIds !== null) {
+        q = q.in("project_id", allowedProjectIds); // filters BEFORE order
+      }
+      return q.order("clock_at", { ascending: true }).order("id", { ascending: true });
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "attendance fetch failed";
+    console.error("[monthly-report] att", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
   const attRaw = filterApprovedForPay(
     (attRawAll ?? []) as unknown as (MonthlyReportAttendanceRow & { status?: string | null })[],
