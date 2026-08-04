@@ -1504,6 +1504,19 @@ export default function AdminPortal() {
     }
   }
 
+  /** Deep-link to the attendance "live" sub-tab and scroll to a panel anchor.
+   *  Reuses goToTab + setAttendanceSubTab (no second nav mechanism). The scroll
+   *  waits one tick so the tab content is mounted before scrollIntoView runs. */
+  function goToAttendanceLive(anchorId?: string) {
+    goToTab("attendance");
+    setAttendanceSubTab("live");
+    if (anchorId && typeof window !== "undefined") {
+      setTimeout(() => {
+        document.getElementById(anchorId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 60);
+    }
+  }
+
   /** Anchor href for a tab key — dashboard is the bare path (no hash) so
    *  the canonical landing URL stays clean; every other tab carries its
    *  hash so Ctrl+Click / middle-click open that tab fresh in a new
@@ -1738,15 +1751,23 @@ export default function AdminPortal() {
                 // keeps the accent because it's the one number that
                 // changes minute-to-minute and reflects "right now"; the
                 // others are cumulative facts that don't need a hue.
-                { label: "עובדים פעילים", value: staff.filter(s => s.active).length, color: "text-charcoal" },
-                { label: "באתר כרגע",     value: onSite.length,                       color: "text-accent" },
-                { label: "כניסות היום",   value: todayLogs.filter(r => r.action === "כניסה" || r.action === "in").length, color: "text-charcoal" },
-                { label: "פרויקטים",      value: activeProjects.length,               color: "text-charcoal" },
+                // Each tile deep-links to where its number lives (goToTab /
+                // goToAttendanceLive — no new nav path).
+                { label: "עובדים פעילים", value: staff.filter(s => s.active).length, color: "text-charcoal", onClick: () => goToTab("workers"), title: "מעבר ללשונית עובדים" },
+                { label: "באתר כרגע",     value: onSite.length,                       color: "text-accent",   onClick: () => goToAttendanceLive("attendance-onsite"), title: "מי באתר כרגע — נוכחות חיה" },
+                { label: "כניסות היום",   value: todayLogs.filter(r => r.action === "כניסה" || r.action === "in").length, color: "text-charcoal", onClick: () => goToAttendanceLive("attendance-today"), title: "יומן היום — נוכחות חיה" },
+                { label: "פרויקטים",      value: activeProjects.length,               color: "text-charcoal", onClick: () => goToTab("projects"), title: "מעבר ללשונית פרויקטים" },
               ].map(s => (
-                <div key={s.label} className="bg-white border border-warm-gray-light p-3 text-center">
+                <button
+                  key={s.label}
+                  type="button"
+                  onClick={s.onClick}
+                  title={s.title}
+                  className="bg-white border border-warm-gray-light p-3 text-center cursor-pointer transition-colors hover:border-accent hover:bg-accent/[0.04] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
                   <div className={`font-heading text-2xl font-bold ${s.color}`}>{s.value}</div>
                   <div className="text-[0.75rem] text-charcoal/60 mt-0.5 leading-tight">{s.label}</div>
-                </div>
+                </button>
               ))}
             </>
           )}
@@ -1881,6 +1902,7 @@ export default function AdminPortal() {
             failuresErr={failuresErr}
             onLoadFailures={loadFailures}
             todayLogs={todayLogs}
+            onSiteRecords={onSite.map((e) => e.record)}
             dataLoading={dataLoading}
             attLoadErr={attLoadErr}
             onReload={reload}

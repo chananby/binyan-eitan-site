@@ -1023,6 +1023,48 @@ function TodayLogBySite({
   );
 }
 
+// "מי באתר כרגע" — a focused "who is STILL on site" view for the live tab.
+// The "לפי אתר" today-log below shows everyone who clocked in today (including
+// those who already left); this panel shows only the currently-open workers,
+// grouped by site, so the evening question "who's still there?" is answered at
+// a glance. Read-only (name + since-time) — the same shape the dashboard uses.
+// Reuses the parent's onSite (no fetch/compute here) via AttendanceBySiteGrid.
+function LiveOnSitePanel({ records }: { records: AttendanceRecord[] }) {
+  return (
+    <Card>
+      <div className="flex items-center gap-2 mb-3">
+        <h2 className="font-heading text-base font-bold">⚡ מי באתר כרגע</h2>
+        <span className="text-caption text-charcoal/60">({records.length})</span>
+      </div>
+      {records.length === 0 ? (
+        <p className="text-content text-charcoal text-center py-2">אין עובדים מדווחים כרגע</p>
+      ) : (
+        <AttendanceBySiteGrid
+          records={records}
+          columnsClassName="grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
+          renderRow={(r) => {
+            const t = r.clock_at
+              ? new Date(r.clock_at).toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" })
+              : new Date(r.recorded_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+            const role = r.staff?.role;
+            return (
+              <div className="flex items-center justify-between py-2 gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-content font-semibold text-charcoal truncate">{r.staff?.name ?? "—"}</p>
+                  {role && role !== "עובד" && (
+                    <p className="text-caption text-charcoal/85">{role}</p>
+                  )}
+                </div>
+                <span className="text-caption font-semibold text-green-700 tabular-nums shrink-0">מ-{t}</span>
+              </div>
+            );
+          }}
+        />
+      )}
+    </Card>
+  );
+}
+
 function TodayLog({
   todayLogs, dataLoading, attLoadErr,
   onReload, onStartEditAtt, onViewHistory,
@@ -1502,6 +1544,10 @@ type Props = {
 
   // Today + recent
   todayLogs:   AttendanceRecord[];
+  // Workers currently on site (most-recent row is a clock-IN) — already
+  // computed + foreman-scoped in the parent (same value the dashboard uses).
+  // Passed as bare records so the "מי באתר כרגע" panel reuses AttendanceBySiteGrid.
+  onSiteRecords: AttendanceRecord[];
   dataLoading: boolean;
   attLoadErr:  string | null;
   onReload:    () => void;
@@ -1783,17 +1829,25 @@ export default function AttendanceTab(p: Props) {
 
       <AbsentTodayPanel absentList={p.absentTodayList} />
 
-      <TodayLog
-        todayLogs={p.todayLogs}
-        dataLoading={p.dataLoading}
-        attLoadErr={p.attLoadErr}
-        onReload={p.onReload}
-        onStartEditAtt={p.onStartEditAtt}
-        onViewHistory={p.onViewHistory}
-        edit={edit}
-        projects={p.projects}
-        farThresholdM={p.farThresholdM}
-      />
+      {/* scroll-mt keeps the anchor clear of the sticky header when the tile
+          deep-links here. */}
+      <div id="attendance-onsite" className="scroll-mt-24">
+        <LiveOnSitePanel records={p.onSiteRecords} />
+      </div>
+
+      <div id="attendance-today" className="scroll-mt-24">
+        <TodayLog
+          todayLogs={p.todayLogs}
+          dataLoading={p.dataLoading}
+          attLoadErr={p.attLoadErr}
+          onReload={p.onReload}
+          onStartEditAtt={p.onStartEditAtt}
+          onViewHistory={p.onViewHistory}
+          edit={edit}
+          projects={p.projects}
+          farThresholdM={p.farThresholdM}
+        />
+      </div>
 
       <RecentLogs
         recentLogs={p.recentLogs}
