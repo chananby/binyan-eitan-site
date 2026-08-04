@@ -173,6 +173,60 @@ describe("stuck_failure — double-tap OUT is noise, real orphan is kept", () =>
   });
 });
 
+describe("stuck_failure — a resolved no_open_entry_to_close (day completed) is dropped", () => {
+  const DAY = "2026-07-10"; // past day, before TODAY
+  const stuckFail = (id: string, code = "no_open_entry_to_close"): EngineFailureRow => ({
+    id, staff_id: "s1", staff_name: "name-s1",
+    attempted_at: `${DAY}T12:00:00+03:00`, project_id: "p1", project_name: "Proj 1", error_code: code,
+  });
+
+  it("drops the failure when the day now has a complete entry+exit pair (Sayeg/Osnaka)", () => {
+    // The day was fixed manually (entry 08:00 + exit 18:45 added after the fail).
+    const items = run({
+      attendance: [
+        att("in1",  "s1", DAY, "08:00", "כניסה", { is_manual: true }),
+        att("out1", "s1", DAY, "18:45", "יציאה", { is_manual: true }),
+      ],
+      failures: [stuckFail("f1")],
+    });
+    expect(items.some((i) => i.issue === "stuck_failure")).toBe(false);
+    // the complete day is not re-flagged as no_exit / no_entry either
+    expect(items.some((i) => i.issue === "no_exit" || i.issue === "no_entry")).toBe(false);
+  });
+
+  it("keeps a genuine orphan OUT — the day has NO entry", () => {
+    const items = run({
+      attendance: [att("out2", "s1", DAY, "16:00", "יציאה")], // exit only, no entry → not complete
+      failures: [stuckFail("f2")],
+    });
+    expect(items.some((i) => i.issue === "stuck_failure")).toBe(true);
+  });
+
+  it("drops the failure on a still-pending completion, but it re-surfaces as pending_manual", () => {
+    const items = run({
+      attendance: [
+        att("pin",  "s1", DAY, "08:00", "כניסה", { is_manual: true, status: "pending" }),
+        att("pout", "s1", DAY, "18:45", "יציאה", { is_manual: true, status: "pending" }),
+      ],
+      failures: [stuckFail("f3")],
+    });
+    expect(items.some((i) => i.issue === "stuck_failure")).toBe(false);   // resolved (pair present)
+    expect(items.some((i) => i.issue === "pending_manual")).toBe(true);   // not lost silently
+  });
+
+  it("does NOT drop a resolved-looking day for OTHER error codes (scoped)", () => {
+    // A complete day must NOT silence e.g. gps_out_of_range (its remedy is add_day).
+    const items = run({
+      attendance: [
+        att("gin",  "s1", DAY, "08:00", "כניסה"),
+        att("gout", "s1", DAY, "18:45", "יציאה"),
+      ],
+      failures: [stuckFail("f4", "gps_out_of_range")],
+    });
+    expect(items.some((i) => i.issue === "stuck_failure")).toBe(true);
+  });
+});
+
 describe("computeIncompleteDays — edge cases", () => {
   it("does NOT flag today's open entry as no_exit (in-progress)", () => {
     const items = run({ attendance: [att("e3", "s1", TODAY, "07:00", "כניסה")] });
