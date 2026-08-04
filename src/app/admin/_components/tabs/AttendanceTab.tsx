@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import {
   BarChart2, Loader2, Download, AlertCircle, Calendar, Plus,
   AlertTriangle, RefreshCw, Building2, Pencil, History, Phone, UserX,
-  ChevronDown, ChevronUp, XCircle, MessageCircle,
+  ChevronDown, ChevronUp, XCircle, MessageCircle, MapPin,
 } from "lucide-react";
 import { WORKER_LANG_FLAGS, WORKER_LANG_LABEL_HE, isWorkerLangCode } from "../../../../lib/worker-language";
 import { labelFor, describeFailure, formatRelative } from "../../../../lib/attendance-failure-labels";
@@ -17,13 +17,14 @@ import DistanceFlag from "../shared/DistanceFlag";
 import { AttendanceBySiteGrid } from "../shared/AttendanceBySiteGrid";
 import CorrectionRequestsPanel, { type CorrectionRequest } from "../shared/CorrectionRequestsPanel";
 import MonthlyReportPanel from "../shared/MonthlyReportPanel";
+import LocationHistoryPanel from "../shared/LocationHistoryPanel";
 import IncompletePanel from "../shared/IncompletePanel";
 import type { IncompleteItem, IncompleteSummary } from "../../../../lib/attendance-incompleteness";
 import WorkerHistoryPanel from "./WorkerHistoryPanel";
 import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
 import { attendanceTimeHHMM, attendanceDayTimeShort, israelYMD, isEntry, isExit } from "../../../../lib/attendance-time";
 
-export type AttendanceSubTab = "live" | "history" | "reports" | "failures" | "incomplete";
+export type AttendanceSubTab = "live" | "history" | "locations" | "reports" | "failures" | "incomplete";
 
 /** One row of the silent-failure log (loaded from
  *  /api/admin/attendance/failures — worker_stuck category, last 24h). */
@@ -1667,6 +1668,13 @@ export default function AttendanceTab(p: Props) {
           היסטוריית עובד
         </SubTabButton>
         <SubTabButton
+          active={p.subTab === "locations"}
+          onClick={() => p.setSubTab("locations")}
+          icon={<MapPin size={13} strokeWidth={1.5} />}
+        >
+          מיקומים
+        </SubTabButton>
+        <SubTabButton
           active={p.subTab === "reports"}
           onClick={() => p.setSubTab("reports")}
           icon={<BarChart2 size={13} strokeWidth={1.5} />}
@@ -1726,6 +1734,10 @@ export default function AttendanceTab(p: Props) {
           onReload={p.onLoadHistory}
           pendingCorrectionAttIds={new Set(p.correctionRequests.map((c) => c.attendance_id))}
         />
+      )}
+
+      {p.subTab === "locations" && (
+        <LocationHistoryPanel staff={p.staff} />
       )}
 
       {/* Reports (history, not "today") — moved out of the crowded live tab. */}
