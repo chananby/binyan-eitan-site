@@ -16,7 +16,7 @@
  * whitespace + a thick border so a screenshot has a clean edge.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AlertCircle, AlertTriangle, BarChart2, Loader2, Printer, User, Users } from "lucide-react";
 import { Card } from "./Card";
@@ -93,7 +93,6 @@ export default function MonthlyReportPanel() {
   // Which worker block is currently being printed (a copy is portaled to
   // <body> as `.report-print-root` and the print stylesheet shows only it).
   const [printingId, setPrintingId] = useState<string | null>(null);
-  const prevTitleRef = useRef<string | null>(null);
   // Generation date stamped on the printed slip + PDF title. DD.MM.YYYY with
   // DOTS — never "/" or "#", which browsers mangle in the Save-as-PDF filename
   // (the lesson from the quote generator). Computed once per mount.
@@ -148,8 +147,14 @@ export default function MonthlyReportPanel() {
   // flags the one block; the effect below drives window.print(). No endpoint
   // hit — it prints the already-rendered DOM, so it can't diverge from the
   // numbers on screen.
+  //
+  // The title is set here and DELIBERATELY NOT restored afterwards. We used to
+  // restore it in `afterprint`, but some browsers fire afterprint when the print
+  // dialog OPENS (not when it closes), which reset the title before the browser
+  // derived the Save-as-PDF filename → the file came out unnamed/generic.
+  // Leaving the title decouples the filename from that timing; the tab title
+  // (harmless) is simply overwritten by the next print or on navigation.
   function printBlock(block: WorkerBlock) {
-    prevTitleRef.current = document.title;
     document.title = `דוח נוכחות - ${block.staff.name} - ${heMonthLabel(month)} - ${genDate}`;
     setPrintingId(block.staff.id);
   }
@@ -160,13 +165,11 @@ export default function MonthlyReportPanel() {
     // Print on the next frame so the portal copy of the block is committed to
     // the DOM before the print dialog snapshots the page.
     const raf = requestAnimationFrame(() => window.print());
+    // afterprint ONLY undoes the print-isolation (body class + printingId), never
+    // the document title — see printBlock for why the title is left in place.
     const done = () => {
       document.body.classList.remove("printing-report-block");
       setPrintingId(null);
-      if (prevTitleRef.current !== null) {
-        document.title = prevTitleRef.current;
-        prevTitleRef.current = null;
-      }
     };
     window.addEventListener("afterprint", done, { once: true });
     return () => {
