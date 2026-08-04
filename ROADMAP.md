@@ -37,6 +37,22 @@
 
 ## הושלם (בייצור)
 
+- **🔴 תיקון pagination — תקרת 1000 שורות קטעה שכר ודוחות בשקט** — **נפרס**
+  (3.8.26, `fix/attendance-pagination` → main `1018c46`, `dpl_6AaSjcVxPYm2L4Gw5qerigyThAPg`).
+  PostgREST חוסם תשובה ב-`max_rows`=1000 **ומקצץ בשקט**. כל שאילתה שמשכה חודש
+  נוכחות לכל העובדים החזירה רק ~1000 שורות → **שכר עם שעות חסרות** (הגרוע: בלי
+  `.order()` כלל, לא-דטרמיניסטי), דוח חודשי ריק מאמצע החודש, ומרכז החוסרים סימן
+  ימים שלמים כחסרים (פנטומים). **לא רגרסיה מקומיט — באג לטנטי שחצה סף קנה-מידה.**
+  - **Helper משותף** [`lib/supabase-pagination.ts`](src/lib/supabase-pagination.ts)
+    `fetchAllRows` — לולאת `.range()` עד עמוד חלקי, סדר טוטאלי (`+.order("id")`),
+    **זורק על שגיאה** (בלי חצי-תוצאה). 6 unit-tests.
+  - **הוחל על:** payroll, payroll/export, monthly-report, staff/export,
+    attendance/report, מנוע האי-שלמות (×3 טבלאות), ו-pending/recent/today/stale-opens.
+    האגרגציות לא נגעו. סדר מסלולי-הכסף `(clock_at, id)` — כרונולוגי (תיקן גם חוסר-סדר
+    לטנטי ב-payroll-aggregate) + tiebreaker.
+  - **אימות:** build + 429 tests. **המספרים (אג'יט 22/229.5, שכר, ספירת שורות,
+    מספר חוסרים מול 89) — לאמת מול נתונים אמיתיים** (אין גישת DB מהסביבה).
+
 ### שכבה 1 — חיבור מסמכים
 - **טריאז' שיוך פרויקט** (`/admin/documents/triage`) — walkthrough אופטימי,
   chips פרויקטים פעילים + תקורות, undo toast.
