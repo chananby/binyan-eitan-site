@@ -89,10 +89,10 @@ interface StaffLite { id: string; name: string; active: boolean }
 
 export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
   const [month, setMonth]     = useState<string>(currentMonth);
-  // Direct-export scope: "" = all workers (default). Picking a worker lets the
-  // top "הורד אקסל" pull ONE worker's XLSX without generating the report first
-  // (the endpoint already takes staff_id — no server change).
-  const [exportStaffId, setExportStaffId] = useState<string>("");
+  // Worker scope: "" = all workers (default). Picking a worker narrows BOTH the
+  // on-screen report ("הפק דוח") and the XLSX export to that one worker — the
+  // endpoint already takes staff_id, so it's just an extra query param.
+  const [selectedStaffId, setSelectedStaffId] = useState<string>("");
   const [data, setData]       = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr]         = useState<string | null>(null);
@@ -112,7 +112,8 @@ export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
     if (!month) return;
     setLoading(true); setErr(null); setData(null);
     try {
-      const res = await fetch(`/api/admin/attendance/monthly-report?month=${month}`);
+      const staffParam = selectedStaffId ? `&staff_id=${selectedStaffId}` : "";
+      const res = await fetch(`/api/admin/attendance/monthly-report?month=${month}${staffParam}`);
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         throw new Error(d.error ?? `שגיאה ${res.status}`);
@@ -132,9 +133,9 @@ export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
     // a worker → that worker only; "" → all. The server builds the filename
     // (Content-Disposition), so the download attr here is just a fallback.
     const a = document.createElement("a");
-    const staffParam = exportStaffId ? `&staff_id=${exportStaffId}` : "";
+    const staffParam = selectedStaffId ? `&staff_id=${selectedStaffId}` : "";
     a.href = `/api/admin/attendance/monthly-report?month=${month}${staffParam}&format=xlsx`;
-    const who = exportStaffId ? (staff.find((s) => s.id === exportStaffId)?.name ?? "עובד") : "כל העובדים";
+    const who = selectedStaffId ? (staff.find((s) => s.id === selectedStaffId)?.name ?? "עובד") : "כל העובדים";
     a.download = `דוח נוכחות - ${who} - ${month}.xlsx`;
     document.body.appendChild(a);
     a.click();
@@ -216,10 +217,10 @@ export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
           />
         </div>
         <div>
-          <label className="block text-caption text-muted mb-1 font-body">עובד (לייצוא אקסל)</label>
+          <label className="block text-caption text-muted mb-1 font-body">עובד</label>
           <select
-            value={exportStaffId}
-            onChange={(e) => setExportStaffId(e.target.value)}
+            value={selectedStaffId}
+            onChange={(e) => { setSelectedStaffId(e.target.value); setData(null); }}
             className="w-full border border-warm-gray-light bg-bone text-charcoal text-content px-3 py-2 focus:outline-none focus:border-accent"
           >
             <option value="">כל העובדים</option>
@@ -240,10 +241,10 @@ export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
         <button
           onClick={downloadXlsx}
           disabled={loading || !month}
-          title={exportStaffId ? "הורד אקסל של העובד שנבחר" : "הורד אקסל של כל העובדים"}
+          title={selectedStaffId ? "הורד אקסל של העובד שנבחר" : "הורד אקסל של כל העובדים"}
           className="flex items-center justify-center gap-2 px-4 py-2 border border-accent text-accent text-sm font-semibold hover:bg-accent hover:text-bone disabled:opacity-40 transition-colors whitespace-nowrap"
         >
-          {exportStaffId
+          {selectedStaffId
             ? <><User size={13} /> הורד אקסל</>
             : <><Users size={13} /> הורד אקסל — כל העובדים</>}
         </button>
