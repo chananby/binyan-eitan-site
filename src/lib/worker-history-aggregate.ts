@@ -39,6 +39,21 @@ export interface WorkerHistoryRecord {
   created_at: string;
   status?: string | null;
   project?: { id: string; name: string } | null;
+  // GPS of this clock-in (display only) — surfaced on incomplete days so the
+  // admin can see whether the worker was on site. lat/lng absent for phone/manual.
+  lat?: string | number | null;
+  lng?: string | number | null;
+  distance_from_project_m?: number | null;
+  source?: string | null;
+}
+
+/** GPS of a single clock-in, as the UI's DistanceFlag consumes it (lat/lng
+ *  as strings). Attached to a day only when it is incomplete (no-exit/no-entry). */
+export interface DayLocation {
+  lat: string | null;
+  lng: string | null;
+  distance_from_project_m: number | null;
+  source: string | null;
 }
 
 export interface WorkerVacationDay {
@@ -91,11 +106,16 @@ export interface WorkerHistoryDay {
   /** Attendance row id for the day's last OUT record (only set when at
    *  least one exit exists). */
   exitId?: string;
+  /** Location of the day's existing clock-in — only set for no-exit (the
+   *  entry) / no-entry (the orphan exit). Absent for phone/manual (no GPS)
+   *  and for complete days. Feeds DistanceFlag in the history panel. */
+  location?: DayLocation;
 }
 
 interface RecordRef {
   id: string;
   at: Date;
+  loc: DayLocation;
 }
 
 interface DayBucket {
@@ -132,8 +152,14 @@ export function aggregateWorkerHistory(
     if (ymd < from || ymd > to) continue;
     if (!byDay.has(ymd)) byDay.set(ymd, { entries: [], exits: [], projects: [], hasPending: false });
     const bucket = byDay.get(ymd)!;
-    if (isEntry(rec.action)) bucket.entries.push({ id: rec.id, at: d });
-    else if (isExit(rec.action)) bucket.exits.push({ id: rec.id, at: d });
+    const loc: DayLocation = {
+      lat: rec.lat != null ? String(rec.lat) : null,
+      lng: rec.lng != null ? String(rec.lng) : null,
+      distance_from_project_m: rec.distance_from_project_m ?? null,
+      source: rec.source ?? null,
+    };
+    if (isEntry(rec.action)) bucket.entries.push({ id: rec.id, at: d, loc });
+    else if (isExit(rec.action)) bucket.exits.push({ id: rec.id, at: d, loc });
     if (rec.status === "pending") bucket.hasPending = true;
     const projName = rec.project?.name;
     if (projName) bucket.projects.push(projName);
@@ -214,11 +240,18 @@ export function aggregateWorkerHistory(
       : firstEntry ? "no-exit"
       : "no-entry";
 
+    // Location only for the two incomplete statuses, taken from the clock-in
+    // that DID happen: the open entry (no-exit) or the orphan exit (no-entry).
+    const locRec = status === "no-exit" ? firstEntry
+      : status === "no-entry" ? lastExit
+      : null;
+
     out.push({
       date: ymd, dayName, startTime, endTime, hours, status, project,
       ...(bucket.hasPending ? { hasPending: true } : {}),
       ...(firstEntry ? { entryId: firstEntry.id } : {}),
       ...(lastExit   ? { exitId:  lastExit.id  } : {}),
+      ...(locRec ? { location: locRec.loc } : {}),
     });
   }
   // Newest first — UI shows recent days at the top of the table.

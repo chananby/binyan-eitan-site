@@ -10,7 +10,25 @@ import { Field } from "../shared/Field";
 import { INPUT } from "../shared/constants";
 import DateField from "../shared/DateField";
 import AttendanceRowEditor, { type EditorMode } from "../shared/AttendanceRowEditor";
+import DistanceFlag from "../shared/DistanceFlag";
 import type { WorkerHistoryDay } from "../../../../lib/worker-history-aggregate";
+
+// Location of the existing clock-in on an incomplete day (no-exit = the open
+// entry, no-entry = the orphan exit) — tells the admin whether the worker was
+// on site. Reuses DistanceFlag; phone/manual (no GPS) get a neutral tag.
+function DayLocationFlag({ day, threshold }: { day: WorkerHistoryDay; threshold: number }) {
+  if (day.status !== "no-exit" && day.status !== "no-entry") return null;
+  const loc = day.location;
+  if (!loc) return null;
+  if (loc.lat && loc.lng) return <DistanceFlag r={loc} threshold={threshold} />;
+  if (loc.source) {
+    return (
+      <span className="inline-flex items-center text-[0.75rem] font-semibold px-1.5 py-0.5 bg-charcoal/[0.04] text-charcoal/50 ms-1.5"
+        title="החתמה ללא נתוני מיקום (טלפון/ידני)">ללא GPS</span>
+    );
+  }
+  return null;
+}
 
 // Israel-local YMD for "today" — used by quick shortcuts and by `max` on
 // the picker so an admin doesn't accidentally scroll into the future.
@@ -70,6 +88,8 @@ type Props = {
   /** attendance_ids that have an OPEN correction request — the editor flags a
    *  day whose entry/exit row is among them. */
   pendingCorrectionAttIds?: Set<string>;
+  /** Visual "far" threshold (m) for the incomplete-day location flag. */
+  farThresholdM?: number;
 };
 
 const STATUS_STYLE: Record<
@@ -341,6 +361,10 @@ export default function WorkerHistoryPanel(p: Props) {
                               <Clock size={12} strokeWidth={1.5} /> ממתין
                             </span>
                           )}
+                          {/* Location of the existing clock-in on an incomplete day. */}
+                          <span className="ms-1.5 inline-flex align-middle">
+                            <DayLocationFlag day={d} threshold={p.farThresholdM ?? 500} />
+                          </span>
                         </td>
                         <td className="px-2 py-1.5 border border-warm-gray-light text-end whitespace-nowrap">
                           <DayActions

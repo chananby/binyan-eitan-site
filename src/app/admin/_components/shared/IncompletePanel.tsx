@@ -17,11 +17,29 @@
 import React, { useState } from "react";
 import { AlertTriangle, RefreshCw, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Card } from "./Card";
+import DistanceFlag from "./DistanceFlag";
 import type {
   IncompleteItem,
   IncompleteIssue,
   IncompleteSummary,
 } from "../../../../lib/attendance-incompleteness";
+
+// Location of the existing clock-in on an incomplete day. Only meaningful for
+// no_exit / no_entry (there IS one clock-in — the entry that wasn't closed, or
+// the orphan exit — and its GPS says whether the worker was on site). Reuses
+// DistanceFlag; phone/manual clock-ins (no GPS) get a neutral tag, not "missing".
+function IncompleteLocation({ it, threshold }: { it: IncompleteItem; threshold: number }) {
+  if (it.issue !== "no_exit" && it.issue !== "no_entry") return null;
+  if (it.lat && it.lng) return <DistanceFlag r={it} threshold={threshold} />;
+  // A row with a known no-GPS source is expected (phone/manual), not broken.
+  if (it.source) {
+    return (
+      <span className="text-[0.75rem] font-semibold px-1.5 py-0.5 shrink-0 bg-charcoal/[0.04] text-charcoal/50"
+        title="החתמה ללא נתוני מיקום (טלפון/ידני)">ללא GPS</span>
+    );
+  }
+  return null;
+}
 
 const ISSUE_LABEL: Record<IncompleteIssue, string> = {
   stuck_failure:      "כשל החתמה",
@@ -78,7 +96,10 @@ export default function IncompletePanel(p: {
   onViewWorkerHistoryForDay: (staffId: string, ymd: string) => void;
   onGoToApprovals: () => void;
   onAssignProject: (attendanceId: string, projectId: string) => Promise<boolean>;
+  /** Visual "far" threshold (m) for the location flag; matches the live board. */
+  farThresholdM?: number;
 }) {
+  const farThresholdM = p.farThresholdM ?? 500;
   // ref_id currently being assigned a project (spinner + disable).
   const [assigning, setAssigning] = useState<string | null>(null);
 
@@ -162,6 +183,10 @@ export default function IncompletePanel(p: {
                       {FAILURE_CODE_LABEL[it.error_code] ?? it.error_code}
                     </span>
                   )}
+
+                  {/* Location of the existing clock-in (no_exit / no_entry) — is
+                      the worker actually on site? */}
+                  <IncompleteLocation it={it} threshold={farThresholdM} />
 
                   <span className="ms-auto">
                     {it.issue === "no_project" ? (

@@ -62,6 +62,15 @@ export interface IncompleteItem {
   /** For stuck_failure only: the attendance_failures.error_code, so the UI can
    *  show WHAT failed and suggest the right fix (a blocked exit ≠ a missing day). */
   error_code?: string | null;
+  // ── Location of the existing clock-in (display only) ──────────────────────
+  // Populated by the server layer (loadIncompleteness) AFTER the engine runs,
+  // keyed by ref_id — never set inside the engine. For no_exit / no_entry days
+  // this is the GPS of the one clock-in that DID happen, so the admin can see
+  // whether the worker was on site. Absent (null) for phone/manual clock-ins.
+  lat?: string | null;
+  lng?: string | null;
+  distance_from_project_m?: number | null;
+  source?: string | null;
 }
 
 // ── Flat input rows (the endpoint flattens Supabase joins before calling) ──

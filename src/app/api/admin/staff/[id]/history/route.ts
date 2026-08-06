@@ -103,7 +103,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
   const [attResult, vacResult] = await Promise.all([
     supabase
       .from("attendance")
-      .select("id, staff_id, action, clock_at, created_at, status, project:project_id(id, name)")
+      .select("id, staff_id, action, clock_at, created_at, status, lat, lng, distance_from_project_m, source, project:project_id(id, name)")
       .is("deleted_at", null)
       .eq("staff_id", params.id)
       .gte("created_at", widenedFrom.toISOString())

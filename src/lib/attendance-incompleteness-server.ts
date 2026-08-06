@@ -60,7 +60,7 @@ export async function loadIncompleteness(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let q: any = supabase
       .from("attendance")
-      .select("id, staff_id, action, clock_at, created_at, status, is_manual, project_id, staff:staff_id(name), project:project_id(name)")
+      .select("id, staff_id, action, clock_at, created_at, status, is_manual, project_id, lat, lng, distance_from_project_m, source, staff:staff_id(name), project:project_id(name)")
       .is("deleted_at", null)
       .gte("clock_at", fromISO)
       .lt("clock_at", toISO);
@@ -136,7 +136,33 @@ export async function loadIncompleteness(
       };
     });
 
-  const items = computeIncompleteDays({ attendance, failures, pendingCorrections }, { todayYmd });
+  // Location lookup: attendance id → the row's GPS fields. The engine's
+  // no_exit / no_entry items carry ref_id = the EXISTING clock-in for that day
+  // (the entry that was never closed, or the orphan exit), so its location tells
+  // the admin whether the worker was actually on site. Enrichment happens HERE,
+  // after the engine runs, keyed by ref_id — the incompleteness engine, noise
+  // filter and blocking logic are untouched. lat/lng coerced to string so
+  // DistanceFlag (shared with the live board) consumes them unchanged.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const attById = new Map<string, { lat: string | null; lng: string | null; distance_from_project_m: number | null; source: string | null }>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const r of (attRaw ?? []) as any[]) {
+    attById.set(r.id, {
+      lat: r.lat != null ? String(r.lat) : null,
+      lng: r.lng != null ? String(r.lng) : null,
+      distance_from_project_m: r.distance_from_project_m ?? null,
+      source: r.source ?? null,
+    });
+  }
+
+  const rawItems = computeIncompleteDays({ attendance, failures, pendingCorrections }, { todayYmd });
+  // Attach location only where ref_id points at an attendance row we loaded
+  // (no_exit / no_entry / no_project / pending_manual). stuck_failure /
+  // pending_correction ref_ids point at other tables → left without location.
+  const items = rawItems.map((it) => {
+    const loc = it.ref_id ? attById.get(it.ref_id) : undefined;
+    return loc ? { ...it, ...loc } : it;
+  });
   const summary = summarizeIncomplete(items);
   return { items, summary };
 }

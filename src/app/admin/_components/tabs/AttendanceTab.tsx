@@ -1765,6 +1765,7 @@ export default function AttendanceTab(p: Props) {
           onViewWorkerHistoryForDay={p.onOpenStaleDay}
           onGoToApprovals={p.onGoToApprovals}
           onAssignProject={p.onAssignProject}
+          farThresholdM={p.farThresholdM}
         />
       )}
 
@@ -1779,6 +1780,7 @@ export default function AttendanceTab(p: Props) {
           error={p.historyError}
           onReload={p.onLoadHistory}
           pendingCorrectionAttIds={new Set(p.correctionRequests.map((c) => c.attendance_id))}
+          farThresholdM={p.farThresholdM}
         />
       )}
 
