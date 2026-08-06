@@ -37,6 +37,14 @@
 
 ## הושלם (בייצור)
 
+- **כפתור "הורד PDF" עליון בדוח החודשי** — **נפרס** (4.8.26,
+  `fix/report-top-pdf-button` → main `af6f07d`, `dpl_2V8t5BrHqNGisxXkUu5XE7eAoLo6`;
+  אומת: `/admin` `x-matched-path` 200). כפתור "הורד PDF" לצד "הורד אקסל" בשורה העליונה —
+  מכבד את בורר העובד (עובד נבחר ← PDF שלו · "כל העובדים" ← כולם, כל אחד בעמוד נפרד).
+  מיחזר את מנגנון ההדפסה הקיים (portal + `.report-print-root` + document.title): הכללתי
+  את `printingId` היחיד ל-`printTarget` (staffId או `PRINT_ALL`) שמשרת גם את הכפתורים
+  פר-כרטיס (ללא שינוי) וגם את העליון. **produce-then-print בפעולה אחת:** אם אין דוח על
+  המסך — הכפתור מפיק קודם, ו-effect נדחה מדפיס כשה-data נוחת (ההדפסה דורשת DOM מרונדר).
 - **"מי באתר כרגע" בלשונית נוכחות + אריחי סטטיסטיקה לחיצים** — **נפרס** (4.8.26,
   `feature/onsite-panel-clickable-tiles` → main `bb63438`, `dpl_HmM3JGeHbokXS1ZagjDw7mthuU3H`;
   אומת: `/admin` `x-matched-path` 200). (1) פאנל "מי באתר כרגע" נוסף ל-נוכחות ← live
