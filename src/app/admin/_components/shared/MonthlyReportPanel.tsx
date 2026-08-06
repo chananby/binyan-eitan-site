@@ -87,6 +87,10 @@ function currentMonth(): string {
 
 interface StaffLite { id: string; name: string; active: boolean }
 
+// Sentinel printTarget meaning "print the whole report" (every block in data).
+// A real staff id never collides with this.
+const PRINT_ALL = "__all__";
+
 export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
   const [month, setMonth]     = useState<string>(currentMonth);
   // Worker scope: "" = all workers (default). Picking a worker narrows BOTH the
@@ -96,9 +100,15 @@ export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
   const [data, setData]       = useState<Data | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr]         = useState<string | null>(null);
-  // Which worker block is currently being printed (a copy is portaled to
-  // <body> as `.report-print-root` and the print stylesheet shows only it).
-  const [printingId, setPrintingId] = useState<string | null>(null);
+  // Print target: a staff id prints that ONE block; PRINT_ALL prints every
+  // block in `data`; null = not printing. ONE mechanism (portal + document.title
+  // + the effect below) serves both the per-card "הדפס / PDF" and the top
+  // "הורד PDF" — see printBlock / printReport.
+  const [printTarget, setPrintTarget] = useState<string | null>(null);
+  // Set when the top "הורד PDF" was clicked before a report existed: fetchReport
+  // runs first, then this flag makes the effect fire the print once data lands
+  // — so it's one user action ("produce → print"), not two clicks.
+  const [pendingPrintAll, setPendingPrintAll] = useState(false);
   // Generation date stamped on the printed slip + PDF title. DD.MM.YYYY with
   // DOTS — never "/" or "#", which browsers mangle in the Save-as-PDF filename
   // (the lesson from the quote generator). Computed once per mount.
@@ -167,20 +177,52 @@ export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
   // (harmless) is simply overwritten by the next print or on navigation.
   function printBlock(block: WorkerBlock) {
     document.title = `דוח נוכחות - ${block.staff.name} - ${heMonthLabel(month)} - ${genDate}`;
-    setPrintingId(block.staff.id);
+    setPrintTarget(block.staff.id);
   }
 
+  // Print the whole report (top "הורד PDF"). `data` already reflects the worker
+  // selector (a worker → one block; "כל העובדים" → all), and the selector clears
+  // `data` on change, so "print everything in data" is automatically scoped. The
+  // filename mirrors the XLSX one (built from the same selector).
+  function printReport() {
+    const who = selectedStaffId
+      ? (staff.find((s) => s.id === selectedStaffId)?.name ?? "עובד")
+      : "כל העובדים";
+    document.title = `דוח נוכחות - ${who} - ${heMonthLabel(month)} - ${genDate}`;
+    setPrintTarget(PRINT_ALL);
+  }
+
+  // Top "הורד PDF": if a report is already on screen, print it now; otherwise
+  // produce it first and let the effect below print once data lands — one action.
+  function downloadPdf() {
+    if (loading || !month) return;
+    if (data) { printReport(); return; }
+    setPendingPrintAll(true);
+    fetchReport();
+  }
+
+  // Deferred print: fires once the produce-then-print fetch has delivered data.
   useEffect(() => {
-    if (!printingId) return;
+    if (!pendingPrintAll || !data || loading) return;
+    setPendingPrintAll(false);
+    const who = selectedStaffId
+      ? (staff.find((s) => s.id === selectedStaffId)?.name ?? "עובד")
+      : "כל העובדים";
+    document.title = `דוח נוכחות - ${who} - ${heMonthLabel(month)} - ${genDate}`;
+    setPrintTarget(PRINT_ALL);
+  }, [pendingPrintAll, data, loading, selectedStaffId, staff, month, genDate]);
+
+  useEffect(() => {
+    if (!printTarget) return;
     document.body.classList.add("printing-report-block");
-    // Print on the next frame so the portal copy of the block is committed to
-    // the DOM before the print dialog snapshots the page.
+    // Print on the next frame so the portal copy is committed to the DOM before
+    // the print dialog snapshots the page.
     const raf = requestAnimationFrame(() => window.print());
-    // afterprint ONLY undoes the print-isolation (body class + printingId), never
+    // afterprint ONLY undoes the print-isolation (body class + printTarget), never
     // the document title — see printBlock for why the title is left in place.
     const done = () => {
       document.body.classList.remove("printing-report-block");
-      setPrintingId(null);
+      setPrintTarget(null);
     };
     window.addEventListener("afterprint", done, { once: true });
     return () => {
@@ -188,7 +230,7 @@ export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
       window.removeEventListener("afterprint", done);
       document.body.classList.remove("printing-report-block");
     };
-  }, [printingId]);
+  }, [printTarget]);
 
   return (
     <Card>
@@ -207,7 +249,7 @@ export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
         <span>בהדפסה ל-PDF בחר <b>&quot;שמור כ-PDF&quot; (Save as PDF)</b> של הדפדפן — לא &quot;Microsoft Print to PDF&quot; — אחרת שם הקובץ יֵצא ריק.</span>
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end">
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto_auto_auto] gap-3 items-end">
         <div>
           <label className="block text-caption text-muted mb-1 font-body">חודש</label>
           <MonthField
@@ -248,6 +290,16 @@ export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
             ? <><User size={13} /> הורד אקסל</>
             : <><Users size={13} /> הורד אקסל — כל העובדים</>}
         </button>
+        <button
+          onClick={downloadPdf}
+          disabled={loading || !month}
+          title={selectedStaffId
+            ? 'הורד PDF של העובד שנבחר (בחר "שמור כ-PDF")'
+            : 'הורד PDF של כל העובדים (בחר "שמור כ-PDF")'}
+          className="flex items-center justify-center gap-2 px-4 py-2 border border-accent text-accent text-sm font-semibold hover:bg-accent hover:text-bone disabled:opacity-40 transition-colors whitespace-nowrap"
+        >
+          <Printer size={13} /> הורד PDF
+        </button>
       </div>
 
       {err && (
@@ -283,22 +335,35 @@ export default function MonthlyReportPanel({ staff }: { staff: StaffLite[] }) {
         </div>
       )}
 
-      {/* Print target — a COPY of the one block being printed, portaled to
-          <body> root. Off-screen normally (.report-print-root is display:none);
-          the print stylesheet (globals.css) shows only this and hides the rest
-          of the page. Its buttons are print:hidden so they never reach the PDF. */}
-      {printingId && data && (() => {
-        const target = data.blocks.find((b) => b.staff.id === printingId);
-        return target
+      {/* Print target — a COPY of the block(s) being printed, portaled to <body>
+          root. Off-screen normally (.report-print-root is display:none); the
+          print stylesheet (globals.css) shows only this and hides the rest of
+          the page. A staff id prints that one block; PRINT_ALL prints every
+          block in the report, each on its own page (breakAfter). Buttons are
+          print:hidden so they never reach the PDF. */}
+      {printTarget && data && (() => {
+        const blocks = printTarget === PRINT_ALL
+          ? data.blocks
+          : data.blocks.filter((b) => b.staff.id === printTarget);
+        return blocks.length
           ? createPortal(
               <div className="report-print-root">
-                <WorkerBlockCard
-                  block={target}
-                  month={data.month}
-                  genDate={genDate}
-                  onDownloadXlsx={() => {}}
-                  onPrint={() => {}}
-                />
+                {blocks.map((b, i) => (
+                  <div
+                    key={b.staff.id}
+                    // Each worker's slip starts a fresh page; no trailing blank
+                    // page after the last one.
+                    style={i < blocks.length - 1 ? { breakAfter: "page" } : undefined}
+                  >
+                    <WorkerBlockCard
+                      block={b}
+                      month={data.month}
+                      genDate={genDate}
+                      onDownloadXlsx={() => {}}
+                      onPrint={() => {}}
+                    />
+                  </div>
+                ))}
               </div>,
               document.body,
             )
