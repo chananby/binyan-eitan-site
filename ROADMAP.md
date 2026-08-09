@@ -37,6 +37,18 @@
 
 ## הושלם (בייצור)
 
+- **מיקום ההחתמה הקיימת בימים חסרים** — **נפרס** (4.8.26,
+  `feature/location-on-incomplete-days` → main `8c8ad24`, `dpl_ESGqkzRmsh9DTXDvXFqywu6oZ7Kn`;
+  אומת: `/admin` `x-matched-path` 200). ביום עם "ללא יציאה"/"ללא כניסה" יש החתמה אחת קיימת
+  (הכניסה שלא נסגרה / היציאה היתומה) — המיקום שלה אומר אם העובד באמת היה באתר. מוצג בשני
+  מקומות עם מיחזור `DistanceFlag`: מרכז החוסרים ([IncompletePanel](src/app/admin/_components/shared/IncompletePanel.tsx))
+  והיסטוריית עובד ([WorkerHistoryPanel](src/app/admin/_components/tabs/WorkerHistoryPanel.tsx)).
+  החתמות טלפון/ידני (בלי GPS) → תג ניטרלי "ללא GPS", לא כחסר. **הרחבת תגובה, לא שינוי:**
+  הוספתי `lat/lng/distance_from_project_m/source` ל-selects של loadIncompleteness ושל
+  ה-worker-history (שדות קיימים לא שוניתי). **מנוע האי-שלמות/סינון הרעש/לוגיקת החסימה לא
+  נגעו** — ההעשרה בשכבת השרת אחרי `computeIncompleteDays`, לפי `ref_id`. הערת פריסה: ה-CLI
+  `npx vercel` נכשל על repo-link (`directory:"."`); נפרס דרך env-var link
+  (`VERCEL_ORG_ID`/`VERCEL_PROJECT_ID`) בלי שינוי קונפיג.
 - **כפתור "הורד PDF" עליון בדוח החודשי** — **נפרס** (4.8.26,
   `fix/report-top-pdf-button` → main `af6f07d`, `dpl_2V8t5BrHqNGisxXkUu5XE7eAoLo6`;
   אומת: `/admin` `x-matched-path` 200). כפתור "הורד PDF" לצד "הורד אקסל" בשורה העליונה —
