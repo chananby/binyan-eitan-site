@@ -165,7 +165,7 @@ export default function RateManager(p: Props) {
             <label className="flex flex-col gap-1">
               <span className="text-caption uppercase tracking-wide text-charcoal/70">סכום ({empLabel})</span>
               <input
-                type="number" step="0.5" min="0"
+                type="number" step="0.01" min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 className="border border-charcoal/20 bg-white px-2 py-1.5 text-sm focus:outline-none focus:border-accent"

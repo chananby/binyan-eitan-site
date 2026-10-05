@@ -63,7 +63,7 @@ export default function EmploymentSection(p: Props) {
             <input
               value={p.hourlyRate}
               onChange={e => p.setHourlyRate(e.target.value)}
-              type="number" min="0" step="0.5"
+              type="number" min="0" step="0.01"
               placeholder={p.mode === "new" ? "45.00" : undefined}
               dir="ltr" className={INPUT}
             />
